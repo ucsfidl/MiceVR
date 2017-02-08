@@ -1,0 +1,14 @@
+<document>
+	<config>
+		<!-- syntax: port;ip-->
+		<waterReward>3991;127.0.0.1</waterReward>
+		<syncMessage>3992;127.0.0.1</syncMessage>
+		<mousePos>3993;127.0.0.1</mousePos>
+		<mouseRot>3994;127.0.0.1</mouseRot>
+		<inWater>3995;127.0.0.1</inWater>
+		<inDry>3996;127.0.0.1</inDry>
+		<inWall>3997;127.0.0.1</inWall>
+		<arduinoPort>COM4</arduinoPort>
+		<rpiPort>8888;169.230.188.46</rpiPort>
+	</config>
+</document>

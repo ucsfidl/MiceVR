@@ -1,0 +1,65 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+	</config>
+	<trees>
+		<t> <!-- Left tree -->
+			<w>1</w>
+			<pos>19985;0;20043</pos>
+			<d>0</d>
+		</t>
+		<t> <!-- Right tree -->
+			<w>1</w>
+			<pos>20015;0;20043</pos>
+			<d>0</d>
+		</t>
+	</trees>
+	<walls>
+		<wall> <!-- Left wall -->
+			<pos>19994;3;20015</pos>
+			<rot>0;0;0</rot>
+			<scale>2;6;43.1</scale>
+		</wall>
+		<wall> <!-- Right wall -->
+			<pos>20006;3;20015</pos>
+			<rot>0;0;0</rot>
+			<scale>2;6;43.1</scale>
+		</wall>
+		<wall> <!-- Front wall -->
+			<pos>20000;3;19994</pos>
+			<rot>0;90.00003;0</rot>
+			<scale>2;6;15</scale>
+		</wall>
+		<wall> <!-- Back wall -->
+			<pos>20000;3;20050</pos>
+			<rot>0;270;0</rot>
+			<scale>2;6;40</scale>
+		</wall>
+		<wall> <!-- Left front back wall -->
+			<pos>19986;3;20035</pos>
+			<rot>0;270;0</rot>
+			<scale>2;6;19.1</scale>
+		</wall>
+		<wall> <!-- Right front back wall -->
+			<pos>20014;3;20035</pos>
+			<rot>0;270;0</rot>
+			<scale>2;6;19.1</scale>
+		</wall>
+		<wall> <!-- Back left wall -->
+			<pos>19980;3;20043</pos>
+			<rot>0;0;0</rot>
+			<scale>2;6;20</scale>
+		</wall>
+		<wall> <!-- Back right wall -->
+			<pos>20020;3;20043</pos>
+			<rot>0;0;0</rot>
+			<scale>2;6;20</scale>
+		</wall>		
+	</walls>
+</document>
