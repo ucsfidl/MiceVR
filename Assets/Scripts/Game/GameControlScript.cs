@@ -71,6 +71,7 @@ public class GameControlScript : MonoBehaviour
 
 		Debug.Log ("Framerate: " + 1.0f / Time.deltaTime);
         CatchKeyStrokes();
+
 		
         switch (this.state)
         {
