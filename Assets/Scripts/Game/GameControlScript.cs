@@ -36,6 +36,7 @@ public class GameControlScript : MonoBehaviour
     private DebugControl debugControlScript;
     private bool timeoutState;
 
+
 	private int smoothingWindow = 1;  // Amount to smoothen the player movement
 	private int trialDelay = 2;  // seconds to wait before starting next trial
 	private bool waitedOneFrame = false;  // When mouse hits tree, need to wait a few frames before it turns black, and then pause the game
