@@ -1,9 +1,0 @@
-<document>
-	<config>
-		<!-- in seconds -->
-		<runDuration>3600</runDuration>
-		<numberOfRuns>300</numberOfRuns>
-		<rawSpeedDivider>500</rawSpeedDivider>
-		<rawRotationDivider>-10000</rawRotationDivider>
-	</config>
-</document>
