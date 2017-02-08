@@ -8,7 +8,7 @@
 		<inWater>3995;127.0.0.1</inWater>
 		<inDry>3996;127.0.0.1</inDry>
 		<inWall>3997;127.0.0.1</inWall>
-		<arduinoPort>COM4</arduinoPort>
-		<rpiPort>8888;169.230.188.46</rpiPort>
+		<arduinoPort>COM5</arduinoPort>
+		<rpiPort>8888;169.230.188.41</rpiPort>
 	</config>
 </document>
