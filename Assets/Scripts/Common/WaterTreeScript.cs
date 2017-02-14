@@ -7,7 +7,6 @@ public class WaterTreeScript : MonoBehaviour {
 
 	public GameObject crown, trunk, waterBase, topCap, bottomCap;
     public Color waterBaseColor;
-    public float wateringSeconds = 0.5f;
     
     private int rewardLevel;
     private bool depleted;
@@ -59,24 +58,34 @@ public class WaterTreeScript : MonoBehaviour {
 
     void OnTriggerEnter(Collider c)
     {
-		//Debug.Log ("WaterTree OnTriggerEnter");
-		//Debug.Log ((Globals.numberOfRewards).ToString());
-        if (c.tag == "Player")
-        {
-            Globals.playerInWaterTree = true;
-            GameObject.Find("UDPSender").GetComponent<UDPSend>().SendInWater();
-            if (!this.depleted)
-            {
-                GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward(this.rewardLevel);
-				//GameObject.Find("movementRecorder").GetComponent<MovementRecorder>().logReward(true,false);
-                this.depleted = true;
-                this.mouseObject = GameObject.FindGameObjectWithTag("MainCamera");
-                this.mouseObject.GetComponent<AudioSource>().Play();
-                Globals.numberOfRewards++;
-            }
-			// NB edit
-			GameObject.Find ("GameControl").GetComponent<GameControlScript> ().ResetScenario ();
-        }
+		Debug.Log ("WaterTree at " + this.gameObject.transform.position.x + " triggered by " + c.tag);
+		if (c.tag == "Player") {
+			if (this.enabled) {
+				Debug.Log ("Dispensing water");
+				Globals.playerInWaterTree = true;
+				GameObject.Find ("UDPSender").GetComponent<UDPSend> ().SendInWater ();
+				if (!this.depleted) {
+					GameObject.Find ("UDPSender").GetComponent<UDPSend> ().SendWaterReward (this.rewardLevel);
+					//GameObject.Find("movementRecorder").GetComponent<MovementRecorder>().logReward(true,false);
+					this.depleted = true;
+					this.mouseObject = GameObject.FindGameObjectWithTag ("MainCamera");
+					this.mouseObject.GetComponent<AudioSource> ().Play ();
+					Globals.numberOfRewards++;
+				}
+				// NB edit
+				if (Globals.hasNotTurned) {
+					Globals.hasNotTurned = false;
+					Globals.numCorrectTurns++;
+					Globals.firstTurn.Add (this.gameObject.transform.position.x);
+				}
+				GameObject.Find ("GameControl").GetComponent<GameControlScript> ().ResetScenario ();
+			} else {
+				if (Globals.hasNotTurned) {
+					Globals.hasNotTurned = false;
+					Globals.firstTurn.Add (this.gameObject.transform.position.x);
+				} 
+			}
+		}
     }
 
     void OnTriggerExit()
@@ -178,4 +187,25 @@ public class WaterTreeScript : MonoBehaviour {
     {
         GetComponent<HoverScript>().enabled = false;
     }
+
+	public void Hide()
+	{
+		foreach (Transform t in this.gameObject.transform) {
+			t.gameObject.SetActive (false);
+			Debug.Log ("Inactivated = " + t.gameObject.name);
+		}
+		this.enabled = false;
+		this.gameObject.GetComponent<CapsuleCollider> ().enabled = true;  // Something is making this false...
+		Debug.Log ("Collider is " + this.gameObject.GetComponent<CapsuleCollider> ().enabled);
+	}
+
+	public void Show()
+	{
+		foreach (Transform t in this.gameObject.transform) {
+			t.gameObject.SetActive (true);
+			Debug.Log ("Activated = " + t.gameObject.name);
+		}
+		this.enabled = true;
+		this.gameObject.GetComponent<CapsuleCollider> ().enabled = true;
+	}
 }

@@ -18,6 +18,7 @@ public class GameControlScript : MonoBehaviour
     public Text fadeToBlackText;
     public Text numberOfRewardsText;
 	public Text numberOfDryTreesText;
+	public Text numberOfCorrectTurnsText;
     public UDPSend udpSender;
     public MovementRecorder movementRecorder;
 
@@ -28,14 +29,13 @@ public class GameControlScript : MonoBehaviour
     private float runTime;
     private long frameCounter, previousFrameCounter;
     private System.Collections.Generic.Queue<float> last5Mouse2Y, last5Mouse1Y;
-    private string state;
+    public string state;
     private bool firstFrameRun;
     private bool playerInWaterTree, playerInDryTree;
     private Loader scenarioLoader;
     private CharacterController characterController;
     private DebugControl debugControlScript;
     private bool timeoutState;
-
 
 	private int smoothingWindow = 1;  // Amount to smoothen the player movement
 	private int trialDelay = 2;  // seconds to wait before starting next trial
@@ -63,6 +63,9 @@ public class GameControlScript : MonoBehaviour
 		this.startingPos = this.player.transform.position;
 		this.startingRot = this.player.transform.rotation;
 
+		// Will this fix the issue where rarely colliding with a wall causes mouse to fly above the wall?
+		this.characterController.enableOverlapRecovery = false;  
+
         init();
     }
 
@@ -70,7 +73,7 @@ public class GameControlScript : MonoBehaviour
     void Update()
     {
 
-		Debug.Log ("Framerate: " + 1.0f / Time.deltaTime);
+		//Debug.Log ("Framerate: " + 1.0f / Time.deltaTime);
         CatchKeyStrokes();
 
 		
@@ -176,11 +179,11 @@ public class GameControlScript : MonoBehaviour
      * */
     private void StartGame()
     {
-		Debug.Log ("In StartGame()");
+		//Debug.Log ("In StartGame()");
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "Press SPACE to start";
-		Debug.Log ("waiting for space bar");
+		//Debug.Log ("waiting for space bar");
         if (Input.GetKeyUp(KeyCode.Space))
         {
             this.runTime = Time.time;
@@ -194,6 +197,8 @@ public class GameControlScript : MonoBehaviour
 
             this.firstFrameRun = true;
             this.debugControlScript.enabled = true;
+			Globals.hasNotTurned = true;
+			Globals.numCorrectTurns = 0;
             this.state = "Running";
         }
     }
@@ -256,7 +261,13 @@ public class GameControlScript : MonoBehaviour
 		//this.movementRecorder.logReward(true);
         this.numberOfRewardsText.text = "Number of rewards: " + Globals.numberOfRewards.ToString();
 		this.numberOfDryTreesText.text = "Number of dry trees entered: " + Globals.numberOfDryTrees.ToString();
-        //this.frameCounter++;
+		if (Globals.numberOfRewards > 0) {
+			this.numberOfCorrectTurnsText.text = "Correct turns: " + 
+				Globals.numCorrectTurns.ToString() 
+				+ " (" + 
+				Mathf.Round(((float)Globals.numCorrectTurns / (float)Globals.numberOfRewards) * 100).ToString() + "%)";
+		}
+		//this.frameCounter++;
 		//Debug.Log ("screen updated");
         if (Time.time - this.runTime >= this.runDuration)
         {
@@ -282,7 +293,7 @@ public class GameControlScript : MonoBehaviour
         }
     }
 
-	private void Pause()
+	public void Pause()
 	{
 		if (waitedOneFrame) {
 			System.Threading.Thread.Sleep (trialDelay * 1000);
@@ -308,7 +319,7 @@ public class GameControlScript : MonoBehaviour
         foreach (WaterTreeScript script in GameObject.Find("Trees").GetComponentsInChildren<WaterTreeScript>())
         {
             script.Refill();
-        }
+		}
         print(System.DateTime.Now.Second + ":" + System.DateTime.Now.Millisecond);
         this.debugControlScript.enabled = false;
 
@@ -316,6 +327,11 @@ public class GameControlScript : MonoBehaviour
 		this.fadeToBlack.gameObject.SetActive(true);
 		this.fadeToBlack.color = Color.black;
 		this.state = "Paused";
+
+		// Move the player now, as the screen goes to black and the app detects collisions between the new tree and the player 
+		// if the player is not moved.
+		this.player.transform.position = this.startingPos;
+		this.player.transform.rotation = this.startingRot;
 
         // check for game over
 		/*
@@ -346,29 +362,29 @@ public class GameControlScript : MonoBehaviour
 		// Randomly alternate which tree is visible
 		float r = Random.value;
 		Debug.Log ("random tree value = " + r.ToString ());
-		int numWaterTrees = 0;
 		// There should be a better way of counting trees, but I don't know it :(
-		List<GameObject> gos = new List<GameObject>();
-		foreach (WaterTreeScript script in GameObject.Find("Trees").GetComponentsInChildren<WaterTreeScript>(true)) {
-			gos.Add(script.gameObject);
-		}
-		Debug.Log ("Num trees = " + gos.Count.ToString ());
-		if (gos.Count == 2) {
+		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+		Debug.Log ("Num trees = " + gos.Length.ToString ());
+		if (gos.Length == 2) {
 			int treeToActivate;
 			if (r < 0.5) {
 				treeToActivate = 0;
 			} else {
 				treeToActivate = 1;
 			}
-			for (int i = 0; i < gos.Count; i++) {
+			for (int i = 0; i < gos.Length; i++) {
+				gos [i].SetActive (true);
 				if (i == treeToActivate) {
-					gos [i].SetActive (true);
+					//gos [i].SetActive (true);
+					gos[i].GetComponent<WaterTreeScript> ().Show();
 					Debug.Log ("Activated tree id = " + i.ToString ());
 				} else {
-					gos [i].SetActive (false);
+					//gos [i].SetActive (false);
+					gos [i].GetComponent<WaterTreeScript> ().Hide ();
 					Debug.Log ("Inactivated tree id = " + i.ToString ());
 				}
 			}
+			Globals.targetLoc.Add (gos[treeToActivate].transform.position.x);
 		}
 
 
@@ -383,9 +399,12 @@ public class GameControlScript : MonoBehaviour
 
 		this.firstFrameRun = true;
 		this.debugControlScript.enabled = true;
+
+		Globals.hasNotTurned = true;
+
 		this.state = "Running";
 	}
-    
+
     private void GameOver()
     {
 		Debug.Log ("In GameOver()");

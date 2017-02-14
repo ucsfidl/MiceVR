@@ -104,24 +104,24 @@ public class Loader : MonoBehaviour {
             }
 
 			// NB edit
-			// If there are only 2 trees, alternate which is shown
+			// If there are only 2 trees, alternate which is visible
 			if (end == 2) {
 				float r = Random.value;
 				if (r < 0.5) {
-					end = 1;
+					treeList [1].GetComponent<WaterTreeScript> ().Hide ();
+					Globals.targetLoc.Add (treeList[0].transform.position.x);
 				} else {
-					start = 1;
+					treeList [0].GetComponent<WaterTreeScript> ().Hide ();
+					Globals.targetLoc.Add (treeList[1].transform.position.x);
 				}
 				Debug.Log ("random val = " + r);
 			}
-			Debug.Log ("In Update of Loader - start = " + start.ToString());
-			Debug.Log ("In Update of Loader - end = " + end.ToString());
-			Debug.Log ("In Update of Loader - treeList = " + treeList.Count.ToString());
 
             for (int i = start; i < end; i++)
             {
                 treeList[i].SetActive(true);
             }
+			Debug.Log ("Tree activation finished by Loader");
             System.GC.Collect();
 
             start += inc;

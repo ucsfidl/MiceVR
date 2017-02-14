@@ -18,4 +18,9 @@ public static class Globals
     public static bool timeoutState;
 	public static int numberOfDryTrees;
 
+	// NB edit: globals to keep track of successful turns in the T maze
+	public static bool hasNotTurned;
+	public static ArrayList targetLoc = new ArrayList(); // L = left, R = right, S = straight (on 3 arm maze)
+	public static ArrayList firstTurn = new ArrayList();
+	public static int numCorrectTurns;
 }
