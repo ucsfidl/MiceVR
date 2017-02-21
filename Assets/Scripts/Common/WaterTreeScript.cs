@@ -58,10 +58,10 @@ public class WaterTreeScript : MonoBehaviour {
 
     void OnTriggerEnter(Collider c)
     {
-		Debug.Log ("WaterTree at " + this.gameObject.transform.position.x + " triggered by " + c.tag);
+		//Debug.Log ("WaterTree at " + this.gameObject.transform.position.x + " triggered by " + c.tag);
 		if (c.tag == "Player") {
 			if (this.enabled) {
-				Debug.Log ("Dispensing water");
+				//Debug.Log ("Dispensing water");
 				Globals.playerInWaterTree = true;
 				GameObject.Find ("UDPSender").GetComponent<UDPSend> ().SendInWater ();
 				if (!this.depleted) {
@@ -192,18 +192,18 @@ public class WaterTreeScript : MonoBehaviour {
 	{
 		foreach (Transform t in this.gameObject.transform) {
 			t.gameObject.SetActive (false);
-			Debug.Log ("Inactivated = " + t.gameObject.name);
+			//Debug.Log ("Inactivated = " + t.gameObject.name);
 		}
 		this.enabled = false;
 		this.gameObject.GetComponent<CapsuleCollider> ().enabled = true;  // Something is making this false...
-		Debug.Log ("Collider is " + this.gameObject.GetComponent<CapsuleCollider> ().enabled);
+		//Debug.Log ("Collider is " + this.gameObject.GetComponent<CapsuleCollider> ().enabled);
 	}
 
 	public void Show()
 	{
 		foreach (Transform t in this.gameObject.transform) {
 			t.gameObject.SetActive (true);
-			Debug.Log ("Activated = " + t.gameObject.name);
+			//Debug.Log ("Activated = " + t.gameObject.name);
 		}
 		this.enabled = true;
 		this.gameObject.GetComponent<CapsuleCollider> ().enabled = true;

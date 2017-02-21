@@ -47,6 +47,7 @@ public class GameControlScript : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+		Debug.Log ("started!");
         this.frameCounter = this.previousFrameCounter = 0;
         this.runNumber = 1;
 		this.last5Mouse1Y = new System.Collections.Generic.Queue<float>(smoothingWindow);
@@ -63,8 +64,14 @@ public class GameControlScript : MonoBehaviour
 		this.startingPos = this.player.transform.position;
 		this.startingRot = this.player.transform.rotation;
 
-		// Will this fix the issue where rarely colliding with a wall causes mouse to fly above the wall?
+		// Will this fix the issue where rarely colliding with a wall causes mouse to fly above the wall?  No.
 		this.characterController.enableOverlapRecovery = false;  
+
+		/*
+		GameObject ifld = GameObject.Find ("ScenarioInput");
+		EventSystemManager.currentSystem.SetSelectedGameObject (ifld);
+		Debug.Log ("focused!");
+		*/
 
         init();
     }
@@ -315,12 +322,12 @@ public class GameControlScript : MonoBehaviour
         this.runTime = Time.time;
         this.runNumber++;
 
-        print(System.DateTime.Now.Second + ":" + System.DateTime.Now.Millisecond);
+        //print(System.DateTime.Now.Second + ":" + System.DateTime.Now.Millisecond);
         foreach (WaterTreeScript script in GameObject.Find("Trees").GetComponentsInChildren<WaterTreeScript>())
         {
             script.Refill();
 		}
-        print(System.DateTime.Now.Second + ":" + System.DateTime.Now.Millisecond);
+        //print(System.DateTime.Now.Second + ":" + System.DateTime.Now.Millisecond);
         this.debugControlScript.enabled = false;
 
 		// NB edit (1 line)
@@ -344,7 +351,7 @@ public class GameControlScript : MonoBehaviour
 
     private void Respawn()
     {
-		Debug.Log ("Respawning");
+		//Debug.Log ("Respawning");
 
 		// NB edit - commented out to teleport mouse back to the beginning
         //int x = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
@@ -359,19 +366,32 @@ public class GameControlScript : MonoBehaviour
 		this.player.transform.rotation = this.startingRot;
         //this.state = "StartGame";
 
-		// Randomly alternate which tree is visible
+		// Randomly decide which of the 2 trees is visible.
+		// If the tree has been shown on the same side 3x in a row, show it on the other side.
 		float r = Random.value;
-		Debug.Log ("random tree value = " + r.ToString ());
-		// There should be a better way of counting trees, but I don't know it :(
 		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-		Debug.Log ("Num trees = " + gos.Length.ToString ());
 		if (gos.Length == 2) {
 			int treeToActivate;
-			if (r < 0.5) {
-				treeToActivate = 0;
-			} else {
-				treeToActivate = 1;
+			int len = Globals.targetLoc.Count;
+			if (len >= 3) {
+				Debug.Log (Globals.targetLoc [len - 1] + " " + Globals.targetLoc [len - 2] + " " + Globals.targetLoc [len - 3]);
 			}
+			// Check and see if last 3 targets were shown in the same location. If they were, show in new location.
+			if (len >= 3 &&
+				System.Convert.ToInt32(Globals.targetLoc [len - 1]) == 
+				System.Convert.ToInt32(Globals.targetLoc [len - 2]) &&
+				System.Convert.ToInt32(Globals.targetLoc [len - 2]) == 
+				System.Convert.ToInt32(Globals.targetLoc [len - 3])) {
+				Debug.Log ("Streak detected and eliminated");
+				if (gos [0].transform.position.x == System.Convert.ToInt32 (Globals.targetLoc [len - 1])) {
+					treeToActivate = 1;	
+				} else {
+					treeToActivate = 0;
+				}
+			} else {
+				treeToActivate = r < 0.5 ? 0 : 1;
+			}
+
 			for (int i = 0; i < gos.Length; i++) {
 				gos [i].SetActive (true);
 				if (i == treeToActivate) {
@@ -381,7 +401,7 @@ public class GameControlScript : MonoBehaviour
 				} else {
 					//gos [i].SetActive (false);
 					gos [i].GetComponent<WaterTreeScript> ().Hide ();
-					Debug.Log ("Inactivated tree id = " + i.ToString ());
+					//Debug.Log ("Inactivated tree id = " + i.ToString ());
 				}
 			}
 			Globals.targetLoc.Add (gos[treeToActivate].transform.position.x);

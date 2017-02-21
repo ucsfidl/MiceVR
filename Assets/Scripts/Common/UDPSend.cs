@@ -125,7 +125,7 @@ public class UDPSend : MonoBehaviour
 
     public void SendWaterReward(int amount)
     {
-		Debug.Log ("Send Reward Called");
+		//Debug.Log ("Send Reward Called");
         int msg = amount;
         try
         {
@@ -137,8 +137,8 @@ public class UDPSend : MonoBehaviour
 
             this.usbWriter.Write(amount.ToString());
             //this.usbWriter.Close();
-			Debug.Log("Water Reward Output:");
-			Debug.Log(amount.ToString());
+			//Debug.Log("Water Reward Output:");
+			//Debug.Log(amount.ToString());
         }
         catch (Exception err)
         {
