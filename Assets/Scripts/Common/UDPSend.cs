@@ -69,8 +69,16 @@ public class UDPSend : MonoBehaviour
         client = new UdpClient();
         this.usbWriter = new SerialPort(this.USBPort, 9600);
 		this.usbWriter.ReadTimeout = 1;
+		this.usbWriter.Parity = Parity.None;
+		this.usbWriter.StopBits = StopBits.One;
+		this.usbWriter.DataBits = 8;
+		this.usbWriter.Handshake = Handshake.None;
+		this.usbWriter.RtsEnable = true;
+		this.usbWriter.DtrEnable = true;
 		this.usbWriter.DataReceived += new SerialDataReceivedEventHandler(DataReceivedEventHandler);
+		this.usbWriter.ErrorReceived += new SerialErrorReceivedEventHandler (usb_ErrorReceived);
 		this.usbWriter.Open();
+
 
 
     }
@@ -144,8 +152,7 @@ public class UDPSend : MonoBehaviour
 
             this.usbWriter.Write(amount.ToString());
             //this.usbWriter.Close();
-			//Debug.Log("Water Reward Output:");
-			//Debug.Log(amount.ToString());
+			Debug.Log("Water Reward Output");
         }
         catch (Exception err)
         {
@@ -162,6 +169,7 @@ public class UDPSend : MonoBehaviour
 
 			//this.usbWriter.Close();
 			ardmsg = this.usbWriter.ReadLine();
+			Debug.Log(ardmsg);
 			if(ardmsg!=""){
 				return true;
 			}
@@ -306,7 +314,7 @@ public class UDPSend : MonoBehaviour
                 usbWriter.Open();
 
             usbWriter.Write("1");
-            usbWriter.Close();
+            //usbWriter.Close();
         }
         catch (Exception)
         {
@@ -331,10 +339,17 @@ public class UDPSend : MonoBehaviour
     }
 	private static void DataReceivedEventHandler(object sender, SerialDataReceivedEventArgs e)
 	{
-		SerialPort sp = (SerialPort)sender;
-		string indata = sp.ReadExisting();
+		//SerialPort sp = (SerialPort)sender;
+		//string indata = sp.ReadExisting();
 		Debug.Log("Data Received:");
-		Debug.Log(indata);
+		//Debug.Log(indata);
+	}
+	private static void usb_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
+	{
+		//SerialPort sp = (SerialPort)sender;
+		//string indata = sp.ReadExisting();
+		Debug.Log("Error Received:");
+		//Debug.Log(indata);
 	}
 }
 

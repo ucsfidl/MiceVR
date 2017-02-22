@@ -6,7 +6,6 @@ const int syncPin = 7;
 const int wallPin = 4;
 const int vPin = 3;  // hack to keep the valve from flickering on program load, which leaks water everywhere
 const int touchPin = 2;
-int lickCounter=0;
 
 void setup() {
   
@@ -28,7 +27,7 @@ void setup() {
 void loop() {
   if (Serial.available() > 0) {
     int data = Serial.parseInt();
-    Serial.println(data);
+    //Serial.println(data);
     if ( data != '\n') {
       // water
       if ( data == 1 )
@@ -38,8 +37,6 @@ void loop() {
         delay(40);  // 50ms = 5-6 ul; 40ms = 4ul, 25ms = ~2 ul
         digitalWrite(waterPin, LOW);
         digitalWrite(ledPin, LOW);
-        lickCounter++;
-        sendTouch();
       }
       else if ( data == 6 )
       {
@@ -48,8 +45,6 @@ void loop() {
         delay(4000); // 4000 ms = ~500 ul
         digitalWrite(waterPin, LOW);
         digitalWrite(ledPin, LOW);
-        lickCounter++;
-        sendTouch();
       }
       // sync msg
       else if ( data == 8 )
@@ -66,7 +61,7 @@ void loop() {
 }
 
 void sendTouch(){
-  Serial.println("lickCount:"+lickCounter);
+  Serial.println("Touch");
   
 }
 

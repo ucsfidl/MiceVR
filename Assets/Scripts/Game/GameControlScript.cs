@@ -262,8 +262,8 @@ public class GameControlScript : MonoBehaviour
 		//Debug.Log ("starting move");
         MovePlayer();
 		//Debug.Log ("move complete");
-		//if (this.udpSender.CheckReward ())
-		//	this.movementRecorder.logReward(false, true);
+		if (this.udpSender.CheckReward ())
+			this.movementRecorder.logReward(false, true);
 		//this.movementRecorder.logReward(this.udpSender.CheckReward());
 		//this.movementRecorder.logReward(true);
         this.numberOfRewardsText.text = "Number of rewards: " + Globals.numberOfRewards.ToString();
@@ -352,7 +352,6 @@ public class GameControlScript : MonoBehaviour
     private void Respawn()
     {
 		//Debug.Log ("Respawning");
-
 		// NB edit - commented out to teleport mouse back to the beginning
         //int x = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
         //int z = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
