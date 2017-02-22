@@ -262,8 +262,8 @@ public class GameControlScript : MonoBehaviour
 		//Debug.Log ("starting move");
         MovePlayer();
 		//Debug.Log ("move complete");
-		if (this.udpSender.CheckReward ())
-			this.movementRecorder.logReward(false, true);
+		//if (this.udpSender.CheckReward ())
+		//	this.movementRecorder.logReward(false, true);
 		//this.movementRecorder.logReward(this.udpSender.CheckReward());
 		//this.movementRecorder.logReward(true);
         this.numberOfRewardsText.text = "Number of rewards: " + Globals.numberOfRewards.ToString();
@@ -428,6 +428,7 @@ public class GameControlScript : MonoBehaviour
     private void GameOver()
     {
 		Debug.Log ("In GameOver()");
+		this.udpSender.close ();
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";

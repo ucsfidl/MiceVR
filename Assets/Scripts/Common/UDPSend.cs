@@ -44,6 +44,7 @@ public class UDPSend : MonoBehaviour
         string inWater = "";
         string inDry = "";
         string inWall = "";
+		string lickMessage = "";
 
         foreach (XmlNode xn in udpConfigList)
         {
@@ -68,10 +69,16 @@ public class UDPSend : MonoBehaviour
         client = new UdpClient();
         this.usbWriter = new SerialPort(this.USBPort, 9600);
 		this.usbWriter.ReadTimeout = 1;
+		this.usbWriter.DataReceived += new SerialDataReceivedEventHandler(DataReceivedEventHandler);
+		this.usbWriter.Open();
 
 
     }
-
+	public void close()
+	{
+		if (this.usbWriter.IsOpen)
+			this.usbWriter.Close();
+	}
     // inputFromConsole
     private void inputFromConsole()
     {
@@ -186,7 +193,7 @@ public class UDPSend : MonoBehaviour
                 usbWriter.Open();
 
             usbWriter.Write("8");
-            usbWriter.Close();
+            //usbWriter.Close();
         }
         catch (Exception err)
         {
@@ -283,7 +290,7 @@ public class UDPSend : MonoBehaviour
                 usbWriter.Open();
 
             usbWriter.Write("6");
-            usbWriter.Close();
+            //usbWriter.Close();
         }
         catch (Exception)
         {
@@ -315,12 +322,19 @@ public class UDPSend : MonoBehaviour
                 usbWriter.Open();
 
             usbWriter.Write("0");
-            usbWriter.Close();
+            //usbWriter.Close();
         }
         catch (Exception)
         {
             Debug.Log("com port failed");
         }
     }
+	private static void DataReceivedEventHandler(object sender, SerialDataReceivedEventArgs e)
+	{
+		SerialPort sp = (SerialPort)sender;
+		string indata = sp.ReadExisting();
+		Debug.Log("Data Received:");
+		Debug.Log(indata);
+	}
 }
 
