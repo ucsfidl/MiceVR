@@ -22,6 +22,9 @@ public class WaterTreeScript : MonoBehaviour {
 
     public bool texture, gradient, angular;
 
+	private int incorrectTurnDelay = 4;  // sec
+	private int correctTurnDelay = 2;  // sec
+
 	// Use this for initialization
 	void Start ()
     {
@@ -60,6 +63,7 @@ public class WaterTreeScript : MonoBehaviour {
     {
 		//Debug.Log ("WaterTree at " + this.gameObject.transform.position.x + " triggered by " + c.tag);
 		if (c.tag == "Player") {
+			Globals.numberOfTrials++;
 			if (this.enabled) {
 				//Debug.Log ("Dispensing water");
 				Globals.playerInWaterTree = true;
@@ -78,12 +82,16 @@ public class WaterTreeScript : MonoBehaviour {
 					Globals.numCorrectTurns++;
 					Globals.firstTurn.Add (this.gameObject.transform.position.x);
 				}
+				Globals.trialDelay = correctTurnDelay;
 				GameObject.Find ("GameControl").GetComponent<GameControlScript> ().ResetScenario ();
 			} else {
 				if (Globals.hasNotTurned) {
 					Globals.hasNotTurned = false;
 					Globals.firstTurn.Add (this.gameObject.transform.position.x);
 				} 
+				//  Added line below to respawn even on incorrect turns, as Harvey does
+				Globals.trialDelay = incorrectTurnDelay;
+				GameObject.Find ("GameControl").GetComponent<GameControlScript> ().ResetScenario ();
 			}
 		}
     }

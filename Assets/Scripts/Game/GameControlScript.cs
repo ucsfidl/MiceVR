@@ -19,6 +19,7 @@ public class GameControlScript : MonoBehaviour
     public Text numberOfRewardsText;
 	public Text numberOfDryTreesText;
 	public Text numberOfCorrectTurnsText;
+	public Text numberOfTrialsText;
     public UDPSend udpSender;
     public MovementRecorder movementRecorder;
 
@@ -38,11 +39,11 @@ public class GameControlScript : MonoBehaviour
     private bool timeoutState;
 
 	private int smoothingWindow = 1;  // Amount to smoothen the player movement
-	private int trialDelay = 2;  // seconds to wait before starting next trial
 	private bool waitedOneFrame = false;  // When mouse hits tree, need to wait a few frames before it turns black, and then pause the game
 
 	private Vector3 startingPos;
 	private Quaternion startingRot;
+	private Vector3 prevPos;
 
     // Use this for initialization
     void Start()
@@ -59,10 +60,13 @@ public class GameControlScript : MonoBehaviour
         this.debugControlScript = GameObject.Find("FPSController").GetComponent<DebugControl>();
         Globals.numberOfRewards = 0;
 		Globals.numberOfDryTrees = 0;
+		Globals.numberOfTrials = 1;  // Start on first trial
         this.timeoutState = false;
 
 		this.startingPos = this.player.transform.position;
 		this.startingRot = this.player.transform.rotation;
+
+		this.prevPos = this.startingPos;
 
 		// Will this fix the issue where rarely colliding with a wall causes mouse to fly above the wall?  No.
 		this.characterController.enableOverlapRecovery = false;  
@@ -78,12 +82,21 @@ public class GameControlScript : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {
+	{
 
 		//Debug.Log ("Framerate: " + 1.0f / Time.deltaTime);
-        CatchKeyStrokes();
+		CatchKeyStrokes ();
 
-		
+		// Keep mouse from scaling walls - 
+		if (this.player.transform.position.y > this.startingPos.y + 1) {
+			Vector3 tempPos = this.player.transform.position;
+			tempPos.y = this.startingPos.y;
+			tempPos.x = this.prevPos.x;
+			tempPos.z = this.prevPos.z;
+			this.player.transform.position = tempPos;
+		}
+		this.prevPos = this.player.transform.position;
+
         switch (this.state)
         {
             case "LoadScenario":
@@ -272,8 +285,9 @@ public class GameControlScript : MonoBehaviour
 			this.numberOfCorrectTurnsText.text = "Correct turns: " + 
 				Globals.numCorrectTurns.ToString() 
 				+ " (" + 
-				Mathf.Round(((float)Globals.numCorrectTurns / (float)Globals.numberOfRewards) * 100).ToString() + "%)";
+				Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials-1)) * 100).ToString() + "%)";
 		}
+		this.numberOfTrialsText.text = "Current trial: # " + Globals.numberOfTrials.ToString ();
 		//this.frameCounter++;
 		//Debug.Log ("screen updated");
         if (Time.time - this.runTime >= this.runDuration)
@@ -303,7 +317,7 @@ public class GameControlScript : MonoBehaviour
 	public void Pause()
 	{
 		if (waitedOneFrame) {
-			System.Threading.Thread.Sleep (trialDelay * 1000);
+			System.Threading.Thread.Sleep (Globals.trialDelay * 1000);
 			waitedOneFrame = false;
 			if (this.runNumber > this.numberOfRuns)
 				this.state = "GameOver";
@@ -317,7 +331,7 @@ public class GameControlScript : MonoBehaviour
     /*
      * Reset all trees
      * */
-    public void ResetScenario()
+	public void ResetScenario()
     {      
         this.runTime = Time.time;
         this.runNumber++;
@@ -366,30 +380,47 @@ public class GameControlScript : MonoBehaviour
 		this.player.transform.rotation = this.startingRot;
         //this.state = "StartGame";
 
-		// Randomly decide which of the 2 trees is visible.
+		// Randomly decide which of the 2 trees is visible, only if the scenario has only 2 trees.
 		// If the tree has been shown on the same side 3x in a row, show it on the other side.
+		// Or if the mouse has turned to the same side 3x in a row, keep the target on the other side, even if it has been presented more than 3 times on that side.
 		float r = Random.value;
 		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
 		if (gos.Length == 2) {
 			int treeToActivate;
 			int len = Globals.targetLoc.Count;
-			if (len >= 3) {
-				Debug.Log (Globals.targetLoc [len - 1] + " " + Globals.targetLoc [len - 2] + " " + Globals.targetLoc [len - 3]);
-			}
+			// Mouse's behavior trumps streak elimination, so if the mouse is only turning to one side, keep
+			// the tree on the other side, even if its been on that side more than 3 times.
 			// Check and see if last 3 targets were shown in the same location. If they were, show in new location.
 			if (len >= 3 &&
-				System.Convert.ToInt32(Globals.targetLoc [len - 1]) == 
-				System.Convert.ToInt32(Globals.targetLoc [len - 2]) &&
-				System.Convert.ToInt32(Globals.targetLoc [len - 2]) == 
-				System.Convert.ToInt32(Globals.targetLoc [len - 3])) {
-				Debug.Log ("Streak detected and eliminated");
-				if (gos [0].transform.position.x == System.Convert.ToInt32 (Globals.targetLoc [len - 1])) {
+			    System.Convert.ToInt32 (Globals.firstTurn [len - 1]) ==
+			    System.Convert.ToInt32 (Globals.firstTurn [len - 2]) &&
+			    System.Convert.ToInt32 (Globals.firstTurn [len - 2]) ==
+			    System.Convert.ToInt32 (Globals.firstTurn [len - 3])) {
+				Debug.Log ("Mouse turn direction streak detected");
+				if (gos [0].transform.position.x == System.Convert.ToInt32 (Globals.firstTurn [len - 1])) {
 					treeToActivate = 1;	
 				} else {
 					treeToActivate = 0;
 				}
+				Globals.trialsSinceMouseStreakEliminated = 0;
 			} else {
-				treeToActivate = r < 0.5 ? 0 : 1;
+				Globals.trialsSinceMouseStreakEliminated++;
+				if (len >= 3 &&
+				    System.Convert.ToInt32 (Globals.targetLoc [len - 1]) ==
+				    System.Convert.ToInt32 (Globals.targetLoc [len - 2]) &&
+				    System.Convert.ToInt32 (Globals.targetLoc [len - 2]) ==
+				    System.Convert.ToInt32 (Globals.targetLoc [len - 3]) &&
+					Globals.trialsSinceMouseStreakEliminated >= 3) {
+					Debug.Log ("Tree streak detected");
+					if (gos [0].transform.position.x == System.Convert.ToInt32 (Globals.targetLoc [len - 1])) {
+						treeToActivate = 1;	
+					} else {
+						treeToActivate = 0;
+					}
+				} else {
+					Debug.Log ("No streaks detected, or mouse streak eliminated recently, so tree randomly activated");
+					treeToActivate = r < 0.5 ? 0 : 1;
+				}
 			}
 
 			for (int i = 0; i < gos.Length; i++) {
