@@ -37,6 +37,7 @@ void loop() {
         delay(40);  // 50ms = 5-6 ul; 40ms = 4ul, 25ms = ~2 ul
         digitalWrite(waterPin, LOW);
         digitalWrite(ledPin, LOW);
+        sendTouch();
       }
       else if ( data == 6 )
       {
@@ -45,6 +46,7 @@ void loop() {
         delay(4000); // 4000 ms = ~500 ul
         digitalWrite(waterPin, LOW);
         digitalWrite(ledPin, LOW);
+        sendTouch();
       }
       // sync msg
       else if ( data == 8 )
