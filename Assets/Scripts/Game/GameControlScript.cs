@@ -366,7 +366,6 @@ public class GameControlScript : MonoBehaviour
     private void Respawn()
     {
 		//Debug.Log ("Respawning");
-
 		// NB edit - commented out to teleport mouse back to the beginning
         //int x = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
         //int z = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
@@ -459,6 +458,7 @@ public class GameControlScript : MonoBehaviour
     private void GameOver()
     {
 		Debug.Log ("In GameOver()");
+		this.udpSender.close ();
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";

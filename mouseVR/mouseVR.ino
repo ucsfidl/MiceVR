@@ -27,7 +27,7 @@ void setup() {
 void loop() {
   if (Serial.available() > 0) {
     int data = Serial.parseInt();
-    Serial.println(data);
+    //Serial.println(data);
     if ( data != '\n') {
       // water
       if ( data == 1 )
@@ -37,6 +37,7 @@ void loop() {
         delay(45);  // 40ms = 2.8ul, 25ms = ~2 ul
         digitalWrite(waterPin, LOW);
         digitalWrite(ledPin, LOW);
+        sendTouch();
       }
       else if ( data == 6 )
       {
@@ -45,6 +46,7 @@ void loop() {
         delay(4000); // 4000 ms = ~500 ul
         digitalWrite(waterPin, LOW);
         digitalWrite(ledPin, LOW);
+        sendTouch();
       }
       // sync msg
       else if ( data == 8 )
@@ -61,7 +63,7 @@ void loop() {
 }
 
 void sendTouch(){
-  Serial.println("touch");
+  Serial.println("Touch");
   
 }
 
