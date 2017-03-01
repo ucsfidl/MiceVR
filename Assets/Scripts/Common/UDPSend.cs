@@ -18,6 +18,8 @@ public class UDPSend : MonoBehaviour
 
     private string USBPort;  // Set in the config file
     private SerialPort usbWriter;
+	private string singleDrop;
+	private string singleFlush;
 
 
     // start from unity3d
@@ -79,13 +81,16 @@ public class UDPSend : MonoBehaviour
 		this.usbWriter.ErrorReceived += new SerialErrorReceivedEventHandler (usb_ErrorReceived);
 		this.usbWriter.Open();
 
-
-
     }
 	public void close()
 	{
 		if (this.usbWriter.IsOpen)
 			this.usbWriter.Close();
+	}
+	public void setAmount(int sD)
+	{
+		this.singleDrop = sD.ToString();
+		this.singleFlush = (sD * 100).ToString ();
 	}
     // inputFromConsole
     private void inputFromConsole()
@@ -170,7 +175,7 @@ public class UDPSend : MonoBehaviour
 			//this.usbWriter.Close();
 			ardmsg = this.usbWriter.ReadLine();
 			Debug.Log(ardmsg);
-			if(ardmsg!=""){
+			if(ardmsg=="touch"){
 				return true;
 			}
 			return false;	
@@ -200,7 +205,7 @@ public class UDPSend : MonoBehaviour
             if (!usbWriter.IsOpen)
                 usbWriter.Open();
 
-            usbWriter.Write("8");
+            usbWriter.Write("0");
             //usbWriter.Close();
         }
         catch (Exception err)
@@ -297,7 +302,7 @@ public class UDPSend : MonoBehaviour
             if (!usbWriter.IsOpen)
                 usbWriter.Open();
 
-            usbWriter.Write("6");
+			usbWriter.Write(this.singleFlush);
             //usbWriter.Close();
         }
         catch (Exception)
@@ -313,7 +318,7 @@ public class UDPSend : MonoBehaviour
             if (!usbWriter.IsOpen)
                 usbWriter.Open();
 
-            usbWriter.Write("1");
+			usbWriter.Write(this.singleDrop);
             //usbWriter.Close();
         }
         catch (Exception)
@@ -329,7 +334,7 @@ public class UDPSend : MonoBehaviour
             if (!usbWriter.IsOpen)
                 usbWriter.Open();
 
-            usbWriter.Write("0");
+            usbWriter.Write("-2");
             //usbWriter.Close();
         }
         catch (Exception)
