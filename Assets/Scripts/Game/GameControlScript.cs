@@ -12,6 +12,7 @@ public class GameControlScript : MonoBehaviour
 {
     public int runDuration;
     public int numberOfRuns;
+	public int numberOfRewards;
     public GameObject player;
     public GameObject menuPanel;
     public Image fadeToBlack;
@@ -152,6 +153,7 @@ public class GameControlScript : MonoBehaviour
 
         string _runDuration = "";
         string _numberOfRuns = "";
+		string _numberOfRewards = "";
 		string _rawSpeedDivider = "";
 		string _rawRotationDivider = "";
 
@@ -159,12 +161,14 @@ public class GameControlScript : MonoBehaviour
         {
 			_runDuration = xn["runDuration"].InnerText;
 			_numberOfRuns = xn["numberOfRuns"].InnerText;
+			_numberOfRewards = xn["numberOfRewards"].InnerText;
 			_rawSpeedDivider = xn["rawSpeedDivider"].InnerText;
 			_rawRotationDivider = xn["rawRotationDivider"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
         int.TryParse(_numberOfRuns, out this.numberOfRuns);
+		int.TryParse(_numberOfRewards, out this.numberOfRewards);
 		float.TryParse(_rawSpeedDivider, out this.rawSpeedDivider);
 		float.TryParse(_rawRotationDivider, out this.rawRotationDivider);
 
@@ -316,13 +320,30 @@ public class GameControlScript : MonoBehaviour
 
 	public void Pause()
 	{
+		this.numberOfRewardsText.text = "Number of rewards: " + Globals.numberOfRewards.ToString();
+		if (Globals.numberOfRewards > 0) {
+			this.numberOfCorrectTurnsText.text = "Correct turns: " + 
+				Globals.numCorrectTurns.ToString() 
+				+ " (" + 
+				Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials-1)) * 100).ToString() + "%)";
+		}
+
+		// NB Hack to get screen to go black before pausing for trialDelay
+
 		if (waitedOneFrame) {
 			System.Threading.Thread.Sleep (Globals.trialDelay * 1000);
 			waitedOneFrame = false;
+			Debug.Log ("Num rewards = " + Globals.numberOfRewards);
+			if (Globals.numberOfRewards >= this.numberOfRewards)
+				this.state = "GameOver";
+			else
+				this.state = "Respawn";
+			/* NB: removed as we want the mouse to run for a certain number of rewards, not trials
 			if (this.runNumber > this.numberOfRuns)
 				this.state = "GameOver";
 			else
 				this.state = "Respawn";
+				*/
 		} else {
 			waitedOneFrame = true;
 		}
