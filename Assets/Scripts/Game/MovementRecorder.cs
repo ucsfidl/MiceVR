@@ -29,8 +29,7 @@ public class MovementRecorder : MonoBehaviour {
                 this.transform.rotation.eulerAngles.y +
                 System.Environment.NewLine);
 			
-				rewardFile.Write ("Rewards:" + rewards + ";Licks:" + licks + ";" + System.DateTime.Now.Hour + "-" + System.DateTime.Now.Minute + "-" + System.DateTime.Now.Second
-					+System.Environment.NewLine);
+			rewardFile.Write (rewards + ";" + licks +System.Environment.NewLine);
 			
 
         }

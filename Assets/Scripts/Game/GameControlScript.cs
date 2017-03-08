@@ -25,6 +25,7 @@ public class GameControlScript : MonoBehaviour
 
 	private float rawSpeedDivider;  // Normally 60f; previously 200f
 	private float rawRotationDivider;  // Normally 500f; previously -4000f
+	private int singleDrop;
     private int respawnAmplitude = 2000;
     private int runNumber;
     private float runTime;
@@ -154,6 +155,7 @@ public class GameControlScript : MonoBehaviour
         string _numberOfRuns = "";
 		string _rawSpeedDivider = "";
 		string _rawRotationDivider = "";
+		string _singleDrop = "";
 
         foreach (XmlNode xn in udpConfigList)
         {
@@ -161,15 +163,19 @@ public class GameControlScript : MonoBehaviour
 			_numberOfRuns = xn["numberOfRuns"].InnerText;
 			_rawSpeedDivider = xn["rawSpeedDivider"].InnerText;
 			_rawRotationDivider = xn["rawRotationDivider"].InnerText;
+			_singleDrop = xn["singleDrop"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
         int.TryParse(_numberOfRuns, out this.numberOfRuns);
 		float.TryParse(_rawSpeedDivider, out this.rawSpeedDivider);
 		float.TryParse(_rawRotationDivider, out this.rawRotationDivider);
+		int.TryParse (_singleDrop, out this.singleDrop);
 
         // trying to avoid first drops of water
         this.udpSender.ForceStopSolenoid();
+		this.udpSender.setAmount(this.singleDrop);
+		this.udpSender.CheckReward ();
     }
 
     private void CatchKeyStrokes()
@@ -179,7 +185,7 @@ public class GameControlScript : MonoBehaviour
 
         if (Input.GetKeyUp(KeyCode.U))
             //this.udpSender.SingleDrop();
-			this.udpSender.SendWaterReward(1);
+			this.udpSender.SendWaterReward(this.singleDrop);
     }
 
     /*
@@ -272,13 +278,9 @@ public class GameControlScript : MonoBehaviour
             this.state = "Timeout";
         }
 
-		//Debug.Log ("starting move");
         MovePlayer();
-		//Debug.Log ("move complete");
 		if (this.udpSender.CheckReward ())
 			this.movementRecorder.logReward(false, true);
-		//this.movementRecorder.logReward(this.udpSender.CheckReward());
-		//this.movementRecorder.logReward(true);
         this.numberOfRewardsText.text = "Number of rewards: " + Globals.numberOfRewards.ToString();
 		this.numberOfDryTreesText.text = "Number of dry trees entered: " + Globals.numberOfDryTrees.ToString();
 		if (Globals.numberOfRewards > 0) {
@@ -366,7 +368,6 @@ public class GameControlScript : MonoBehaviour
     private void Respawn()
     {
 		//Debug.Log ("Respawning");
-
 		// NB edit - commented out to teleport mouse back to the beginning
         //int x = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
         //int z = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
@@ -459,6 +460,7 @@ public class GameControlScript : MonoBehaviour
     private void GameOver()
     {
 		Debug.Log ("In GameOver()");
+		this.udpSender.close();
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";
