@@ -27,4 +27,6 @@ public static class Globals
 
 	public static int trialDelay;
 	public static int numberOfTrials;
+
+	public static float centralViewVisibleShift;
 }

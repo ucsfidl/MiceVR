@@ -76,6 +76,9 @@ public class Loader : MonoBehaviour {
     private float waterFixedFloat, dryFixedFloat;
     public GameObject waterAngularTreePrefab, dryAngularTreePrefab;
 
+	private int restrictToCamera;
+	private bool restrict;
+
     void Start()
     {
         start = 0;
@@ -107,14 +110,24 @@ public class Loader : MonoBehaviour {
 			// If there are only 2 trees, alternate which is visible
 			if (end == 2) {
 				float r = Random.value;
+				float locx;
+				GameObject treeCuller;
 				if (r < 0.5) {
 					treeList [1].GetComponent<WaterTreeScript> ().Hide ();
-					Globals.targetLoc.Add (treeList[0].transform.position.x);
+					locx = treeList[0].transform.position.x;
 				} else {
 					treeList [0].GetComponent<WaterTreeScript> ().Hide ();
-					Globals.targetLoc.Add (treeList[1].transform.position.x);
+					locx = treeList[1].transform.position.x;
 				}
-				Debug.Log ("random val = " + r);
+				Globals.targetLoc.Add (locx);
+				treeCuller = GameObject.Find ("TreeCuller");
+				Vector3 lp = treeCuller.transform.localPosition;
+				if (locx > 20000)  // Target tree is on right side
+					lp.x = -Globals.centralViewVisibleShift;
+				else
+					lp.x = Globals.centralViewVisibleShift;
+				treeCuller.transform.localPosition = lp;
+				Debug.Log (lp.x);
 			}
 
             for (int i = start; i < end; i++)
@@ -135,6 +148,13 @@ public class Loader : MonoBehaviour {
 
 	public void LoadScenario()
 	{
+		// Remove trees that appear before level is loaded
+		GameObject[] gos;
+		gos = GameObject.FindGameObjectsWithTag("water");
+		foreach (GameObject go2 in gos) {
+			Object.Destroy (go2);
+		}
+
         if (File.Exists(PlayerPrefs.GetString("scenarioFolder") + "/" + this.loadScenarioFile))// && this.movementRecorderScript.GetReplayFileName() != "")
         {
 
@@ -256,6 +276,7 @@ public class Loader : MonoBehaviour {
                 gradient = false;
                 angular = false;
                 texture = false;
+				restrict = false;
 
                 foreach (XmlNode val in levelcontent)
                 {
@@ -285,19 +306,41 @@ public class Loader : MonoBehaviour {
                     else if (val.Name == "tex")
                     {
                         texture = true;
-                    }
+					} else if (val.Name == "r")
+					{
+						int.TryParse (val.InnerText, out this.restrictToCamera);
+						restrict = true;
+					}
                 }
                 if (water)
                 {
-                        if (gradient)
-                        {
-                            go = (GameObject)Instantiate(this.waterTreePrefab, v, Quaternion.identity);
-                            go.GetComponent<WaterTreeScript>().ChangeShaderRotation(this.deg_LS);
-                            go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
-                            go.transform.parent = treeParent.transform;
-                            go.isStatic = true;
-                            go.SetActive(false);
-                        }
+					// Dummy object to reduce repetition in code
+					//go = (GameObject)Instantiate(this.waterTreePrefab, v, Quaternion.identity);
+
+					if (gradient) {
+						go = (GameObject)Instantiate (this.waterTreePrefab, v, Quaternion.identity);
+						go.GetComponent<WaterTreeScript> ().ChangeShaderRotation (this.deg_LS);
+						go.GetComponent<WaterTreeScript> ().SetForTraining (waterTraining);
+						go.transform.parent = treeParent.transform;
+						go.isStatic = true;
+						go.SetActive (false);
+						// Implements restriction of a tree to just one side screen
+						if (restrict) {
+							if (restrictToCamera == 0) {
+								go.layer = LayerMask.NameToLayer ("Left Visible Only");
+								foreach (Transform t in go.transform) {
+									t.gameObject.layer = LayerMask.NameToLayer ("Left Visible Only");
+									t.gameObject.AddComponent<SetRenderQueue>();
+								}
+							} else if (restrictToCamera == 2) {
+								go.layer = LayerMask.NameToLayer ("Right Visible Only");
+								foreach (Transform t in go.transform) {
+									t.gameObject.layer = LayerMask.NameToLayer ("Right Visible Only");
+									t.gameObject.AddComponent<SetRenderQueue>();
+								}
+							}
+						}
+					}
                         else if (texture)
                         {
                             go = (GameObject)Instantiate(this.waterTreePrefab, v, Quaternion.identity);
@@ -351,6 +394,7 @@ public class Loader : MonoBehaviour {
                                 go.SetActive(false);
                             }
                         }
+
                 }
 
                 else

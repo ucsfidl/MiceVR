@@ -155,7 +155,7 @@ public class UDPSend : MonoBehaviour
 
 			//this.usbWriter.Close();
 			ardmsg = this.usbWriter.ReadLine();
-			if(ardmsg!=""){
+			if(ardmsg=="touch"){
 				return true;
 			}
 			return false;	
@@ -226,6 +226,7 @@ public class UDPSend : MonoBehaviour
     public void SendInWater()
     {
         int msg = 1;
+		Debug.Log ("SendInWater");
         try
         {
             byte[] data = BitConverter.GetBytes(msg);

@@ -46,6 +46,8 @@ public class GameControlScript : MonoBehaviour
 	private Quaternion startingRot;
 	private Vector3 prevPos;
 
+	private int centralViewVisible;
+
     // Use this for initialization
     void Start()
     {
@@ -156,6 +158,7 @@ public class GameControlScript : MonoBehaviour
 		string _numberOfRewards = "";
 		string _rawSpeedDivider = "";
 		string _rawRotationDivider = "";
+		string _centralViewVisible = "";
 
         foreach (XmlNode xn in udpConfigList)
         {
@@ -164,6 +167,7 @@ public class GameControlScript : MonoBehaviour
 			_numberOfRewards = xn["numberOfRewards"].InnerText;
 			_rawSpeedDivider = xn["rawSpeedDivider"].InnerText;
 			_rawRotationDivider = xn["rawRotationDivider"].InnerText;
+			_centralViewVisible = xn ["treeVisibleOnCenterScreen"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
@@ -171,7 +175,13 @@ public class GameControlScript : MonoBehaviour
 		int.TryParse(_numberOfRewards, out this.numberOfRewards);
 		float.TryParse(_rawSpeedDivider, out this.rawSpeedDivider);
 		float.TryParse(_rawRotationDivider, out this.rawRotationDivider);
+		int.TryParse (_centralViewVisible, out this.centralViewVisible);
 
+		// Calculate tree view block value: 0 is full occlusion in the central screen = 120 degrees
+		// 0.9 is full visibility with occluder pushed all the way to the screen
+		Globals.centralViewVisibleShift = (float)(centralViewVisible * 0.58/120);  // 0.45/120
+
+		Debug.Log (Globals.centralViewVisibleShift);
         // trying to avoid first drops of water
         this.udpSender.ForceStopSolenoid();
     }
@@ -456,7 +466,15 @@ public class GameControlScript : MonoBehaviour
 					//Debug.Log ("Inactivated tree id = " + i.ToString ());
 				}
 			}
-			Globals.targetLoc.Add (gos[treeToActivate].transform.position.x);
+			float locx = gos[treeToActivate].transform.position.x;
+			Globals.targetLoc.Add (locx);
+			GameObject treeCuller = GameObject.Find ("TreeCuller");
+			Vector3 lp = treeCuller.transform.localPosition;
+			if (locx > 20000)  // Target tree is on right side
+				lp.x = -Globals.centralViewVisibleShift;
+			else
+				lp.x = Globals.centralViewVisibleShift;
+			treeCuller.transform.localPosition = lp;
 		}
 
 
