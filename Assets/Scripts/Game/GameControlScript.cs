@@ -91,7 +91,7 @@ public class GameControlScript : MonoBehaviour
 		CatchKeyStrokes ();
 
 		// Keep mouse from scaling walls - 
-		if (this.player.transform.position.y > this.startingPos.y + 1) {
+		if (this.player.transform.position.y > this.startingPos.y + 0.1) {
 			Vector3 tempPos = this.player.transform.position;
 			tempPos.y = this.startingPos.y;
 			tempPos.x = this.prevPos.x;
