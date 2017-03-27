@@ -34,7 +34,7 @@ void loop() {
       {
         digitalWrite(waterPin, HIGH);
         digitalWrite(ledPin, HIGH);
-        delay(45);  // 40ms = 2.8ul, 25ms = ~2 ul
+        delay(33);  // 40ms = 2.8ul, 25ms = ~2 ul
         digitalWrite(waterPin, LOW);
         digitalWrite(ledPin, LOW);
       }
