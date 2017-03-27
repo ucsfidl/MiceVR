@@ -74,7 +74,7 @@ public class WaterTreeScript : MonoBehaviour {
 					this.depleted = true;
 					this.mouseObject = GameObject.FindGameObjectWithTag ("MainCamera");
 					this.mouseObject.GetComponent<AudioSource> ().Play ();
-					Globals.numberOfRewards++;
+					Globals.numberOfEarnedRewards++;
 				}
 				// NB edit
 				if (Globals.hasNotTurned) {

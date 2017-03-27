@@ -14,9 +14,11 @@ public static class Globals
     public static int udpInDryTreePort;
     public static string waterTexture;
     public static string dryTexture;
-    public static int numberOfRewards;
     public static bool timeoutState;
 	public static int numberOfDryTrees;
+
+    public static int numberOfEarnedRewards;
+    public static int numberOfUnearnedRewards;
 
 	// NB edit: globals to keep track of successful turns in the T maze
 	public static bool hasNotTurned;

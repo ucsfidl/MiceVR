@@ -12,12 +12,13 @@ public class GameControlScript : MonoBehaviour
 {
     public int runDuration;
     public int numberOfRuns;
-	public int numberOfRewards;
+	public int numberOfAllRewards;
     public GameObject player;
     public GameObject menuPanel;
     public Image fadeToBlack;
     public Text fadeToBlackText;
-    public Text numberOfRewardsText;
+    public Text numberOfEarnedRewardsText;
+    public Text numberOfUnearnedRewardsText;
 	public Text numberOfDryTreesText;
 	public Text numberOfCorrectTurnsText;
 	public Text numberOfTrialsText;
@@ -61,7 +62,8 @@ public class GameControlScript : MonoBehaviour
         this.scenarioLoader = GameObject.FindGameObjectWithTag("generator").GetComponent<Loader>();
         this.characterController = GameObject.Find("FPSController").GetComponent<CharacterController>();
         this.debugControlScript = GameObject.Find("FPSController").GetComponent<DebugControl>();
-        Globals.numberOfRewards = 0;
+        Globals.numberOfEarnedRewards = 0;
+        Globals.numberOfUnearnedRewards = 0;
 		Globals.numberOfDryTrees = 0;
 		Globals.numberOfTrials = 1;  // Start on first trial
         this.timeoutState = false;
@@ -155,7 +157,7 @@ public class GameControlScript : MonoBehaviour
 
         string _runDuration = "";
         string _numberOfRuns = "";
-		string _numberOfRewards = "";
+		string _numberOfAllRewards = "";
 		string _rawSpeedDivider = "";
 		string _rawRotationDivider = "";
 		string _centralViewVisible = "";
@@ -164,7 +166,7 @@ public class GameControlScript : MonoBehaviour
         {
 			_runDuration = xn["runDuration"].InnerText;
 			_numberOfRuns = xn["numberOfRuns"].InnerText;
-			_numberOfRewards = xn["numberOfRewards"].InnerText;
+			_numberOfAllRewards = xn["numberOfAllRewards"].InnerText;
 			_rawSpeedDivider = xn["rawSpeedDivider"].InnerText;
 			_rawRotationDivider = xn["rawRotationDivider"].InnerText;
 			_centralViewVisible = xn ["treeVisibleOnCenterScreen"].InnerText;
@@ -172,7 +174,7 @@ public class GameControlScript : MonoBehaviour
 
         int.TryParse(_runDuration, out this.runDuration);
         int.TryParse(_numberOfRuns, out this.numberOfRuns);
-		int.TryParse(_numberOfRewards, out this.numberOfRewards);
+		int.TryParse(_numberOfAllRewards, out this.numberOfAllRewards);
 		float.TryParse(_rawSpeedDivider, out this.rawSpeedDivider);
 		float.TryParse(_rawRotationDivider, out this.rawRotationDivider);
 		int.TryParse (_centralViewVisible, out this.centralViewVisible);
@@ -192,8 +194,12 @@ public class GameControlScript : MonoBehaviour
             this.state = "GameOver";
 
         if (Input.GetKeyUp(KeyCode.U))
+        {
             //this.udpSender.SingleDrop();
-			this.udpSender.SendWaterReward(1);
+            this.udpSender.SendWaterReward(1);
+            Globals.numberOfUnearnedRewards++;
+            this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
+        }
     }
 
     /*
@@ -293,9 +299,10 @@ public class GameControlScript : MonoBehaviour
 			this.movementRecorder.logReward(false, true);
 		//this.movementRecorder.logReward(this.udpSender.CheckReward());
 		//this.movementRecorder.logReward(true);
-        this.numberOfRewardsText.text = "Number of rewards: " + Globals.numberOfRewards.ToString();
+        this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
+        this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
 		this.numberOfDryTreesText.text = "Number of dry trees entered: " + Globals.numberOfDryTrees.ToString();
-		if (Globals.numberOfRewards > 0) {
+		if (Globals.numberOfEarnedRewards > 0) {
 			this.numberOfCorrectTurnsText.text = "Correct turns: " + 
 				Globals.numCorrectTurns.ToString() 
 				+ " (" + 
@@ -330,8 +337,9 @@ public class GameControlScript : MonoBehaviour
 
 	public void Pause()
 	{
-		this.numberOfRewardsText.text = "Number of rewards: " + Globals.numberOfRewards.ToString();
-		if (Globals.numberOfRewards > 0) {
+		this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
+        this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
+        if (Globals.numberOfEarnedRewards > 0) {
 			this.numberOfCorrectTurnsText.text = "Correct turns: " + 
 				Globals.numCorrectTurns.ToString() 
 				+ " (" + 
@@ -343,12 +351,11 @@ public class GameControlScript : MonoBehaviour
 		if (waitedOneFrame) {
 			System.Threading.Thread.Sleep (Globals.trialDelay * 1000);
 			waitedOneFrame = false;
-			Debug.Log ("Num rewards = " + Globals.numberOfRewards);
-			if (Globals.numberOfRewards >= this.numberOfRewards)
+			if (Globals.numberOfEarnedRewards + Globals.numberOfUnearnedRewards >= this.numberOfAllRewards)
 				this.state = "GameOver";
 			else
 				this.state = "Respawn";
-			/* NB: removed as we want the mouse to run for a certain number of rewards, not trials
+			/* NB: removed as we want the mouse to run for a certain number of rewards, not trials?
 			if (this.runNumber > this.numberOfRuns)
 				this.state = "GameOver";
 			else
