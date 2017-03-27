@@ -61,11 +61,11 @@ public class WaterTreeScript : MonoBehaviour {
 
     void OnTriggerEnter(Collider c)
     {
-		Debug.Log ("WaterTree at " + this.gameObject.transform.position.x + " triggered by " + c.tag);
+		//Debug.Log ("WaterTree at " + this.gameObject.transform.position.x + " triggered by " + c.tag);
 		if (c.tag == "Player") {
 			Globals.numberOfTrials++;
 			if (this.enabled) {
-				Debug.Log ("Dispensing water");
+				//Debug.Log ("Dispensing water");
 				Globals.playerInWaterTree = true;
 				GameObject.Find ("UDPSender").GetComponent<UDPSend> ().SendInWater ();
 				if (!this.depleted) {

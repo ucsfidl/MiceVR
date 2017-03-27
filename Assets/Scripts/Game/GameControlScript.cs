@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine.UI;
@@ -421,11 +422,35 @@ public class GameControlScript : MonoBehaviour
 		// Randomly decide which of the 2 trees is visible, only if the scenario has only 2 trees.
 		// If the tree has been shown on the same side 3x in a row, show it on the other side.
 		// Or if the mouse has turned to the same side 3x in a row, keep the target on the other side, even if it has been presented more than 3 times on that side.
-		float r = Random.value;
 		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
 		if (gos.Length == 2) {
-			int treeToActivate;
-			int len = Globals.targetLoc.Count;
+            // Redo bias correction to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
+            // Previous attempt at streak elimination didn't really work... Saw mouse go left 100 times or so! And most mice exhibited a bias.
+            int treeToActivate;
+            int len = Globals.targetLoc.Count;
+            float r = UnityEngine.Random.value;
+            float randThresh;  // varies the boundary based on history of mouse turns
+            int turn1 = 0;
+            int start;
+            int end;
+            if (len >= 20)
+            {
+                end = len;
+                start = len - 20;
+            } else
+            {
+                start = 0;
+                end = len;
+            }
+            for (int i = start; i < end; i++)
+            {
+                if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x) turn1++;
+            }
+            randThresh = (float)turn1 / (end - start);  // Set the threshold based on past history
+            Debug.Log(randThresh + " - " + r);
+            treeToActivate = r > randThresh ? 0 : 1;
+
+            /*
 			// Mouse's behavior trumps streak elimination, so if the mouse is only turning to one side, keep
 			// the tree on the other side, even if its been on that side more than 3 times.
 			// Check and see if last 3 targets were shown in the same location. If they were, show in new location.
@@ -459,9 +484,10 @@ public class GameControlScript : MonoBehaviour
 					Debug.Log ("No streaks detected, or mouse streak eliminated recently, so tree randomly activated");
 					treeToActivate = r < 0.5 ? 0 : 1;
 				}
-			}
+			}               
+            */
 
-			for (int i = 0; i < gos.Length; i++) {
+            for (int i = 0; i < gos.Length; i++) {
 				gos [i].SetActive (true);
 				if (i == treeToActivate) {
 					//gos [i].SetActive (true);
@@ -473,6 +499,7 @@ public class GameControlScript : MonoBehaviour
 					//Debug.Log ("Inactivated tree id = " + i.ToString ());
 				}
 			}
+
 			float locx = gos[treeToActivate].transform.position.x;
 			Globals.targetLoc.Add (locx);
 			GameObject treeCuller = GameObject.Find ("TreeCuller");
@@ -508,6 +535,7 @@ public class GameControlScript : MonoBehaviour
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";
+        WriteStatsFile();
         if (Input.GetKey(KeyCode.Escape))
             Application.Quit();
     }
@@ -554,4 +582,30 @@ public class GameControlScript : MonoBehaviour
     {
         this.udpSender.FlushWater();
     }
+
+    // This function writes out all the statistics to a single file, currently when the game ends.
+    private void WriteStatsFile()
+    {
+        StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_turns.txt");
+        // Write out turn decisions over time - easy to import into Excel and analyze
+        for (int i=0; i < Globals.targetLoc.Count-1; i++)
+        {
+            turnsFile.WriteLine(Globals.targetLoc[i] + "\t" + Globals.firstTurn[i]);
+        }
+        turnsFile.Close();
+
+        StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_stats.txt");
+        statsFile.WriteLine("<document>");
+        statsFile.WriteLine("\t<stats>");
+        statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials - 1), 2) + "</accuracy>");
+        statsFile.WriteLine("\t\t<earnedRewards>" + Globals.numCorrectTurns + "</earnedRewards>");
+        statsFile.WriteLine("\t\t<unearnedRewards>" + Globals.numberOfUnearnedRewards + "</unearnedRewards>");
+        statsFile.WriteLine("\t\t<trials>" + (Globals.numberOfTrials-1) + "</trials>");
+        statsFile.WriteLine("\t</stats>");
+        statsFile.WriteLine("</document>");
+        statsFile.Close();
+
+    }
+
+
 }

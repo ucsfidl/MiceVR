@@ -1,13 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.IO;
+using UnityEngine.UI;
+
 
 public class MovementRecorder : MonoBehaviour {
 
     private StreamWriter outfile, rewardFile;
+    private string mouseName;
+    private string dayName;
+    private string scenarioName;
+    private string sessionName;
     private string replayFileName;
     private bool fileSet;
 	private int licks, rewards, lastLick, lastReward;
+
+    public Text errorText;
 
 	// Use this for initialization
 	void Start () {
@@ -31,16 +39,43 @@ public class MovementRecorder : MonoBehaviour {
 			
 				rewardFile.Write ("Rewards:" + rewards + ";Licks:" + licks + ";" + System.DateTime.Now.Hour + "-" + System.DateTime.Now.Minute + "-" + System.DateTime.Now.Second
 					+System.Environment.NewLine);
-			
-
         }
 	}
+
 	public void logReward (bool reward, bool lick) {
 		if(reward)
 			rewards+=1;
 		if(lick)
 			licks+=1;
 	}
+
+    public void SetMouseName(string s)
+    {
+        this.mouseName = s;
+        MakeReplayName();
+    }
+
+    public void SetDayName(string s)
+    {
+        this.dayName = s;
+        MakeReplayName();
+    }
+
+    public void SetScenarioName(string s)
+    {
+        if (s.Length > 4)
+            this.scenarioName = s.Substring(0, s.Length - 4);
+        else
+            this.scenarioName = s;
+        Debug.Log(this.scenarioName);
+        MakeReplayName();
+    }
+
+    public void SetSessionName (string s)
+    {
+        this.sessionName = s;
+        MakeReplayName();
+    }
 
     public void SetReplayFileName(string s)
     {
@@ -50,6 +85,13 @@ public class MovementRecorder : MonoBehaviour {
     public string GetReplayFileName()
     {
         return this.replayFileName;
+    }
+
+    private void MakeReplayName()
+    {
+        this.replayFileName = this.mouseName + "-D" + this.dayName + "-" + this.scenarioName + "-" + this.sessionName;
+        if (File.Exists(PlayerPrefs.GetString("replayFolder") + "/" + this.replayFileName + "_turns.txt"))
+            this.errorText.text = "ERROR: File for this mouse already exists!  Results will be overwritten if you proceed.";
     }
 
     public void SetFileSet(bool b)
@@ -80,4 +122,5 @@ public class MovementRecorder : MonoBehaviour {
         outfile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + fn);
 		rewardFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/rew_" + fn);
     }
+
 }

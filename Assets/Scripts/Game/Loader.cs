@@ -148,7 +148,7 @@ public class Loader : MonoBehaviour {
 
 	public void LoadScenario()
 	{
-		// Remove trees that appear before level is loaded
+		// Clear trees that appear onscreen before level is loaded
 		GameObject[] gos;
 		gos = GameObject.FindGameObjectsWithTag("water");
 		foreach (GameObject go2 in gos) {
