@@ -92,6 +92,8 @@ public class MovementRecorder : MonoBehaviour {
         this.replayFileName = this.mouseName + "-D" + this.dayName + "-" + this.scenarioName + "-" + this.sessionName;
         if (File.Exists(PlayerPrefs.GetString("replayFolder") + "/" + this.replayFileName + "_turns.txt"))
             this.errorText.text = "ERROR: File for this mouse already exists!  Results will be overwritten if you proceed.";
+        else
+            this.errorText.text = "";
     }
 
     public void SetFileSet(bool b)

@@ -63,6 +63,7 @@ public class GameControlScript : MonoBehaviour
         this.scenarioLoader = GameObject.FindGameObjectWithTag("generator").GetComponent<Loader>();
         this.characterController = GameObject.Find("FPSController").GetComponent<CharacterController>();
         this.debugControlScript = GameObject.Find("FPSController").GetComponent<DebugControl>();
+        this.characterController.enabled = false;  // Keeps me from moving the character while typing entries into the form
         Globals.numberOfEarnedRewards = 0;
         Globals.numberOfUnearnedRewards = 0;
 		Globals.numberOfDryTrees = 0;
@@ -240,6 +241,7 @@ public class GameControlScript : MonoBehaviour
             this.debugControlScript.enabled = true;
 			Globals.hasNotTurned = true;
 			Globals.numCorrectTurns = 0;
+            this.characterController.enabled = true;  // Bring back character movement
             this.state = "Running";
         }
     }
@@ -531,13 +533,23 @@ public class GameControlScript : MonoBehaviour
 
     private void GameOver()
     {
-		Debug.Log ("In GameOver()");
+		//Debug.Log ("In GameOver()");
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";
-        WriteStatsFile();
         if (Input.GetKey(KeyCode.Escape))
-            Application.Quit();
+        {
+            StartCoroutine(CheckForQ());
+        }
+    }
+
+    private IEnumerator CheckForQ()
+    {
+        Debug.Log("Waiting for another ESC");
+        yield return new WaitUntil(() => Input.GetKey(KeyCode.Q));
+        Debug.Log("quitting!");
+        WriteStatsFile();
+        Application.Quit();
     }
 
     private void MovePlayer()
