@@ -17,24 +17,24 @@
 	</trees>
 	<walls>
 		<wall> <!-- Left wall -->
-			<pos>19994;2;20023</pos>
+			<pos>19994;3;20023</pos>
 			<rot>0;0;0</rot>
-			<scale>2;4;60</scale>
+			<scale>2;6;60</scale>
 		</wall>
 		<wall> <!-- Right wall -->
-			<pos>20006;2;20023</pos>
+			<pos>20006;3;20023</pos>
 			<rot>0;0;0</rot>
-			<scale>2;4;60</scale>
+			<scale>2;6;60</scale>
 		</wall>
 		<wall> <!-- Front wall -->
-			<pos>20000;2;19994</pos>
+			<pos>20000;3;19994</pos>
 			<rot>0;90.00003;0</rot>
-			<scale>2;4;15</scale>
+			<scale>2;6;15</scale>
 		</wall>
 		<wall> <!-- Back wall -->
-			<pos>20000;2;20050</pos>
+			<pos>20000;3;20050</pos>
 			<rot>0;270;0</rot>
-			<scale>2;4;15</scale>
+			<scale>2;6;15</scale>
 		</wall>
 	</walls>
 </document>
