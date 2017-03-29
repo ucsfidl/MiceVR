@@ -11,67 +11,57 @@
 	<trees>
 		<t> <!-- Left tree -->
 			<w>1</w>
-			<pos>19990;0;20047</pos>
+			<pos>19990;0;20048</pos>
 			<d>0</d>
 			<r>0</r>
 		</t>
 		<t> <!-- Right tree -->
 			<w>1</w>
-			<pos>20010;0;20047</pos>
+			<pos>20010;0;20048</pos>
 			<d>0</d>
 			<r>2</r>
 		</t>
 	</trees>
 	<walls>
 		<wall> <!-- Left wall -->
-			<pos>19994;3;20015</pos>
+			<pos>19994;2;20015</pos>
 			<rot>0;0;0</rot>
-			<scale>2;6;43.1</scale>
+			<scale>2;4;43.1</scale>
 		</wall>
 		<wall> <!-- Right wall -->
-			<pos>20006;3;20015</pos>
+			<pos>20006;2;20015</pos>
 			<rot>0;0;0</rot>
-			<scale>2;6;43.1</scale>
+			<scale>2;4;43.1</scale>
 		</wall>
 		<wall> <!-- Front wall -->
-			<pos>20000;3;19994</pos>
+			<pos>20000;2;19994</pos>
 			<rot>0;90;0</rot>
-			<scale>2;6;15</scale>
+			<scale>2;4;15</scale>
 		</wall>
 		<wall> <!-- Back wall -->
-			<pos>20000;3;20054</pos>
+			<pos>20000;2;20055</pos>
 			<rot>0;270;0</rot>
-			<scale>2;6;40</scale>
+			<scale>2;4;40</scale>
 		</wall>
 		<wall> <!-- Left front wall -->
-			<pos>19982;3;20039</pos>
+			<pos>19986;2;20039</pos>
 			<rot>0;270;0</rot>
-			<scale>2;6;19.1</scale>
+			<scale>2;4;19.1</scale>
 		</wall>
-		<wall> <!-- Left diag wall -->
-			<pos>19993;3;20038</pos>
-			<rot>0;45;0</rot>
-			<scale>2;6;2</scale>
-		</wall>		
 		<wall> <!-- Right front wall -->
-			<pos>20018;3;20039</pos>
+			<pos>20014;2;20039</pos>
 			<rot>0;270;0</rot>
-			<scale>2;6;19.1</scale>
+			<scale>2;4;19.1</scale>
 		</wall>
-		<wall> <!-- Right diag wall -->
-			<pos>20007;3;20038</pos>
-			<rot>0;135;0</rot>
-			<scale>2;6;2</scale>
-		</wall>		
 		<wall> <!-- Back left wall -->
-			<pos>19980;3;20047</pos>
+			<pos>19980;2;20048</pos>
 			<rot>0;0;0</rot>
-			<scale>2;6;20</scale>
+			<scale>2;4;20</scale>
 		</wall>
 		<wall> <!-- Back right wall -->
-			<pos>20020;3;20047</pos>
+			<pos>20020;2;20048</pos>
 			<rot>0;0;0</rot>
-			<scale>2;6;20</scale>
+			<scale>2;4;20</scale>
 		</wall>		
 	</walls>
 </document>
