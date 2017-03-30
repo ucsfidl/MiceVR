@@ -131,7 +131,7 @@ public class GameControlScript : MonoBehaviour
 				break;
 
             case "Reset":
-                ResetScenario();
+                ResetScenario(Color.black);
                 break;
 
             case "Respawn":
@@ -162,7 +162,8 @@ public class GameControlScript : MonoBehaviour
 		string _numberOfAllRewards = "";
 		string _rawSpeedDivider = "";
 		string _rawRotationDivider = "";
-		string _centralViewVisible = "";
+        string _singleDrop = "";
+        string _centralViewVisible = "";
 
         foreach (XmlNode xn in udpConfigList)
         {
@@ -172,6 +173,7 @@ public class GameControlScript : MonoBehaviour
 			_rawSpeedDivider = xn["rawSpeedDivider"].InnerText;
 			_rawRotationDivider = xn["rawRotationDivider"].InnerText;
 			_centralViewVisible = xn ["treeVisibleOnCenterScreen"].InnerText;
+            _singleDrop = xn["singleDrop"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
@@ -180,14 +182,17 @@ public class GameControlScript : MonoBehaviour
 		float.TryParse(_rawSpeedDivider, out this.rawSpeedDivider);
 		float.TryParse(_rawRotationDivider, out this.rawRotationDivider);
 		int.TryParse (_centralViewVisible, out this.centralViewVisible);
+        int.TryParse(_singleDrop, out Globals.singleDrop);
 
-		// Calculate tree view block value: 0 is full occlusion in the central screen = 120 degrees
-		// 0.9 is full visibility with occluder pushed all the way to the screen
-		Globals.centralViewVisibleShift = (float)(centralViewVisible * 0.58/120);  // 0.45/120
+        // Calculate tree view block value: 0 is full occlusion in the central screen = 120 degrees
+        // 0.9 is full visibility with occluder pushed all the way to the screen
+        Globals.centralViewVisibleShift = (float)(centralViewVisible * 0.58/120);  // 0.45/120
 
 		Debug.Log (Globals.centralViewVisibleShift);
         // trying to avoid first drops of water
         this.udpSender.ForceStopSolenoid();
+        this.udpSender.setAmount(Globals.singleDrop);
+        this.udpSender.CheckReward();
     }
 
     private void CatchKeyStrokes()
@@ -198,7 +203,7 @@ public class GameControlScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.U))
         {
             //this.udpSender.SingleDrop();
-            this.udpSender.SendWaterReward(1);
+            this.udpSender.SendWaterReward(Globals.singleDrop);
             Globals.numberOfUnearnedRewards++;
             this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
         }
@@ -283,6 +288,7 @@ public class GameControlScript : MonoBehaviour
      */
     private void Run()
     {
+        Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
         // send SYNC msg on first frame of every run.
         if( this.firstFrameRun )
         {
@@ -372,8 +378,8 @@ public class GameControlScript : MonoBehaviour
     /*
      * Reset all trees
      * */
-	public void ResetScenario()
-    {      
+	public void ResetScenario(Color c)
+    {
         this.runTime = Time.time;
         this.runNumber++;
 
@@ -387,7 +393,7 @@ public class GameControlScript : MonoBehaviour
 
 		// NB edit (1 line)
 		this.fadeToBlack.gameObject.SetActive(true);
-		this.fadeToBlack.color = Color.black;
+		this.fadeToBlack.color = c;
 		this.state = "Paused";
 
 		// Move the player now, as the screen goes to black and the app detects collisions between the new tree and the player 
@@ -425,11 +431,13 @@ public class GameControlScript : MonoBehaviour
 		// If the tree has been shown on the same side 3x in a row, show it on the other side.
 		// Or if the mouse has turned to the same side 3x in a row, keep the target on the other side, even if it has been presented more than 3 times on that side.
 		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-		if (gos.Length == 2) {
+
+        float locx = gos[0].transform.position.x;
+        if (gos.Length == 2) {
             // Redo bias correction to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
             // Previous attempt at streak elimination didn't really work... Saw mouse go left 100 times or so! And most mice exhibited a bias.
             int treeToActivate;
-            int len = Globals.targetLoc.Count;
+            int len = Globals.firstTurn.Count;
             float r = UnityEngine.Random.value;
             float randThresh;  // varies the boundary based on history of mouse turns
             int turn1 = 0;
@@ -502,9 +510,8 @@ public class GameControlScript : MonoBehaviour
 				}
 			}
 
-			float locx = gos[treeToActivate].transform.position.x;
-			Globals.targetLoc.Add (locx);
-			GameObject treeCuller = GameObject.Find ("TreeCuller");
+			locx = gos[treeToActivate].transform.position.x;
+            GameObject treeCuller = GameObject.Find ("TreeCuller");
 			Vector3 lp = treeCuller.transform.localPosition;
 			if (locx > 20000)  // Target tree is on right side
 				lp.x = -Globals.centralViewVisibleShift;
@@ -513,8 +520,11 @@ public class GameControlScript : MonoBehaviour
 			treeCuller.transform.localPosition = lp;
 		}
 
+        Globals.targetLoc.Add(locx);
+        Debug.Log("Added to target loc from GCS");
+        Debug.Log(Globals.targetLoc.Count);
 
-		this.runTime = Time.time;
+        this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);
 		this.movementRecorder.SetFileSet(true);
 		Color t = this.fadeToBlack.color;
@@ -533,11 +543,12 @@ public class GameControlScript : MonoBehaviour
 
     private void GameOver()
     {
-		//Debug.Log ("In GameOver()");
+        //Debug.Log ("In GameOver()");
+        this.udpSender.close();
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";
-        if (Input.GetKey(KeyCode.Escape))
+        if (Input.GetKeyUp(KeyCode.Escape))
         {
             StartCoroutine(CheckForQ());
         }
@@ -545,8 +556,8 @@ public class GameControlScript : MonoBehaviour
 
     private IEnumerator CheckForQ()
     {
-        Debug.Log("Waiting for another ESC");
-        yield return new WaitUntil(() => Input.GetKey(KeyCode.Q));
+        Debug.Log("Waiting for Q");
+        yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
         WriteStatsFile();
         Application.Quit();
@@ -600,9 +611,20 @@ public class GameControlScript : MonoBehaviour
     {
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_turns.txt");
         // Write out turn decisions over time - easy to import into Excel and analyze
-        for (int i=0; i < Globals.targetLoc.Count-1; i++)
+        Debug.Log(Globals.firstTurn.Count);
+        Debug.Log(Globals.targetLoc.Count);
+        for (int i=0; i < Globals.firstTurn.Count; i++)
         {
-            turnsFile.WriteLine(Globals.targetLoc[i] + "\t" + Globals.firstTurn[i]);
+            Debug.Log(Globals.trialStartTime[i] + "\t" +
+                                Globals.trialEndTime[i] + "\t" +
+                                ((TimeSpan)Globals.trialEndTime[i]).Subtract((TimeSpan)Globals.trialStartTime[i]) + "\t" + 
+                                Globals.targetLoc[i] + "\t" +
+                                Globals.firstTurn[i]);
+            turnsFile.WriteLine(Globals.trialStartTime[i] + "\t" + 
+                                Globals.trialEndTime[i] + "\t" +
+                                ((TimeSpan)Globals.trialEndTime[i]).Subtract((TimeSpan)Globals.trialStartTime[i]) + "\t" +
+                                Globals.targetLoc[i] + "\t" + 
+                                Globals.firstTurn[i]);
         }
         turnsFile.Close();
 
@@ -616,7 +638,6 @@ public class GameControlScript : MonoBehaviour
         statsFile.WriteLine("\t</stats>");
         statsFile.WriteLine("</document>");
         statsFile.Close();
-
     }
 
 
