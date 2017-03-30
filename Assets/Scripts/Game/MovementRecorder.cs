@@ -67,7 +67,7 @@ public class MovementRecorder : MonoBehaviour {
             this.scenarioName = s.Substring(0, s.Length - 4);
         else
             this.scenarioName = s;
-        Debug.Log(this.scenarioName);
+        //Debug.Log(this.scenarioName);
         MakeReplayName();
     }
 

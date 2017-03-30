@@ -29,32 +29,32 @@ void loop() {
     int data = Serial.parseInt();
     Serial.println(data);
     if ( data != '\n') {
-      // water
-      if ( data == 1 )
-      {
-        digitalWrite(waterPin, HIGH);
-        digitalWrite(ledPin, HIGH);
-        delay(33);  // 40ms = 2.8ul, 25ms = ~2 ul
-        digitalWrite(waterPin, LOW);
-        digitalWrite(ledPin, LOW);
-      }
-      else if ( data == 6 )
-      {
-        digitalWrite(waterPin, HIGH);
-        digitalWrite(ledPin, HIGH);
-        delay(4000); // 4000 ms = ~500 ul
-        digitalWrite(waterPin, LOW);
-        digitalWrite(ledPin, LOW);
-      }
       // sync msg
-      else if ( data == 8 )
+      if ( data == 0 )
       {
+        Serial.println("Ard:Synced!");
         digitalWrite(syncPin, HIGH);
       }
       // wall collision
-      else if ( data == 9 )
+      else if ( data == -1 )
       {
         digitalWrite(wallPin, HIGH);
+      }
+      // ForceStopSolenoid
+      else if (data == -2)
+      {
+        Serial.println("ForceStopped!");       
+        digitalWrite(waterPin, LOW);
+        digitalWrite(ledPin, LOW);
+      }
+      // Water
+      else
+      {
+        digitalWrite(waterPin, HIGH);
+        digitalWrite(ledPin, HIGH);
+        delay(data); // 40ms = 2.8ul, 25ms = ~2 ul
+        digitalWrite(waterPin, LOW);
+        digitalWrite(ledPin, LOW);
       }
     }
   } 

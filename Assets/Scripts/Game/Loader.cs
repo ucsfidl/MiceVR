@@ -106,11 +106,11 @@ public class Loader : MonoBehaviour {
                 end = treeList.Count;
             }
 
-			// NB edit
-			// If there are only 2 trees, alternate which is visible
-			if (end == 2) {
+            float locx = treeList[0].transform.position.x;
+            // NB edit
+            // If there are only 2 trees, alternate which is visible
+            if (end == 2) {
 				float r = Random.value;
-				float locx;
 				GameObject treeCuller;
 				if (r < 0.5) {
 					treeList [1].GetComponent<WaterTreeScript> ().Hide ();
@@ -119,7 +119,6 @@ public class Loader : MonoBehaviour {
 					treeList [0].GetComponent<WaterTreeScript> ().Hide ();
 					locx = treeList[1].transform.position.x;
 				}
-				Globals.targetLoc.Add (locx);
 				treeCuller = GameObject.Find ("TreeCuller");
 				Vector3 lp = treeCuller.transform.localPosition;
 				if (locx > 20000)  // Target tree is on right side
@@ -129,6 +128,9 @@ public class Loader : MonoBehaviour {
 				treeCuller.transform.localPosition = lp;
 				Debug.Log (lp.x);
 			}
+            Globals.targetLoc.Add(locx);
+            Debug.Log("Added to targetloc from L");
+            Debug.Log(Globals.targetLoc.Count);
 
             for (int i = start; i < end; i++)
             {

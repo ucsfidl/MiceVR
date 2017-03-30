@@ -18,7 +18,8 @@ public class UDPSend : MonoBehaviour
 
     private string USBPort;  // Set in the config file
     private SerialPort usbWriter;
-
+    private string singleDrop;
+    private string singleFlush;
 
     // start from unity3d
     void Awake()
@@ -44,6 +45,7 @@ public class UDPSend : MonoBehaviour
         string inWater = "";
         string inDry = "";
         string inWall = "";
+        string lickMessage = "";
 
         foreach (XmlNode xn in udpConfigList)
         {
@@ -70,6 +72,18 @@ public class UDPSend : MonoBehaviour
 		this.usbWriter.ReadTimeout = 1;
 
 
+    }
+
+    public void close()
+    {
+        if (this.usbWriter.IsOpen)
+            this.usbWriter.Close();
+    }
+
+    public void setAmount(int sD)
+    {
+        this.singleDrop = sD.ToString();
+        this.singleFlush = (sD * 100).ToString();
     }
 
     // inputFromConsole
@@ -185,8 +199,8 @@ public class UDPSend : MonoBehaviour
             if (!usbWriter.IsOpen)
                 usbWriter.Open();
 
-            usbWriter.Write("8");
-            usbWriter.Close();
+            usbWriter.Write("0");
+            //usbWriter.Close();
         }
         catch (Exception err)
         {
@@ -283,8 +297,8 @@ public class UDPSend : MonoBehaviour
             if (!usbWriter.IsOpen)
                 usbWriter.Open();
 
-            usbWriter.Write("6");
-            usbWriter.Close();
+            usbWriter.Write(this.singleFlush);
+            //usbWriter.Close();
         }
         catch (Exception)
         {
@@ -299,7 +313,7 @@ public class UDPSend : MonoBehaviour
             if (!usbWriter.IsOpen)
                 usbWriter.Open();
 
-            usbWriter.Write("1");
+            usbWriter.Write(this.singleDrop);
             usbWriter.Close();
         }
         catch (Exception)
