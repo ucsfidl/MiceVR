@@ -100,6 +100,7 @@ public class WaterTreeScript : MonoBehaviour {
                         multiplier = adjRecentAccuracy * 10;  // Give max up to 5x normal reward size
 
                     GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward((int)(Globals.singleDrop * multiplier));
+					Debug.Log ("Water reward size = " + Globals.singleDrop * multiplier);
 
                     //GameObject.Find("movementRecorder").GetComponent<MovementRecorder>().logReward(true,false);
                     this.depleted = true;

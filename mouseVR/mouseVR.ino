@@ -12,7 +12,7 @@ void setup() {
   // initialize serial:
   Serial.begin(9600);
   //while(!Serial);  // Wait on serial to be running
-  Serial.setTimeout(1);
+  Serial.setTimeout(10);
   
   pinMode(ledPin, OUTPUT);
   pinMode(waterPin, OUTPUT);
