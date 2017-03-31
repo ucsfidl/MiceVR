@@ -99,14 +99,16 @@ public class WaterTreeScript : MonoBehaviour {
                     if (adjRecentAccuracy > 0)
                         multiplier = adjRecentAccuracy * 10;  // Give max up to 5x normal reward size
 
-                    GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward((int)(Globals.singleDrop * multiplier));
-					Debug.Log ("Water reward size = " + Globals.singleDrop * multiplier);
+                    int rewardDur = (int)(Globals.rewardDur * multiplier);
+                    GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward(rewardDur);
+					Debug.Log ("Water reward size = " + rewardDur);
 
                     //GameObject.Find("movementRecorder").GetComponent<MovementRecorder>().logReward(true,false);
                     this.depleted = true;
 					this.mouseObject = GameObject.FindGameObjectWithTag ("MainCamera");
 					this.mouseObject.GetComponent<AudioSource> ().Play ();
 					Globals.numberOfEarnedRewards++;
+                    Globals.sizeOfRewardGiven.Add(Globals.rewardSize / Globals.rewardDur * rewardDur);
 				}
 				// NB edit
 				if (Globals.hasNotTurned) {
@@ -120,9 +122,10 @@ public class WaterTreeScript : MonoBehaviour {
 				if (Globals.hasNotTurned) {
 					Globals.hasNotTurned = false;
 					Globals.firstTurn.Add (this.gameObject.transform.position.x);
-				} 
-				//  Added line below to respawn even on incorrect turns, as Harvey does
-				Globals.trialDelay = incorrectTurnDelay;
+                    Globals.sizeOfRewardGiven.Add(0);
+                }
+                //  Added line below to respawn even on incorrect turns, as Harvey does
+                Globals.trialDelay = incorrectTurnDelay;
 				GameObject.Find ("GameControl").GetComponent<GameControlScript> ().ResetScenario (Color.white);
 			}
             Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);

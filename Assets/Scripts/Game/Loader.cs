@@ -126,17 +126,17 @@ public class Loader : MonoBehaviour {
 				else
 					lp.x = Globals.centralViewVisibleShift;
 				treeCuller.transform.localPosition = lp;
-				Debug.Log (lp.x);
+				//Debug.Log (lp.x);
 			}
             Globals.targetLoc.Add(locx);
-            Debug.Log("Added to targetloc from L");
-            Debug.Log(Globals.targetLoc.Count);
+            //Debug.Log("Added to targetloc from L");
+            //Debug.Log(Globals.targetLoc.Count);
 
             for (int i = start; i < end; i++)
             {
                 treeList[i].SetActive(true);
             }
-			Debug.Log ("Tree activation finished by Loader");
+			//Debug.Log ("Tree activation finished by Loader");
             System.GC.Collect();
 
             start += inc;

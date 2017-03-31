@@ -34,5 +34,9 @@ public static class Globals
 
 	public static float centralViewVisibleShift;
 
-    public static int singleDrop;
+    public static int rewardDur;  // duration in ms of a single drop
+    public static float rewardSize;  // what the above duration results in in ul
+    public static float totalRewardSize;  // in ul
+    public static ArrayList sizeOfRewardGiven = new ArrayList(); // in ul
+
 }

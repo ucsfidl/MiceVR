@@ -162,8 +162,10 @@ public class GameControlScript : MonoBehaviour
 		string _numberOfAllRewards = "";
 		string _rawSpeedDivider = "";
 		string _rawRotationDivider = "";
-        string _singleDrop = "";
+        string _rewardDur = "";
         string _centralViewVisible = "";
+        string _rewardSize = "";
+        string _totalRewardSize = "";
 
         foreach (XmlNode xn in udpConfigList)
         {
@@ -173,7 +175,9 @@ public class GameControlScript : MonoBehaviour
 			_rawSpeedDivider = xn["rawSpeedDivider"].InnerText;
 			_rawRotationDivider = xn["rawRotationDivider"].InnerText;
 			_centralViewVisible = xn ["treeVisibleOnCenterScreen"].InnerText;
-            _singleDrop = xn["singleDrop"].InnerText;
+            _rewardDur = xn["rewardDur"].InnerText;
+            _rewardSize = xn["rewardSize"].InnerText;
+            _totalRewardSize = xn["totalRewardSize"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
@@ -182,7 +186,9 @@ public class GameControlScript : MonoBehaviour
 		float.TryParse(_rawSpeedDivider, out this.rawSpeedDivider);
 		float.TryParse(_rawRotationDivider, out this.rawRotationDivider);
 		int.TryParse (_centralViewVisible, out this.centralViewVisible);
-        int.TryParse(_singleDrop, out Globals.singleDrop);
+        int.TryParse(_rewardDur, out Globals.rewardDur);
+        float.TryParse(_rewardSize, out Globals.rewardSize);
+        float.TryParse(_totalRewardSize, out Globals.totalRewardSize);
 
         // Calculate tree view block value: 0 is full occlusion in the central screen = 120 degrees
         // 0.9 is full visibility with occluder pushed all the way to the screen
@@ -191,7 +197,7 @@ public class GameControlScript : MonoBehaviour
 		Debug.Log (Globals.centralViewVisibleShift);
         // trying to avoid first drops of water
         this.udpSender.ForceStopSolenoid();
-        this.udpSender.setAmount(Globals.singleDrop);
+        this.udpSender.setAmount(Globals.rewardDur);
         this.udpSender.CheckReward();
     }
 
@@ -202,8 +208,7 @@ public class GameControlScript : MonoBehaviour
 
         if (Input.GetKeyUp(KeyCode.U))
         {
-            //this.udpSender.SingleDrop();
-            this.udpSender.SendWaterReward(Globals.singleDrop);
+            this.udpSender.SendWaterReward(Globals.rewardDur);
             Globals.numberOfUnearnedRewards++;
             this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
         }
@@ -226,7 +231,7 @@ public class GameControlScript : MonoBehaviour
      * */
     private void StartGame()
     {
-		//Debug.Log ("In StartGame()");
+        //Debug.Log ("In StartGame()");
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "Press SPACE to start";
@@ -248,6 +253,9 @@ public class GameControlScript : MonoBehaviour
 			Globals.numCorrectTurns = 0;
             this.characterController.enabled = true;  // Bring back character movement
             this.state = "Running";
+
+            InitLogFiles();
+            Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
         }
     }
 
@@ -288,7 +296,6 @@ public class GameControlScript : MonoBehaviour
      */
     private void Run()
     {
-        Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
         // send SYNC msg on first frame of every run.
         if( this.firstFrameRun )
         {
@@ -360,17 +367,29 @@ public class GameControlScript : MonoBehaviour
 		if (waitedOneFrame) {
 			System.Threading.Thread.Sleep (Globals.trialDelay * 1000);
 			waitedOneFrame = false;
-			if (Globals.numberOfEarnedRewards + Globals.numberOfUnearnedRewards >= this.numberOfAllRewards)
+            float totalEarnedRewardSize = 0;
+            float totalRewardSize = 0;
+            for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++) {
+                totalEarnedRewardSize += (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[i]);
+            }
+            //			if (Globals.numberOfEarnedRewards + Globals.numberOfUnearnedRewards >= this.numberOfAllRewards)
+            // End game if mouse has gotten more than 1 ml - and send me a message to retrieve the mouse?
+            totalRewardSize = totalEarnedRewardSize + Globals.numberOfUnearnedRewards * Globals.rewardSize;
+            Debug.Log("Total reward so far: " + totalRewardSize + "; maxReward = " + Globals.totalRewardSize);
+            if (totalRewardSize >= Globals.totalRewardSize)
 				this.state = "GameOver";
 			else
 				this.state = "Respawn";
-			/* NB: removed as we want the mouse to run for a certain number of rewards, not trials?
+            // Append to stats file here
+            WriteToLogFiles();
+            /* NB: removed as we want the mouse to run for a certain number of rewards, not trials?
 			if (this.runNumber > this.numberOfRuns)
 				this.state = "GameOver";
 			else
 				this.state = "Respawn";
 				*/
-		} else {
+        }
+        else {
 			waitedOneFrame = true;
 		}
 	}
@@ -511,18 +530,19 @@ public class GameControlScript : MonoBehaviour
 			}
 
 			locx = gos[treeToActivate].transform.position.x;
-            GameObject treeCuller = GameObject.Find ("TreeCuller");
-			Vector3 lp = treeCuller.transform.localPosition;
-			if (locx > 20000)  // Target tree is on right side
-				lp.x = -Globals.centralViewVisibleShift;
-			else
-				lp.x = Globals.centralViewVisibleShift;
-			treeCuller.transform.localPosition = lp;
 		}
+
+        GameObject treeCuller = GameObject.Find("TreeCuller");
+        Vector3 lp = treeCuller.transform.localPosition;
+        if (locx > 20000)  // Target tree is on right side
+            lp.x = -Globals.centralViewVisibleShift;
+        else
+            lp.x = Globals.centralViewVisibleShift;
+        treeCuller.transform.localPosition = lp;
 
         Globals.targetLoc.Add(locx);
         Debug.Log("Added to target loc from GCS");
-        Debug.Log(Globals.targetLoc.Count);
+        Debug.Log(locx);
 
         this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);
@@ -538,7 +558,8 @@ public class GameControlScript : MonoBehaviour
 
 		Globals.hasNotTurned = true;
 
-		this.state = "Running";
+        Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
+        this.state = "Running";
 	}
 
     private void GameOver()
@@ -558,7 +579,6 @@ public class GameControlScript : MonoBehaviour
         Debug.Log("Waiting for Q");
         yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
-        WriteStatsFile();
 		this.udpSender.close();
         Application.Quit();
     }
@@ -607,25 +627,34 @@ public class GameControlScript : MonoBehaviour
     }
 
     // This function writes out all the statistics to a single file, currently when the game ends.
-    private void WriteStatsFile()
+    private void InitLogFiles()
     {
-        StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_turns.txt");
+        // overwrite any existing file
+        StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_turns.txt", false);
+        // Write file header
+        Debug.Log("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTurnLocation\tRewardSize(ul)");
+        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTurnLocation\tRewardSize(ul)");
+        turnsFile.Close();
+    }
+
+    private void WriteToLogFiles()
+    {
+        StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_turns.txt", true);
         // Write out turn decisions over time - easy to import into Excel and analyze
-        Debug.Log(Globals.firstTurn.Count);
-        Debug.Log(Globals.targetLoc.Count);
-        for (int i=0; i < Globals.firstTurn.Count; i++)
-        {
-            Debug.Log(Globals.trialStartTime[i] + "\t" +
-                                Globals.trialEndTime[i] + "\t" +
-                                ((TimeSpan)Globals.trialEndTime[i]).Subtract((TimeSpan)Globals.trialStartTime[i]) + "\t" + 
-                                Globals.targetLoc[i] + "\t" +
-                                Globals.firstTurn[i]);
-            turnsFile.WriteLine(Globals.trialStartTime[i] + "\t" + 
-                                Globals.trialEndTime[i] + "\t" +
-                                ((TimeSpan)Globals.trialEndTime[i]).Subtract((TimeSpan)Globals.trialStartTime[i]) + "\t" +
-                                Globals.targetLoc[i] + "\t" + 
-                                Globals.firstTurn[i]);
-        }
+
+        Debug.Log(Globals.trialStartTime[Globals.trialStartTime.Count - 1] + "\t" +
+                    Globals.trialEndTime[Globals.trialEndTime.Count - 1] + "\t" +
+                    ((TimeSpan)Globals.trialEndTime[Globals.trialEndTime.Count - 1]).Subtract((TimeSpan)Globals.trialStartTime[Globals.trialStartTime.Count - 1]) + "\t" +
+                    Globals.targetLoc[Globals.targetLoc.Count - 1] + "\t" +
+                    Globals.firstTurn[Globals.firstTurn.Count - 1] + "\t" +
+                    (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[Globals.sizeOfRewardGiven.Count - 1]));
+
+        turnsFile.WriteLine(Globals.trialStartTime[Globals.trialStartTime.Count-1] + "\t" +
+                            Globals.trialEndTime[Globals.trialEndTime.Count-1] + "\t" +
+                            ((TimeSpan)Globals.trialEndTime[Globals.trialEndTime.Count-1]).Subtract((TimeSpan)Globals.trialStartTime[Globals.trialStartTime.Count-1]) + "\t" +
+                            Globals.targetLoc[Globals.targetLoc.Count-1] + "\t" +
+                            Globals.firstTurn[Globals.firstTurn.Count-1] + "\t" +
+                            (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[Globals.sizeOfRewardGiven.Count-1]));
         turnsFile.Close();
 
         StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_stats.txt");
@@ -634,7 +663,15 @@ public class GameControlScript : MonoBehaviour
         statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials - 1), 2) + "</accuracy>");
         statsFile.WriteLine("\t\t<earnedRewards>" + Globals.numCorrectTurns + "</earnedRewards>");
         statsFile.WriteLine("\t\t<unearnedRewards>" + Globals.numberOfUnearnedRewards + "</unearnedRewards>");
-        statsFile.WriteLine("\t\t<trials>" + (Globals.numberOfTrials-1) + "</trials>");
+        statsFile.WriteLine("\t\t<trials>" + (Globals.numberOfTrials - 1) + "</trials>");
+
+        float totalEarnedRewardSize = 0;
+        for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++)
+        {
+            totalEarnedRewardSize += (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[i]);
+        }
+
+        statsFile.WriteLine("\t\t<totalRewardSizeReceived>" + (totalEarnedRewardSize + (float)Globals.numberOfUnearnedRewards * Globals.rewardSize).ToString() + "</trials>");
         statsFile.WriteLine("\t</stats>");
         statsFile.WriteLine("</document>");
         statsFile.Close();
