@@ -367,6 +367,9 @@ public class GameControlScript : MonoBehaviour
 		if (waitedOneFrame) {
 			System.Threading.Thread.Sleep (Globals.trialDelay * 1000);
 			waitedOneFrame = false;
+
+            WriteToLogFiles();
+
             float totalEarnedRewardSize = 0;
             float totalRewardSize = 0;
             for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++) {
@@ -381,7 +384,6 @@ public class GameControlScript : MonoBehaviour
 			else
 				this.state = "Respawn";
             // Append to stats file here
-            WriteToLogFiles();
             /* NB: removed as we want the mouse to run for a certain number of rewards, not trials?
 			if (this.runNumber > this.numberOfRuns)
 				this.state = "GameOver";
@@ -579,6 +581,7 @@ public class GameControlScript : MonoBehaviour
         Debug.Log("Waiting for Q");
         yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
+        WriteStatsFile();
 		this.udpSender.close();
         Application.Quit();
     }
@@ -649,14 +652,18 @@ public class GameControlScript : MonoBehaviour
                     Globals.firstTurn[Globals.firstTurn.Count - 1] + "\t" +
                     (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[Globals.sizeOfRewardGiven.Count - 1]));
 
-        turnsFile.WriteLine(Globals.trialStartTime[Globals.trialStartTime.Count-1] + "\t" +
-                            Globals.trialEndTime[Globals.trialEndTime.Count-1] + "\t" +
-                            ((TimeSpan)Globals.trialEndTime[Globals.trialEndTime.Count-1]).Subtract((TimeSpan)Globals.trialStartTime[Globals.trialStartTime.Count-1]) + "\t" +
-                            Globals.targetLoc[Globals.targetLoc.Count-1] + "\t" +
-                            Globals.firstTurn[Globals.firstTurn.Count-1] + "\t" +
-                            (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[Globals.sizeOfRewardGiven.Count-1]));
+        turnsFile.WriteLine(Globals.trialStartTime[Globals.trialStartTime.Count - 1] + "\t" +
+                            Globals.trialEndTime[Globals.trialEndTime.Count - 1] + "\t" +
+                            ((TimeSpan)Globals.trialEndTime[Globals.trialEndTime.Count - 1]).Subtract((TimeSpan)Globals.trialStartTime[Globals.trialStartTime.Count - 1]) + "\t" +
+                            Globals.targetLoc[Globals.targetLoc.Count - 1] + "\t" +
+                            Globals.firstTurn[Globals.firstTurn.Count - 1] + "\t" +
+                            (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[Globals.sizeOfRewardGiven.Count - 1]));
         turnsFile.Close();
-
+        WriteStatsFile();
+    }
+    
+    private void WriteStatsFile()
+    {
         StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_stats.txt");
         statsFile.WriteLine("<document>");
         statsFile.WriteLine("\t<stats>");
