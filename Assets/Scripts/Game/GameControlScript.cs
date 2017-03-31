@@ -544,7 +544,6 @@ public class GameControlScript : MonoBehaviour
     private void GameOver()
     {
         //Debug.Log ("In GameOver()");
-        this.udpSender.close();
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";
@@ -560,6 +559,7 @@ public class GameControlScript : MonoBehaviour
         yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
         WriteStatsFile();
+		this.udpSender.close();
         Application.Quit();
     }
 
