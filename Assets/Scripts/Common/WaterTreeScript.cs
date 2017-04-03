@@ -97,7 +97,7 @@ public class WaterTreeScript : MonoBehaviour {
                     adjRecentAccuracy = (float)0.5 - recentAccuracy;
                     float multiplier = 1;
                     if (adjRecentAccuracy > 0)
-                        multiplier = adjRecentAccuracy * 10;  // Give max up to 5x normal reward size
+                        multiplier += adjRecentAccuracy * 10;  // Give max up to 6x normal reward size
 
                     int rewardDur = (int)(Globals.rewardDur * multiplier);
                     GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward(rewardDur);
@@ -109,6 +109,7 @@ public class WaterTreeScript : MonoBehaviour {
 					this.mouseObject.GetComponent<AudioSource> ().Play ();
 					Globals.numberOfEarnedRewards++;
                     Globals.sizeOfRewardGiven.Add(Globals.rewardSize / Globals.rewardDur * rewardDur);
+                    Globals.rewardAmountSoFar += Globals.rewardSize / Globals.rewardDur * rewardDur;
 				}
 				// NB edit
 				if (Globals.hasNotTurned) {

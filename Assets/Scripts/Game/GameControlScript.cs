@@ -18,8 +18,7 @@ public class GameControlScript : MonoBehaviour
     public GameObject menuPanel;
     public Image fadeToBlack;
     public Text fadeToBlackText;
-    public Text numberOfEarnedRewardsText;
-    public Text numberOfUnearnedRewardsText;
+    public Text rewardAmountText;
 	public Text numberOfDryTreesText;
 	public Text numberOfCorrectTurnsText;
 	public Text numberOfTrialsText;
@@ -66,6 +65,7 @@ public class GameControlScript : MonoBehaviour
         this.characterController.enabled = false;  // Keeps me from moving the character while typing entries into the form
         Globals.numberOfEarnedRewards = 0;
         Globals.numberOfUnearnedRewards = 0;
+        Globals.rewardAmountSoFar = 0;
 		Globals.numberOfDryTrees = 0;
 		Globals.numberOfTrials = 1;  // Start on first trial
         this.timeoutState = false;
@@ -210,7 +210,9 @@ public class GameControlScript : MonoBehaviour
         {
             this.udpSender.SendWaterReward(Globals.rewardDur);
             Globals.numberOfUnearnedRewards++;
-            this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
+            Globals.rewardAmountSoFar += Globals.rewardSize;
+            this.rewardAmountText.text = "Reward amount so far: " + Globals.rewardAmountSoFar;
+            //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
         }
     }
 
@@ -313,10 +315,11 @@ public class GameControlScript : MonoBehaviour
 		//Debug.Log ("move complete");
 		if (this.udpSender.CheckReward ())
 			this.movementRecorder.logReward(false, true);
-		//this.movementRecorder.logReward(this.udpSender.CheckReward());
-		//this.movementRecorder.logReward(true);
-        this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
-        this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
+        //this.movementRecorder.logReward(this.udpSender.CheckReward());
+        //this.movementRecorder.logReward(true);
+        this.rewardAmountText.text = "Reward amount so far: " + Globals.rewardAmountSoFar.ToString();
+        //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
+        //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
 		this.numberOfDryTreesText.text = "Number of dry trees entered: " + Globals.numberOfDryTrees.ToString();
 		if (Globals.numberOfEarnedRewards > 0) {
 			this.numberOfCorrectTurnsText.text = "Correct turns: " + 
@@ -353,8 +356,9 @@ public class GameControlScript : MonoBehaviour
 
 	public void Pause()
 	{
-		this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
-        this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
+        this.rewardAmountText.text = "Reward amount so far: " + Globals.rewardAmountSoFar.ToString();
+        //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
+        //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
         if (Globals.numberOfEarnedRewards > 0) {
 			this.numberOfCorrectTurnsText.text = "Correct turns: " + 
 				Globals.numCorrectTurns.ToString() 

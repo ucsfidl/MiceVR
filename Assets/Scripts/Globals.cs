@@ -19,6 +19,7 @@ public static class Globals
 
     public static int numberOfEarnedRewards;
     public static int numberOfUnearnedRewards;
+    public static float rewardAmountSoFar;
 
 	// NB edit: globals to keep track of successful turns in the T maze
 	public static bool hasNotTurned;
