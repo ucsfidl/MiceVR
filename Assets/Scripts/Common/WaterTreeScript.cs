@@ -68,12 +68,11 @@ public class WaterTreeScript : MonoBehaviour {
 			if (this.enabled) {
 				//Debug.Log ("Dispensing water");
 				Globals.playerInWaterTree = true;
-				//GameObject.Find ("UDPSender").GetComponent<UDPSend> ().SendInWater ();
-				if (!this.depleted) {
-                    // If the mouse has not had a reward in some time, give a proportionally large reward, up to 4x the normal reward size
+                //GameObject.Find ("UDPSender").GetComponent<UDPSend> ().SendInWater ();
+                if (!this.depleted) {
                     int len = Globals.firstTurn.Count;
                     float multiplier = 1;
-                    if (len >= 20)
+                    if (len >= 20) // If the mouse has not had a reward in some time, give a proportionally large reward, up to 6x the normal reward size
                     {
                         float recentAccuracy, adjRecentAccuracy;  // varies the boundary based on mouse's accuracy
                         int recentCorrect = 0;
@@ -89,42 +88,77 @@ public class WaterTreeScript : MonoBehaviour {
                             }
                         }
                         recentAccuracy = (float)recentCorrect / (end - start);
-                        adjRecentAccuracy = (float)0.5 - recentAccuracy;
+                        adjRecentAccuracy = 0.5F - recentAccuracy;
                         if (adjRecentAccuracy > 0)
                             multiplier += adjRecentAccuracy * 10;  // Give max up to 6x normal reward size
                     }
                     int rewardDur = (int)(Globals.rewardDur * multiplier);
-                    GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward(rewardDur);
-					Debug.Log ("Water reward size = " + rewardDur);
 
-                    //GameObject.Find("movementRecorder").GetComponent<MovementRecorder>().logReward(true,false);
-                    this.depleted = true;
-					this.mouseObject = GameObject.FindGameObjectWithTag ("MainCamera");
-					this.mouseObject.GetComponent<AudioSource> ().Play ();
-					Globals.numberOfEarnedRewards++;
-                    Globals.sizeOfRewardGiven.Add(Globals.rewardSize / Globals.rewardDur * rewardDur);
-                    Globals.rewardAmountSoFar += Globals.rewardSize / Globals.rewardDur * rewardDur;
+                    if (this.GetShaderVFreq() == 0)  // The mouse ran into the special center tree - give reward only if no other trees displayed
+                    {
+                        GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+                        Debug.Log("number of trees: " + gos.Length);
+                        bool alone = true;
+                        for (int i = 0; i < gos.Length - 1; i++)  // This special tree is always listed last
+                        {
+                            Debug.Log("Tree enabled state is " + gos[i].transform.GetChild(0).gameObject.activeSelf.ToString());
+                            if (gos[i].transform.GetChild(0).gameObject.activeSelf)
+                            {
+                                alone = false;
+                            }
+                        }
+                        if (alone)
+                        {
+                            GiveReward(rewardDur);
+                        }
+                        else  // error trial
+                        {
+                            WitholdReward();
+                        }
+                    } else
+                    {
+                        GiveReward(rewardDur);
+                    }
+
 				}
-				// NB edit
-				if (Globals.hasNotTurned) {
-					Globals.hasNotTurned = false;
-					Globals.numCorrectTurns++;
-					Globals.firstTurn.Add (this.gameObject.transform.position.x);
-				}
-				Globals.trialDelay = correctTurnDelay;
-				GameObject.Find ("GameControl").GetComponent<GameControlScript> ().ResetScenario (Color.black);
 			} else {
-				if (Globals.hasNotTurned) {
-					Globals.hasNotTurned = false;
-					Globals.firstTurn.Add (this.gameObject.transform.position.x);
-                    Globals.sizeOfRewardGiven.Add(0);
-                }
-                //  Added line below to respawn even on incorrect turns, as Harvey does
-                Globals.trialDelay = incorrectTurnDelay;
-				GameObject.Find ("GameControl").GetComponent<GameControlScript> ().ResetScenario (Color.white);
+                WitholdReward();
 			}
             Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);
 		}
+    }
+
+    private void GiveReward(int rewardDur)
+    {
+        GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward(rewardDur);
+        Debug.Log("Water reward size = " + rewardDur);
+        //GameObject.Find("movementRecorder").GetComponent<MovementRecorder>().logReward(true,false);
+        this.depleted = true;
+        this.mouseObject = GameObject.FindGameObjectWithTag("MainCamera");
+        this.mouseObject.GetComponent<AudioSource>().Play();
+        Globals.numberOfEarnedRewards++;
+        Globals.sizeOfRewardGiven.Add(Globals.rewardSize / Globals.rewardDur * rewardDur);
+        Globals.rewardAmountSoFar += Globals.rewardSize / Globals.rewardDur * rewardDur;
+        if (Globals.hasNotTurned)
+        {
+            Globals.hasNotTurned = false;
+            Globals.numCorrectTurns++;
+            Globals.firstTurn.Add(this.gameObject.transform.position.x);
+        }
+        Globals.trialDelay = correctTurnDelay;
+        GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.black);
+    }
+
+    private void WitholdReward()
+    {
+        if (Globals.hasNotTurned)
+        {
+            Globals.hasNotTurned = false;
+            Globals.firstTurn.Add(this.gameObject.transform.position.x);
+            Globals.sizeOfRewardGiven.Add(0);
+        }
+        Globals.trialDelay = incorrectTurnDelay;
+        GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.white);
     }
 
     void OnTriggerExit()
@@ -154,6 +188,16 @@ public class WaterTreeScript : MonoBehaviour {
         this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
         this.topCap.SetActive(true);
         this.bottomCap.SetActive(true);
+    }
+
+    public float GetShaderHFreq()
+    {
+        return this.crown.GetComponent<Renderer>().material.GetFloat("_HFreq");
+    }
+
+    public float GetShaderVFreq()
+    {
+        return this.crown.GetComponent<Renderer>().material.GetFloat("_VFreq");
     }
 
     public void ChangeTexture(Texture t)

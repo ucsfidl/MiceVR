@@ -79,6 +79,10 @@ public class Loader : MonoBehaviour {
 	private int restrictToCamera;
 	private bool restrict;
 
+    private float vFreq;
+    private float hFreq;
+    private bool changeFreq;
+
     void Start()
     {
         start = 0;
@@ -108,35 +112,60 @@ public class Loader : MonoBehaviour {
 
             float locx = treeList[0].transform.position.x;
             // NB edit
-            // If there are only 2 trees, alternate which is visible
-            if (end == 2) {
+            // If there are only 2 or 3 trees, alternate which is visible, and leave the third as constant
+            if (end >= 2 && end <= 3) {
 				float r = Random.value;
 				GameObject treeCuller;
-				if (r < 0.5) {
-					treeList [1].GetComponent<WaterTreeScript> ().Hide ();
-					locx = treeList[0].transform.position.x;
-				} else {
-					treeList [0].GetComponent<WaterTreeScript> ().Hide ();
-					locx = treeList[1].transform.position.x;
-				}
-				treeCuller = GameObject.Find ("TreeCuller");
+                if (end == 2)
+                {
+                    if (r < 0.5)
+                    {
+                        treeList[1].GetComponent<WaterTreeScript>().Hide();
+                        locx = treeList[0].transform.position.x;
+                    }
+                    else
+                    {
+                        treeList[0].GetComponent<WaterTreeScript>().Hide();
+                        locx = treeList[1].transform.position.x;
+                    }
+                    Debug.Log("[0, 0.5, 1] - " + r);
+                }
+                else if (end == 3)
+                {
+                    if (r < 0.333)
+                    {
+                        treeList[1].GetComponent<WaterTreeScript>().Hide();
+                        locx = treeList[0].transform.position.x;
+                        Debug.Log("activated first tree in loader");
+                    } else if (r < 0.667)
+                    {
+                        treeList[0].GetComponent<WaterTreeScript>().Hide();
+                        locx = treeList[1].transform.position.x;
+                        Debug.Log("activated second tree in loader");
+                    }
+                    else
+                    {
+                        treeList[0].GetComponent<WaterTreeScript>().Hide();
+                        treeList[1].GetComponent<WaterTreeScript>().Hide();
+                        locx = treeList[2].transform.position.x;
+                        Debug.Log("deactivated both trees in loader");
+                    }
+                    Debug.Log("[0, 0.333, 0.667, 1] - " + r);
+                }
+                treeCuller = GameObject.Find ("TreeCuller");
 				Vector3 lp = treeCuller.transform.localPosition;
 				if (locx > 20000)  // Target tree is on right side
 					lp.x = -Globals.centralViewVisibleShift;
-				else
+				else if (locx < 20000)
 					lp.x = Globals.centralViewVisibleShift;
 				treeCuller.transform.localPosition = lp;
-				//Debug.Log (lp.x);
-			}
+            }
             Globals.targetLoc.Add(locx);
-            //Debug.Log("Added to targetloc from L");
-            //Debug.Log(Globals.targetLoc.Count);
 
             for (int i = start; i < end; i++)
             {
                 treeList[i].SetActive(true);
             }
-			//Debug.Log ("Tree activation finished by Loader");
             System.GC.Collect();
 
             start += inc;
@@ -279,6 +308,7 @@ public class Loader : MonoBehaviour {
                 angular = false;
                 texture = false;
 				restrict = false;
+                changeFreq = false;
 
                 foreach (XmlNode val in levelcontent)
                 {
@@ -308,11 +338,22 @@ public class Loader : MonoBehaviour {
                     else if (val.Name == "tex")
                     {
                         texture = true;
-					} else if (val.Name == "r")
+					}
+                    else if (val.Name == "r")
 					{
 						int.TryParse (val.InnerText, out this.restrictToCamera);
 						restrict = true;
-					}
+					} else if (val.Name == "v")
+                    {
+                        float.TryParse(val.InnerText, out this.vFreq);
+                        if (!changeFreq) this.hFreq = 4;
+                        changeFreq = true;
+                    } else if (val.Name == "h")
+                    {
+                        float.TryParse(val.InnerText, out this.hFreq);
+                        if (!changeFreq) this.vFreq = 4;
+                        changeFreq = true;
+                    }
                 }
                 if (water)
                 {
@@ -342,6 +383,10 @@ public class Loader : MonoBehaviour {
 								}
 							}
 						}
+                        if (changeFreq)
+                        {
+                            go.GetComponent<WaterTreeScript>().ChangeShader(this.hFreq, this.vFreq, this.deg_LS);
+                        }
 					}
                         else if (texture)
                         {

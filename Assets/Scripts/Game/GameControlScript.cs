@@ -194,7 +194,7 @@ public class GameControlScript : MonoBehaviour
         // 0.9 is full visibility with occluder pushed all the way to the screen
         Globals.centralViewVisibleShift = (float)(centralViewVisible * 0.58/120);  // 0.45/120
 
-		Debug.Log (Globals.centralViewVisibleShift);
+		//Debug.Log (Globals.centralViewVisibleShift);
         // trying to avoid first drops of water
         this.udpSender.ForceStopSolenoid();
         this.udpSender.setAmount(Globals.rewardDur);
@@ -317,7 +317,7 @@ public class GameControlScript : MonoBehaviour
 			this.movementRecorder.logReward(false, true);
         //this.movementRecorder.logReward(this.udpSender.CheckReward());
         //this.movementRecorder.logReward(true);
-        this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar.ToString());
+        this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar).ToString();
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
 		this.numberOfDryTreesText.text = "Number of dry trees entered: " + Globals.numberOfDryTrees.ToString();
@@ -356,7 +356,7 @@ public class GameControlScript : MonoBehaviour
 
 	public void Pause()
 	{
-        this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar.ToString());
+        this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar).ToString();
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
         if (Globals.numberOfEarnedRewards > 0) {
@@ -453,102 +453,88 @@ public class GameControlScript : MonoBehaviour
         //this.state = "StartGame";
 
 		// Randomly decide which of the 2 trees is visible, only if the scenario has only 2 trees.
-		// If the tree has been shown on the same side 3x in a row, show it on the other side.
-		// Or if the mouse has turned to the same side 3x in a row, keep the target on the other side, even if it has been presented more than 3 times on that side.
 		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
 
         float locx = gos[0].transform.position.x;
-        if (gos.Length == 2) {
+        if (gos.Length >= 2 && gos.Length <= 3) {
             // Redo bias correction to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
-            // Previous attempt at streak elimination didn't really work... Saw mouse go left 100 times or so! And most mice exhibited a bias.
-            int treeToActivate;
+            // Previous attempt at streak elimination didn't really work... Saw mouse go left 100 times or so! And most mice exhibited a bias, even though they may not have before...
+            int treeToActivate = 0;
             int len = Globals.firstTurn.Count;
             float r = UnityEngine.Random.value;
             float randThresh;  // varies the boundary based on history of mouse turns
-            int turn1 = 0;
+            float turn0 = 0;
             int start;
             int end;
-            if (len >= 20)
+            int numTrials;
+            if (len >= 21)
             {
                 end = len;
-                start = len - 20;
+                start = len - 21;
             } else
             {
                 start = 0;
                 end = len;
             }
-            for (int i = start; i < end; i++)
+            numTrials = end - start;
+            if (gos.Length == 2)
             {
-                if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x) turn1++;
+                for (int i = start; i < end; i++)
+                {
+                    if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x)
+                        turn0++;
+                }
+                randThresh = 1 - turn0 / (numTrials);  // Set the threshold based on past history
+                Debug.Log("[0, " + randThresh + ", 1] - " + r);
+                treeToActivate = r < randThresh ? 0 : 1;
             }
-            randThresh = (float)turn1 / (end - start);  // Set the threshold based on past history
-            Debug.Log(randThresh + " - " + r);
-            treeToActivate = r > randThresh ? 0 : 1;
+            else if (gos.Length == 3)
+            {
+                float turn1 = 0;
+                for (int i = start; i < end; i++)
+                {
+                    if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x)
+                        turn0++;
+                    else if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[1].transform.position.x)
+                        turn1++;
+                }
 
-            /*
-			// Mouse's behavior trumps streak elimination, so if the mouse is only turning to one side, keep
-			// the tree on the other side, even if its been on that side more than 3 times.
-			// Check and see if last 3 targets were shown in the same location. If they were, show in new location.
-			if (len >= 3 &&
-			    System.Convert.ToInt32 (Globals.firstTurn [len - 1]) ==
-			    System.Convert.ToInt32 (Globals.firstTurn [len - 2]) &&
-			    System.Convert.ToInt32 (Globals.firstTurn [len - 2]) ==
-			    System.Convert.ToInt32 (Globals.firstTurn [len - 3])) {
-				Debug.Log ("Mouse turn direction streak detected");
-				if (gos [0].transform.position.x == System.Convert.ToInt32 (Globals.firstTurn [len - 1])) {
-					treeToActivate = 1;	
-				} else {
-					treeToActivate = 0;
-				}
-				Globals.trialsSinceMouseStreakEliminated = 0;
-			} else {
-				Globals.trialsSinceMouseStreakEliminated++;
-				if (len >= 3 &&
-				    System.Convert.ToInt32 (Globals.targetLoc [len - 1]) ==
-				    System.Convert.ToInt32 (Globals.targetLoc [len - 2]) &&
-				    System.Convert.ToInt32 (Globals.targetLoc [len - 2]) ==
-				    System.Convert.ToInt32 (Globals.targetLoc [len - 3]) &&
-					Globals.trialsSinceMouseStreakEliminated >= 3) {
-					Debug.Log ("Tree streak detected");
-					if (gos [0].transform.position.x == System.Convert.ToInt32 (Globals.targetLoc [len - 1])) {
-						treeToActivate = 1;	
-					} else {
-						treeToActivate = 0;
-					}
-				} else {
-					Debug.Log ("No streaks detected, or mouse streak eliminated recently, so tree randomly activated");
-					treeToActivate = r < 0.5 ? 0 : 1;
-				}
-			}               
-            */
+                float t0 = 1 - turn0 / numTrials;
+                float t1 = 1 - turn1 / numTrials;
+                float t2 = (turn0 + turn1) / numTrials;  // simplifies to this
 
-            for (int i = 0; i < gos.Length; i++) {
-				gos [i].SetActive (true);
-				if (i == treeToActivate) {
-					//gos [i].SetActive (true);
-					gos[i].GetComponent<WaterTreeScript> ().Show();
-					Debug.Log ("Activated tree id = " + i.ToString ());
-				} else {
-					//gos [i].SetActive (false);
-					gos [i].GetComponent<WaterTreeScript> ().Hide ();
-					//Debug.Log ("Inactivated tree id = " + i.ToString ());
-				}
-			}
+                float thresh0 = t0 / (t0 + t1 + t2);
+                float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
 
-			locx = gos[treeToActivate].transform.position.x;
+                Debug.Log("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
+                treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
+            }
+            for (int i = 0; i < 2; i++)  // Even in the 3-tree case, never deactivate the 3rd tree
+            {
+                gos[i].SetActive(true);
+                if (i == treeToActivate)
+                {
+                    gos[i].GetComponent<WaterTreeScript>().Show();
+                    Debug.Log("Activated tree id = " + i.ToString());
+                }
+                else
+                {
+                    gos[i].GetComponent<WaterTreeScript>().Hide();
+                    //Debug.Log ("Inactivated tree id = " + i.ToString ());
+                }
+            }
+            locx = gos[treeToActivate].transform.position.x;
 		}
 
         GameObject treeCuller = GameObject.Find("TreeCuller");
         Vector3 lp = treeCuller.transform.localPosition;
         if (locx > 20000)  // Target tree is on right side
             lp.x = -Globals.centralViewVisibleShift;
-        else
+        else if (locx < 20000)
             lp.x = Globals.centralViewVisibleShift;
         treeCuller.transform.localPosition = lp;
 
         Globals.targetLoc.Add(locx);
-        Debug.Log("Added to target loc from GCS");
-        Debug.Log(locx);
 
         this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);
