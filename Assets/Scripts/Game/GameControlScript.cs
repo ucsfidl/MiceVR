@@ -211,7 +211,7 @@ public class GameControlScript : MonoBehaviour
             this.udpSender.SendWaterReward(Globals.rewardDur);
             Globals.numberOfUnearnedRewards++;
             Globals.rewardAmountSoFar += Globals.rewardSize;
-            this.rewardAmountText.text = "Reward amount so far: " + Globals.rewardAmountSoFar;
+            this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar);
             //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
         }
     }
@@ -317,7 +317,7 @@ public class GameControlScript : MonoBehaviour
 			this.movementRecorder.logReward(false, true);
         //this.movementRecorder.logReward(this.udpSender.CheckReward());
         //this.movementRecorder.logReward(true);
-        this.rewardAmountText.text = "Reward amount so far: " + Globals.rewardAmountSoFar.ToString();
+        this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar.ToString());
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
 		this.numberOfDryTreesText.text = "Number of dry trees entered: " + Globals.numberOfDryTrees.ToString();
@@ -356,7 +356,7 @@ public class GameControlScript : MonoBehaviour
 
 	public void Pause()
 	{
-        this.rewardAmountText.text = "Reward amount so far: " + Globals.rewardAmountSoFar.ToString();
+        this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar.ToString());
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
         if (Globals.numberOfEarnedRewards > 0) {
@@ -672,7 +672,7 @@ public class GameControlScript : MonoBehaviour
         statsFile.WriteLine("<document>");
         statsFile.WriteLine("\t<stats>");
         statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials - 1), 2) + "</accuracy>");
-        statsFile.WriteLine("\t\t<earnedRewards>" + Globals.numCorrectTurns + "</earnedRewards>");
+        statsFile.WriteLine("\t\tdRewards>" + Globals.numCorrectTurns + "</earnedRewards>");
         statsFile.WriteLine("\t\t<unearnedRewards>" + Globals.numberOfUnearnedRewards + "</unearnedRewards>");
         statsFile.WriteLine("\t\t<trials>" + (Globals.numberOfTrials - 1) + "</trials>");
 

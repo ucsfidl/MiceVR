@@ -72,33 +72,27 @@ public class WaterTreeScript : MonoBehaviour {
 				if (!this.depleted) {
                     // If the mouse has not had a reward in some time, give a proportionally large reward, up to 4x the normal reward size
                     int len = Globals.firstTurn.Count;
-                    float recentAccuracy, adjRecentAccuracy;  // varies the boundary based on mouse's accuracy
-                    int recentCorrect = 0;
-                    int start;
-                    int end;
+                    float multiplier = 1;
                     if (len >= 20)
                     {
+                        float recentAccuracy, adjRecentAccuracy;  // varies the boundary based on mouse's accuracy
+                        int recentCorrect = 0;
+                        int start;
+                        int end;
                         end = len;
                         start = len - 20;
-                    }
-                    else
-                    {
-                        start = 0;
-                        end = len;
-                    }
-                    for (int i = start; i < end; i++)
-                    {
-                        if (System.Convert.ToInt32(Globals.firstTurn[i]) == System.Convert.ToInt32(Globals.targetLoc[i]))
+                        for (int i = start; i < end; i++)
                         {
-                            recentCorrect++;
+                            if (System.Convert.ToInt32(Globals.firstTurn[i]) == System.Convert.ToInt32(Globals.targetLoc[i]))
+                            {
+                                recentCorrect++;
+                            }
                         }
+                        recentAccuracy = (float)recentCorrect / (end - start);
+                        adjRecentAccuracy = (float)0.5 - recentAccuracy;
+                        if (adjRecentAccuracy > 0)
+                            multiplier += adjRecentAccuracy * 10;  // Give max up to 6x normal reward size
                     }
-                    recentAccuracy = (float)recentCorrect / (end - start);
-                    adjRecentAccuracy = (float)0.5 - recentAccuracy;
-                    float multiplier = 1;
-                    if (adjRecentAccuracy > 0)
-                        multiplier += adjRecentAccuracy * 10;  // Give max up to 6x normal reward size
-
                     int rewardDur = (int)(Globals.rewardDur * multiplier);
                     GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward(rewardDur);
 					Debug.Log ("Water reward size = " + rewardDur);
