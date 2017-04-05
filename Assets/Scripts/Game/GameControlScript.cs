@@ -22,6 +22,7 @@ public class GameControlScript : MonoBehaviour
 	public Text numberOfDryTreesText;
 	public Text numberOfCorrectTurnsText;
 	public Text numberOfTrialsText;
+    public Text lastAccuracyText;
     public UDPSend udpSender;
     public MovementRecorder movementRecorder;
 
@@ -317,6 +318,7 @@ public class GameControlScript : MonoBehaviour
 			this.movementRecorder.logReward(false, true);
         //this.movementRecorder.logReward(this.udpSender.CheckReward());
         //this.movementRecorder.logReward(true);
+        /*
         this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar).ToString();
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
@@ -326,10 +328,12 @@ public class GameControlScript : MonoBehaviour
 				Globals.numCorrectTurns.ToString() 
 				+ " (" + 
 				Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials-1)) * 100).ToString() + "%)";
+            this.last21AccuracyText.text = "Last 10 accuracy: " + GetLastAccuracy(10) + "%";
 		}
 		this.numberOfTrialsText.text = "Current trial: # " + Globals.numberOfTrials.ToString ();
 		//this.frameCounter++;
 		//Debug.Log ("screen updated");
+        */
         if (Time.time - this.runTime >= this.runDuration)
         {
             // fadetoblack + respawn
@@ -337,6 +341,62 @@ public class GameControlScript : MonoBehaviour
             this.fadeToBlack.gameObject.SetActive(true);
             this.state = "Fading";
         }
+    }
+
+    private int GetLastAccuracy(int n)
+    {
+        int len = Globals.firstTurn.Count;
+        int start;
+        int end;
+        int numTrials;
+        if (len >= n)
+        {
+            end = len;
+            start = len - n;
+        }
+        else
+        {
+            start = 0;
+            end = len;
+        }
+        numTrials = end - start;
+        int corr = 0;
+        for (int i = start; i < end; i++)
+        {
+            if (Globals.firstTurn[i].Equals(Globals.targetLoc[i]))
+                corr++;
+        }
+        return (int)Math.Round((float)corr / numTrials * 100);
+    }
+
+    private string GetTreeAccuracy()
+    {
+        GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+        float[] locs = new float[gos.Length];
+        int[] numCorrTrials = new int[gos.Length];
+        int[] numTrials = new int[gos.Length];
+        for (int i = 0; i < gos.Length; i++)
+        {
+            locs[i] = gos[i].transform.position.x;
+        }
+        //With all locations in hand, calculate accuracy for each one, then print it out
+
+        int idx;
+        for (int i = 0; i < Globals.firstTurn.Count; i++)
+        {
+            Debug.Log((float)System.Convert.ToDouble(Globals.targetLoc[i]));
+            idx = Array.IndexOf(locs, (float)System.Convert.ToDouble(Globals.targetLoc[i]));
+            numTrials[idx]++;
+            if (Globals.targetLoc[i].Equals(Globals.firstTurn[i]))
+                numCorrTrials[idx]++;
+        }
+
+        string output = "";
+        for (int i = 0; i < numTrials.Length; i++)
+        {
+            output += " / " + Math.Round((float)numCorrTrials[i] / numTrials[i] * 100) + "%";
+        }
+        return output;
     }
 
     /*
@@ -359,16 +419,18 @@ public class GameControlScript : MonoBehaviour
         this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar).ToString();
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
-        if (Globals.numberOfEarnedRewards > 0) {
-			this.numberOfCorrectTurnsText.text = "Correct turns: " + 
-				Globals.numCorrectTurns.ToString() 
-				+ " (" + 
-				Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials-1)) * 100).ToString() + "%)";
-		}
+        if (Globals.numberOfTrials > 1) {
+            this.numberOfCorrectTurnsText.text = "Correct turns: " +
+                Globals.numCorrectTurns.ToString()
+                + " (" +
+                Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials - 1)) * 100).ToString() + "%" 
+                + GetTreeAccuracy() + ")";
+            this.lastAccuracyText.text = "Last 10 accuracy: " + GetLastAccuracy(10) + "%";
+        }
 
-		// NB Hack to get screen to go black before pausing for trialDelay
+        // NB Hack to get screen to go black before pausing for trialDelay
 
-		if (waitedOneFrame) {
+        if (waitedOneFrame) {
 			System.Threading.Thread.Sleep (Globals.trialDelay * 1000);
 			waitedOneFrame = false;
 
