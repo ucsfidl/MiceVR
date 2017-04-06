@@ -331,6 +331,7 @@ public class GameControlScript : MonoBehaviour
 			this.movementRecorder.logReward(false, true);
         //this.movementRecorder.logReward(this.udpSender.CheckReward());
         //this.movementRecorder.logReward(true);
+		this.numberOfTrialsText.text = "Current trial: # " + Globals.numberOfTrials.ToString ();
         /*
         this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar).ToString();
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
@@ -343,7 +344,6 @@ public class GameControlScript : MonoBehaviour
 				Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials-1)) * 100).ToString() + "%)";
             this.last21AccuracyText.text = "Last 10 accuracy: " + GetLastAccuracy(10) + "%";
 		}
-		this.numberOfTrialsText.text = "Current trial: # " + Globals.numberOfTrials.ToString ();
 		//this.frameCounter++;
 		//Debug.Log ("screen updated");
         */
