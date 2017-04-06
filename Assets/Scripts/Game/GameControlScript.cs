@@ -207,14 +207,27 @@ public class GameControlScript : MonoBehaviour
         if (Input.GetKey(KeyCode.Escape))
             this.state = "GameOver";
 
-        if (Input.GetKeyUp(KeyCode.U))
+        if (!this.state.Equals("LoadScenario"))
         {
-            this.udpSender.SendWaterReward(Globals.rewardDur);
-            Globals.numberOfUnearnedRewards++;
-            Globals.rewardAmountSoFar += Globals.rewardSize;
-            this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar);
-            //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
+            if (Input.GetKeyUp(KeyCode.U))
+            {
+                this.udpSender.SendWaterReward(Globals.rewardDur);
+                Globals.numberOfUnearnedRewards++;
+                Globals.rewardAmountSoFar += Globals.rewardSize;
+                this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar);
+                //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
+            } else if (Input.GetKeyUp(KeyCode.T))
+            {
+                // Mouse is stuck so teleport to beginning
+                TeleportToBeginning();
+            }
         }
+    }
+
+    private void TeleportToBeginning()
+    {
+        this.player.transform.position = this.startingPos;
+        this.player.transform.rotation = this.startingRot;
     }
 
     /*
@@ -483,10 +496,9 @@ public class GameControlScript : MonoBehaviour
 		this.fadeToBlack.color = c;
 		this.state = "Paused";
 
-		// Move the player now, as the screen goes to black and the app detects collisions between the new tree and the player 
-		// if the player is not moved.
-		this.player.transform.position = this.startingPos;
-		this.player.transform.rotation = this.startingRot;
+        // Move the player now, as the screen goes to black and the app detects collisions between the new tree and the player 
+        // if the player is not moved.
+        TeleportToBeginning();
 
         // check for game over
 		/*
@@ -499,19 +511,18 @@ public class GameControlScript : MonoBehaviour
 
     private void Respawn()
     {
-		//Debug.Log ("Respawning");
+        //Debug.Log ("Respawning");
 
-		// NB edit - commented out to teleport mouse back to the beginning
+        // NB edit - commented out to teleport mouse back to the beginning
         //int x = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
         //int z = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
         //float rot = Random.Range(0f, 360f);
-        
-		//this.player.transform.position = new Vector3(x, this.player.transform.position.y, z);
+
+        //this.player.transform.position = new Vector3(x, this.player.transform.position.y, z);
         //this.player.transform.Rotate(Vector3.up, rot);
 
-		// NB edit - The code below comes from starting the game - ideally make a helper function?
-		this.player.transform.position = this.startingPos;
-		this.player.transform.rotation = this.startingRot;
+        // NB edit - The code below comes from starting the game - ideally make a helper function?
+        TeleportToBeginning();
         //this.state = "StartGame";
 
 		// Randomly decide which of the 2 trees is visible, only if the scenario has only 2 trees.
