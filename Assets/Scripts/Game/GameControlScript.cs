@@ -8,6 +8,7 @@ using System.IO.Ports;
 using System.Xml;
 using System.Text;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 public class GameControlScript : MonoBehaviour
 {
@@ -23,6 +24,7 @@ public class GameControlScript : MonoBehaviour
 	public Text numberOfCorrectTurnsText;
 	public Text numberOfTrialsText;
     public Text lastAccuracyText;
+    public Text timeElapsedText;
     public UDPSend udpSender;
     public MovementRecorder movementRecorder;
 
@@ -31,6 +33,7 @@ public class GameControlScript : MonoBehaviour
     private int respawnAmplitude = 2000;
     private int runNumber;
     private float runTime;
+    private DateTime startTime;
     private long frameCounter, previousFrameCounter;
     private System.Collections.Generic.Queue<float> last5Mouse2Y, last5Mouse1Y;
     public string state;
@@ -206,8 +209,8 @@ public class GameControlScript : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.Escape))
             this.state = "GameOver";
-
-        if (!this.state.Equals("LoadScenario"))
+        
+        if (!this.state.Equals("LoadScenario") || (this.state.Equals("LoadScenario") && EventSystem.current.currentSelectedGameObject == null))
         {
             if (Input.GetKeyUp(KeyCode.U))
             {
@@ -255,6 +258,8 @@ public class GameControlScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Space))
         {
             this.runTime = Time.time;
+            this.startTime = DateTime.Now;
+            Debug.Log("Game started at " + this.startTime.ToLongTimeString());
             this.movementRecorder.SetRun(this.runNumber);
             this.movementRecorder.SetFileSet(true);
             Color t = this.fadeToBlack.color;
@@ -347,6 +352,8 @@ public class GameControlScript : MonoBehaviour
 		//this.frameCounter++;
 		//Debug.Log ("screen updated");
         */
+        TimeSpan te = DateTime.Now.Subtract(startTime);
+        this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D2}:{1:D2}:{2:D2}", te.Hours, te.Minutes, te.Seconds);
         if (Time.time - this.runTime >= this.runDuration)
         {
             // fadetoblack + respawn
@@ -438,7 +445,7 @@ public class GameControlScript : MonoBehaviour
                 + " (" +
                 Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials - 1)) * 100).ToString() + "%" 
                 + GetTreeAccuracy() + ")";
-            this.lastAccuracyText.text = "Last 10 accuracy: " + GetLastAccuracy(10) + "%";
+            this.lastAccuracyText.text = "Last 20 accuracy: " + GetLastAccuracy(20) + "%";
         }
 
         // NB Hack to get screen to go black before pausing for trialDelay
@@ -731,7 +738,7 @@ public class GameControlScript : MonoBehaviour
         statsFile.WriteLine("<document>");
         statsFile.WriteLine("\t<stats>");
         statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials - 1), 2) + "</accuracy>");
-        statsFile.WriteLine("\t\tdRewards>" + Globals.numCorrectTurns + "</earnedRewards>");
+        statsFile.WriteLine("\t\t<earnedRewards>" + Globals.numCorrectTurns + "</earnedRewards>");
         statsFile.WriteLine("\t\t<unearnedRewards>" + Globals.numberOfUnearnedRewards + "</unearnedRewards>");
         statsFile.WriteLine("\t\t<trials>" + (Globals.numberOfTrials - 1) + "</trials>");
 

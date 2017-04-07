@@ -63,7 +63,7 @@ public class MovementRecorder : MonoBehaviour {
 
     public void SetScenarioName(string s)
     {
-        if (s.Length > 4)
+        if (s.EndsWith(".xml"))
             this.scenarioName = s.Substring(0, s.Length - 4);
         else
             this.scenarioName = s;
