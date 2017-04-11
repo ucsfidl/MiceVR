@@ -737,10 +737,11 @@ public class GameControlScript : MonoBehaviour
         StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_stats.txt");
         statsFile.WriteLine("<document>");
         statsFile.WriteLine("\t<stats>");
-        statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials - 1), 2) + "</accuracy>");
+        statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials)) + "%" + GetTreeAccuracy() + "</accuracy>");
         statsFile.WriteLine("\t\t<earnedRewards>" + Globals.numCorrectTurns + "</earnedRewards>");
         statsFile.WriteLine("\t\t<unearnedRewards>" + Globals.numberOfUnearnedRewards + "</unearnedRewards>");
         statsFile.WriteLine("\t\t<trials>" + (Globals.numberOfTrials - 1) + "</trials>");
+        statsFile.WriteLine("\t\t<timeElapsed>" + this.timeElapsedText.text.Substring(14) + "</trials>");
 
         float totalEarnedRewardSize = 0;
         for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++)
