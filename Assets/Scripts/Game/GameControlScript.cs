@@ -741,7 +741,10 @@ public class GameControlScript : MonoBehaviour
         statsFile.WriteLine("\t\t<earnedRewards>" + Globals.numCorrectTurns + "</earnedRewards>");
         statsFile.WriteLine("\t\t<unearnedRewards>" + Globals.numberOfUnearnedRewards + "</unearnedRewards>");
         statsFile.WriteLine("\t\t<trials>" + (Globals.numberOfTrials - 1) + "</trials>");
-        statsFile.WriteLine("\t\t<timeElapsed>" + this.timeElapsedText.text.Substring(14) + "</trials>");
+        if(this.timeElapsedText.text.Length > 14)
+            statsFile.WriteLine("\t\t<timeElapsed>00:00:00" + this.timeElapsedText.text.Substring(14) + "</trials>");
+        else
+            statsFile.WriteLine("\t\t<timeElapsed>00:00:00</trials>");
 
         float totalEarnedRewardSize = 0;
         for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++)
@@ -754,6 +757,5 @@ public class GameControlScript : MonoBehaviour
         statsFile.WriteLine("</document>");
         statsFile.Close();
     }
-
 
 }

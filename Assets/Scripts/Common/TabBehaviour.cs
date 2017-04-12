@@ -17,10 +17,10 @@ public class TabBehaviour : MonoBehaviour
 
     private void Update()
     {
-        if (system.currentSelectedGameObject == null || !(Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.Return)))
+        if (system.currentSelectedGameObject == null || !(Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)))
             return;
 
-        if (Input.GetKeyDown(KeyCode.Return))
+        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
             GameObject.FindGameObjectWithTag("generator").GetComponent<Loader>().LoadScenario();
 
         Selectable current = system.currentSelectedGameObject.GetComponent<Selectable>();
