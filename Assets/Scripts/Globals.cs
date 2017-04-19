@@ -28,8 +28,12 @@ public static class Globals
     public static ArrayList trialStartTime = new ArrayList(); // Holds DateTime object of starttime
     public static ArrayList trialEndTime = new ArrayList(); // Holds DateTime object of endtime
 	public static ArrayList targetLoc = new ArrayList(); // X coord of tree placed in this list
-	public static ArrayList firstTurn = new ArrayList(); // X coord of tree the mouse hit or would have hit is placed in this list
-	public static int numCorrectTurns;
+    public static ArrayList targetHFreq = new ArrayList();  // Orientation of target
+    public static ArrayList targetVFreq = new ArrayList();  // Orientation of target
+    public static ArrayList firstTurn = new ArrayList(); // X coord of tree the mouse hit or would have hit is placed in this list
+    public static ArrayList firstTurnHFreq = new ArrayList();  // Orientation of the tree the mouse chose
+    public static ArrayList firstTurnVFreq = new ArrayList();  // Orientation of the tree the mouse chose
+    public static int numCorrectTurns;
 	public static int trialsSinceMouseStreakEliminated = 3;
 
 	public static int trialDelay;
@@ -44,6 +48,7 @@ public static class Globals
 
     public static string gameType;  // Default: detection - The type of game, as specified in the scenario file and detected by Loader
     public static string gameTurnControl; // Default: yaw - Whether to use YAW or ROLL for game turning control on the ball
+    public static bool varyOrientation;
 
     public static MovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<MovementRecorder>();
     public static DateTime gameStartTime;
@@ -54,8 +59,8 @@ public static class Globals
         // overwrite any existing file
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", false);
         // Write file header
-        Debug.Log("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTurnLocation\tRewardSize(ul)");
-        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTurnLocation\tRewardSize(ul)");
+        Debug.Log("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
+        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
         turnsFile.Close();
     }
 
@@ -68,15 +73,23 @@ public static class Globals
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
                     ((TimeSpan)trialEndTime[trialEndTime.Count - 1]).Subtract((TimeSpan)trialStartTime[trialStartTime.Count - 1]) + "\t" +
                     targetLoc[targetLoc.Count - 1] + "\t" +
+                    targetHFreq[targetHFreq.Count - 1] + "\t" +
+                    targetVFreq[targetVFreq.Count - 1] + "\t" +
                     firstTurn[firstTurn.Count - 1] + "\t" +
+                    firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
+                    firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
                     (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]));
 
         turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1] + "\t" +
-                            trialEndTime[trialEndTime.Count - 1] + "\t" +
-                            ((TimeSpan)trialEndTime[trialEndTime.Count - 1]).Subtract((TimeSpan)trialStartTime[trialStartTime.Count - 1]) + "\t" +
-                            targetLoc[targetLoc.Count - 1] + "\t" +
-                            firstTurn[firstTurn.Count - 1] + "\t" +
-                            (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]));
+                    trialEndTime[trialEndTime.Count - 1] + "\t" +
+                    ((TimeSpan)trialEndTime[trialEndTime.Count - 1]).Subtract((TimeSpan)trialStartTime[trialStartTime.Count - 1]) + "\t" +
+                    targetLoc[targetLoc.Count - 1] + "\t" +
+                    targetHFreq[targetHFreq.Count - 1] + "\t" +
+                    targetVFreq[targetVFreq.Count - 1] + "\t" +
+                    firstTurn[firstTurn.Count - 1] + "\t" +
+                    firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
+                    firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
+                    (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]));
         turnsFile.Close();
         WriteStatsFile();
     }

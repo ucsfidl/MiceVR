@@ -373,7 +373,7 @@ public class GameControlScript : MonoBehaviour
         treeOccluder.transform.localPosition = lp;
     }
 
-    private int GetLastAccuracy(int n)
+    public int GetLastAccuracy(int n)
     {
         int len = Globals.firstTurn.Count;
         int start;
@@ -397,6 +397,34 @@ public class GameControlScript : MonoBehaviour
                 corr++;
         }
         return (int)Math.Round((float)corr / numTrials * 100);
+    }
+
+    public int GetTurnBias(int n)
+    {
+        GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+        int len = Globals.firstTurn.Count;
+        float turn0 = 0;
+        int start;
+        int end;
+        int numTrials;
+        if (len >= n)
+        {
+            end = len;
+            start = len - n;
+        }
+        else
+        {
+            start = 0;
+            end = len;
+        }
+        numTrials = end - start;
+
+        for (int i = start; i < end; i++)
+        {
+            if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x)
+                turn0++;
+        }
+        return (int)Math.Round((float)turn0 / numTrials * 100);
     }
 
     /*
@@ -514,75 +542,99 @@ public class GameControlScript : MonoBehaviour
 		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
 
         float locx = gos[0].transform.position.x;
-        if (Globals.gameType.Equals("detection") && gos.Length >= 2 && gos.Length <= 3) {
-            // Redo bias correction to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
-            // Previous attempt at streak elimination didn't really work... Saw mouse go left 100 times or so! And most mice exhibited a bias, even though they may not have before...
-            int treeToActivate = 0;
-            int len = Globals.firstTurn.Count;
-            float r = UnityEngine.Random.value;
-            float randThresh;  // varies the boundary based on history of mouse turns
-            float turn0 = 0;
-            int start;
-            int end;
-            int numTrials;
-            if (len >= 21)
+        float hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+        float vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+
+        if (Globals.gameType.Equals("detection"))
+        {
+            if (gos.Length == 1)
             {
-                end = len;
-                start = len - 21;
-            } else
-            {
-                start = 0;
-                end = len;
-            }
-            numTrials = end - start;
-            if (gos.Length == 2)
-            {
-                for (int i = start; i < end; i++)
+                if (Globals.varyOrientation)
                 {
-                    if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x)
-                        turn0++;
-                }
-                randThresh = 1 - turn0 / (numTrials);  // Set the threshold based on past history
-                Debug.Log("[0, " + randThresh + ", 1] - " + r);
-                treeToActivate = r < randThresh ? 0 : 1;
-            }
-            else if (gos.Length == 3)
-            {
-                float turn1 = 0;
-                for (int i = start; i < end; i++)
-                {
-                    if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x)
-                        turn0++;
-                    else if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[1].transform.position.x)
-                        turn1++;
+                    float r = UnityEngine.Random.value;
+                    if (r > 0.5)  // Half the time, swap the orientation of the tree
+                    {
+                        gos[0].GetComponent<WaterTreeScript>().SetShader(vfreq, hfreq);
+                        hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                        vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+                    }
                 }
 
-                float t0 = 1 - turn0 / numTrials;
-                float t1 = 1 - turn1 / numTrials;
-                float t2 = (turn0 + turn1) / numTrials;  // simplifies to this
-
-                float thresh0 = t0 / (t0 + t1 + t2);
-                float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
-
-                Debug.Log("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
-                treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
             }
-            for (int i = 0; i < 2; i++)  // Even in the 3-tree case, never deactivate the 3rd tree
+            else if (gos.Length >= 2 && gos.Length <= 3)
             {
-                gos[i].SetActive(true);
-                if (i == treeToActivate)
+                // Redo bias correction to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
+                // Previous attempt at streak elimination didn't really work... Saw mouse go left 100 times or so! And most mice exhibited a bias, even though they may not have before...
+                int treeToActivate = 0;
+                int len = Globals.firstTurn.Count;
+                float r = UnityEngine.Random.value;
+                float randThresh;  // varies the boundary based on history of mouse turns
+                float turn0 = 0;
+                int start;
+                int end;
+                int numTrials;
+                if (len >= 21)
                 {
-                    gos[i].GetComponent<WaterTreeScript>().Show();
-                    //Debug.Log("Activated tree id = " + i.ToString());
+                    end = len;
+                    start = len - 21;
                 }
                 else
                 {
-                    gos[i].GetComponent<WaterTreeScript>().Hide();
-                    //Debug.Log ("Inactivated tree id = " + i.ToString ());
+                    start = 0;
+                    end = len;
                 }
+                numTrials = end - start;
+                if (gos.Length == 2)
+                {
+                    for (int i = start; i < end; i++)
+                    {
+                        if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x)
+                            turn0++;
+                    }
+                    randThresh = 1 - turn0 / (numTrials);  // Set the threshold based on past history
+                    Debug.Log("[0, " + randThresh + ", 1] - " + r);
+                    treeToActivate = r < randThresh ? 0 : 1;
+                }
+                else if (gos.Length == 3)
+                {
+                    float turn1 = 0;
+                    for (int i = start; i < end; i++)
+                    {
+                        if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x)
+                            turn0++;
+                        else if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[1].transform.position.x)
+                            turn1++;
+                    }
+
+                    float t0 = 1 - turn0 / numTrials;
+                    float t1 = 1 - turn1 / numTrials;
+                    float t2 = (turn0 + turn1) / numTrials;  // simplifies to this
+
+                    float thresh0 = t0 / (t0 + t1 + t2);
+                    float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
+
+                    Debug.Log("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
+                    treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
+                }
+                for (int i = 0; i < 2; i++)  // Even in the 3-tree case, never deactivate the 3rd tree
+                {
+                    gos[i].SetActive(true);
+                    if (i == treeToActivate)
+                    {
+                        gos[i].GetComponent<WaterTreeScript>().Show();
+                        //Debug.Log("Activated tree id = " + i.ToString());
+                    }
+                    else
+                    {
+                        gos[i].GetComponent<WaterTreeScript>().Hide();
+                        //Debug.Log ("Inactivated tree id = " + i.ToString ());
+                    }
+                }
+                locx = gos[treeToActivate].transform.position.x;
+                hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
             }
-            locx = gos[treeToActivate].transform.position.x;
-		}
+        }
         else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))
         {
             // First, pick an orientation at random for the central tree
@@ -635,6 +687,8 @@ public class GameControlScript : MonoBehaviour
         OccludeTree(locx);
 
         Globals.targetLoc.Add(locx);
+        Globals.targetHFreq.Add(hfreq);
+        Globals.targetVFreq.Add(vfreq);
 
         this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);

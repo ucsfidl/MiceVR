@@ -29,7 +29,7 @@
 			<w>1</w>
 			<pos>20000;0;20046</pos>
 			<d>0</d>
-			<v>0</v>  <!-- Vfreq of gradient -->
+			<v>1</v>  <!-- Vfreq of gradient -->
 			<h>4</h>  <!-- Hfreq of gradient -->
 		</t>
 	</trees>

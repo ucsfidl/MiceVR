@@ -77,25 +77,20 @@ public class WaterTreeScript : MonoBehaviour {
                 if (!this.depleted) {
                     int len = Globals.firstTurn.Count;
                     float multiplier = 1;
-                    if (len >= 20) // If the mouse has not had a reward in some time, give a proportionally large reward, up to 6x the normal reward size
+                    if (len >= 20) // If the mouse has not had a reward in some time, give a proportionally large reward, up to 6x the normal reward size, if they turned the opposite direction as their turning bias
                     {
-                        float recentAccuracy, adjRecentAccuracy;  // varies the boundary based on mouse's accuracy
-                        int recentCorrect = 0;
-                        int start;
-                        int end;
-                        end = len;
-                        start = len - 20;
-                        for (int i = start; i < end; i++)
-                        {
-                            if (System.Convert.ToInt32(Globals.firstTurn[i]) == System.Convert.ToInt32(Globals.targetLoc[i]))
-                            {
-                                recentCorrect++;
-                            }
-                        }
-                        recentAccuracy = (float)recentCorrect / (end - start);
-                        adjRecentAccuracy = 0.5F - recentAccuracy;
+                        float recentAccuracy = (float)GameObject.Find("GameControl").GetComponent<GameControlScript>().GetLastAccuracy(20) / 100;  // Returns as int from 0-100
+                        float adjRecentAccuracy = 0.5F - recentAccuracy;
+                        float turn0Bias = (float)GameObject.Find("GameControl").GetComponent<GameControlScript>().GetTurnBias(20) / 100;
+
                         if (adjRecentAccuracy > 0)
-                            multiplier += adjRecentAccuracy * 10;  // Give max up to 6x normal reward size
+                        {
+                            GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+                            // Only boost reward if mouse hit the tree in the opposite direction of their bias!
+                            if ((turn0Bias > 0.6 && this.gameObject.transform.position.x.Equals(gos[1].transform.position.x)) ||
+                                (turn0Bias < 0.4 && this.gameObject.transform.position.x.Equals(gos[0].transform.position.x)))
+                                multiplier += adjRecentAccuracy * 10;
+                        }
                     }
                     int rewardDur;
                     if (this.rewardDur == Globals.rewardDur)  // The scenario file did not specify a specific reward for this tree
@@ -106,6 +101,7 @@ public class WaterTreeScript : MonoBehaviour {
                     {
                         rewardDur = this.rewardDur;
                     }
+                    //Debug.Log("rewardDur = " + rewardDur);
 
                     if (Globals.gameType.Equals("detection"))
                     {
@@ -176,6 +172,8 @@ public class WaterTreeScript : MonoBehaviour {
             Globals.hasNotTurned = false;
             Globals.numCorrectTurns++;
             Globals.firstTurn.Add(this.gameObject.transform.position.x);
+            Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
+            Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
         }
         if (respawn)
         {
@@ -190,6 +188,8 @@ public class WaterTreeScript : MonoBehaviour {
         {
             Globals.hasNotTurned = false;
             Globals.firstTurn.Add(this.gameObject.transform.position.x);
+            Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
+            Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
             Globals.sizeOfRewardGiven.Add(0);
         }
         if (respawn)
@@ -222,6 +222,14 @@ public class WaterTreeScript : MonoBehaviour {
     public void SetShader(float HFreq, float VFreq, float deg)
     {
         this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
+        this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
+        this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
+        this.topCap.SetActive(true);
+        this.bottomCap.SetActive(true);
+    }
+
+    public void SetShader(float HFreq, float VFreq)
+    {
         this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
         this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
         this.topCap.SetActive(true);

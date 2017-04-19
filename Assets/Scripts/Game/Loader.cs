@@ -115,6 +115,8 @@ public class Loader : MonoBehaviour {
             }
 
             float locx = treeList[0].transform.position.x;
+            float hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+            float vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
             // NB edit
             // If there are only 2 or 3 trees, alternate which is visible, and leave the third as constant
             if (Globals.gameType.Equals("detection") && end >= 2 && end <= 3) {
@@ -125,11 +127,15 @@ public class Loader : MonoBehaviour {
                     {
                         treeList[1].GetComponent<WaterTreeScript>().Hide();
                         locx = treeList[0].transform.position.x;
+                        hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                        vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
                     }
                     else
                     {
                         treeList[0].GetComponent<WaterTreeScript>().Hide();
                         locx = treeList[1].transform.position.x;
+                        hfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                        vfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
                     }
                     Debug.Log("[0, 0.5, 1] - " + r);
                 }
@@ -139,19 +145,26 @@ public class Loader : MonoBehaviour {
                     {
                         treeList[1].GetComponent<WaterTreeScript>().Hide();
                         locx = treeList[0].transform.position.x;
-                        Debug.Log("activated first tree in loader");
-                    } else if (r < 0.667)
+                        hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                        vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+                        //Debug.Log("activated first tree in loader");
+                    }
+                    else if (r < 0.667)
                     {
                         treeList[0].GetComponent<WaterTreeScript>().Hide();
                         locx = treeList[1].transform.position.x;
-                        Debug.Log("activated second tree in loader");
+                        hfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                        vfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+                        //Debug.Log("activated second tree in loader");
                     }
                     else
                     {
                         treeList[0].GetComponent<WaterTreeScript>().Hide();
                         treeList[1].GetComponent<WaterTreeScript>().Hide();
                         locx = treeList[2].transform.position.x;
-                        Debug.Log("deactivated both trees in loader");
+                        hfreq = treeList[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                        vfreq = treeList[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
+                        //Debug.Log("deactivated both trees in loader");
                     }
                     Debug.Log("[0, 0.333, 0.667, 1] - " + r);
                 }
@@ -207,6 +220,9 @@ public class Loader : MonoBehaviour {
             GameObject.Find("GameControl").GetComponent<GameControlScript>().OccludeTree(locx);  // Will occlude tree if tree visibility is to be restricted to 1 FOV
 
             Globals.targetLoc.Add(locx);
+            Globals.targetHFreq.Add(hfreq);
+            Globals.targetVFreq.Add(vfreq);
+
 
             for (int i = start; i < end; i++)
             {
@@ -341,16 +357,30 @@ public class Loader : MonoBehaviour {
 
             Globals.gameType = "detection";
             Globals.gameTurnControl = "yaw";
+            Globals.varyOrientation = false;
             XmlNodeList gameConfigList = xmlDoc.SelectNodes("document/config/gameConfig");
             foreach (XmlNode xn in gameConfigList)
             {
-                string gameTypeXML = xn["gameType"].InnerText;
-                if (gameTypeXML.Equals("match") || gameTypeXML.Equals("nonmatch"))
-                    Globals.gameType = gameTypeXML;
+                if (xn["gameType"] != null)
+                {
+                    string gameTypeXML = xn["gameType"].InnerText;
+                    if (gameTypeXML.Equals("match") || gameTypeXML.Equals("nonmatch"))
+                        Globals.gameType = gameTypeXML;
+                }
 
-                string gameTurnControlXML = xn["gameTurnControl"].InnerText;
-                if (gameTurnControlXML.Equals("roll"))
-                    Globals.gameTurnControl = gameTurnControlXML;
+                if (xn["gameTurnControl"] != null)
+                {
+                    string gameTurnControlXML = xn["gameTurnControl"].InnerText;
+                    if (gameTurnControlXML.Equals("roll"))
+                        Globals.gameTurnControl = gameTurnControlXML;
+                }
+
+                if (xn["varyOrientation"] != null)
+                {
+                    string varyOrientationXML = xn["varyOrientation"].InnerText;
+                    if (varyOrientationXML.Equals("true"))
+                        Globals.varyOrientation = true;
+                }
             }
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.
