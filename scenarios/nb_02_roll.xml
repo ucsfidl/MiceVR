@@ -8,34 +8,34 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>detection</gameType> <!-- Options: match, nonmatch -->
-			<gameTurnControl>yaw</gameTurnControl> <!-- yaw | roll -->
+			<gameType>detection</gameType>
+			<gameTurnControl>roll</gameTurnControl>
 		</gameConfig>
 	</config>
 	<trees>
 		<t> <!-- Left tree -->
 			<w>1</w>
-			<pos>19990;0;20017.2</pos>
+			<pos>19990;0;20028</pos>
 			<d>0</d>
 			<r>0</r>
 		</t>
 		<t> <!-- Right tree -->
 			<w>1</w>
-			<pos>20010;0;20017.2</pos>
+			<pos>20010;0;20028</pos>
 			<d>0</d>
 			<r>2</r>
 		</t>
 	</trees>
 	<walls>
 		<wall> <!-- Left wall -->
-			<pos>19994;2;20001.1</pos>
+			<pos>19994;2;20006.5</pos>
 			<rot>0;0;0</rot>
-			<scale>2;4;10.8</scale>
+			<scale>2;4;21.6</scale>
 		</wall>
 		<wall> <!-- Right wall -->
-			<pos>20006;2;20001.1</pos>
+			<pos>20006;2;20006.5</pos>
 			<rot>0;0;0</rot>
-			<scale>2;4;10.8</scale>
+			<scale>2;4;21.6</scale>
 		</wall>
 		<wall> <!-- Front wall -->
 			<pos>20000;2;19994</pos>
@@ -43,27 +43,27 @@
 			<scale>2;4;15</scale>
 		</wall>
 		<wall> <!-- Back wall -->
-			<pos>20000;2;20026.2</pos>
+			<pos>20000;2;20037</pos>
 			<rot>0;270;0</rot>
 			<scale>2;4;40</scale>
 		</wall>
 		<wall> <!-- Left front wall -->
-			<pos>19986;2;20008.2</pos>
+			<pos>19986;2;20019</pos>
 			<rot>0;270;0</rot>
 			<scale>2;4;19.1</scale>
 		</wall>
 		<wall> <!-- Right front wall -->
-			<pos>20014;2;20008.2</pos>
+			<pos>20014;2;20019</pos>
 			<rot>0;270;0</rot>
 			<scale>2;4;19.1</scale>
 		</wall>
 		<wall> <!-- Back left wall -->
-			<pos>19980;2;20017.8</pos>
+			<pos>19980;2;20028</pos>
 			<rot>0;0;0</rot>
 			<scale>2;4;20</scale>
 		</wall>
 		<wall> <!-- Back right wall -->
-			<pos>20020;2;20017.8</pos>
+			<pos>20020;2;20028</pos>
 			<rot>0;0;0</rot>
 			<scale>2;4;20</scale>
 		</wall>		

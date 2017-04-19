@@ -26,6 +26,11 @@ public class WaterTreeScript : MonoBehaviour {
 	private int incorrectTurnDelay = 4;  // sec
 	private int correctTurnDelay = 2;  // sec
 
+    private int rewardDur;  // amount of reward to dispense for this tree, in ms
+    private bool respawn;
+    private bool correctTree;
+
+
 	// Use this for initialization
 	void Start ()
     {
@@ -92,46 +97,73 @@ public class WaterTreeScript : MonoBehaviour {
                         if (adjRecentAccuracy > 0)
                             multiplier += adjRecentAccuracy * 10;  // Give max up to 6x normal reward size
                     }
-                    int rewardDur = (int)(Globals.rewardDur * multiplier);
-
-                    if (this.GetShaderVFreq() == 0)  // The mouse ran into the special center tree - give reward only if no other trees displayed
+                    int rewardDur;
+                    if (this.rewardDur == Globals.rewardDur)  // The scenario file did not specify a specific reward for this tree
                     {
-                        GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-                        Debug.Log("number of trees: " + gos.Length);
-                        bool alone = true;
-                        for (int i = 0; i < gos.Length - 1; i++)  // This special tree is always listed last
+                        rewardDur = (int)(Globals.rewardDur * multiplier);
+                    }
+                    else // The scenario file did specify a specific reward for this tree - so don't do any multiplier trickery
+                    {
+                        rewardDur = this.rewardDur;
+                    }
+
+                    if (Globals.gameType.Equals("detection"))
+                    {
+                        if (this.GetShaderVFreq() == 0)  // The mouse ran into the special center tree - give reward only if no other trees displayed
                         {
-                            Debug.Log("Tree enabled state is " + gos[i].transform.GetChild(0).gameObject.activeSelf.ToString());
-                            if (gos[i].transform.GetChild(0).gameObject.activeSelf)
+                            GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+                            Debug.Log("number of trees: " + gos.Length);
+                            bool alone = true;
+                            for (int i = 0; i < gos.Length - 1; i++)  // This special tree is always listed last
                             {
-                                alone = false;
+                                //Debug.Log("Tree enabled state is " + gos[i].transform.GetChild(0).gameObject.activeSelf.ToString());
+                                if (gos[i].transform.GetChild(0).gameObject.activeSelf)
+                                {
+                                    alone = false;
+                                }
+                            }
+                            if (alone)
+                            {
+                                GiveReward(rewardDur);
+                            }
+                            else  // error trial
+                            {
+                                WitholdReward();
                             }
                         }
-                        if (alone)
+                        else
                         {
                             GiveReward(rewardDur);
                         }
-                        else  // error trial
+                    }
+                    else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))  // There are three trees - a central initial tree, and 1 on left and 1 on right
+                    {
+                        if (!respawn)  // This is the starting central tree
+                        {
+                            GiveReward(rewardDur);
+                        }
+                        else if (correctTree)
+                        {
+                            GiveReward(rewardDur);
+                        }
+                        else
                         {
                             WitholdReward();
                         }
-                    } else
-                    {
-                        GiveReward(rewardDur);
                     }
-
-				}
-			} else {
+                }
+            } else {
                 WitholdReward();
 			}
             Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);
+            Globals.WriteToLogFiles();
 		}
     }
 
     private void GiveReward(int rewardDur)
     {
         GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward(rewardDur);
-        Debug.Log("Water reward size = " + rewardDur);
+        //Debug.Log("Water reward size = " + rewardDur);
         //GameObject.Find("movementRecorder").GetComponent<MovementRecorder>().logReward(true,false);
         this.depleted = true;
         this.mouseObject = GameObject.FindGameObjectWithTag("MainCamera");
@@ -145,8 +177,11 @@ public class WaterTreeScript : MonoBehaviour {
             Globals.numCorrectTurns++;
             Globals.firstTurn.Add(this.gameObject.transform.position.x);
         }
-        Globals.trialDelay = correctTurnDelay;
-        GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.black);
+        if (respawn)
+        {
+            Globals.trialDelay = correctTurnDelay;
+            GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.black);
+        }
     }
 
     private void WitholdReward()
@@ -157,8 +192,11 @@ public class WaterTreeScript : MonoBehaviour {
             Globals.firstTurn.Add(this.gameObject.transform.position.x);
             Globals.sizeOfRewardGiven.Add(0);
         }
-        Globals.trialDelay = incorrectTurnDelay;
-        GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.white);
+        if (respawn)
+        {
+            Globals.trialDelay = incorrectTurnDelay;
+            GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.white);
+        }
     }
 
     void OnTriggerExit()
@@ -181,13 +219,19 @@ public class WaterTreeScript : MonoBehaviour {
         this.waterBase.GetComponent<Renderer>().material.color = (this.training) ? this.waterBaseColor : Color.black;
     }
 
-    public void ChangeShader(float HFreq, float VFreq, float deg)
+    public void SetShader(float HFreq, float VFreq, float deg)
     {
         this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
         this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
         this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
         this.topCap.SetActive(true);
         this.bottomCap.SetActive(true);
+    }
+
+    public void SetShaderRotation(float deg)
+    {
+        this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
+        EnableCaps();
     }
 
     public float GetShaderHFreq()
@@ -200,6 +244,27 @@ public class WaterTreeScript : MonoBehaviour {
         return this.crown.GetComponent<Renderer>().material.GetFloat("_VFreq");
     }
 
+    public float GetShaderRotation()
+    {
+        return this.crown.GetComponent<Renderer>().material.GetFloat("_Deg");
+    }
+
+    public void SetRewardSize(float r)
+    {
+        this.rewardDur = (int)Math.Round(r / (Globals.rewardSize / Globals.rewardDur));
+        Debug.Log("Reward duration set: " + this.rewardDur);
+    }
+
+    public void SetRespawn(bool r)
+    {
+        this.respawn = r;
+    }
+
+    public void SetCorrect(bool c)
+    {
+        this.correctTree = c;
+    }
+
     public void ChangeTexture(Texture t)
     {
         waterMaterial = new Material(Shader.Find("Unlit/Texture"));
@@ -207,12 +272,6 @@ public class WaterTreeScript : MonoBehaviour {
         this.crown.GetComponent<Renderer>().material.mainTexture = t;
         this.topCap.SetActive(true);
         this.bottomCap.SetActive(true);
-    }
-
-    public void ChangeShaderRotation(float deg)
-    {
-        this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
-        EnableCaps();
     }
 
     public void ChangeColor(Color c)
@@ -233,7 +292,7 @@ public class WaterTreeScript : MonoBehaviour {
         {
             Material gradientMaterial = new Material(Shader.Find("Custom/Gradient"));
             this.crown.GetComponent<Renderer>().material = gradientMaterial;
-            ChangeShader(ogHFreq, ogVFreq, ogDegree);
+            SetShader(ogHFreq, ogVFreq, ogDegree);
         }
     }
 

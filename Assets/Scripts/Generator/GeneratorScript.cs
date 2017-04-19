@@ -445,7 +445,7 @@ public class GeneratorScript : MonoBehaviour {
                     for (int j = 0; j < treesPerStep; j++)
                     {
                         go = (GameObject)Instantiate(this.waterTreePrefab, Vector3.zero, Quaternion.identity);
-                        go.GetComponent<WaterTreeScript>().ChangeShaderRotation((float)this.waterMinRotationUniform + (i * angleIncrement));
+                        go.GetComponent<WaterTreeScript>().SetShaderRotation((float)this.waterMinRotationUniform + (i * angleIncrement));
                         go.GetComponent<WaterTreeScript>().SetForTraining(this.waterTraining);
                         go.GetComponent<WaterTreeScript>().Init();
                         go.transform.parent = this.treeParent.transform;
@@ -464,7 +464,7 @@ public class GeneratorScript : MonoBehaviour {
                     ro = (map(System.Convert.ToSingle(Mathf.Abs(d)), 0f, (2.14f * this.waterSigma), this.waterMinRotationGaussian, this.waterMaxRotationGaussian));
 
                     go = (GameObject)Instantiate(this.waterTreePrefab, Vector3.zero, Quaternion.identity);
-                    go.GetComponent<WaterTreeScript>().ChangeShaderRotation(ro);
+                    go.GetComponent<WaterTreeScript>().SetShaderRotation(ro);
 
                     go.GetComponent<WaterTreeScript>().Init();
                     go.GetComponent<WaterTreeScript>().SetForTraining(this.waterTraining);
@@ -478,7 +478,7 @@ public class GeneratorScript : MonoBehaviour {
                 for (int j = 0; j < waterTrees; j++)
                 {
                     go = (GameObject)Instantiate(this.waterTreePrefab, Vector3.zero, Quaternion.identity);
-                    go.GetComponent<WaterTreeScript>().ChangeShaderRotation(waterFixedFloat);
+                    go.GetComponent<WaterTreeScript>().SetShaderRotation(waterFixedFloat);
 
                     go.GetComponent<WaterTreeScript>().SetForTraining(this.waterTraining);
                     go.GetComponent<WaterTreeScript>().Init();
@@ -727,7 +727,7 @@ public class GeneratorScript : MonoBehaviour {
                         {
                             go = (GameObject)Instantiate(this.waterTreePrefab, Vector3.zero, Quaternion.identity);
                             //go.GetComponent<WaterTreeScript>().Init();
-                            go.GetComponent<WaterTreeScript>().ChangeShaderRotation((float)this.waterMinRotationUniform + (i * angleIncrement));
+                            go.GetComponent<WaterTreeScript>().SetShaderRotation((float)this.waterMinRotationUniform + (i * angleIncrement));
                             go.GetComponent<WaterTreeScript>().SetForTraining(this.waterTraining);
                             go.GetComponent<WaterTreeScript>().Init();
                             go.transform.parent = this.treeParent.transform;
@@ -794,7 +794,7 @@ public class GeneratorScript : MonoBehaviour {
                     else
                     {
                         go = (GameObject)Instantiate(this.waterTreePrefab, Vector3.zero, Quaternion.identity);
-                        go.GetComponent<WaterTreeScript>().ChangeShaderRotation(ro);
+                        go.GetComponent<WaterTreeScript>().SetShaderRotation(ro);
                     }
                     go.GetComponent<WaterTreeScript>().Init();
                     go.GetComponent<WaterTreeScript>().SetForTraining(this.waterTraining);
@@ -864,7 +864,7 @@ public class GeneratorScript : MonoBehaviour {
                     for (int j = 0; j < treesPerStep; j++)
                     {
                         go = (GameObject)Instantiate(this.dryTreePrefab, Vector3.zero, Quaternion.identity);
-                        go.GetComponent<DryTreeScript>().ChangeShaderRotation((float)this.dryMinRotationUniform + (i * angleIncrement));
+                        go.GetComponent<DryTreeScript>().SetShaderRotation((float)this.dryMinRotationUniform + (i * angleIncrement));
                         go.GetComponent<DryTreeScript>().Init();
                         go.transform.parent = this.treeParent.transform;
                         this.dryTreesQueue.Add(go);
@@ -882,7 +882,7 @@ public class GeneratorScript : MonoBehaviour {
                     ro = (map(System.Convert.ToSingle(Mathf.Abs(d)), 0f, (2.14f * this.drySigma), this.dryMinRotationGaussian, this.dryMaxRotationGaussian));
                     go = (GameObject)Instantiate(this.dryTreePrefab, Vector3.zero, Quaternion.identity);
 
-                    go.GetComponent<DryTreeScript>().ChangeShaderRotation(ro);
+                    go.GetComponent<DryTreeScript>().SetShaderRotation(ro);
 
                     go.GetComponent<DryTreeScript>().Init();
                     go.transform.parent = this.treeParent.transform;
@@ -895,7 +895,7 @@ public class GeneratorScript : MonoBehaviour {
                 for (int j = 0; j < dryTrees; j++)
                 {
                     go = (GameObject)Instantiate(this.dryTreePrefab, Vector3.zero, Quaternion.identity);
-                    go.GetComponent<DryTreeScript>().ChangeShaderRotation(dryFixedFloat);
+                    go.GetComponent<DryTreeScript>().SetShaderRotation(dryFixedFloat);
 
                     go.GetComponent<DryTreeScript>().Init();
                     go.transform.parent = this.treeParent.transform;
@@ -1124,7 +1124,7 @@ public class GeneratorScript : MonoBehaviour {
                     {
                         go = (GameObject)Instantiate(this.dryTreePrefab, Vector3.zero, Quaternion.identity);
                         //go.GetComponent<DryTreeScript>().Init();
-                        go.GetComponent<DryTreeScript>().ChangeShaderRotation((float)this.dryMinRotationUniform + (i * angleIncrement));
+                        go.GetComponent<DryTreeScript>().SetShaderRotation((float)this.dryMinRotationUniform + (i * angleIncrement));
                         go.GetComponent<DryTreeScript>().Init();
                         go.transform.parent = this.treeParent.transform;
                         this.dryTreesQueue.Add(go);
@@ -1181,7 +1181,7 @@ public class GeneratorScript : MonoBehaviour {
                 else
                 {
                     go = (GameObject)Instantiate(this.dryTreePrefab, Vector3.zero, Quaternion.identity);
-                    go.GetComponent<DryTreeScript>().ChangeShaderRotation(ro);
+                    go.GetComponent<DryTreeScript>().SetShaderRotation(ro);
                 }
                 go.GetComponent<DryTreeScript>().Init();
                 go.transform.parent = this.treeParent.transform;
@@ -1601,7 +1601,7 @@ public class GeneratorScript : MonoBehaviour {
                         if (gradient)
                         {
                             go = (GameObject)Instantiate(this.waterTreePrefab, v, Quaternion.identity);
-                            go.GetComponent<WaterTreeScript>().ChangeShaderRotation(this.deg_LS);
+                            go.GetComponent<WaterTreeScript>().SetShaderRotation(this.deg_LS);
                             go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
                             go.transform.parent = treeParent.transform;
                             go.SetActive(false);
@@ -1662,7 +1662,7 @@ public class GeneratorScript : MonoBehaviour {
                         if (gradient)
                         {
                             go = (GameObject)Instantiate(this.dryTreePrefab, v, Quaternion.identity);
-                            go.GetComponent<DryTreeScript>().ChangeShaderRotation(this.deg_LS);
+                            go.GetComponent<DryTreeScript>().SetShaderRotation(this.deg_LS);
                             go.transform.parent = treeParent.transform;
                             go.SetActive(false);
                         }
@@ -1809,7 +1809,7 @@ public class GeneratorScript : MonoBehaviour {
             if (waterGradient)
             {
                 this.spawnedWaterTree = (GameObject)Instantiate(this.waterTreePrefab, new Vector3(Camera.main.transform.position.x, 3, Camera.main.transform.position.z), Quaternion.identity);
-                this.spawnedWaterTree.GetComponent<WaterTreeScript>().ChangeShaderRotation(waterFixedFloat);
+                this.spawnedWaterTree.GetComponent<WaterTreeScript>().SetShaderRotation(waterFixedFloat);
             }
             else if (waterTextured)
             {
@@ -1844,7 +1844,7 @@ public class GeneratorScript : MonoBehaviour {
             else
             {
                 this.spawnedWaterTree = (GameObject)Instantiate(this.waterTreePrefab, new Vector3(Camera.main.transform.position.x, 3, Camera.main.transform.position.z), Quaternion.identity);
-                this.spawnedWaterTree.GetComponent<WaterTreeScript>().ChangeShaderRotation(waterFixedFloat);
+                this.spawnedWaterTree.GetComponent<WaterTreeScript>().SetShaderRotation(waterFixedFloat);
             }
 
             this.spawnedWaterTree.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
@@ -1870,7 +1870,7 @@ public class GeneratorScript : MonoBehaviour {
             if (dryGradient)
             {
                 this.spawnedDryTree = (GameObject)Instantiate(this.dryTreePrefab, new Vector3(Camera.main.transform.position.x, 3, Camera.main.transform.position.z), Quaternion.identity);
-                this.spawnedDryTree.GetComponent<DryTreeScript>().ChangeShaderRotation(dryFixedFloat);
+                this.spawnedDryTree.GetComponent<DryTreeScript>().SetShaderRotation(dryFixedFloat);
             }
             else if (dryTextured)
             {
@@ -1905,7 +1905,7 @@ public class GeneratorScript : MonoBehaviour {
             else
             {
                 this.spawnedDryTree = (GameObject)Instantiate(this.dryTreePrefab, new Vector3(Camera.main.transform.position.x, 3, Camera.main.transform.position.z), Quaternion.identity);
-                this.spawnedDryTree.GetComponent<DryTreeScript>().ChangeShaderRotation(dryFixedFloat);
+                this.spawnedDryTree.GetComponent<DryTreeScript>().SetShaderRotation(dryFixedFloat);
             }
 
             this.spawnedDryTree.GetComponent<DryTreeScript>().Init();

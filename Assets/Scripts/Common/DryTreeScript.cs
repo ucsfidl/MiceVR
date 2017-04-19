@@ -61,7 +61,7 @@ public class DryTreeScript : MonoBehaviour {
         Globals.timeoutState = false;
     }
 
-    public void ChangeShader(float HFreq, float VFreq, float deg)
+    public void SetShader(float HFreq, float VFreq, float deg)
     {
         this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
         this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
@@ -70,7 +70,7 @@ public class DryTreeScript : MonoBehaviour {
         this.bottomCap.SetActive(true);
     }
 
-    public void ChangeShaderRotation(float deg)
+    public void SetShaderRotation(float deg)
     {
         this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
         this.topCap.SetActive(true);
@@ -105,7 +105,7 @@ public class DryTreeScript : MonoBehaviour {
         {
             Material gradientMaterial = new Material(Shader.Find("Custom/Gradient"));
             this.crown.GetComponent<Renderer>().material = gradientMaterial;
-            ChangeShader(ogHFreq, ogVFreq, ogDegree);
+            SetShader(ogHFreq, ogVFreq, ogDegree);
         }
     }
 

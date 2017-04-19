@@ -33,7 +33,6 @@ public class GameControlScript : MonoBehaviour
     private int respawnAmplitude = 2000;
     private int runNumber;
     private float runTime;
-    private DateTime startTime;
     private long frameCounter, previousFrameCounter;
     private System.Collections.Generic.Queue<float> last5Mouse2Y, last5Mouse1Y;
     public string state;
@@ -159,7 +158,7 @@ public class GameControlScript : MonoBehaviour
         XmlDocument xmlDoc = new XmlDocument(); // xmlDoc is the new xml document.
         xmlDoc.LoadXml(File.ReadAllText(PlayerPrefs.GetString("configFolder") + "/gameConfig.xml", ASCIIEncoding.ASCII)); // load the file.
 
-        XmlNodeList udpConfigList = xmlDoc.SelectNodes("document/config");
+        XmlNodeList gameConfigList = xmlDoc.SelectNodes("document/config");
 
         string _runDuration = "";
         string _numberOfRuns = "";
@@ -171,7 +170,7 @@ public class GameControlScript : MonoBehaviour
         string _rewardSize = "";
         string _totalRewardSize = "";
 
-        foreach (XmlNode xn in udpConfigList)
+        foreach (XmlNode xn in gameConfigList)
         {
 			_runDuration = xn["runDuration"].InnerText;
 			_numberOfRuns = xn["numberOfRuns"].InnerText;
@@ -258,8 +257,8 @@ public class GameControlScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Space))
         {
             this.runTime = Time.time;
-            this.startTime = DateTime.Now;
-            Debug.Log("Game started at " + this.startTime.ToLongTimeString());
+            Globals.gameStartTime = DateTime.Now;
+            Debug.Log("Game started at " + Globals.gameStartTime.ToLongTimeString());
             this.movementRecorder.SetRun(this.runNumber);
             this.movementRecorder.SetFileSet(true);
             Color t = this.fadeToBlack.color;
@@ -275,7 +274,7 @@ public class GameControlScript : MonoBehaviour
             this.characterController.enabled = true;  // Bring back character movement
             this.state = "Running";
 
-            InitLogFiles();
+            Globals.InitLogFiles();
             Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
         }
     }
@@ -352,8 +351,8 @@ public class GameControlScript : MonoBehaviour
 		//this.frameCounter++;
 		//Debug.Log ("screen updated");
         */
-        TimeSpan te = DateTime.Now.Subtract(startTime);
-        this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D2}:{1:D2}:{2:D2}", te.Hours, te.Minutes, te.Seconds);
+        TimeSpan te = DateTime.Now.Subtract(Globals.gameStartTime);
+        this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}", te.Hours * 60 + te.Minutes, te.Seconds);
         if (Time.time - this.runTime >= this.runDuration)
         {
             // fadetoblack + respawn
@@ -361,6 +360,17 @@ public class GameControlScript : MonoBehaviour
             this.fadeToBlack.gameObject.SetActive(true);
             this.state = "Fading";
         }
+    }
+
+    public void OccludeTree(float treeLocX)
+    {
+        GameObject treeOccluder = GameObject.Find("TreeOccluder");
+        Vector3 lp = treeOccluder.transform.localPosition;
+        if (treeLocX > 20000)  // Target tree is on right side
+            lp.x = -Globals.centralViewVisibleShift;
+        else if (treeLocX < 20000)
+            lp.x = Globals.centralViewVisibleShift;
+        treeOccluder.transform.localPosition = lp;
     }
 
     private int GetLastAccuracy(int n)
@@ -389,36 +399,6 @@ public class GameControlScript : MonoBehaviour
         return (int)Math.Round((float)corr / numTrials * 100);
     }
 
-    private string GetTreeAccuracy()
-    {
-        GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-        float[] locs = new float[gos.Length];
-        int[] numCorrTrials = new int[gos.Length];
-        int[] numTrials = new int[gos.Length];
-        for (int i = 0; i < gos.Length; i++)
-        {
-            locs[i] = gos[i].transform.position.x;
-        }
-        //With all locations in hand, calculate accuracy for each one, then print it out
-
-        int idx;
-        for (int i = 0; i < Globals.firstTurn.Count; i++)
-        {
-            Debug.Log((float)System.Convert.ToDouble(Globals.targetLoc[i]));
-            idx = Array.IndexOf(locs, (float)System.Convert.ToDouble(Globals.targetLoc[i]));
-            numTrials[idx]++;
-            if (Globals.targetLoc[i].Equals(Globals.firstTurn[i]))
-                numCorrTrials[idx]++;
-        }
-
-        string output = "";
-        for (int i = 0; i < numTrials.Length; i++)
-        {
-            output += " / " + Math.Round((float)numCorrTrials[i] / numTrials[i] * 100) + "%";
-        }
-        return output;
-    }
-
     /*
      * Fade to Black
      * */
@@ -444,7 +424,7 @@ public class GameControlScript : MonoBehaviour
                 Globals.numCorrectTurns.ToString()
                 + " (" +
                 Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials - 1)) * 100).ToString() + "%" 
-                + GetTreeAccuracy() + ")";
+                + Globals.GetTreeAccuracy() + ")";
             this.lastAccuracyText.text = "Last 20 accuracy: " + GetLastAccuracy(20) + "%";
         }
 
@@ -453,8 +433,6 @@ public class GameControlScript : MonoBehaviour
         if (waitedOneFrame) {
 			System.Threading.Thread.Sleep (Globals.trialDelay * 1000);
 			waitedOneFrame = false;
-
-            WriteToLogFiles();
 
             float totalEarnedRewardSize = 0;
             float totalRewardSize = 0;
@@ -536,7 +514,7 @@ public class GameControlScript : MonoBehaviour
 		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
 
         float locx = gos[0].transform.position.x;
-        if (gos.Length >= 2 && gos.Length <= 3) {
+        if (Globals.gameType.Equals("detection") && gos.Length >= 2 && gos.Length <= 3) {
             // Redo bias correction to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
             // Previous attempt at streak elimination didn't really work... Saw mouse go left 100 times or so! And most mice exhibited a bias, even though they may not have before...
             int treeToActivate = 0;
@@ -595,7 +573,7 @@ public class GameControlScript : MonoBehaviour
                 if (i == treeToActivate)
                 {
                     gos[i].GetComponent<WaterTreeScript>().Show();
-                    Debug.Log("Activated tree id = " + i.ToString());
+                    //Debug.Log("Activated tree id = " + i.ToString());
                 }
                 else
                 {
@@ -605,14 +583,56 @@ public class GameControlScript : MonoBehaviour
             }
             locx = gos[treeToActivate].transform.position.x;
 		}
+        else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))
+        {
+            // First, pick an orientation at random for the central tree
+            float rOrient = UnityEngine.Random.value;
+            float targetHFreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+            float targetVFreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+            float targetDeg = gos[0].GetComponent<WaterTreeScript>().GetShaderRotation();
+            // For now, just support vertical or horizontal orientations - support twisting later
 
-        GameObject treeCuller = GameObject.Find("TreeCuller");
-        Vector3 lp = treeCuller.transform.localPosition;
-        if (locx > 20000)  // Target tree is on right side
-            lp.x = -Globals.centralViewVisibleShift;
-        else if (locx < 20000)
-            lp.x = Globals.centralViewVisibleShift;
-        treeCuller.transform.localPosition = lp;
+            if (rOrient < 0.5)  // Switch target to opposite of initiation
+            {
+                gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetDeg);
+            }
+            // Second, randomly pick which side the matching orientation is on
+            float rSide = UnityEngine.Random.value;
+            targetHFreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+            targetVFreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+            if (rSide < 0.5)  // Set the left tree to match
+            {
+                gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetDeg);
+                gos[2].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetDeg);
+                if (Globals.gameType.Equals("match"))
+                {
+                    gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
+                    gos[2].GetComponent<WaterTreeScript>().SetCorrect(false);
+                }
+                else
+                {
+                    gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
+                    gos[2].GetComponent<WaterTreeScript>().SetCorrect(true);
+                }
+            }
+            else // Set the right tree to match
+            {
+                gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetDeg);
+                gos[2].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetDeg);
+                if (Globals.gameType.Equals("match"))
+                {
+                    gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
+                    gos[2].GetComponent<WaterTreeScript>().SetCorrect(true);
+                }
+                else
+                {
+                    gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
+                    gos[2].GetComponent<WaterTreeScript>().SetCorrect(false);
+                }
+            }
+        }
+
+        OccludeTree(locx);
 
         Globals.targetLoc.Add(locx);
 
@@ -651,7 +671,7 @@ public class GameControlScript : MonoBehaviour
         Debug.Log("Waiting for Q");
         yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
-        WriteStatsFile();
+        Globals.WriteStatsFile();
 		this.udpSender.close();
         Application.Quit();
     }
@@ -668,7 +688,11 @@ public class GameControlScript : MonoBehaviour
 			if (this.last5Mouse1Y.Count == smoothingWindow)
 				this.last5Mouse1Y.Dequeue ();
 
-			this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1X);  // nikhil changed to use yaw rather than roll
+            if (Globals.gameTurnControl.Equals("roll"))
+                this.last5Mouse1Y.Enqueue(Globals.sphereInput.mouse1Y);  // nikhil changed to use yaw rather than roll
+            else
+                this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1X);  // nikhil changed to use yaw rather than roll
+
 			this.last5Mouse2Y.Enqueue (Globals.sphereInput.mouse2Y);
 		
 			// transform sphere data into unity movement
@@ -697,65 +721,6 @@ public class GameControlScript : MonoBehaviour
     public void FlushWater()
     {
         this.udpSender.FlushWater();
-    }
-
-    // This function writes out all the statistics to a single file, currently when the game ends.
-    private void InitLogFiles()
-    {
-        // overwrite any existing file
-        StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_turns.txt", false);
-        // Write file header
-        Debug.Log("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTurnLocation\tRewardSize(ul)");
-        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTurnLocation\tRewardSize(ul)");
-        turnsFile.Close();
-    }
-
-    private void WriteToLogFiles()
-    {
-        StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_turns.txt", true);
-        // Write out turn decisions over time - easy to import into Excel and analyze
-
-        Debug.Log(Globals.trialStartTime[Globals.trialStartTime.Count - 1] + "\t" +
-                    Globals.trialEndTime[Globals.trialEndTime.Count - 1] + "\t" +
-                    ((TimeSpan)Globals.trialEndTime[Globals.trialEndTime.Count - 1]).Subtract((TimeSpan)Globals.trialStartTime[Globals.trialStartTime.Count - 1]) + "\t" +
-                    Globals.targetLoc[Globals.targetLoc.Count - 1] + "\t" +
-                    Globals.firstTurn[Globals.firstTurn.Count - 1] + "\t" +
-                    (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[Globals.sizeOfRewardGiven.Count - 1]));
-
-        turnsFile.WriteLine(Globals.trialStartTime[Globals.trialStartTime.Count - 1] + "\t" +
-                            Globals.trialEndTime[Globals.trialEndTime.Count - 1] + "\t" +
-                            ((TimeSpan)Globals.trialEndTime[Globals.trialEndTime.Count - 1]).Subtract((TimeSpan)Globals.trialStartTime[Globals.trialStartTime.Count - 1]) + "\t" +
-                            Globals.targetLoc[Globals.targetLoc.Count - 1] + "\t" +
-                            Globals.firstTurn[Globals.firstTurn.Count - 1] + "\t" +
-                            (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[Globals.sizeOfRewardGiven.Count - 1]));
-        turnsFile.Close();
-        WriteStatsFile();
-    }
-    
-    private void WriteStatsFile()
-    {
-        StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + this.movementRecorder.GetReplayFileName() + "_stats.txt");
-        statsFile.WriteLine("<document>");
-        statsFile.WriteLine("\t<stats>");
-        statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials)) + "%" + GetTreeAccuracy() + "</accuracy>");
-        statsFile.WriteLine("\t\t<earnedRewards>" + Globals.numCorrectTurns + "</earnedRewards>");
-        statsFile.WriteLine("\t\t<unearnedRewards>" + Globals.numberOfUnearnedRewards + "</unearnedRewards>");
-        statsFile.WriteLine("\t\t<trials>" + (Globals.numberOfTrials - 1) + "</trials>");
-        if(this.timeElapsedText.text.Length > 14)
-            statsFile.WriteLine("\t\t<timeElapsed>00:00:00" + this.timeElapsedText.text.Substring(14) + "</trials>");
-        else
-            statsFile.WriteLine("\t\t<timeElapsed>00:00:00</trials>");
-
-        float totalEarnedRewardSize = 0;
-        for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++)
-        {
-            totalEarnedRewardSize += (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[i]);
-        }
-
-        statsFile.WriteLine("\t\t<totalRewardSizeReceived>" + (totalEarnedRewardSize + (float)Globals.numberOfUnearnedRewards * Globals.rewardSize).ToString() + "</trials>");
-        statsFile.WriteLine("\t</stats>");
-        statsFile.WriteLine("</document>");
-        statsFile.Close();
     }
 
 }

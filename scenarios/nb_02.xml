@@ -7,6 +7,10 @@
 		<dryConfig>
 			<distType>u</distType>
 		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>
+			<gameTurnControl>yaw</gameTurnControl>
+		</gameConfig>
 	</config>
 	<trees>
 		<t> <!-- Left tree -->

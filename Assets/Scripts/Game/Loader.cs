@@ -83,6 +83,10 @@ public class Loader : MonoBehaviour {
     private float hFreq;
     private bool changeFreq;
 
+    private float rewardSize;
+    private bool rewardSet;
+    private bool respawn;
+
     void Start()
     {
         start = 0;
@@ -113,9 +117,8 @@ public class Loader : MonoBehaviour {
             float locx = treeList[0].transform.position.x;
             // NB edit
             // If there are only 2 or 3 trees, alternate which is visible, and leave the third as constant
-            if (end >= 2 && end <= 3) {
+            if (Globals.gameType.Equals("detection") && end >= 2 && end <= 3) {
 				float r = Random.value;
-				GameObject treeCuller;
                 if (end == 2)
                 {
                     if (r < 0.5)
@@ -152,14 +155,57 @@ public class Loader : MonoBehaviour {
                     }
                     Debug.Log("[0, 0.333, 0.667, 1] - " + r);
                 }
-                treeCuller = GameObject.Find ("TreeCuller");
-				Vector3 lp = treeCuller.transform.localPosition;
-				if (locx > 20000)  // Target tree is on right side
-					lp.x = -Globals.centralViewVisibleShift;
-				else if (locx < 20000)
-					lp.x = Globals.centralViewVisibleShift;
-				treeCuller.transform.localPosition = lp;
             }
+            else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))  // There are three trees - a central initial tree, and 1 on left and 1 on right
+            {
+                // First, pick an orientation at random for the central tree
+                float rOrient = Random.value;
+                float targetHFreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                float targetVFreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+                float targetDeg = treeList[0].GetComponent<WaterTreeScript>().GetShaderRotation();
+                // For now, just support vertical or horizontal orientations - support twisting later
+
+                if (rOrient < 0.5)  // Switch target to opposite of initiation
+                {
+                    treeList[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetDeg);
+                }
+                // Second, randomly pick which side the matching orientation is on
+                float rSide = Random.value;
+                targetHFreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                targetVFreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+                if (rSide < 0.5)  // Set the left tree to match
+                {
+                    treeList[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetDeg);
+                    treeList[2].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetDeg);
+                    if (Globals.gameType.Equals("match"))
+                    {
+                        treeList[1].GetComponent<WaterTreeScript>().SetCorrect(true);
+                        treeList[2].GetComponent<WaterTreeScript>().SetCorrect(false);
+                    }
+                    else
+                    {
+                        treeList[1].GetComponent<WaterTreeScript>().SetCorrect(false);
+                        treeList[2].GetComponent<WaterTreeScript>().SetCorrect(true);
+                    }
+                }
+                else // Set the right tree to match
+                {
+                    treeList[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetDeg);
+                    treeList[2].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetDeg);
+                    if (Globals.gameType.Equals("match"))
+                    {
+                        treeList[1].GetComponent<WaterTreeScript>().SetCorrect(false);
+                        treeList[2].GetComponent<WaterTreeScript>().SetCorrect(true);
+                    }
+                    else
+                    {
+                        treeList[1].GetComponent<WaterTreeScript>().SetCorrect(true);
+                        treeList[2].GetComponent<WaterTreeScript>().SetCorrect(false);
+                    }
+                }
+            }
+            GameObject.Find("GameControl").GetComponent<GameControlScript>().OccludeTree(locx);  // Will occlude tree if tree visibility is to be restricted to 1 FOV
+
             Globals.targetLoc.Add(locx);
 
             for (int i = start; i < end; i++)
@@ -292,9 +338,22 @@ public class Loader : MonoBehaviour {
                     }
                 }  
             }
-            
-            XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.
 
+            Globals.gameType = "detection";
+            Globals.gameTurnControl = "yaw";
+            XmlNodeList gameConfigList = xmlDoc.SelectNodes("document/config/gameConfig");
+            foreach (XmlNode xn in gameConfigList)
+            {
+                string gameTypeXML = xn["gameType"].InnerText;
+                if (gameTypeXML.Equals("match") || gameTypeXML.Equals("nonmatch"))
+                    Globals.gameType = gameTypeXML;
+
+                string gameTurnControlXML = xn["gameTurnControl"].InnerText;
+                if (gameTurnControlXML.Equals("roll"))
+                    Globals.gameTurnControl = gameTurnControlXML;
+            }
+
+            XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.
             foreach (XmlNode node in levelsList)
             {
                 bool water = false;
@@ -309,6 +368,8 @@ public class Loader : MonoBehaviour {
                 texture = false;
 				restrict = false;
                 changeFreq = false;
+                rewardSet = false;
+                respawn = true;
 
                 foreach (XmlNode val in levelcontent)
                 {
@@ -343,16 +404,27 @@ public class Loader : MonoBehaviour {
 					{
 						int.TryParse (val.InnerText, out this.restrictToCamera);
 						restrict = true;
-					} else if (val.Name == "v")
+					}
+                    else if (val.Name == "v")
                     {
                         float.TryParse(val.InnerText, out this.vFreq);
                         if (!changeFreq) this.hFreq = 4;
                         changeFreq = true;
-                    } else if (val.Name == "h")
+                    }
+                    else if (val.Name == "h")
                     {
                         float.TryParse(val.InnerText, out this.hFreq);
                         if (!changeFreq) this.vFreq = 4;
                         changeFreq = true;
+                    }
+                    else if (val.Name == "rewardSize")
+                    {
+                        float.TryParse(val.InnerText, out this.rewardSize);
+                        rewardSet = true;
+                    }
+                    else if (val.Name == "respawn")
+                    {
+                        respawn = (val.InnerText == "1") ? true : false;
                     }
                 }
                 if (water)
@@ -362,7 +434,7 @@ public class Loader : MonoBehaviour {
 
 					if (gradient) {
 						go = (GameObject)Instantiate (this.waterTreePrefab, v, Quaternion.identity);
-						go.GetComponent<WaterTreeScript> ().ChangeShaderRotation (this.deg_LS);
+						go.GetComponent<WaterTreeScript> ().SetShaderRotation (this.deg_LS);
 						go.GetComponent<WaterTreeScript> ().SetForTraining (waterTraining);
 						go.transform.parent = treeParent.transform;
 						go.isStatic = true;
@@ -383,10 +455,22 @@ public class Loader : MonoBehaviour {
 								}
 							}
 						}
+
                         if (changeFreq)
                         {
-                            go.GetComponent<WaterTreeScript>().ChangeShader(this.hFreq, this.vFreq, this.deg_LS);
+                            go.GetComponent<WaterTreeScript>().SetShader(this.hFreq, this.vFreq, this.deg_LS);
                         }
+
+                        if (rewardSet)
+                        {
+                            go.GetComponent<WaterTreeScript>().SetRewardSize(this.rewardSize);
+                        }
+                        else
+                        {
+                            go.GetComponent<WaterTreeScript>().SetRewardSize(Globals.rewardSize);
+                        }
+
+                        go.GetComponent<WaterTreeScript>().SetRespawn(this.respawn);
 					}
                         else if (texture)
                         {
@@ -450,7 +534,7 @@ public class Loader : MonoBehaviour {
                         if (gradient)
                         {
                             go = (GameObject)Instantiate(this.dryTreePrefab, v, Quaternion.identity);
-                            go.GetComponent<DryTreeScript>().ChangeShaderRotation(this.deg_LS);
+                            go.GetComponent<DryTreeScript>().SetShaderRotation(this.deg_LS);
                             go.transform.parent = treeParent.transform;
                             go.isStatic = true;
                             go.SetActive(false);

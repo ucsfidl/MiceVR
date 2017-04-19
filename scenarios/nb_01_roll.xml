@@ -9,7 +9,7 @@
 		</dryConfig>
 		<gameConfig>
 			<gameType>detection</gameType>
-			<gameTurnControl>yaw</gameTurnControl>
+			<gameTurnControl>roll</gameTurnControl>
 		</gameConfig>
 	</config>
 	<trees>
