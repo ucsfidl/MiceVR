@@ -180,7 +180,6 @@ public class GameControlScript : MonoBehaviour
 			_centralViewVisible = xn ["treeVisibleOnCenterScreen"].InnerText;
             _rewardDur = xn["rewardDur"].InnerText;
             _rewardSize = xn["rewardSize"].InnerText;
-            _totalRewardSize = xn["totalRewardSize"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
@@ -191,7 +190,6 @@ public class GameControlScript : MonoBehaviour
 		int.TryParse (_centralViewVisible, out this.centralViewVisible);
         int.TryParse(_rewardDur, out Globals.rewardDur);
         float.TryParse(_rewardSize, out Globals.rewardSize);
-        float.TryParse(_totalRewardSize, out Globals.totalRewardSize);
 
         // Calculate tree view block value: 0 is full occlusion in the central screen = 120 degrees
         // 0.9 is full visibility with occluder pushed all the way to the screen
@@ -373,59 +371,6 @@ public class GameControlScript : MonoBehaviour
         treeOccluder.transform.localPosition = lp;
     }
 
-    public int GetLastAccuracy(int n)
-    {
-        int len = Globals.firstTurn.Count;
-        int start;
-        int end;
-        int numTrials;
-        if (len >= n)
-        {
-            end = len;
-            start = len - n;
-        }
-        else
-        {
-            start = 0;
-            end = len;
-        }
-        numTrials = end - start;
-        int corr = 0;
-        for (int i = start; i < end; i++)
-        {
-            if (Globals.firstTurn[i].Equals(Globals.targetLoc[i]))
-                corr++;
-        }
-        return (int)Math.Round((float)corr / numTrials * 100);
-    }
-
-    public int GetTurnBias(int n)
-    {
-        GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-        int len = Globals.firstTurn.Count;
-        float turn0 = 0;
-        int start;
-        int end;
-        int numTrials;
-        if (len >= n)
-        {
-            end = len;
-            start = len - n;
-        }
-        else
-        {
-            start = 0;
-            end = len;
-        }
-        numTrials = end - start;
-
-        for (int i = start; i < end; i++)
-        {
-            if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x)
-                turn0++;
-        }
-        return (int)Math.Round((float)turn0 / numTrials * 100);
-    }
 
     /*
      * Fade to Black
@@ -453,7 +398,7 @@ public class GameControlScript : MonoBehaviour
                 + " (" +
                 Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials - 1)) * 100).ToString() + "%" 
                 + Globals.GetTreeAccuracy() + ")";
-            this.lastAccuracyText.text = "Last 20 accuracy: " + GetLastAccuracy(20) + "%";
+            this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
         }
 
         // NB Hack to get screen to go black before pausing for trialDelay
@@ -563,52 +508,23 @@ public class GameControlScript : MonoBehaviour
             }
             else if (gos.Length >= 2 && gos.Length <= 3)
             {
-                // Redo bias correction to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
-                // Previous attempt at streak elimination didn't really work... Saw mouse go left 100 times or so! And most mice exhibited a bias, even though they may not have before...
                 int treeToActivate = 0;
-                int len = Globals.firstTurn.Count;
                 float r = UnityEngine.Random.value;
-                float randThresh;  // varies the boundary based on history of mouse turns
-                float turn0 = 0;
-                int start;
-                int end;
-                int numTrials;
-                if (len >= 21)
-                {
-                    end = len;
-                    start = len - 21;
-                }
-                else
-                {
-                    start = 0;
-                    end = len;
-                }
-                numTrials = end - start;
+                float rThresh0;  // varies the boundary based on history of mouse turns
                 if (gos.Length == 2)
                 {
-                    for (int i = start; i < end; i++)
-                    {
-                        if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x)
-                            turn0++;
-                    }
-                    randThresh = 1 - turn0 / (numTrials);  // Set the threshold based on past history
-                    Debug.Log("[0, " + randThresh + ", 1] - " + r);
-                    treeToActivate = r < randThresh ? 0 : 1;
+                    rThresh0 = 1 - Globals.GetTurnBias(20, 0);
+                    Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
+                    treeToActivate = r < rThresh0 ? 0 : 1;
                 }
                 else if (gos.Length == 3)
                 {
-                    float turn1 = 0;
-                    for (int i = start; i < end; i++)
-                    {
-                        if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[0].transform.position.x)
-                            turn0++;
-                        else if (System.Convert.ToInt32(Globals.firstTurn[i]) == gos[1].transform.position.x)
-                            turn1++;
-                    }
+                    float tb0 = Globals.GetTurnBias(20, 0);
+                    float tb1 = Globals.GetTurnBias(20, 1);
 
-                    float t0 = 1 - turn0 / numTrials;
-                    float t1 = 1 - turn1 / numTrials;
-                    float t2 = (turn0 + turn1) / numTrials;  // simplifies to this
+                    float t0 = 1 - tb0;
+                    float t1 = 1 - tb1;
+                    float t2 = tb0 + tb1; 
 
                     float thresh0 = t0 / (t0 + t1 + t2);
                     float thresh1 = t1 / (t0 + t1 + t2) + thresh0;

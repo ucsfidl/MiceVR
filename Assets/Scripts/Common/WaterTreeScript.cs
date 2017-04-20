@@ -77,20 +77,62 @@ public class WaterTreeScript : MonoBehaviour {
                 if (!this.depleted) {
                     int len = Globals.firstTurn.Count;
                     float multiplier = 1;
-                    if (len >= 20) // If the mouse has not had a reward in some time, give a proportionally large reward, up to 6x the normal reward size, if they turned the opposite direction as their turning bias
+                    // Only multiply rewards on detection tasks, for now - GENERALIZE LATER!
+                    if (len >= 20 && Globals.gameType.Equals("detection")) // If the mouse has not had a reward in some time, give a proportionally large reward, up to 5x the normal reward size, if they turned the opposite direction as their turning bias
                     {
-                        float recentAccuracy = (float)GameObject.Find("GameControl").GetComponent<GameControlScript>().GetLastAccuracy(20) / 100;  // Returns as int from 0-100
-                        float adjRecentAccuracy = 0.5F - recentAccuracy;
-                        float turn0Bias = (float)GameObject.Find("GameControl").GetComponent<GameControlScript>().GetTurnBias(20) / 100;
+                        float recentAccuracy = Globals.GetLastAccuracy(20);  // Returns as a decimal
+                        float turn0Bias = Globals.GetTurnBias(20, 0);
+                        float turn1Bias = Globals.GetTurnBias(20, 1);
+                        float turn2Bias = 1 - turn0Bias - turn1Bias;
 
-                        if (adjRecentAccuracy > 0)
+                        float chance = 0.5F;
+                        int biasDir = -1;
+                        float biasAmt = -1;
+
+                        GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+                        if (gos.Length == 2) // 2 choice world
                         {
-                            GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-                            // Only boost reward if mouse hit the tree in the opposite direction of their bias!
-                            if ((turn0Bias > 0.6 && this.gameObject.transform.position.x.Equals(gos[1].transform.position.x)) ||
-                                (turn0Bias < 0.4 && this.gameObject.transform.position.x.Equals(gos[0].transform.position.x)))
-                                multiplier += adjRecentAccuracy * 10;
+                            if (turn0Bias > turn1Bias)
+                            {
+                                biasDir = 0;
+                                biasAmt = turn0Bias;
+                            }
+                            else
+                            {
+                                biasDir = 1;
+                                biasAmt = turn1Bias;
+                            }
+                        } 
+                        else if (gos.Length == 3)
+                        {
+                            chance = (float)1 / 3;
+                            if (turn0Bias > turn1Bias && turn0Bias > turn2Bias)
+                            {
+                                biasDir = 0;
+                                biasAmt = turn0Bias;
+                            } 
+                            else if (turn1Bias > turn0Bias && turn1Bias > turn2Bias)
+                            {
+                                biasDir = 1;
+                                biasAmt = turn1Bias;
+                            }
+                            else
+                            {
+                                biasDir = 2;
+                                biasAmt = turn2Bias;
+                            }
                         }
+
+                        if (recentAccuracy < chance)  // Mouse is performing below chance, suggesting they are biased and would benefit from a larger reward on a correct trial that goes against the bias!
+                        {
+                            if (biasAmt > 1.2 * chance) // e.g. if chance is 50%,  bias must be 60% or greater to multiply the reward
+                            {
+                                // Only boost reward if mouse hit the tree in the opposite direction of their bias!
+                                if (!this.gameObject.transform.position.x.Equals(gos[biasDir].transform.position.x))
+                                    multiplier += (chance - recentAccuracy) / (chance/4);
+                            }
+                        }
+                        Debug.Log("chance = " + chance + ", biasDir = " + biasDir + ", biasAmt = " + biasAmt);
                     }
                     int rewardDur;
                     if (this.rewardDur == Globals.rewardDur)  // The scenario file did not specify a specific reward for this tree

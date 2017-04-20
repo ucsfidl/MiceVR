@@ -8,6 +8,7 @@ public class MovementRecorder : MonoBehaviour {
 
     private StreamWriter outfile, rewardFile;
     private string mouseName;
+    private string maxReward;  // in ul
     private string dayName;
     private string scenarioName;
     private string sessionName;
@@ -53,6 +54,13 @@ public class MovementRecorder : MonoBehaviour {
     {
         this.mouseName = s;
         MakeReplayName();
+    }
+
+    public void SetMaxReward(string s)
+    {
+        this.maxReward = s;
+        float.TryParse(this.maxReward, out Globals.totalRewardSize);
+        Debug.Log(Globals.totalRewardSize);
     }
 
     public void SetDayName(string s)

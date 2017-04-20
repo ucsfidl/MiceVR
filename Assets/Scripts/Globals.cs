@@ -43,7 +43,7 @@ public static class Globals
 
     public static int rewardDur;  // duration in ms of a single drop
     public static float rewardSize;  // what the above duration results in in ul
-    public static float totalRewardSize;  // in ul
+    public static float totalRewardSize = 1000;  // total amount the mouse can be given, in ul
     public static ArrayList sizeOfRewardGiven = new ArrayList(); // in ul
 
     public static string gameType;  // Default: detection - The type of game, as specified in the scenario file and detected by Loader
@@ -149,5 +149,71 @@ public static class Globals
         return output;
     }
 
+    // Redo bias correction to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
+    // Previous attempt at streak elimination didn't really work... Saw mouse go left 100 times or so! And most mice exhibited a bias, even though they may not have before...
+    public static float GetTurnBias(int histLen, int treeIndex)
+    {
+        GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+        int len = Globals.firstTurn.Count;
+        int turn0 = 0;
+        int start;
+        int end;
+        int numTrials;
+        if (len >= histLen)
+        {
+            end = len;
+            start = len - histLen;
+        }
+        else
+        {
+            start = 0;
+            end = len;
+        }
+        numTrials = end - start;
+        if (gos.Length == 2)
+        {
+            for (int i = start; i < end; i++)
+            {
+                if (Globals.firstTurn[i].Equals(gos[treeIndex].transform.position.x))
+                    turn0++;
+            }
+        }
+        else if (gos.Length == 3)
+        {
+            for (int i = start; i < end; i++)
+            {
+                if (Globals.firstTurn[i].Equals(gos[treeIndex].transform.position.x))
+                    turn0++;
+            }
+
+        }
+        return (float)turn0 / numTrials;
+    }
+
+    public static float GetLastAccuracy(int n)
+    {
+        int len = firstTurn.Count;
+        int start;
+        int end;
+        int numTrials;
+        if (len >= n)
+        {
+            end = len;
+            start = len - n;
+        }
+        else
+        {
+            start = 0;
+            end = len;
+        }
+        numTrials = end - start;
+        int corr = 0;
+        for (int i = start; i < end; i++)
+        {
+            if (firstTurn[i].Equals(targetLoc[i]))
+                corr++;
+        }
+        return (float)corr / numTrials;
+    }
 
 }
