@@ -168,7 +168,6 @@ public class GameControlScript : MonoBehaviour
         string _rewardDur = "";
         string _centralViewVisible = "";
         string _rewardSize = "";
-        string _totalRewardSize = "";
 
         foreach (XmlNode xn in gameConfigList)
         {
