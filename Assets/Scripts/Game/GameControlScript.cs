@@ -554,24 +554,24 @@ public class GameControlScript : MonoBehaviour
         {
             // Randomize orientations
             float rOrient = UnityEngine.Random.value;
+            float rThresh0 = 1 - Globals.GetTurnBias(20, 0);
             Debug.Log("Random for ori = " + rOrient);
-            float targetHFreq0 = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-            float targetVFreq0 = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-            float targetHFreq1 = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
-            float targetVFreq1 = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
-            if (rOrient < 0.5)  // Swap orientations between trees
+            if (rOrient < rThresh0) 
             {
-                gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq1, targetVFreq1);
-                gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq0, targetVFreq0);
-            }
-
-            if (gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq() == Globals.rewardedHFreq &&
-                gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq() == Globals.rewardedVFreq)
+                gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, Globals.rewardedVFreq);
+                gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedVFreq, Globals.rewardedHFreq);
+                locx = gos[1].transform.position.x;
+                hfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                vfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+            } else
             {
+                gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedVFreq, Globals.rewardedHFreq);
+                gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, Globals.rewardedVFreq);
                 locx = gos[1].transform.position.x;
                 hfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
                 vfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
             }
+            Debug.Log("[0, " + rThresh0 + ", 1] - " + rOrient);
         }
         else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))
         {
