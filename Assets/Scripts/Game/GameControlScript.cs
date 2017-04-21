@@ -681,7 +681,7 @@ public class GameControlScript : MonoBehaviour
 				this.last5Mouse1Y.Dequeue ();
 
             if (Globals.gameTurnControl.Equals("roll"))
-                this.last5Mouse1Y.Enqueue(Globals.sphereInput.mouse1Y);  // nikhil changed to use yaw rather than roll
+                this.last5Mouse1Y.Enqueue(-Globals.sphereInput.mouse1Y);  // nikhil changed to use yaw rather than roll
             else
                 this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1X);  // nikhil changed to use yaw rather than roll
 
