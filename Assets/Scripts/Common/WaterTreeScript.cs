@@ -77,8 +77,8 @@ public class WaterTreeScript : MonoBehaviour {
                 if (!this.depleted) {
                     int len = Globals.firstTurn.Count;
                     float multiplier = 1;
-                    // Only multiply rewards on detection tasks, for now - GENERALIZE LATER!
-                    if (len >= 20 && Globals.gameType.Equals("detection")) // If the mouse has not had a reward in some time, give a proportionally large reward, up to 5x the normal reward size, if they turned the opposite direction as their turning bias
+                    // Compute the multiplier
+                    if (len >= 20 && (Globals.gameType.Equals("detection") || Globals.gameType.Equals("discrimination"))) // If the mouse has not had a reward in some time, give a proportionally large reward, up to 5x the normal reward size, if they turned the opposite direction as their turning bias
                     {
                         float recentAccuracy = Globals.GetLastAccuracy(20);  // Returns as a decimal
                         float turn0Bias = Globals.GetTurnBias(20, 0);
@@ -173,6 +173,13 @@ public class WaterTreeScript : MonoBehaviour {
                         {
                             GiveReward(rewardDur);
                         }
+                    }
+                    else if (Globals.gameType.Equals("discrimination"))
+                    {
+                        if (GetShaderHFreq() == Globals.rewardedHFreq && GetShaderVFreq() == Globals.rewardedVFreq)
+                            GiveReward(rewardDur);
+                        else
+                            WitholdReward();                        
                     }
                     else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))  // There are three trees - a central initial tree, and 1 on left and 1 on right
                     {

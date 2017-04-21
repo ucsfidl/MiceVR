@@ -550,6 +550,29 @@ public class GameControlScript : MonoBehaviour
                 vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
             }
         }
+        else if (Globals.gameType.Equals("discrimination"))
+        {
+            // Randomize orientations
+            float rOrient = UnityEngine.Random.value;
+            Debug.Log("Random for ori = " + rOrient);
+            float targetHFreq0 = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+            float targetVFreq0 = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+            float targetHFreq1 = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
+            float targetVFreq1 = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+            if (rOrient < 0.5)  // Swap orientations between trees
+            {
+                gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq1, targetVFreq1);
+                gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq0, targetVFreq0);
+            }
+
+            if (gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq() == Globals.rewardedHFreq &&
+                gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq() == Globals.rewardedVFreq)
+            {
+                locx = gos[1].transform.position.x;
+                hfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                vfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+            }
+        }
         else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))
         {
             // First, pick an orientation at random for the central tree

@@ -49,6 +49,8 @@ public static class Globals
     public static string gameType;  // Default: detection - The type of game, as specified in the scenario file and detected by Loader
     public static string gameTurnControl; // Default: yaw - Whether to use YAW or ROLL for game turning control on the ball
     public static bool varyOrientation;
+    public static float rewardedHFreq;
+    public static float rewardedVFreq;
 
     public static MovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<MovementRecorder>();
     public static DateTime gameStartTime;

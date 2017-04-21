@@ -169,6 +169,20 @@ public class Loader : MonoBehaviour {
                     Debug.Log("[0, 0.333, 0.667, 1] - " + r);
                 }
             }
+            else if (Globals.gameType.Equals("discrimination"))
+            {
+                // Randomize orientations on first load
+                float rOrient = Random.value;
+                float targetHFreq0 = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                float targetVFreq0 = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+                float targetHFreq1 = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                float targetVFreq1 = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+                if (rOrient < 0.5)  // Swap orientations between trees
+                {
+                    treeList[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq1, targetVFreq1);
+                    treeList[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq0, targetVFreq0);
+                }
+            }
             else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))  // There are three trees - a central initial tree, and 1 on left and 1 on right
             {
                 // First, pick an orientation at random for the central tree
@@ -364,7 +378,7 @@ public class Loader : MonoBehaviour {
                 if (xn["gameType"] != null)
                 {
                     string gameTypeXML = xn["gameType"].InnerText;
-                    if (gameTypeXML.Equals("match") || gameTypeXML.Equals("nonmatch"))
+                    if (gameTypeXML.Equals("discrimination") || gameTypeXML.Equals("match") || gameTypeXML.Equals("nonmatch"))
                         Globals.gameType = gameTypeXML;
                 }
 
@@ -380,6 +394,15 @@ public class Loader : MonoBehaviour {
                     string varyOrientationXML = xn["varyOrientation"].InnerText;
                     if (varyOrientationXML.Equals("true"))
                         Globals.varyOrientation = true;
+                }
+
+                if (xn["rewardedHFreq"] != null)
+                {
+                    float.TryParse(xn["rewardedHFreq"].InnerText, out Globals.rewardedHFreq);
+                }
+                if (xn["rewardedVFreq"] != null)
+                {
+                    float.TryParse(xn["rewardedVFreq"].InnerText, out Globals.rewardedVFreq);
                 }
             }
 
