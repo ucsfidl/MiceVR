@@ -8,8 +8,8 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>detection</gameType> <!-- Options: match, nonmatch -->
-			<gameTurnControl>yaw</gameTurnControl> <!-- yaw | roll -->
+			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
 		</gameConfig>
 	</config>
 	<trees>

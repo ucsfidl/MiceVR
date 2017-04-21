@@ -69,16 +69,16 @@ public class WaterTreeScript : MonoBehaviour {
     {
 		//Debug.Log ("WaterTree at " + this.gameObject.transform.position.x + " triggered by " + c.tag);
 		if (c.tag == "Player") {
-			Globals.numberOfTrials++;
 			if (this.enabled) {
 				//Debug.Log ("Dispensing water");
 				Globals.playerInWaterTree = true;
-                //GameObject.Find ("UDPSender").GetComponent<UDPSend> ().SendInWater ();
                 if (!this.depleted) {
                     int len = Globals.firstTurn.Count;
                     float multiplier = 1;
-                    // Compute the multiplier
-                    if (len >= 20 && (Globals.gameType.Equals("detection") || Globals.gameType.Equals("discrimination"))) // If the mouse has not had a reward in some time, give a proportionally large reward, up to 5x the normal reward size, if they turned the opposite direction as their turning bias
+                    GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+                    // (1) COMPUTE REWARD ENLARGEMENT
+                    // If the mouse has not had a reward in some time, give a proportionally large reward, up to 5x the normal reward size, if they turned the opposite direction as their turning bias
+                    if (gos.Length > 1 && len >= 20)  // The world involves some sort of choice, so there is a turning bias to calculate
                     {
                         float recentAccuracy = Globals.GetLastAccuracy(20);  // Returns as a decimal
                         float turn0Bias = Globals.GetTurnBias(20, 0);
@@ -89,8 +89,7 @@ public class WaterTreeScript : MonoBehaviour {
                         int biasDir = -1;
                         float biasAmt = -1;
 
-                        GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-                        if (gos.Length == 2) // 2 choice world
+                        if (!Globals.gameType.Equals("det_blind"))  // List 3-choice games here 
                         {
                             if (turn0Bias > turn1Bias)
                             {
@@ -102,8 +101,8 @@ public class WaterTreeScript : MonoBehaviour {
                                 biasDir = 1;
                                 biasAmt = turn1Bias;
                             }
-                        } 
-                        else if (gos.Length == 3)
+                        }
+                        else
                         {
                             chance = (float)1 / 3;
                             if (turn0Bias > turn1Bias && turn0Bias > turn2Bias)
@@ -134,6 +133,7 @@ public class WaterTreeScript : MonoBehaviour {
                         }
                         Debug.Log("chance = " + chance + ", biasDir = " + biasDir + ", biasAmt = " + biasAmt);
                     }
+
                     int rewardDur;
                     if (this.rewardDur == Globals.rewardDur)  // The scenario file did not specify a specific reward for this tree
                     {
@@ -143,18 +143,21 @@ public class WaterTreeScript : MonoBehaviour {
                     {
                         rewardDur = this.rewardDur;
                     }
-                    //Debug.Log("rewardDur = " + rewardDur);
+                    // DONE COMPUTING REWARD ENLARGEMENT
 
-                    if (Globals.gameType.Equals("detection"))
+                    // (2) Actually give or withold reward, depending on the gametype!
+                    if (Globals.gameType.Equals("detection") || Globals.gameType.Equals("det_target"))
+                    {
+                        if (respawn)
+                           GiveReward(rewardDur, true);
+                    } 
+                    else if (Globals.gameType.Equals("det_blind"))
                     {
                         if (this.GetShaderVFreq() == 0)  // The mouse ran into the special center tree - give reward only if no other trees displayed
                         {
-                            GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-                            Debug.Log("number of trees: " + gos.Length);
                             bool alone = true;
                             for (int i = 0; i < gos.Length - 1; i++)  // This special tree is always listed last
                             {
-                                //Debug.Log("Tree enabled state is " + gos[i].transform.GetChild(0).gameObject.activeSelf.ToString());
                                 if (gos[i].transform.GetChild(0).gameObject.activeSelf)
                                 {
                                     alone = false;
@@ -162,7 +165,7 @@ public class WaterTreeScript : MonoBehaviour {
                             }
                             if (alone)
                             {
-                                GiveReward(rewardDur);
+                                GiveReward(rewardDur, true);
                             }
                             else  // error trial
                             {
@@ -171,13 +174,13 @@ public class WaterTreeScript : MonoBehaviour {
                         }
                         else
                         {
-                            GiveReward(rewardDur);
+                            GiveReward(rewardDur, true);
                         }
                     }
-                    else if (Globals.gameType.Equals("discrimination"))
+                    else if(Globals.gameType.Equals("discrimination"))
                     {
-                        if (GetShaderHFreq() == Globals.rewardedHFreq && GetShaderVFreq() == Globals.rewardedVFreq)
-                            GiveReward(rewardDur);
+                        if (correctTree)
+                            GiveReward(rewardDur, true);
                         else
                             WitholdReward();                        
                     }
@@ -185,11 +188,11 @@ public class WaterTreeScript : MonoBehaviour {
                     {
                         if (!respawn)  // This is the starting central tree
                         {
-                            GiveReward(rewardDur);
+                            GiveReward(rewardDur, false);
                         }
                         else if (correctTree)
                         {
-                            GiveReward(rewardDur);
+                            GiveReward(rewardDur, true);
                         }
                         else
                         {
@@ -200,52 +203,54 @@ public class WaterTreeScript : MonoBehaviour {
             } else {
                 WitholdReward();
 			}
-            Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);
-            Globals.WriteToLogFiles();
 		}
     }
 
-    private void GiveReward(int rewardDur)
+    private void GiveReward(int rewardDur, bool addToTurns)
     {
         GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward(rewardDur);
-        //Debug.Log("Water reward size = " + rewardDur);
-        //GameObject.Find("movementRecorder").GetComponent<MovementRecorder>().logReward(true,false);
         this.depleted = true;
         this.mouseObject = GameObject.FindGameObjectWithTag("MainCamera");
         this.mouseObject.GetComponent<AudioSource>().Play();
         Globals.numberOfEarnedRewards++;
         Globals.sizeOfRewardGiven.Add(Globals.rewardSize / Globals.rewardDur * rewardDur);
         Globals.rewardAmountSoFar += Globals.rewardSize / Globals.rewardDur * rewardDur;
-        if (Globals.hasNotTurned)
+
+        Globals.hasNotTurned = false;
+        if (addToTurns)
         {
-            Globals.hasNotTurned = false;
             Globals.numCorrectTurns++;
             Globals.firstTurn.Add(this.gameObject.transform.position.x);
             Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
             Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
         }
+
         if (respawn)
         {
+            Globals.numberOfTrials++;
             Globals.trialDelay = correctTurnDelay;
             GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.black);
+            Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);
+            Globals.WriteToLogFiles();
         }
     }
 
     private void WitholdReward()
     {
-        if (Globals.hasNotTurned)
-        {
-            Globals.hasNotTurned = false;
-            Globals.firstTurn.Add(this.gameObject.transform.position.x);
-            Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
-            Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
-            Globals.sizeOfRewardGiven.Add(0);
-        }
+        Globals.hasNotTurned = false;
+        Globals.firstTurn.Add(this.gameObject.transform.position.x);
+        Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
+        Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+        Globals.sizeOfRewardGiven.Add(0);
         if (respawn)
         {
+            Globals.numberOfTrials++;
             Globals.trialDelay = incorrectTurnDelay;
             GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.white);
+            Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);
         }
+
+        Globals.WriteToLogFiles();
     }
 
     void OnTriggerExit()

@@ -333,8 +333,8 @@ public class GameControlScript : MonoBehaviour
         //this.movementRecorder.logReward(this.udpSender.CheckReward());
         //this.movementRecorder.logReward(true);
 		this.numberOfTrialsText.text = "Current trial: # " + Globals.numberOfTrials.ToString ();
-        /*
         this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar).ToString();
+        /*
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
 		this.numberOfDryTreesText.text = "Number of dry trees entered: " + Globals.numberOfDryTrees.ToString();
@@ -348,6 +348,7 @@ public class GameControlScript : MonoBehaviour
 		//this.frameCounter++;
 		//Debug.Log ("screen updated");
         */
+
         TimeSpan te = DateTime.Now.Subtract(Globals.gameStartTime);
         this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}", te.Hours * 60 + te.Minutes, te.Seconds);
         if (Time.time - this.runTime >= this.runDuration)
@@ -489,13 +490,14 @@ public class GameControlScript : MonoBehaviour
         float hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
         float vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
 
-        if (Globals.gameType.Equals("detection"))
+        int treeToActivate = 0;
+        float r = UnityEngine.Random.value;
+        if (Globals.gameType.Equals("detection") || Globals.gameType.Equals("det_target"))
         {
-            if (gos.Length == 1)
+            if (gos.Length == 1)  // Linear track
             {
                 if (Globals.varyOrientation)
                 {
-                    float r = UnityEngine.Random.value;
                     if (r > 0.5)  // Half the time, swap the orientation of the tree
                     {
                         gos[0].GetComponent<WaterTreeScript>().SetShader(vfreq, hfreq);
@@ -503,123 +505,121 @@ public class GameControlScript : MonoBehaviour
                         vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
                     }
                 }
-
             }
-            else if (gos.Length >= 2 && gos.Length <= 3)
+            else if (gos.Length == 2 || Globals.gameType.Equals("det_target"))
             {
-                int treeToActivate = 0;
-                float r = UnityEngine.Random.value;
-                float rThresh0;  // varies the boundary based on history of mouse turns
-                if (gos.Length == 2)
-                {
-                    rThresh0 = 1 - Globals.GetTurnBias(20, 0);
-                    Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
-                    treeToActivate = r < rThresh0 ? 0 : 1;
-                }
-                else if (gos.Length == 3)
-                {
-                    float tb0 = Globals.GetTurnBias(20, 0);
-                    float tb1 = Globals.GetTurnBias(20, 1);
-
-                    float t0 = 1 - tb0;
-                    float t1 = 1 - tb1;
-                    float t2 = tb0 + tb1; 
-
-                    float thresh0 = t0 / (t0 + t1 + t2);
-                    float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
-
-                    Debug.Log("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
-                    treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
-                }
-                for (int i = 0; i < 2; i++)  // Even in the 3-tree case, never deactivate the 3rd tree
-                {
-                    gos[i].SetActive(true);
-                    if (i == treeToActivate)
-                    {
-                        gos[i].GetComponent<WaterTreeScript>().Show();
-                        //Debug.Log("Activated tree id = " + i.ToString());
-                    }
-                    else
-                    {
-                        gos[i].GetComponent<WaterTreeScript>().Hide();
-                        //Debug.Log ("Inactivated tree id = " + i.ToString ());
-                    }
-                }
+                float rThresh0 = 1 - Globals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
+                Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
+                treeToActivate = r < rThresh0 ? 0 : 1;
+                SetupTreeActivation(gos, treeToActivate, 2);
                 locx = gos[treeToActivate].transform.position.x;
                 hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
                 vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
             }
+        } 
+        else if (Globals.gameType.Equals("det_blind"))
+        {
+            float tb0 = Globals.GetTurnBias(20, 0);
+            float tb1 = Globals.GetTurnBias(20, 1);
+
+            float t0 = 1 - tb0;
+            float t1 = 1 - tb1;
+            float t2 = tb0 + tb1;
+
+            float thresh0 = t0 / (t0 + t1 + t2);
+            float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
+
+            Debug.Log("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
+            treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
+            SetupTreeActivation(gos, treeToActivate, 2);
+            locx = gos[treeToActivate].transform.position.x;
+            hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
+            vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
         }
         else if (Globals.gameType.Equals("discrimination"))
         {
             // Randomize orientations
-            float rOrient = UnityEngine.Random.value;
             float rThresh0 = 1 - Globals.GetTurnBias(20, 0);
-            Debug.Log("Random for ori = " + rOrient);
-            if (rOrient < rThresh0) 
+            if (r < rThresh0) 
             {
                 gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, Globals.rewardedVFreq);
                 gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedVFreq, Globals.rewardedHFreq);
-                locx = gos[1].transform.position.x;
-                hfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                vfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
-            } else
+                locx = gos[0].transform.position.x;
+                hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+                vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+                gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
+                gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
+            }
+            else
             {
                 gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedVFreq, Globals.rewardedHFreq);
                 gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, Globals.rewardedVFreq);
                 locx = gos[1].transform.position.x;
                 hfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
                 vfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+                gos[0].GetComponent<WaterTreeScript>().SetCorrect(false);
+                gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
             }
-            Debug.Log("[0, " + rThresh0 + ", 1] - " + rOrient);
+            Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
         }
         else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))
         {
             // First, pick an orientation at random for the central tree
-            float rOrient = UnityEngine.Random.value;
-            float targetHFreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-            float targetVFreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-            float targetDeg = gos[0].GetComponent<WaterTreeScript>().GetShaderRotation();
-            // For now, just support vertical or horizontal orientations - support twisting later
+            float targetHFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
+            float targetVFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
 
-            if (rOrient < 0.5)  // Switch target to opposite of initiation
+            if (r < 0.5)  // Switch target to opposite of previous
             {
-                gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetDeg);
+                gos[2].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
             }
             // Second, randomly pick which side the matching orientation is on
             float rSide = UnityEngine.Random.value;
-            targetHFreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-            targetVFreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-            if (rSide < 0.5)  // Set the left tree to match
+            targetHFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
+            targetVFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
+            // Try to balance location of match based on the turning bias
+            float rThresh0 = 1 - Globals.GetTurnBias(20, 0);  // recent bias to the left side
+            if (rSide < rThresh0)  // Set the left tree to be the rewarded side
             {
-                gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetDeg);
-                gos[2].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetDeg);
+                gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
+                gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
+                locx = gos[0].transform.position.x;
                 if (Globals.gameType.Equals("match"))
                 {
-                    gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
-                    gos[2].GetComponent<WaterTreeScript>().SetCorrect(false);
+                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
+                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
+                    hfreq = targetHFreq;
+                    vfreq = targetVFreq;
                 }
                 else
                 {
-                    gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
-                    gos[2].GetComponent<WaterTreeScript>().SetCorrect(true);
+                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
+                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
+                    hfreq = targetVFreq;
+                    vfreq = targetHFreq;
                 }
             }
             else // Set the right tree to match
             {
-                gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetDeg);
-                gos[2].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetDeg);
+                gos[0].GetComponent<WaterTreeScript>().SetCorrect(false);
+                gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
+                locx = gos[1].transform.position.x;
                 if (Globals.gameType.Equals("match"))
                 {
-                    gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
-                    gos[2].GetComponent<WaterTreeScript>().SetCorrect(true);
+                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
+                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
+                    hfreq = targetHFreq;
+                    vfreq = targetVFreq;
                 }
                 else
                 {
-                    gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
-                    gos[2].GetComponent<WaterTreeScript>().SetCorrect(false);
+                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
+                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
+                    hfreq = targetVFreq;
+                    vfreq = targetHFreq;
                 }
             }
+            Debug.Log("[0, " + rThresh0 + ", 1] - " + rSide);
+
         }
 
         OccludeTree(locx);
@@ -645,6 +645,18 @@ public class GameControlScript : MonoBehaviour
         Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
         this.state = "Running";
 	}
+
+    private void SetupTreeActivation(GameObject[] gos, int treeToActivate, int maxTrees)
+    {
+        for (int i = 0; i < maxTrees; i++)  // Even in the 3-tree case, never deactivate the 3rd tree
+        {
+            gos[i].SetActive(true);
+            if (i == treeToActivate)
+                gos[i].GetComponent<WaterTreeScript>().Show();
+            else
+                gos[i].GetComponent<WaterTreeScript>().Hide();
+        }
+    }
 
     private void GameOver()
     {
