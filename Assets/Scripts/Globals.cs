@@ -108,10 +108,9 @@ public static class Globals
         StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + mRecorder.GetReplayFileName() + "_stats.txt");
         statsFile.WriteLine("<document>");
         statsFile.WriteLine("\t<stats>");
-        statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + "%" + GetTreeAccuracy() + "</accuracy>");
-        // TODO - Fix off by one error when mouse finishes game!
-        statsFile.WriteLine("\t\t<numEarnedRewards>" + numCorrectTurns + "</numEarnedRewards>");
-        statsFile.WriteLine("\t\t<numUnearnedRewards>" + numberOfUnearnedRewards + "</numUnearnedRewards>");
+        statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)numCorrectTurns / ((float)numberOfTrials)) + "%" + GetTreeAccuracy() + "</accuracy>");
+        statsFile.WriteLine("\t\t<earnedRewards>" + numCorrectTurns + "</earnedRewards>");
+        statsFile.WriteLine("\t\t<unearnedRewards>" + numberOfUnearnedRewards + "</unearnedRewards>");
         statsFile.WriteLine("\t\t<trials>" + (numberOfTrials - 1) + "</trials>");
 
         TimeSpan te = DateTime.Now.Subtract(gameStartTime);
