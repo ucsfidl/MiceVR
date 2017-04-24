@@ -55,6 +55,13 @@ public static class Globals
     public static MovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<MovementRecorder>();
     public static DateTime gameStartTime;
 
+	public static int blockDurSec = 600; // Duration of a block of trials, in sec
+	public static int breakDurSec = 60; // Break between blocks, in sec
+	public static int numBlocks = 4;
+	public static int currBlock = 0;
+	public static DateTime blockStartTime;
+	public static bool breakState = false;
+
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
     {

@@ -93,7 +93,6 @@ public class GameControlScript : MonoBehaviour
     // Update is called once per frame
     void Update()
 	{
-
 		//Debug.Log ("Framerate: " + 1.0f / Time.deltaTime);
 		CatchKeyStrokes ();
 
@@ -106,7 +105,7 @@ public class GameControlScript : MonoBehaviour
 			this.player.transform.position = tempPos;
 		}
 		this.prevPos = this.player.transform.position;
-
+					
         switch (this.state)
         {
             case "LoadScenario":
@@ -120,6 +119,10 @@ public class GameControlScript : MonoBehaviour
             case "Timeout":
                 Timeout();
                 break;
+
+			case "Break":
+				TakeBreak();
+				break;
 
             case "Running":
                 Run();
@@ -255,6 +258,7 @@ public class GameControlScript : MonoBehaviour
         {
             this.runTime = Time.time;
             Globals.gameStartTime = DateTime.Now;
+			Globals.blockStartTime = Globals.gameStartTime;
             Debug.Log("Game started at " + Globals.gameStartTime.ToLongTimeString());
             this.movementRecorder.SetRun(this.runNumber);
             this.movementRecorder.SetFileSet(true);
@@ -286,15 +290,46 @@ public class GameControlScript : MonoBehaviour
 
         if (!Globals.timeoutState)
         {
-            StartCoroutine(Wait());
+            StartCoroutine(Wait(15));
             Globals.timeoutState = true;
         }
     }
 
-    IEnumerator Wait()
+	private void TakeBreak()
+	{
+		this.fadeToBlack.gameObject.SetActive(true);
+		this.fadeToBlack.color = Color.black;
+		this.fadeToBlackText.text = "BREAK #" + (Globals.currBlock + 1);
+
+		TimeSpan te = DateTime.Now.Subtract(Globals.gameStartTime);
+		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}", te.Hours * 60 + te.Minutes, te.Seconds);
+
+		if (!Globals.breakState) {
+			StartCoroutine(BreakWait(Globals.breakDurSec));
+			Globals.breakState = true;
+		}
+	}
+
+	private IEnumerator BreakWait(int waitTimeInSec) 
+	{
+		yield return new WaitForSeconds(waitTimeInSec);
+
+		Color t = this.fadeToBlack.color;
+		t.a = 0f;
+		this.fadeToBlack.color = t;
+		this.fadeToBlackText.text = "";
+		this.fadeToBlack.gameObject.SetActive(false);
+
+		Globals.currBlock++;
+		Globals.breakState = false;
+		this.state = "Running";
+		Globals.blockStartTime = DateTime.Now;
+	}
+
+    private IEnumerator Wait(int waitTimeInSec)
     {
         // Maria: This is where we change seconds
-        yield return new WaitForSeconds(15);
+		yield return new WaitForSeconds(waitTimeInSec);
 
         Color t = this.fadeToBlack.color;
         t.a = 0f;
@@ -358,6 +393,16 @@ public class GameControlScript : MonoBehaviour
             this.fadeToBlack.gameObject.SetActive(true);
             this.state = "Fading";
         }
+
+		te = DateTime.Now.Subtract (Globals.blockStartTime);
+		//Debug.Log ("Block time so far = " + te.TotalSeconds);
+		if (te.TotalSeconds >= Globals.blockDurSec && Globals.currBlock < Globals.numBlocks) // Block time is up and blocks still remain
+		{
+			this.movementRecorder.SetFileSet(false);
+			this.fadeToBlack.gameObject.SetActive(true);
+			this.state = "Break";
+		}
+
     }
 
     public void OccludeTree(float treeLocX)
@@ -684,6 +729,7 @@ public class GameControlScript : MonoBehaviour
     {
 		
 		if (Globals.newData) {
+			Debug.Log ("moving player");
 			Globals.newData = false;
 
 			// Keep a buffer of the last 5 movement deltas to smoothen some movement
