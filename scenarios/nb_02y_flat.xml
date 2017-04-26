@@ -43,7 +43,7 @@
 			<scale>2;4;15</scale>
 		</wall>
 		<wall> <!-- Back wall -->
-			<pos>20000;2;20070</pos>
+			<pos>20000;2;20033</pos>
 			<rot>0;-90;0</rot>
 			<scale>2;4;15</scale>
 		</wall>
@@ -53,14 +53,14 @@
 			<scale>2;4;21</scale>
 		</wall>
 		<wall> <!-- Left Y right wall -->
-			<pos>19993.5;2;20032.5</pos>
+			<pos>19990;2;20036</pos>
 			<rot>0;-45;0</rot>
-			<scale>2;4;20</scale>
+			<scale>2;4;10</scale>
 		</wall>
 		<wall> <!-- Right Y left wall -->
-			<pos>20006.5;2;20032.5</pos>
+			<pos>20010;2;20036</pos>
 			<rot>0;45;0</rot>
-			<scale>2;4;20</scale>
+			<scale>2;4;10</scale>
 		</wall>
 		<wall> <!-- Right Y right wall -->
 			<pos>20015;2;20025</pos>
