@@ -492,7 +492,7 @@ public class GameControlScript : MonoBehaviour
 
         int treeToActivate = 0;
         float r = UnityEngine.Random.value;
-        if (Globals.gameType.Equals("detection") || Globals.gameType.Equals("det_target"))
+		if (Globals.gameType.Equals("detection") || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target"))
         {
             if (gos.Length == 1)  // Linear track
             {
@@ -506,15 +506,26 @@ public class GameControlScript : MonoBehaviour
                     }
                 }
             }
-            else if (gos.Length == 2 || Globals.gameType.Equals("det_target"))
+			else if (gos.Length == 2 || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target"))
             {
                 float rThresh0 = 1 - Globals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
                 Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
                 treeToActivate = r < rThresh0 ? 0 : 1;
-                SetupTreeActivation(gos, treeToActivate, 2);
-                locx = gos[treeToActivate].transform.position.x;
-                hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				if (gos.Length == 2 || Globals.gameType.Equals("det_target")) {
+					SetupTreeActivation(gos, treeToActivate, 2);
+				} else if (Globals.gameType.Equals("disc_target")) {
+					gos[treeToActivate].GetComponent<WaterTreeScript>().SetShader(4, 4);
+
+					float r3 = UnityEngine.Random.value;
+					if (r3 < 0.5) { // Right tree is horizontal
+						gos [treeToActivate==1 ? 0 : 1].GetComponent<WaterTreeScript> ().SetShader (4, 1);
+					} else {
+						gos [treeToActivate==1 ? 0 : 1].GetComponent<WaterTreeScript> ().SetShader (1, 4);
+					}
+				}
+				locx = gos[treeToActivate].transform.position.x;
+				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
+				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
             }
         } 
         else if (Globals.gameType.Equals("det_blind"))

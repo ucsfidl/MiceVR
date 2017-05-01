@@ -188,6 +188,30 @@ public class Loader : MonoBehaviour {
                 }
                 Debug.Log("[0, 0.5, 1] - " + r);
             }
+			else if (Globals.gameType.Equals("disc_target"))
+			{
+				float r2 = Random.value;
+				if (r < 0.5) {  // Left tree is target, right tree is either horizontal or vertical with equal prob
+					if (r2 < 0.5) { // Right tree is horizontal
+						treeList [1].GetComponent<WaterTreeScript> ().SetShader (4, 1);
+					} else {
+						treeList [1].GetComponent<WaterTreeScript> ().SetShader (1, 4);
+					}
+					locx = treeList[0].transform.position.x;
+					hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+					vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				} else {  // Right tree is target, left tree is either horizontal or vertical
+					if (r2 < 0.5) { // Right tree is horizontal
+						treeList [0].GetComponent<WaterTreeScript> ().SetShader (4, 1);
+					} else {
+						treeList [0].GetComponent<WaterTreeScript> ().SetShader (1, 4);
+					}
+					locx = treeList[1].transform.position.x;
+					hfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
+					vfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				}
+				Debug.Log("[0, 0.5, 1] - " + r);
+			}
             else if (Globals.gameType.Equals("discrimination"))
             {
                 // Randomize orientations on first load

@@ -23,7 +23,12 @@ public class IntroScript : MonoBehaviour {
 		Application.LoadLevel("config");
 	}
 
-    public void Exit()
+	public void LoadFreeGame()
+	{
+		Application.LoadLevel("IntroFreeGame");
+	}
+
+	public void Exit()
     {
         Application.Quit();
     }

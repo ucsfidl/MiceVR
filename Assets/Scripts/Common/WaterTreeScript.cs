@@ -146,44 +146,38 @@ public class WaterTreeScript : MonoBehaviour {
                     // DONE COMPUTING REWARD ENLARGEMENT
 
                     // (2) Actually give or withold reward, depending on the gametype!
-                    if (Globals.gameType.Equals("detection") || Globals.gameType.Equals("det_target"))
-                    {
-                        if (respawn)
-                           GiveReward(rewardDur, true);
-                    } 
-                    else if (Globals.gameType.Equals("det_blind"))
-                    {
-                        if (this.GetShaderVFreq() == 0)  // The mouse ran into the special center tree - give reward only if no other trees displayed
-                        {
-                            bool alone = true;
-                            for (int i = 0; i < gos.Length - 1; i++)  // This special tree is always listed last
-                            {
-                                if (gos[i].transform.GetChild(0).gameObject.activeSelf)
-                                {
-                                    alone = false;
-                                }
-                            }
-                            if (alone)
-                            {
-                                GiveReward(rewardDur, true);
-                            }
-                            else  // error trial
-                            {
-                                WitholdReward();
-                            }
-                        }
-                        else
-                        {
-                            GiveReward(rewardDur, true);
-                        }
-                    }
-                    else if(Globals.gameType.Equals("discrimination"))
-                    {
-                        if (correctTree)
-                            GiveReward(rewardDur, true);
-                        else
-                            WitholdReward();                        
-                    }
+					if (Globals.gameType.Equals ("detection") || Globals.gameType.Equals ("det_target")) {
+						if (respawn)
+							GiveReward (rewardDur, true);
+					} else if (Globals.gameType.Equals ("det_blind")) {
+						if (this.GetShaderVFreq () == 0) {  // The mouse ran into the special center tree - give reward only if no other trees displayed
+							bool alone = true;
+							for (int i = 0; i < gos.Length - 1; i++) {  // This special tree is always listed last
+								if (gos [i].transform.GetChild (0).gameObject.activeSelf) {
+									alone = false;
+								}
+							}
+							if (alone) {
+								GiveReward (rewardDur, true);
+							} else {  // error trial
+								WitholdReward ();
+							}
+						} else {
+							GiveReward (rewardDur, true);
+						}
+					} else if (Globals.gameType.Equals ("discrimination")) {
+						if (correctTree)
+							GiveReward (rewardDur, true);
+						else
+							WitholdReward ();                        
+					} else if (Globals.gameType.Equals ("disc_target")) {
+						if (this.GetShaderHFreq () == 4 && this.GetShaderVFreq () == 4) {
+							if (respawn)
+								GiveReward (rewardDur, true);
+						} else {
+							WitholdReward ();
+						}
+					}
                     else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))  // There are three trees - a central initial tree, and 1 on left and 1 on right
                     {
                         if (!respawn)  // This is the starting central tree
