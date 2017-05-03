@@ -61,8 +61,8 @@ void setup() {
   // init all pins, outputs and inputs
   pinMode(ledPin, OUTPUT);
   
-  pinMode(nosePokePin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(nosePokePin), nosePoke, FALLING);
+  pinMode(nosePokePin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(nosePokePin), nosePoke, CHANGE);
   pinMode(nosePokeValvePin, OUTPUT);
 
   pinMode(leftLick1Pin, INPUT);
