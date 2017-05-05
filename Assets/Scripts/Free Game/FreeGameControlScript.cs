@@ -317,16 +317,60 @@ public class FreeGameControlScript : MonoBehaviour
 		if (FreeGlobals.gameType.Equals ("nosepoke")) {			
 			int rs = ard.CheckForMouseAction ();
 			if (rs == FreeGlobals.freeRewardSite [0]) {
-				if (DateTime.Now.Subtract (lastRewardTime).TotalMilliseconds > minRewardInterval) {
+				if (DateTime.Now.Subtract (lastRewardTime).TotalMilliseconds > minRewardInterval) {				
+					int dur = FreeGlobals.freeRewardDur [rs];
+					ard.sendReward (rs, dur);
+					lastRewardTime = DateTime.Now;
+					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+					FreeGlobals.sizeOfRewardGiven.Add(rSize);
+					FreeGlobals.rewardAmountSoFar += rSize;
+				}
+			}
+		} else if (FreeGlobals.gameType.Equals ("free_det")) {
+			int rs = ard.CheckForMouseAction ();
+			GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+
+			switch (FreeGlobals.freeState) {
+
+			case "loaded":  // Mouse has not yet poked his nose in
+				if (rs == FreeGlobals.freeRewardSite [0]) {
 					int dur = FreeGlobals.freeRewardDur [rs];
 					ard.sendReward (rs, dur);
 					lastRewardTime = DateTime.Now;
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
 					FreeGlobals.sizeOfRewardGiven.Add (rSize);
 					FreeGlobals.rewardAmountSoFar += rSize;
+
+					float r = UnityEngine.Random.value;
+					if (r < 0.5) {
+						SetupTreeActivation (gos, 0, 2);
+						FreeGlobals.targetLoc.Add (gos [0].transform.position.x);
+					} else {
+						SetupTreeActivation (gos, 1, 2);
+						FreeGlobals.targetLoc.Add (gos [1].transform.position.x);
+					}
+
+					FreeGlobals.freeState = "nosepoke";
 				}
+				break;
+				
+			case "nosepoke":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
+				if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals(gos [0].transform.position.x) &&
+					rs == FreeGlobals.freeRewardSite[1]) ||  // left tree is on and the mouse licked the lickport there
+					(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals(gos [1].transform.position.x) &&
+						rs == FreeGlobals.freeRewardSite[2])) { // Reft tree is on and the mouse licked the lickport there
+					int dur = FreeGlobals.freeRewardDur[rs];
+					ard.sendReward (rs, dur);
+					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+					FreeGlobals.sizeOfRewardGiven.Add(rSize);
+					FreeGlobals.rewardAmountSoFar += rSize;
+
+					SetupTreeActivation (gos, -1, 2); // Hide all trees 
+					FreeGlobals.freeState = "loaded";
+				}
+				break;
 			}
-		} else if (FreeGlobals.gameType.Equals ("detection")) {
+				
 			// (1) When nose enters, display 1 stim randomly from set in the scenario
 			// (2) When nose leaves, hide tree
 			// (3) Reward animal if lick lickport under where tree was
@@ -378,7 +422,6 @@ public class FreeGameControlScript : MonoBehaviour
             lp.x = FreeGlobals.centralViewVisibleShift;
         treeOccluder.transform.localPosition = lp;
     }
-
 
     /*
      * Fade to Black
