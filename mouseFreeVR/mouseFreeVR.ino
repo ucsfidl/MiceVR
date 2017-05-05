@@ -32,14 +32,16 @@ const int leftValve2Pin = 9;  // Valve for left lickport #2
 const int rightValve2Pin = 10;  // Valve for right lickport #2
 
 // Signals to send to Unity
-const int nosePokeSig = 0;
-const int leftLick1Sig = 1;
-const int rightLick1Sig = 2;
-const int centerLickSig = 3;
-const int leftLick2Sig = 4;
-const int rightLick2Sig = 5;
+const int nosePokeInSig = 0;
+const int nosePokeOutSig = 1;
+const int leftLick1Sig = 2;
+const int rightLick1Sig = 3;
+const int centerLickSig = 4;
+const int leftLick2Sig = 5;
+const int rightLick2Sig = 6;
 
 volatile int sigToSend = -1;
+volatile int lastSig = -1;
 
 // Signals to receive from Unity
 const int nosePokeReward = 0;
@@ -93,14 +95,14 @@ void setup() {
  */
 void loop() {
   // (1) Check to see if there are any nose poke or lick signals to send to Unity
-  if (sigToSend != -1) {
+  if (sigToSend != lastSig) {
     Serial.println(sigToSend);
+    lastSig = sigToSend;
     // For debugging, before Unity functioning
     //digitalWrite(nosePokeValvePin, HIGH);
     //delay(100);
     //digitalWrite(nosePokeValvePin, LOW);
     //Serial.flush();  // Is this command necessary?
-    sigToSend = -1;  // Reset the signal after it is sent
   }
 
   // (2) Read commands from Unity sent over USB
@@ -150,7 +152,11 @@ void loop() {
  * ===================
  */
 void nosePoke(){
-  sigToSend = nosePokeSig;
+  if (lastSig == nosePokeInSig) {
+    sigToSend = nosePokeOutSig;
+  } else {
+    sigToSend = nosePokeInSig;
+  }
 }
 void leftLick1() {
   sigToSend = leftLick1Sig;
