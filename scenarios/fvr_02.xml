@@ -1,0 +1,28 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>free_det</gameType>
+		</gameConfig>
+	</config>
+	<trees>
+		<t> <!-- Left tree -->
+			<w>1</w>
+			<pos>19975;0;20015</pos>
+			<d>0</d>
+			<r>0</r>
+		</t>
+		<t> <!-- Right tree -->
+			<w>1</w>
+			<pos>20025;0;20015</pos>
+			<d>0</d>
+			<r>2</r>
+		</t>
+	</trees>
+</document>
