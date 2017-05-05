@@ -1,4 +1,6 @@
-﻿Shader "Custom/Gradient" {
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Custom/Gradient" {
     Properties {
         _Color1 ("Color1", Color) = (1,1,1,1)
         _Color2 ("Color2", Color) = (0,0,0,0)
@@ -34,7 +36,7 @@
 
             fragmentInput vert(vertexInput i){
                 fragmentInput o;
-                o.position = mul (UNITY_MATRIX_MVP, i.vertex);
+                o.position = UnityObjectToClipPos (i.vertex);
                 o.texcoord0 = i.texcoord0;
                 return o;
             }
