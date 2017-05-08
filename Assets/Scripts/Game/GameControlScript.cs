@@ -534,6 +534,7 @@ public class GameControlScript : MonoBehaviour
 					gos[treeToDistract].GetComponent<WaterTreeScript>().SetCorrect(false);
 
 					if (Globals.varyOrientation) {
+						gos [treeToActivate].GetComponent<WaterTreeScript> ().ResetColor();
 						if (r2 < 0.5) {
 							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (4, 1);
 						} else {
@@ -542,7 +543,9 @@ public class GameControlScript : MonoBehaviour
 						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 						gos [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq);
-						gos [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (4, 4);
+
+						gos [treeToDistract].GetComponent<WaterTreeScript> ().ChangeColor (Color.gray);
+						gos [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (1, 1);
 					} else {
 						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (4, 4);
 						if (r2 < 0.5) {

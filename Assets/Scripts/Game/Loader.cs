@@ -220,7 +220,9 @@ public class Loader : MonoBehaviour {
 						vfreq = treeList [treeToTarget].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 					}
 					treeList [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq);
-					treeList [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (4, 4);
+
+					treeList [treeToDistract].GetComponent<WaterTreeScript> ().ChangeColor (Color.gray);
+					treeList [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (1, 1);
 				} else {
 					if (r2 < 0.5) {
 						treeList [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (4, 1);
