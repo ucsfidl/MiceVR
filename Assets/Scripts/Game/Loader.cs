@@ -122,6 +122,14 @@ public class Loader : MonoBehaviour {
             // If there are only 2 or 3 trees, alternate which is visible, and leave the third as constant
             if (Globals.gameType.Equals("detection"))
             {
+				if (end == 1 && Globals.varyOrientation) {  // 1-choice detection - vary the orientation of the first trial
+					if (r > 0.5) {
+						treeList[0].GetComponent<WaterTreeScript>().SetShader(vfreq, hfreq);
+						hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+						vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+					}
+					Debug.Log ("[0, 0.5, 1] - " + r);
+				}
                 if (end == 2)  // 2-choice detection
                 {
                     if (r < 0.5)
@@ -172,45 +180,57 @@ public class Loader : MonoBehaviour {
             }
             else if (Globals.gameType.Equals("det_target"))
             {
-                if (r < 0.5)  // Hide the right tree
-                {
-                    treeList[1].GetComponent<WaterTreeScript>().Hide();
-                    locx = treeList[0].transform.position.x;
-                    hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                    vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                }
-                else  // Hide the left tree
-                {
-                    treeList[0].GetComponent<WaterTreeScript>().Hide();
-                    locx = treeList[1].transform.position.x;
-                    hfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                    vfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                }
-                Debug.Log("[0, 0.5, 1] - " + r);
+				int treeToActivate = r < 0.5 ? 0 : 1;
+				int treeToInactivate = r < 0.5 ? 1 : 0;
+
+				treeList [treeToInactivate].GetComponent<WaterTreeScript> ().Hide ();
+				locx = treeList[treeToActivate].transform.position.x;
+				hfreq = treeList[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
+				vfreq = treeList[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
+
+				if (Globals.varyOrientation) {
+					float r2 = Random.value;
+					if (r2 > 0.5) {
+						treeList [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq);
+						treeList[2].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq);
+						hfreq = treeList[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
+						vfreq = treeList[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
+					}
+					Debug.Log("Ori: [0, 0.5, 1] - " + r2);
+				}
+				Debug.Log("Loc: [0, 0.5, 1] - " + r);
             }
 			else if (Globals.gameType.Equals("disc_target"))
 			{
-				float r2 = Random.value;
-				if (r < 0.5) {  // Left tree is target, right tree is either horizontal or vertical with equal prob
-					if (r2 < 0.5) { // Right tree is horizontal
-						treeList [1].GetComponent<WaterTreeScript> ().SetShader (4, 1);
-					} else {
-						treeList [1].GetComponent<WaterTreeScript> ().SetShader (1, 4);
+				float r2 = Random.value;  // used to set orientation of target or distractor
+				int treeToTarget = r < 0.5 ? 0 : 1;
+				int treeToDistract = r < 0.5 ? 1 : 0;
+
+				locx = treeList[treeToTarget].transform.position.x;
+				hfreq = treeList[treeToTarget].GetComponent<WaterTreeScript>().GetShaderHFreq();
+				vfreq = treeList[treeToTarget].GetComponent<WaterTreeScript>().GetShaderVFreq();
+
+				treeList[treeToTarget].GetComponent<WaterTreeScript>().SetCorrect(true);
+				treeList[treeToDistract].GetComponent<WaterTreeScript>().SetCorrect(false);
+
+				if (Globals.varyOrientation) {
+					if (r2 > 0.5) {
+						treeList [treeToTarget].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq);
+						hfreq = treeList [treeToTarget].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = treeList [treeToTarget].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 					}
-					locx = treeList[0].transform.position.x;
-					hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-					vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-				} else {  // Right tree is target, left tree is either horizontal or vertical
-					if (r2 < 0.5) { // Right tree is horizontal
-						treeList [0].GetComponent<WaterTreeScript> ().SetShader (4, 1);
+					treeList [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq);
+					treeList [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (4, 4);
+				} else {
+					if (r2 < 0.5) {
+						treeList [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (4, 1);
 					} else {
-						treeList [0].GetComponent<WaterTreeScript> ().SetShader (1, 4);
+						treeList [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (1, 4);
 					}
-					locx = treeList[1].transform.position.x;
-					hfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
-					vfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
 				}
-				Debug.Log("[0, 0.5, 1] - " + r);
+
+				Debug.Log("Loc: [0, 0.5, 1] - " + r);
+				Debug.Log("Ori: [0, 0.5, 1] - " + r2);
 			}
             else if (Globals.gameType.Equals("discrimination"))
             {

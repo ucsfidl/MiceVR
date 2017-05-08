@@ -171,11 +171,11 @@ public class WaterTreeScript : MonoBehaviour {
 						else
 							WitholdReward ();                        
 					} else if (Globals.gameType.Equals ("disc_target")) {
-						if (this.GetShaderHFreq () == 4 && this.GetShaderVFreq () == 4) {
-							if (respawn)
+						if (respawn) {
+							if (correctTree)
 								GiveReward (rewardDur, true);
-						} else {
-							WitholdReward ();
+							else
+								WitholdReward ();
 						}
 					}
                     else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))  // There are three trees - a central initial tree, and 1 on left and 1 on right
