@@ -53,7 +53,7 @@ public class FreeGameControlScript : MonoBehaviour
 	private int centralViewVisible;
 
 	private DateTime lastRewardTime;
-	private int minRewardInterval = 1200;
+	private int minRewardInterval = 1000;
 
     // Use this for initialization
     void Start()
@@ -288,7 +288,7 @@ public class FreeGameControlScript : MonoBehaviour
             this.state = "Running";
 
             FreeGlobals.InitLogFiles();
-            FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
+            //FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
         }
     }
 
@@ -331,9 +331,9 @@ public class FreeGameControlScript : MonoBehaviour
     {
 		if (FreeGlobals.gameType.Equals ("nosepoke")) {			
 			int rs = ard.CheckForMouseAction ();
-			if (rs == FreeGlobals.freeRewardSite [0]) {
+			if (rs == FreeGlobals.freeRewardSite [0] || rs == FreeGlobals.freeRewardSite[1] || rs == FreeGlobals.freeRewardSite[2]) {
 				if (DateTime.Now.Subtract (lastRewardTime).TotalMilliseconds > minRewardInterval) {				
-					int dur = FreeGlobals.freeRewardDur [rs];
+					int dur = FreeGlobals.freeRewardDur [rs/2];
 					ard.sendReward (rs, dur);
 					lastRewardTime = DateTime.Now;
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
@@ -349,7 +349,7 @@ public class FreeGameControlScript : MonoBehaviour
 
 			case "loaded":  // Mouse has not yet poked his nose in
 				if (rs == FreeGlobals.freeRewardSite [0]) {
-					int dur = FreeGlobals.freeRewardDur [rs];
+					int dur = FreeGlobals.freeRewardDur [rs/2];
 					ard.sendReward (rs, dur);
 					lastRewardTime = DateTime.Now;
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
@@ -360,21 +360,26 @@ public class FreeGameControlScript : MonoBehaviour
 					if (r < 0.5) {
 						SetupTreeActivation (gos, 0, 2);
 						FreeGlobals.targetLoc.Add (gos [0].transform.position.x);
+						FreeGlobals.targetHFreq.Add(gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq());
+						FreeGlobals.targetVFreq.Add(gos[0].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
 					} else {
 						SetupTreeActivation (gos, 1, 2);
 						FreeGlobals.targetLoc.Add (gos [1].transform.position.x);
+						FreeGlobals.targetHFreq.Add(gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq());
+						FreeGlobals.targetVFreq.Add(gos[1].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
 					}
 
 					FreeGlobals.freeState = "nosepoke";
+					FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
 				}
 				break;
 				
 			case "nosepoke":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
 				if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals(gos [0].transform.position.x) &&
-					rs == FreeGlobals.freeRewardSite[1]) ||  // left tree is on and the mouse licked the lickport there
-					(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals(gos [1].transform.position.x) &&
+						rs == FreeGlobals.freeRewardSite[1]) ||  // left tree is on and the mouse licked the lickport there
+						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals(gos [1].transform.position.x) &&
 						rs == FreeGlobals.freeRewardSite[2])) { // Reft tree is on and the mouse licked the lickport there
-					int dur = FreeGlobals.freeRewardDur[rs];
+					int dur = FreeGlobals.freeRewardDur[rs/2];
 					Debug.Log ("in nosepoke");
 					ard.sendReward (rs, dur);
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
@@ -383,6 +388,14 @@ public class FreeGameControlScript : MonoBehaviour
 
 					SetupTreeActivation (gos, -1, 2); // Hide all trees 
 					FreeGlobals.freeState = "loaded";
+
+					FreeGlobals.firstTurn.Add (gos [rs/2].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add(gos[rs/2].GetComponent<WaterTreeScript>().GetShaderHFreq());
+					FreeGlobals.firstTurnVFreq.Add(gos[rs/2].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+
+					FreeGlobals.numberOfTrials++;
+					FreeGlobals.trialEndTime.Add(DateTime.Now.TimeOfDay);
+					FreeGlobals.WriteToLogFiles();
 				}
 				break;
 			}

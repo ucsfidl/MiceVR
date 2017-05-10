@@ -34,22 +34,24 @@ const int rightValve2Pin = 10;  // Valve for right lickport #2
 // Signals to send to Unity
 const int nosePokeInSig = 0;
 const int nosePokeOutSig = 1;
-const int leftLick1Sig = 2;
-const int rightLick1Sig = 3;
-const int centerLickSig = 4;
-const int leftLick2Sig = 5;
-const int rightLick2Sig = 6;
+const int leftLick1InSig = 2;
+const int leftLick1OutSig = 3;
+const int rightLick1InSig = 4;
+const int rightLick1OutSig = 5;
+const int centerLickSig = 6;
+const int leftLick2Sig = 8;
+const int rightLick2Sig = 10;
 
 volatile int sigToSend = -1;
 volatile int lastSig = -1;
 
 // Signals to receive from Unity
-const int nosePokeReward = 0;
-const int left1Reward = 2;
-const int right1Reward = 3;
-const int centerReward = 4;
-const int left2Reward = 5;
-const int right2Reward = 6;
+const int nosePokeReward = nosePokeInSig;
+const int left1Reward = leftLick1Sig;
+const int right1Reward = rightLick1Sig;
+const int centerReward = centerLickSig;
+const int left2Reward = leftLick2Sig;
+const int right2Reward = rightLick2Sig;
 
 /* ==== 
  * SETUP
@@ -68,11 +70,11 @@ void setup() {
   pinMode(nosePokeValvePin, OUTPUT);
 
   pinMode(leftLick1Pin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(leftLick1Pin), leftLick1, FALLING);
+  attachInterrupt(digitalPinToInterrupt(leftLick1Pin), leftLick1, CHANGE);
   pinMode(leftValve1Pin, OUTPUT);
 
   pinMode(rightLick1Pin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(rightLick1Pin), rightLick1, FALLING);
+  attachInterrupt(digitalPinToInterrupt(rightLick1Pin), rightLick1, CHANGE);
   pinMode(rightValve1Pin, OUTPUT);
 
   pinMode(centerLickPin, INPUT_PULLUP);
