@@ -221,8 +221,8 @@ public class Loader : MonoBehaviour {
 					}
 					treeList [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq);
 
-					treeList [treeToDistract].GetComponent<WaterTreeScript> ().ChangeColor (Color.gray);
-					treeList [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (1, 1);
+					treeList [treeToDistract].GetComponent<WaterTreeScript> ().SetColors (Globals.distColor1, Globals.distColor2);
+					treeList [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq);
 				} else {
 					if (r2 < 0.5) {
 						treeList [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (4, 1);
@@ -482,7 +482,6 @@ public class Loader : MonoBehaviour {
                     if (varyOrientationXML.Equals("true"))
                         Globals.varyOrientation = true;
                 }
-
                 if (xn["rewardedHFreq"] != null)
                 {
                     float.TryParse(xn["rewardedHFreq"].InnerText, out Globals.rewardedHFreq);
@@ -491,6 +490,18 @@ public class Loader : MonoBehaviour {
                 {
                     float.TryParse(xn["rewardedVFreq"].InnerText, out Globals.rewardedVFreq);
                 }
+				if (xn["distractorIntensity1"] != null)
+				{
+					float i1;
+					float.TryParse(xn["distractorIntensity1"].InnerText, out i1);
+					Globals.distColor1 = new Color (i1, i1, i1);
+				}
+				if (xn["distractorIntensity2"] != null)
+				{
+					float i2;
+					float.TryParse(xn["distractorIntensity2"].InnerText, out i2);
+					Globals.distColor2 = new Color (i2, i2, i2);
+				}
             }
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.

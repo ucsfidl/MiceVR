@@ -304,7 +304,7 @@ public class WaterTreeScript : MonoBehaviour {
     {
         return this.crown.GetComponent<Renderer>().material.GetFloat("_Deg");
     }
-
+		
     public void SetRewardSize(float r)
     {
         this.rewardDur = (int)Math.Round(r / (Globals.rewardSize / Globals.rewardDur));
@@ -329,6 +329,11 @@ public class WaterTreeScript : MonoBehaviour {
         this.topCap.SetActive(true);
         this.bottomCap.SetActive(true);
     }
+
+	public void SetColors(Color c1, Color c2) {
+		this.crown.GetComponent<Renderer>().material.SetColor("_Color1", c1);
+		this.crown.GetComponent<Renderer>().material.SetColor("_Color2", c2);
+	}
 
     public void ChangeColor(Color c)
     {

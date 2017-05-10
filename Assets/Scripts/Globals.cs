@@ -52,6 +52,9 @@ public static class Globals
     public static float rewardedHFreq;
     public static float rewardedVFreq;
 
+	public static Color distColor1;
+	public static Color distColor2;
+
     public static MovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<MovementRecorder>();
     public static DateTime gameStartTime;
 

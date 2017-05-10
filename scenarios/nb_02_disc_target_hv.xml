@@ -8,9 +8,11 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>disc_target</gameType> <!-- Options: match, nonmatch -->
+			<gameType>disc_target</gameType>
 			<gameTurnControl>yaw</gameTurnControl> <!-- yaw | roll -->
 			<varyOrientation>true</varyOrientation>
+			<distractorIntensity1>0.6</distractorIntensity1>
+			<distractorIntensity2>0.4</distractorIntensity2>
 		</gameConfig>
 	</config>
 	<trees>
@@ -33,7 +35,7 @@
 		<t> <!-- First, center tree -->
 			<w>1</w>
 			<pos>20000;0;20028</pos>
-			<d>0</d> <!-- degrees of rotation of the tree pattern - will be set in code -->
+			<d>0</d>
 			<respawn>0</respawn>
 			<h>4</h>	<!-- all trees start off with horizontal bars -->
 			<v>1</v>
