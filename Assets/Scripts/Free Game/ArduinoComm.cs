@@ -197,7 +197,7 @@ public class ArduinoComm : MonoBehaviour
 				this.usbWriter.Open();
 			ardmsg = Convert.ToInt32(this.usbWriter.ReadLine());
 			lastArdMsg = ardmsg;
-			Debug.Log("Got serial data! ");
+			Debug.Log("Got from arduino:" + ardmsg);
 			return ardmsg;
 		}
 		catch (TimeoutException err) {

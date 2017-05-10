@@ -203,19 +203,34 @@ public class FreeGameControlScript : MonoBehaviour
         {
             if (Input.GetKeyUp(KeyCode.U))
             {
-				if (FreeGlobals.gameType.Equals ("nosepoke")) {			
+				if (FreeGlobals.gameType.Equals ("nosepoke") || FreeGlobals.gameType.Equals ("free_det")) {			
 					int dur = FreeGlobals.freeRewardDur [0];
-					ard.sendReward (0, dur);
+					ard.sendReward (FreeGlobals.freeRewardSite[0], dur);
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
 					FreeGlobals.sizeOfRewardGiven.Add(rSize);
 					FreeGlobals.rewardAmountSoFar += rSize;
-				} else if (FreeGlobals.gameType.Equals ("detection")) {
-					// (1) When nose enters, display 1 stim randomly from set in the scenario
-					// (2) When nose leaves, hide tree
-					// (3) Reward animal if lick lickport under where tree was
-					// (4) Reset
 				}
-            } 
+            }
+			else if (Input.GetKeyUp(KeyCode.Y))
+			{
+				if (FreeGlobals.gameType.Equals ("free_det")) {			
+					int dur = FreeGlobals.freeRewardDur [2];
+					ard.sendReward (FreeGlobals.freeRewardSite[1], dur);
+					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+					FreeGlobals.sizeOfRewardGiven.Add(rSize);
+					FreeGlobals.rewardAmountSoFar += rSize;
+				}
+			}
+			else if (Input.GetKeyUp(KeyCode.I))
+			{
+				if (FreeGlobals.gameType.Equals ("free_det")) {			
+					int dur = FreeGlobals.freeRewardDur [3];
+					ard.sendReward (FreeGlobals.freeRewardSite[2], dur);
+					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+					FreeGlobals.sizeOfRewardGiven.Add(rSize);
+					FreeGlobals.rewardAmountSoFar += rSize;
+				}
+			}
 			else if (Input.GetKeyUp(KeyCode.T))
             {
                 // Mouse is stuck so teleport to beginning
@@ -329,8 +344,8 @@ public class FreeGameControlScript : MonoBehaviour
 		} else if (FreeGlobals.gameType.Equals ("free_det")) {
 			int rs = ard.CheckForMouseAction ();
 			GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-
-			switch (FreeGlobals.freeState) {
+			switch (FreeGlobals.freeState) 
+			{
 
 			case "loaded":  // Mouse has not yet poked his nose in
 				if (rs == FreeGlobals.freeRewardSite [0]) {
@@ -360,6 +375,7 @@ public class FreeGameControlScript : MonoBehaviour
 					(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals(gos [1].transform.position.x) &&
 						rs == FreeGlobals.freeRewardSite[2])) { // Reft tree is on and the mouse licked the lickport there
 					int dur = FreeGlobals.freeRewardDur[rs];
+					Debug.Log ("in nosepoke");
 					ard.sendReward (rs, dur);
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
 					FreeGlobals.sizeOfRewardGiven.Add(rSize);
@@ -414,6 +430,7 @@ public class FreeGameControlScript : MonoBehaviour
 
     public void OccludeTree(float treeLocX)
     {
+		/*
         GameObject treeOccluder = GameObject.Find("TreeOccluder");
         Vector3 lp = treeOccluder.transform.localPosition;
         if (treeLocX > 20000)  // Target tree is on right side
@@ -421,6 +438,7 @@ public class FreeGameControlScript : MonoBehaviour
         else if (treeLocX < 20000)
             lp.x = FreeGlobals.centralViewVisibleShift;
         treeOccluder.transform.localPosition = lp;
+        */
     }
 
     /*

@@ -56,8 +56,8 @@ public static class FreeGlobals
     public static DateTime gameStartTime;
 
 	// Rewards that are given for eack lickport, calibrated for each lickport to give a constant amount of reward across ports (to start)
-	public static int[] freeRewardDur = {20, 40, 40, 1000, 1000, 1000};
-	public static int[] freeRewardSite = {0, 1, 2, 3, 4, 5};  // corresponds to nosePokeReward et al in Arduino code
+	public static int[] freeRewardDur = {20, 0, 30, 30, 30, 30, 30};
+	public static int[] freeRewardSite = {0, 2, 3, 4, 5, 6};  // corresponds to nosePokeReward et al in Arduino code
 		
 	public static string freeState = "preload";
 
