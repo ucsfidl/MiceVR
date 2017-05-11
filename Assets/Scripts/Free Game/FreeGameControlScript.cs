@@ -44,7 +44,7 @@ public class FreeGameControlScript : MonoBehaviour
     private bool timeoutState;
 
 	private int smoothingWindow = 1;  // Amount to smoothen the player movement
-	private bool waitedOneFrame = false;  // When mouse hits tree, need to wait a few frames before it turns black, and then pause the game
+	private bool waitedOneFrame = true;  // When mouse hits tree, need to wait a few frames before it turns black, and then pause the game
 
 	private Vector3 startingPos;
 	private Quaternion startingRot;
@@ -101,6 +101,8 @@ public class FreeGameControlScript : MonoBehaviour
 
 		//Debug.Log ("Framerate: " + 1.0f / Time.deltaTime);
 		CatchKeyStrokes ();
+
+		//Debug.Log (this.state);
 
         switch (this.state)
         {
@@ -304,7 +306,7 @@ public class FreeGameControlScript : MonoBehaviour
 
         if (!FreeGlobals.timeoutState)
         {
-            StartCoroutine(Wait());
+			StartCoroutine(Wait());
             FreeGlobals.timeoutState = true;
         }
     }
@@ -409,6 +411,7 @@ public class FreeGameControlScript : MonoBehaviour
 			} 
 		} else if (FreeGlobals.gameType.Equals ("free_det_const")) {  // constrained - forced to learn, won't get reward otherwise
 			int rs = ard.CheckForMouseAction ();
+			Debug.Log ("checked ard");
 			GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
 			switch (FreeGlobals.freeState) 
 			{
@@ -438,7 +441,6 @@ public class FreeGameControlScript : MonoBehaviour
 
 					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
-					FreeGlobals.WriteToLogFiles ();
 
 					SetupTreeActivation (gos, -1, 2); // Hide all trees 
 					FreeGlobals.freeState = "loaded";
@@ -457,11 +459,13 @@ public class FreeGameControlScript : MonoBehaviour
 						FreeGlobals.numCorrectTurns++;
 						Debug.Log ("correct");
 					} else {  // If wrong choice, show white noise for 4 sec
-						Globals.trialDelay = 4;
+						FreeGlobals.sizeOfRewardGiven.Add (0);
+						FreeGlobals.trialDelay = 4;
 						this.fadeToBlack.gameObject.SetActive(true);
 						this.fadeToBlack.color = Color.white;
-						this.state = "Paused";					
+						this.state = "Paused";
 					}
+					FreeGlobals.WriteToLogFiles ();
 				}
 				break;
 			} 
@@ -493,13 +497,16 @@ public class FreeGameControlScript : MonoBehaviour
 
         TimeSpan te = DateTime.Now.Subtract(FreeGlobals.gameStartTime);
         this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}", te.Hours * 60 + te.Minutes, te.Seconds);
-        if (Time.time - this.runTime >= this.runDuration)
+        
+		/*
+		 * if (Time.time - this.runTime >= this.runDuration)
         {
             // fadetoblack + respawn
             this.movementRecorder.SetFileSet(false);
             this.fadeToBlack.gameObject.SetActive(true);
             this.state = "Fading";
         }
+        */
     }
 
     public void OccludeTree(float treeLocX)
@@ -545,24 +552,11 @@ public class FreeGameControlScript : MonoBehaviour
         }
 
         // NB Hack to get screen to go black before pausing for trialDelay
-
         if (waitedOneFrame) {
-			System.Threading.Thread.Sleep (FreeGlobals.trialDelay * 1000);
+			//System.Threading.Thread.Sleep (FreeGlobals.trialDelay * 1000);
 			waitedOneFrame = false;
+			StartCoroutine(WaitFor(FreeGlobals.trialDelay));
 
-            float totalEarnedRewardSize = 0;
-            float totalRewardSize = 0;
-            for (int i = 0; i < FreeGlobals.sizeOfRewardGiven.Count; i++) {
-                totalEarnedRewardSize += (float)System.Convert.ToDouble(FreeGlobals.sizeOfRewardGiven[i]);
-            }
-            //			if (FreeGlobals.numberOfEarnedRewards + FreeGlobals.numberOfUnearnedRewards >= this.numberOfAllRewards)
-            // End game if mouse has gotten more than 1 ml - and send me a message to retrieve the mouse?
-            totalRewardSize = totalEarnedRewardSize + FreeGlobals.numberOfUnearnedRewards * FreeGlobals.rewardSize;
-            Debug.Log("Total reward so far: " + totalRewardSize + "; maxReward = " + FreeGlobals.totalRewardSize);
-            if (totalRewardSize >= FreeGlobals.totalRewardSize)
-				this.state = "GameOver";
-			else
-				this.state = "Respawn";
             // Append to stats file here
             /* NB: removed as we want the mouse to run for a certain number of rewards, not trials?
 			if (this.runNumber > this.numberOfRuns)
@@ -571,10 +565,30 @@ public class FreeGameControlScript : MonoBehaviour
 				this.state = "Respawn";
 				*/
         }
-        else {
-			waitedOneFrame = true;
-		}
 	}
+
+
+	IEnumerator WaitFor(int n)
+	{
+		yield return new WaitForSeconds(n);
+		waitedOneFrame = true;
+		float totalEarnedRewardSize = 0;
+		float totalRewardSize = 0;
+		for (int i = 0; i < FreeGlobals.sizeOfRewardGiven.Count; i++) {
+			totalEarnedRewardSize += (float)System.Convert.ToDouble(FreeGlobals.sizeOfRewardGiven[i]);
+		}
+		//			if (FreeGlobals.numberOfEarnedRewards + FreeGlobals.numberOfUnearnedRewards >= this.numberOfAllRewards)
+		// End game if mouse has gotten more than 1 ml - and send me a message to retrieve the mouse?
+		totalRewardSize = totalEarnedRewardSize + FreeGlobals.numberOfUnearnedRewards * FreeGlobals.rewardSize;
+		Debug.Log("Total reward so far: " + totalRewardSize + "; maxReward = " + FreeGlobals.totalRewardSize);
+
+		if (totalRewardSize >= FreeGlobals.totalRewardSize)
+			this.state = "GameOver";
+		else
+			this.state = "Respawn";
+	}
+
+
 
     /*
      * Reset all trees
@@ -623,154 +637,12 @@ public class FreeGameControlScript : MonoBehaviour
         //this.player.transform.Rotate(Vector3.up, rot);
 
         // NB edit - The code below comes from starting the game - ideally make a helper function?
-        TeleportToBeginning();
-        //this.state = "StartGame";
-
-		// Randomly decide which of the 2 trees is visible, only if the scenario has only 2 trees.
-		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-
-        float locx = gos[0].transform.position.x;
-        float hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-        float vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-
-        int treeToActivate = 0;
-        float r = UnityEngine.Random.value;
-        if (FreeGlobals.gameType.Equals("detection") || FreeGlobals.gameType.Equals("det_target"))
-        {
-            if (gos.Length == 1)  // Linear track
-            {
-                if (FreeGlobals.varyOrientation)
-                {
-                    if (r > 0.5)  // Half the time, swap the orientation of the tree
-                    {
-                        gos[0].GetComponent<WaterTreeScript>().SetShader(vfreq, hfreq);
-                        hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                        vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                    }
-                }
-            }
-            else if (gos.Length == 2 || FreeGlobals.gameType.Equals("det_target"))
-            {
-                float rThresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
-                Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
-                treeToActivate = r < rThresh0 ? 0 : 1;
-                SetupTreeActivation(gos, treeToActivate, 2);
-                locx = gos[treeToActivate].transform.position.x;
-                hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
-            }
-        } 
-        else if (FreeGlobals.gameType.Equals("det_blind"))
-        {
-            float tb0 = FreeGlobals.GetTurnBias(20, 0);
-            float tb1 = FreeGlobals.GetTurnBias(20, 1);
-
-            float t0 = 1 - tb0;
-            float t1 = 1 - tb1;
-            float t2 = tb0 + tb1;
-
-            float thresh0 = t0 / (t0 + t1 + t2);
-            float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
-
-            Debug.Log("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
-            treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
-            SetupTreeActivation(gos, treeToActivate, 2);
-            locx = gos[treeToActivate].transform.position.x;
-            hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
-            vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
-        }
-        else if (FreeGlobals.gameType.Equals("discrimination"))
-        {
-            // Randomize orientations
-            float rThresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);
-            if (r < rThresh0) 
-            {
-                gos[0].GetComponent<WaterTreeScript>().SetShader(FreeGlobals.rewardedHFreq, FreeGlobals.rewardedVFreq);
-                gos[1].GetComponent<WaterTreeScript>().SetShader(FreeGlobals.rewardedVFreq, FreeGlobals.rewardedHFreq);
-                locx = gos[0].transform.position.x;
-                hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
-                gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
-            }
-            else
-            {
-                gos[0].GetComponent<WaterTreeScript>().SetShader(FreeGlobals.rewardedVFreq, FreeGlobals.rewardedHFreq);
-                gos[1].GetComponent<WaterTreeScript>().SetShader(FreeGlobals.rewardedHFreq, FreeGlobals.rewardedVFreq);
-                locx = gos[1].transform.position.x;
-                hfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                vfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                gos[0].GetComponent<WaterTreeScript>().SetCorrect(false);
-                gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
-            }
-            Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
-        }
-        else if (FreeGlobals.gameType.Equals("match") || FreeGlobals.gameType.Equals("nonmatch"))
-        {
-            // First, pick an orientation at random for the central tree
-            float targetHFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
-            float targetVFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
-
-            if (r < 0.5)  // Switch target to opposite of previous
-            {
-                gos[2].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
-            }
-            // Second, randomly pick which side the matching orientation is on
-            float rSide = UnityEngine.Random.value;
-            targetHFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
-            targetVFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
-            // Try to balance location of match based on the turning bias
-            float rThresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);  // recent bias to the left side
-            if (rSide < rThresh0)  // Set the left tree to be the rewarded side
-            {
-                gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
-                gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
-                locx = gos[0].transform.position.x;
-                if (FreeGlobals.gameType.Equals("match"))
-                {
-                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
-                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
-                    hfreq = targetHFreq;
-                    vfreq = targetVFreq;
-                }
-                else
-                {
-                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
-                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
-                    hfreq = targetVFreq;
-                    vfreq = targetHFreq;
-                }
-            }
-            else // Set the right tree to match
-            {
-                gos[0].GetComponent<WaterTreeScript>().SetCorrect(false);
-                gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
-                locx = gos[1].transform.position.x;
-                if (FreeGlobals.gameType.Equals("match"))
-                {
-                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
-                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
-                    hfreq = targetHFreq;
-                    vfreq = targetVFreq;
-                }
-                else
-                {
-                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
-                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
-                    hfreq = targetVFreq;
-                    vfreq = targetHFreq;
-                }
-            }
-            Debug.Log("[0, " + rThresh0 + ", 1] - " + rSide);
-
-        }
-
-        OccludeTree(locx);
-
-        FreeGlobals.targetLoc.Add(locx);
-        FreeGlobals.targetHFreq.Add(hfreq);
-        FreeGlobals.targetVFreq.Add(vfreq);
-
+ 
+		// Hack to clear the buffer
+		for (int i = 0; i < 20; i++) {
+			ard.CheckForMouseAction ();
+		}
+		Debug.Log ("done clearing buffer");
         this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);
 		this.movementRecorder.SetFileSet(true);

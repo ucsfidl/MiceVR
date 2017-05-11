@@ -381,5 +381,24 @@ public class ArduinoComm : MonoBehaviour
             Debug.Log("com port failed");
         }
     }
+
+	public void ClearBuffer() {
+		try {
+			if (!this.usbWriter.IsOpen)
+				this.usbWriter.Open();
+			this.usbWriter.ReadExisting();
+			Debug.Log("clearedbuffer");
+		}
+		catch (TimeoutException err) {
+			//do nothing, expected. 
+			//Debug.Log("no bytes read");
+			//if (lastArdMsg != -1) // Wait a half sec before giving another water reward
+			//	System.Threading.Thread.Sleep (1000);
+		}
+		catch (Exception err)
+		{
+		}
+	}
+
 }
 
