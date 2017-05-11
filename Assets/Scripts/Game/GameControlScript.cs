@@ -587,22 +587,23 @@ public class GameControlScript : MonoBehaviour
 			double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
 			double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
 
-			Debug.Log ("raw prob: " + p0 + ", " + p1 + ", " + p2);
+			Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
 
 			// Rebalance, pushing mouse to lowest freq direction
 			double d;
-			double max = Math.Max (p0, Math.Max (p1, p2));
-			double min = Math.Min (p0, Math.Min (p1, p2));
-			if (max - min > 0.2) { // Only rebalance if there is a big difference between the choices
-				if (p0 == max) {
+			double max = Math.Max (tf0, Math.Max (tf1, tf2));
+			double min = Math.Min (tf0, Math.Min (tf1, tf2));
+			if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
+				double pmax = Math.Max(p0, Math.Max(p1, p2));
+				if (p0 == pmax) {
 					d = Math.Abs (p1 - p2);
 					p1 *= d;
 					p2 *= d;
-				} else if (p1 == max) {
+				} else if (p1 == pmax) {
 					d = Math.Abs (p0 - p2);
 					p0 *= d;
 					p2 *= d;
-				} else if (p2 == max) {
+				} else if (p2 == pmax) {
 					d = Math.Abs (p0 - p1);
 					p0 *= d;
 					p1 *= d;
