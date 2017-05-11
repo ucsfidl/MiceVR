@@ -359,17 +359,14 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.rewardAmountSoFar += rSize;
 
 					float r = UnityEngine.Random.value;
-					if (r < 0.5) {
-						SetupTreeActivation (gos, 0, 2);
-						FreeGlobals.targetLoc.Add (gos [0].transform.position.x);
-						FreeGlobals.targetHFreq.Add(gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq());
-						FreeGlobals.targetVFreq.Add(gos[0].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
-					} else {
-						SetupTreeActivation (gos, 1, 2);
-						FreeGlobals.targetLoc.Add (gos [1].transform.position.x);
-						FreeGlobals.targetHFreq.Add(gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq());
-						FreeGlobals.targetVFreq.Add(gos[1].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
-					}
+					float rThresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
+					Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
+					int treeToActivate = r < rThresh0 ? 0 : 1;
+						
+					SetupTreeActivation (gos, treeToActivate, 2);
+					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
+					FreeGlobals.targetHFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq());
+					FreeGlobals.targetVFreq.Add(gos[treeToActivate].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
 
 					FreeGlobals.freeState = "nosepoke";
 					FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
@@ -409,12 +406,60 @@ public class FreeGameControlScript : MonoBehaviour
 					Debug.Log ("incorrect");
 				}
 				break;
-			}
-				
-			// (1) When nose enters, display 1 stim randomly from set in the scenario
-			// (2) When nose leaves, hide tree
-			// (3) Reward animal if lick lickport under where tree was
-			// (4) Reset
+			} 
+		} else if (FreeGlobals.gameType.Equals ("free_det_const")) {  // constrained - forced to learn, won't get reward otherwise
+			int rs = ard.CheckForMouseAction ();
+			GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+			switch (FreeGlobals.freeState) 
+			{
+
+			case "loaded":  // Mouse has not yet poked his nose in
+				if (rs == FreeGlobals.freeRewardSite [0]) {
+					float r = UnityEngine.Random.value;
+					float rThresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
+					Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
+					int treeToActivate = r < rThresh0 ? 0 : 1;
+
+					SetupTreeActivation (gos, treeToActivate, 2);
+					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
+					FreeGlobals.targetHFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq());
+					FreeGlobals.targetVFreq.Add(gos[treeToActivate].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+
+					FreeGlobals.freeState = "stim_on";
+					FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
+				}
+				break;
+
+			case "stim_on":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
+				if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2]) { // licked at 1 of 2 lick ports
+					FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.firstTurnVFreq.Add (gos [rs / 2 - 1].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+
+					FreeGlobals.numberOfTrials++;
+					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
+					FreeGlobals.WriteToLogFiles ();
+
+					SetupTreeActivation (gos, -1, 2); // Hide all trees 
+					FreeGlobals.freeState = "loaded";
+
+					if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) &&
+					    rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
+					    (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) &&
+					    rs == FreeGlobals.freeRewardSite [2])) { // Right tree is on and the mouse licked the lickport there
+
+						int dur = FreeGlobals.freeRewardDur [rs / 2];
+						ard.sendReward (rs, dur);
+						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+						FreeGlobals.sizeOfRewardGiven.Add (rSize);
+						FreeGlobals.rewardAmountSoFar += rSize;
+
+						FreeGlobals.numCorrectTurns++;
+						Debug.Log ("correct");
+					}
+				}
+				break;
+			} 
 		}
 
 		if (FreeGlobals.rewardAmountSoFar >= FreeGlobals.totalRewardSize)
@@ -434,7 +479,9 @@ public class FreeGameControlScript : MonoBehaviour
 			this.numberOfCorrectTurnsText.text = "Correct turns: " +
 			FreeGlobals.numCorrectTurns.ToString ()
 			+ " (" +
-				Mathf.Round (((float)FreeGlobals.numCorrectTurns / ((float)FreeGlobals.numberOfTrials - 1)) * 100).ToString () + "%)";
+				Mathf.Round(((float)FreeGlobals.numCorrectTurns / ((float)FreeGlobals.numberOfTrials - 1)) * 100).ToString() + "%" 
+				+ FreeGlobals.GetTreeAccuracy() + ")";
+			this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(FreeGlobals.GetLastAccuracy(20) * 100) + "%";
 		}
 		//this.frameCounter++;
 		//Debug.Log ("screen updated");
