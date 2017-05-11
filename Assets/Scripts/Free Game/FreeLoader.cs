@@ -18,10 +18,10 @@ using UnityEngine.UI;
 
 public class FreeLoader : MonoBehaviour {
 
-    public GameObject waterTreePrefab, dryTreePrefab, wallPrefab;
+    public GameObject freeWaterTreePrefab, dryTreePrefab, wallPrefab;
     public GameObject treeParent, wallParent;
     public Text errorText;
-    public MovementRecorder movementRecorderScript;
+    public FreeMovementRecorder movementRecorderScript;
     public float dragSpeed = 10f, scrollSpeed = 20f;
 
     private int waterTrees, dryTrees;
@@ -452,7 +452,7 @@ public class FreeLoader : MonoBehaviour {
                         float.TryParse(val.InnerText.Split(';')[1], out y);
                         float.TryParse(val.InnerText.Split(';')[2], out z);
 
-                        v = new Vector3(Mathf.RoundToInt(x), Mathf.RoundToInt(y), Mathf.RoundToInt(z));
+						v = new Vector3(x, y, z);
                     }
                     if (val.Name == "d")
                     {
@@ -501,7 +501,7 @@ public class FreeLoader : MonoBehaviour {
 					//go = (GameObject)Instantiate(this.waterTreePrefab, v, Quaternion.identity);
 
 					if (gradient) {
-						go = (GameObject)Instantiate (this.waterTreePrefab, v, Quaternion.identity);
+						go = (GameObject)Instantiate (this.freeWaterTreePrefab, v, Quaternion.identity);
 						go.GetComponent<WaterTreeScript> ().SetShaderRotation (this.deg_LS);
 						go.GetComponent<WaterTreeScript> ().SetForTraining (waterTraining);
 						go.transform.parent = treeParent.transform;
@@ -542,7 +542,7 @@ public class FreeLoader : MonoBehaviour {
 					}
                         else if (texture)
                         {
-                            go = (GameObject)Instantiate(this.waterTreePrefab, v, Quaternion.identity);
+                            go = (GameObject)Instantiate(this.freeWaterTreePrefab, v, Quaternion.identity);
                             go.GetComponent<WaterTreeScript>().ChangeTexture(LoadPNG(this.waterTextureFile_LS));
                             go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
                             go.transform.parent = treeParent.transform;
@@ -678,7 +678,7 @@ public class FreeLoader : MonoBehaviour {
                         float.TryParse(val.InnerText.Split(';')[1], out y);
                         float.TryParse(val.InnerText.Split(';')[2], out z);
 
-                        v = new Vector3(Mathf.RoundToInt(x), Mathf.RoundToInt(y), Mathf.RoundToInt(z));
+                        v = new Vector3(x, y, z);
                     }
                     if (val.Name == "rot")
                     {

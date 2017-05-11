@@ -47,8 +47,8 @@ volatile int lastSig = -1;
 
 // Signals to receive from Unity
 const int nosePokeReward = nosePokeInSig;
-const int left1Reward = leftLick1Sig;
-const int right1Reward = rightLick1Sig;
+const int left1Reward = leftLick1InSig;
+const int right1Reward = rightLick1InSig;
 const int centerReward = centerLickSig;
 const int left2Reward = leftLick2Sig;
 const int right2Reward = rightLick2Sig;
@@ -161,10 +161,18 @@ void nosePoke(){
   }
 }
 void leftLick1() {
-  sigToSend = leftLick1Sig;
+  if (lastSig == leftLick1InSig) {
+    sigToSend = leftLick1OutSig;
+  } else {
+    sigToSend = leftLick1InSig;
+  }
 }
 void rightLick1() {
-  sigToSend = rightLick1Sig;
+  if (lastSig == rightLick1InSig) {
+    sigToSend = rightLick1OutSig;
+  } else {
+    sigToSend = rightLick1InSig;
+  }
 }
 void centerLick() {
   sigToSend = centerLickSig;

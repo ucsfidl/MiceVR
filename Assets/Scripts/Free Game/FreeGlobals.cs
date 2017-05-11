@@ -52,11 +52,11 @@ public static class FreeGlobals
     public static float rewardedHFreq;
     public static float rewardedVFreq;
 
-    public static MovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<MovementRecorder>();
+    public static FreeMovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<FreeMovementRecorder>();
     public static DateTime gameStartTime;
 
 	// Rewards that are given for eack lickport, calibrated for each lickport to give a constant amount of reward across ports (to start)
-	public static int[] freeRewardDur = {20, 30, 30, 30, 30, 30};
+	public static int[] freeRewardDur = {10, 15, 15, 15, 15, 15};
 	public static int[] freeRewardSite = {0, 2, 4, 6, 8, 10};  // corresponds to nosePokeReward et al in Arduino code
 		
 	public static string freeState = "preload";

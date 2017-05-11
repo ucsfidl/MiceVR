@@ -26,7 +26,7 @@ public class FreeGameControlScript : MonoBehaviour
     public Text lastAccuracyText;
     public Text timeElapsedText;
     public ArduinoComm ard;
-    public MovementRecorder movementRecorder;
+    public FreeMovementRecorder movementRecorder;
 
 	private float rawSpeedDivider;  // Normally 60f; previously 200f
 	private float rawRotationDivider;  // Normally 500f; previously -4000f
@@ -54,6 +54,8 @@ public class FreeGameControlScript : MonoBehaviour
 
 	private DateTime lastRewardTime;
 	private int minRewardInterval = 1000;
+
+	private bool correctTrial = true;
 
     // Use this for initialization
     void Start()
@@ -333,7 +335,7 @@ public class FreeGameControlScript : MonoBehaviour
 			int rs = ard.CheckForMouseAction ();
 			if (rs == FreeGlobals.freeRewardSite [0] || rs == FreeGlobals.freeRewardSite[1] || rs == FreeGlobals.freeRewardSite[2]) {
 				if (DateTime.Now.Subtract (lastRewardTime).TotalMilliseconds > minRewardInterval) {				
-					int dur = FreeGlobals.freeRewardDur [rs/2];
+					int dur = FreeGlobals.rewardDur;
 					ard.sendReward (rs, dur);
 					lastRewardTime = DateTime.Now;
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
@@ -375,27 +377,36 @@ public class FreeGameControlScript : MonoBehaviour
 				break;
 				
 			case "nosepoke":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
-				if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals(gos [0].transform.position.x) &&
-						rs == FreeGlobals.freeRewardSite[1]) ||  // left tree is on and the mouse licked the lickport there
-						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals(gos [1].transform.position.x) &&
-						rs == FreeGlobals.freeRewardSite[2])) { // Reft tree is on and the mouse licked the lickport there
-					int dur = FreeGlobals.freeRewardDur[rs/2];
+				if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) &&
+				    rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
+				    (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) &&
+				    rs == FreeGlobals.freeRewardSite [2])) { // Reft tree is on and the mouse licked the lickport there
+					int dur = FreeGlobals.freeRewardDur [rs / 2];
 					Debug.Log ("in nosepoke");
 					ard.sendReward (rs, dur);
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
-					FreeGlobals.sizeOfRewardGiven.Add(rSize);
+					FreeGlobals.sizeOfRewardGiven.Add (rSize);
 					FreeGlobals.rewardAmountSoFar += rSize;
 
 					SetupTreeActivation (gos, -1, 2); // Hide all trees 
 					FreeGlobals.freeState = "loaded";
 
-					FreeGlobals.firstTurn.Add (gos [rs/2].transform.position.x);
-					FreeGlobals.firstTurnHFreq.Add(gos[rs/2].GetComponent<WaterTreeScript>().GetShaderHFreq());
-					FreeGlobals.firstTurnVFreq.Add(gos[rs/2].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+					if (correctTrial) {
+						FreeGlobals.numCorrectTurns++;
+						Debug.Log ("correct");
+					}
+					FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.firstTurnVFreq.Add (gos [rs / 2 - 1].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
 
 					FreeGlobals.numberOfTrials++;
-					FreeGlobals.trialEndTime.Add(DateTime.Now.TimeOfDay);
-					FreeGlobals.WriteToLogFiles();
+					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
+					FreeGlobals.WriteToLogFiles ();
+
+					correctTrial = true;
+				} else if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2])  {
+					correctTrial = false;
+					Debug.Log ("incorrect");
 				}
 				break;
 			}
@@ -415,20 +426,18 @@ public class FreeGameControlScript : MonoBehaviour
         //this.movementRecorder.logReward(true);
 		this.numberOfTrialsText.text = "Current trial: # " + FreeGlobals.numberOfTrials.ToString ();
         this.rewardAmountText.text = "Reward amount so far: " + Math.Round(FreeGlobals.rewardAmountSoFar).ToString();
-        /*
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + FreeGlobals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + FreeGlobals.numberOfUnearnedRewards.ToString();
-		this.numberOfDryTreesText.text = "Number of dry trees entered: " + FreeGlobals.numberOfDryTrees.ToString();
-		if (FreeGlobals.numberOfEarnedRewards > 0) {
-			this.numberOfCorrectTurnsText.text = "Correct turns: " + 
-				FreeGlobals.numCorrectTurns.ToString() 
-				+ " (" + 
-				Mathf.Round(((float)FreeGlobals.numCorrectTurns / ((float)FreeGlobals.numberOfTrials-1)) * 100).ToString() + "%)";
-            this.last21AccuracyText.text = "Last 10 accuracy: " + GetLastAccuracy(10) + "%";
+		//this.numberOfDryTreesText.text = "Number of dry trees entered: " + FreeGlobals.numberOfDryTrees.ToString();
+
+		if (FreeGlobals.numberOfTrials > 1) {
+			this.numberOfCorrectTurnsText.text = "Correct turns: " +
+			FreeGlobals.numCorrectTurns.ToString ()
+			+ " (" +
+				Mathf.Round (((float)FreeGlobals.numCorrectTurns / ((float)FreeGlobals.numberOfTrials - 1)) * 100).ToString () + "%)";
 		}
 		//this.frameCounter++;
 		//Debug.Log ("screen updated");
-        */
 
         TimeSpan te = DateTime.Now.Subtract(FreeGlobals.gameStartTime);
         this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}", te.Hours * 60 + te.Minutes, te.Seconds);

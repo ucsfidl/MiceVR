@@ -14,15 +14,13 @@
 	<trees>
 		<t> <!-- Left tree -->
 			<w>1</w>
-			<pos>19985;0;20010</pos>
+			<pos>19998.9;0;20000.7</pos>
 			<d>0</d>
-			<r>0</r>
 		</t>
 		<t> <!-- Right tree -->
 			<w>1</w>
-			<pos>20015;0;20010</pos>
+			<pos>20001.1;0;20000.7</pos>
 			<d>0</d>
-			<r>2</r>
 		</t>
 	</trees>
 </document>
