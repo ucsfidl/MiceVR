@@ -456,6 +456,11 @@ public class FreeGameControlScript : MonoBehaviour
 
 						FreeGlobals.numCorrectTurns++;
 						Debug.Log ("correct");
+					} else {  // If wrong choice, show white noise for 4 sec
+						Globals.trialDelay = 4;
+						this.fadeToBlack.gameObject.SetActive(true);
+						this.fadeToBlack.color = Color.white;
+						this.state = "Paused";					
 					}
 				}
 				break;
