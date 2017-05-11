@@ -361,14 +361,17 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.rewardAmountSoFar += rSize;
 
 					float r = UnityEngine.Random.value;
-					float rThresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
+					float rThresh0 = 0.5F;
+					if (FreeGlobals.numberOfTrials > 1)
+						rThresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
 					Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
 					int treeToActivate = r < rThresh0 ? 0 : 1;
 						
 					SetupTreeActivation (gos, treeToActivate, 2);
 					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
+					Debug.Log (gos [treeToActivate].transform.position.x);
 					FreeGlobals.targetHFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq());
-					FreeGlobals.targetVFreq.Add(gos[treeToActivate].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+					FreeGlobals.targetVFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq());
 
 					FreeGlobals.freeState = "nosepoke";
 					FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
@@ -388,22 +391,27 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.rewardAmountSoFar += rSize;
 
 					SetupTreeActivation (gos, -1, 2); // Hide all trees 
-					FreeGlobals.freeState = "loaded";
 
 					if (correctTrial) {
 						FreeGlobals.numCorrectTurns++;
+						FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
+						FreeGlobals.firstTurnHFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+						FreeGlobals.firstTurnVFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderVFreq ());
 						Debug.Log ("correct");
 					}
-					FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
-					FreeGlobals.firstTurnHFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
-					FreeGlobals.firstTurnVFreq.Add (gos [rs / 2 - 1].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
 
 					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
 					FreeGlobals.WriteToLogFiles ();
 
 					correctTrial = true;
+					FreeGlobals.freeState = "loaded";
 				} else if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2])  {
+					if (correctTrial) {
+						FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
+						FreeGlobals.firstTurnHFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+						FreeGlobals.firstTurnVFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+					}
 					correctTrial = false;
 					Debug.Log ("incorrect");
 				}

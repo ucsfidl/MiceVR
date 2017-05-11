@@ -254,9 +254,9 @@ public class FreeLoader : MonoBehaviour {
 			}
 		    GameObject.Find("GameControl").GetComponent<FreeGameControlScript>().OccludeTree(locx);
 
-            FreeGlobals.targetLoc.Add(locx);
-            FreeGlobals.targetHFreq.Add(hfreq);
-            FreeGlobals.targetVFreq.Add(vfreq);
+            //FreeGlobals.targetLoc.Add(locx);
+            //FreeGlobals.targetHFreq.Add(hfreq);
+            //FreeGlobals.targetVFreq.Add(vfreq);
 
             for (int i = start; i < end; i++)
             {
