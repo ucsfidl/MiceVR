@@ -248,9 +248,11 @@ public class FreeLoader : MonoBehaviour {
 						vfreq = treeList [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 					}
 				}
-			} else if (FreeGlobals.gameType.Equals ("free_det") || FreeGlobals.gameType.Equals("free_det_const")) {
+			} else if (FreeGlobals.gameType.Contains("free_det")) {
 				treeList [0].GetComponent<WaterTreeScript> ().Hide ();
 				treeList [1].GetComponent<WaterTreeScript> ().Hide ();
+				if (FreeGlobals.gameType.Contains("blind"))
+					treeList [2].GetComponent<WaterTreeScript> ().Hide ();
 			}
 		    GameObject.Find("GameControl").GetComponent<FreeGameControlScript>().OccludeTree(locx);
 
@@ -269,7 +271,7 @@ public class FreeLoader : MonoBehaviour {
         }
         else if (start > 0 && start >= treeList.Count)
         {
-			if (!this.scenarioLoaded && (FreeGlobals.gameType.Equals("free_det") || FreeGlobals.gameType.Equals("free_det_const"))) {
+			if (!this.scenarioLoaded && FreeGlobals.gameType.Contains("free_det")) {
 				FreeGlobals.freeState = "loaded";
 			}
             this.scenarioLoaded = true;          

@@ -207,7 +207,7 @@ public class FreeGameControlScript : MonoBehaviour
         {
             if (Input.GetKeyUp(KeyCode.U))
             {
-				if (FreeGlobals.gameType.Equals ("nosepoke") || FreeGlobals.gameType.Equals ("free_det")) {			
+				if (FreeGlobals.gameType.Equals ("nosepoke") || FreeGlobals.gameType.Contains ("free_det")) {			
 					int dur = FreeGlobals.freeRewardDur [0];
 					ard.sendReward (FreeGlobals.freeRewardSite[0], dur);
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
@@ -217,8 +217,8 @@ public class FreeGameControlScript : MonoBehaviour
             }
 			else if (Input.GetKeyUp(KeyCode.Y))
 			{
-				if (FreeGlobals.gameType.Equals ("free_det")) {			
-					int dur = FreeGlobals.freeRewardDur [2];
+				if (FreeGlobals.gameType.Contains ("free_det")) {			
+					int dur = FreeGlobals.freeRewardDur [1];
 					ard.sendReward (FreeGlobals.freeRewardSite[1], dur);
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
 					FreeGlobals.sizeOfRewardGiven.Add(rSize);
@@ -227,9 +227,19 @@ public class FreeGameControlScript : MonoBehaviour
 			}
 			else if (Input.GetKeyUp(KeyCode.I))
 			{
-				if (FreeGlobals.gameType.Equals ("free_det")) {			
-					int dur = FreeGlobals.freeRewardDur [3];
+				if (FreeGlobals.gameType.Contains ("free_det")) {			
+					int dur = FreeGlobals.freeRewardDur [2];
 					ard.sendReward (FreeGlobals.freeRewardSite[2], dur);
+					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+					FreeGlobals.sizeOfRewardGiven.Add(rSize);
+					FreeGlobals.rewardAmountSoFar += rSize;
+				}
+			}
+			else if (Input.GetKeyUp(KeyCode.Alpha7))
+			{
+				if (FreeGlobals.gameType.Contains ("free_det")) {
+					int dur = FreeGlobals.freeRewardDur [3];
+					ard.sendReward (FreeGlobals.freeRewardSite[3], dur);
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
 					FreeGlobals.sizeOfRewardGiven.Add(rSize);
 					FreeGlobals.rewardAmountSoFar += rSize;
@@ -335,7 +345,8 @@ public class FreeGameControlScript : MonoBehaviour
     {
 		if (FreeGlobals.gameType.Equals ("nosepoke")) {			
 			int rs = ard.CheckForMouseAction ();
-			if (rs == FreeGlobals.freeRewardSite [0] || rs == FreeGlobals.freeRewardSite[1] || rs == FreeGlobals.freeRewardSite[2]) {
+//			if (rs == FreeGlobals.freeRewardSite [0] || rs == FreeGlobals.freeRewardSite[1] || rs == FreeGlobals.freeRewardSite[2]) {
+			if (rs == FreeGlobals.freeRewardSite [0]) {
 				if (DateTime.Now.Subtract (lastRewardTime).TotalMilliseconds > minRewardInterval) {				
 					int dur = FreeGlobals.rewardDur;
 					ard.sendReward (rs, dur);
@@ -419,7 +430,6 @@ public class FreeGameControlScript : MonoBehaviour
 			} 
 		} else if (FreeGlobals.gameType.Equals ("free_det_const")) {  // constrained - forced to learn, won't get reward otherwise
 			int rs = ard.CheckForMouseAction ();
-			Debug.Log ("checked ard");
 			GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
 			switch (FreeGlobals.freeState) 
 			{
@@ -427,7 +437,9 @@ public class FreeGameControlScript : MonoBehaviour
 			case "loaded":  // Mouse has not yet poked his nose in
 				if (rs == FreeGlobals.freeRewardSite [0]) {
 					float r = UnityEngine.Random.value;
-					float rThresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
+					float rThresh0 = 0.5F;
+					if (FreeGlobals.numberOfTrials > 1)
+						rThresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
 					Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
 					int treeToActivate = r < rThresh0 ? 0 : 1;
 
@@ -458,6 +470,114 @@ public class FreeGameControlScript : MonoBehaviour
 					    (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) &&
 					    rs == FreeGlobals.freeRewardSite [2])) { // Right tree is on and the mouse licked the lickport there
 
+						int dur = FreeGlobals.freeRewardDur [rs / 2];
+						ard.sendReward (rs, dur);
+						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+						FreeGlobals.sizeOfRewardGiven.Add (rSize);
+						FreeGlobals.rewardAmountSoFar += rSize;
+
+						FreeGlobals.numCorrectTurns++;
+						Debug.Log ("correct");
+					} else {  // If wrong choice, show white noise for 4 sec
+						FreeGlobals.sizeOfRewardGiven.Add (0);
+						FreeGlobals.trialDelay = 4;
+						this.fadeToBlack.gameObject.SetActive(true);
+						this.fadeToBlack.color = Color.white;
+						this.state = "Paused";
+					}
+					FreeGlobals.WriteToLogFiles ();
+				}
+				break;
+			} 
+		} else if (FreeGlobals.gameType.Equals("free_det_blind")) {
+			int rs = ard.CheckForMouseAction ();
+			GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+			switch (FreeGlobals.freeState) 
+			{
+
+			case "loaded":  // Mouse has not yet poked his nose in
+				if (rs == FreeGlobals.freeRewardSite [0]) {
+					float r = UnityEngine.Random.value;
+					double thresh0 = 0.333;
+					double thresh1 = 0.666;
+					float tf0 = FreeGlobals.GetTurnBias (20, 0);
+					float tf1 = FreeGlobals.GetTurnBias (20, 1);
+
+					if (!double.IsNaN(tf0) && !double.IsNaN(tf1)) {
+						float tf2 = 1 - (tf0 + tf1);
+
+						Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
+
+						// Solve
+						double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
+						double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
+						double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
+
+						Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+
+						// Rebalance, pushing mouse to lowest freq direction
+						double d;
+						double max = Math.Max (tf0, Math.Max (tf1, tf2));
+						double min = Math.Min (tf0, Math.Min (tf1, tf2));
+						if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
+							double pmax = Math.Max (p0, Math.Max (p1, p2));
+							if (p0 == pmax) {
+								d = Math.Abs (p1 - p2);
+								p1 *= d;
+								p2 *= d;
+							} else if (p1 == pmax) {
+								d = Math.Abs (p0 - p2);
+								p0 *= d;
+								p2 *= d;
+							} else if (p2 == pmax) {
+								d = Math.Abs (p0 - p1);
+								p0 *= d;
+								p1 *= d;
+							}
+						}
+
+						// Normalize so all add up to 1
+						p0 = p0 / (p0 + p1 + p2);
+						p1 = p1 / (p0 + p1 + p2);
+						p2 = p2 / (p0 + p1 + p2);
+
+						thresh0 = p0;
+						thresh1 = thresh0 + p1;
+					}
+
+					Debug.Log("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
+					int treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
+					SetupTreeActivation(gos, treeToActivate, 2);  // Activate 1 of the 2 eccentric trees if necessary
+					gos[2].GetComponent<WaterTreeScript>().Show();  // Always activate the central tree
+
+					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
+					FreeGlobals.targetHFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq());
+					FreeGlobals.targetVFreq.Add(gos[treeToActivate].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+
+					FreeGlobals.freeState = "stim_on";
+					FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
+				}
+				break;
+
+			case "stim_on":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
+				if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2] ||
+					rs == FreeGlobals.freeRewardSite[3]) { // licked at 1 of 3 lick ports
+					FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.firstTurnVFreq.Add (gos [rs / 2 - 1].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+
+					FreeGlobals.numberOfTrials++;
+					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
+
+					SetupTreeActivation (gos, -1, 3); // Hide all trees 
+					FreeGlobals.freeState = "loaded";
+
+					if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) &&
+						rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
+						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) &&
+							rs == FreeGlobals.freeRewardSite [2]) || // Right tree is on and the mouse licked the lickport there
+						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [2].transform.position.x) &&
+							rs == FreeGlobals.freeRewardSite [3]) ) { // Center tree is on and the mouse licked the lickport there 
 						int dur = FreeGlobals.freeRewardDur [rs / 2];
 						ard.sendReward (rs, dur);
 						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;

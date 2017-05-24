@@ -38,7 +38,8 @@ const int leftLick1InSig = 2;
 const int leftLick1OutSig = 3;
 const int rightLick1InSig = 4;
 const int rightLick1OutSig = 5;
-const int centerLickSig = 6;
+const int centerLickInSig = 6;
+const int centerLickOutSig = 7;
 const int leftLick2Sig = 8;
 const int rightLick2Sig = 10;
 
@@ -49,7 +50,7 @@ volatile int lastSig = -1;
 const int nosePokeReward = nosePokeInSig;
 const int left1Reward = leftLick1InSig;
 const int right1Reward = rightLick1InSig;
-const int centerReward = centerLickSig;
+const int centerReward = centerLickInSig;
 const int left2Reward = leftLick2Sig;
 const int right2Reward = rightLick2Sig;
 
@@ -78,7 +79,7 @@ void setup() {
   pinMode(rightValve1Pin, OUTPUT);
 
   pinMode(centerLickPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(centerLickPin), centerLick, FALLING);
+  attachInterrupt(digitalPinToInterrupt(centerLickPin), centerLick, CHANGE);
   pinMode(centerValvePin, OUTPUT);
 
   pinMode(leftLick2Pin, INPUT_PULLUP);
@@ -175,8 +176,13 @@ void rightLick1() {
   }
 }
 void centerLick() {
-  sigToSend = centerLickSig;
+  if (lastSig == centerLickInSig) {
+    sigToSend = centerLickOutSig;
+  } else {
+    sigToSend = centerLickInSig;
+  }
 }
+
 void leftLick2() {
   sigToSend = leftLick2Sig;
 }
