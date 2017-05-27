@@ -8,8 +8,8 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>detection</gameType> <!-- Options: match, nonmatch -->
-			<gameTurnControl>yaw</gameTurnControl> <!-- yaw | roll -->
+			<gameType>det_blind</gameType>
+			<gameTurnControl>roll</gameTurnControl>
 		</gameConfig>
 	</config>
 	<trees>
@@ -29,7 +29,7 @@
 			<w>1</w>
 			<pos>20000;0;20046</pos>
 			<d>0</d>
-			<v>1</v>  <!-- Vfreq of gradient -->
+			<v>0</v>  <!-- Vfreq of gradient -->
 			<h>4</h>  <!-- Hfreq of gradient -->
 		</t>
 	</trees>
