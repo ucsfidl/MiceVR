@@ -56,6 +56,7 @@ public class FreeGameControlScript : MonoBehaviour
 	private int minRewardInterval = 1000;
 
 	private bool correctTrial = true;
+	private int treeToActivate;
 
     // Use this for initialization
     void Start()
@@ -75,7 +76,7 @@ public class FreeGameControlScript : MonoBehaviour
         FreeGlobals.numberOfUnearnedRewards = 0;
         FreeGlobals.rewardAmountSoFar = 0;
 		FreeGlobals.numberOfDryTrees = 0;
-		FreeGlobals.numberOfTrials = 1;  // Start on first trial
+		FreeGlobals.numberOfTrials = 0;  // Start on no trial
         this.timeoutState = false;
 
 		this.startingPos = this.player.transform.position;
@@ -205,59 +206,36 @@ public class FreeGameControlScript : MonoBehaviour
         
         if (!this.state.Equals("LoadScenario") || (this.state.Equals("LoadScenario") && EventSystem.current.currentSelectedGameObject == null))
         {
-            if (Input.GetKeyUp(KeyCode.U))
-            {
-				if (FreeGlobals.gameType.Equals ("nosepoke") || FreeGlobals.gameType.Contains ("free_det")) {			
-					int dur = FreeGlobals.freeRewardDur [0];
-					ard.sendReward (FreeGlobals.freeRewardSite[0], dur);
-					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
-					FreeGlobals.sizeOfRewardGiven.Add(rSize);
-					FreeGlobals.rewardAmountSoFar += rSize;
-				}
-            }
-			else if (Input.GetKeyUp(KeyCode.Y))
-			{
-				if (FreeGlobals.gameType.Contains ("free_det")) {			
-					int dur = FreeGlobals.freeRewardDur [1];
-					ard.sendReward (FreeGlobals.freeRewardSite[1], dur);
-					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
-					FreeGlobals.sizeOfRewardGiven.Add(rSize);
-					FreeGlobals.rewardAmountSoFar += rSize;
-				}
+			int idx = -1;
+			if (Input.GetKeyUp (KeyCode.U)) {
+				idx = 0;
+			} else if (Input.GetKeyUp (KeyCode.Y)) {
+				idx = 1;
+			} else if (Input.GetKeyUp (KeyCode.I)) {
+				idx = 2;
+			} else if (Input.GetKeyUp (KeyCode.Alpha7)) {
+				idx = 3;
+			} else if (Input.GetKeyUp (KeyCode.Alpha6)) {
+				idx = 4;
+			} else if (Input.GetKeyUp (KeyCode.Alpha8)) {
+				idx = 5;
 			}
-			else if (Input.GetKeyUp(KeyCode.I))
-			{
-				if (FreeGlobals.gameType.Contains ("free_det")) {			
-					int dur = FreeGlobals.freeRewardDur [2];
-					ard.sendReward (FreeGlobals.freeRewardSite[2], dur);
-					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
-					FreeGlobals.sizeOfRewardGiven.Add(rSize);
-					FreeGlobals.rewardAmountSoFar += rSize;
-				}
+
+			if (idx != -1) {
+				int dur = FreeGlobals.freeRewardDur [idx];
+				ard.sendReward (FreeGlobals.freeRewardSite [idx], dur);
+				float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+				FreeGlobals.sizeOfRewardGiven.Add (rSize);
+				FreeGlobals.rewardAmountSoFar += rSize;
 			}
-			else if (Input.GetKeyUp(KeyCode.Alpha7))
-			{
-				if (FreeGlobals.gameType.Contains ("free_det")) {
-					int dur = FreeGlobals.freeRewardDur [3];
-					ard.sendReward (FreeGlobals.freeRewardSite[3], dur);
-					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
-					FreeGlobals.sizeOfRewardGiven.Add(rSize);
-					FreeGlobals.rewardAmountSoFar += rSize;
-				}
-			}
-			else if (Input.GetKeyUp(KeyCode.T))
-            {
-                // Mouse is stuck so teleport to beginning
-                TeleportToBeginning();
-            }
         }
     }
 
-    private void TeleportToBeginning()
-    {
-        this.player.transform.position = this.startingPos;
-        this.player.transform.rotation = this.startingRot;
-    }
+	private void TeleportToBeginning()
+	{
+		this.player.transform.position = this.startingPos;
+		this.player.transform.rotation = this.startingRot;
+	}
 
     /*
      * Waits until a tree config is loaded
@@ -348,7 +326,7 @@ public class FreeGameControlScript : MonoBehaviour
 //			if (rs == FreeGlobals.freeRewardSite [0] || rs == FreeGlobals.freeRewardSite[1] || rs == FreeGlobals.freeRewardSite[2]) {
 			if (rs == FreeGlobals.freeRewardSite [0]) {
 				if (DateTime.Now.Subtract (lastRewardTime).TotalMilliseconds > minRewardInterval) {				
-					int dur = FreeGlobals.rewardDur;
+					int dur = FreeGlobals.freeRewardDur[0];
 					ard.sendReward (rs, dur);
 					lastRewardTime = DateTime.Now;
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
@@ -364,32 +342,90 @@ public class FreeGameControlScript : MonoBehaviour
 
 			case "loaded":  // Mouse has not yet poked his nose in
 				if (rs == FreeGlobals.freeRewardSite [0]) {
-					int dur = FreeGlobals.freeRewardDur [rs/2];
-					ard.sendReward (rs, dur);
-					lastRewardTime = DateTime.Now;
-					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
-					FreeGlobals.sizeOfRewardGiven.Add (rSize);
-					FreeGlobals.rewardAmountSoFar += rSize;
+					if (FreeGlobals.waterAtStart) {
+						int dur = FreeGlobals.freeRewardDur [rs / 2];
+						ard.sendReward (rs, dur);
+						lastRewardTime = DateTime.Now;
+						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+						FreeGlobals.sizeOfRewardGiven.Add (rSize);
+						FreeGlobals.rewardAmountSoFar += rSize;
+					}
 
+					// Bias correction
+					// Had this OFF when training batch #1; this phase took 2-3 days
+					/*
 					float r = UnityEngine.Random.value;
-					float rThresh0 = 0.5F;
-					if (FreeGlobals.numberOfTrials > 1)
-						rThresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
-					Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
-					int treeToActivate = r < rThresh0 ? 0 : 1;
-						
-					SetupTreeActivation (gos, treeToActivate, 2);
+					float[] rThresh = new float[gos.Length + 1];
+					rThresh [0] = 0;
+					rThresh [gos.Length] = 1;
+					for (int i = 1; i < gos.Length; i++) {
+						rThresh [i] = 1F / gos.Length * i;
+					}
+
+					if (FreeGlobals.numberOfTrials >= 1) {
+						float[] bcs = new float[gos.Length];
+						string bcsStr = "";
+						for (int i = 0; i < gos.Length; i++) {
+							bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
+							bcsStr += bcs [i] + " ";
+						}
+						float s = bcs.Sum ();
+						Debug.Log (bcsStr);
+						for (int i = 0; i < gos.Length - 1; i++) {
+							bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
+							rThresh[i+1] = rThresh[i] + bcs[i];
+						}
+					}
+
+					this.treeToActivate = 0;
+					for (int i = 1; i < gos.Length+1; i++) {
+						if (r >= rThresh [i - 1] && r <= rThresh [i])
+							treeToActivate = i - 1;
+					}
+
+
+					SetupTreeActivation (gos, treeToActivate, gos.Length);
+					string threshStr = "";
+					for (int i = 1; i < rThresh.Length-1; i++) {
+						threshStr += rThresh [i] + ", ";
+					}
+					Debug.Log("[0, " + threshStr + "1] - " + r);
+
 					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
-					Debug.Log (gos [treeToActivate].transform.position.x);
 					FreeGlobals.targetHFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq());
 					FreeGlobals.targetVFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq());
+					*/
 
+					// No bias correction
+					float r = UnityEngine.Random.value;
+					if (r < 0.5) {
+						SetupTreeActivation (gos, 0, 2);
+						FreeGlobals.targetLoc.Add (gos [0].transform.position.x);
+						FreeGlobals.targetHFreq.Add(gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq());
+						FreeGlobals.targetVFreq.Add(gos[0].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+						this.treeToActivate = 0;
+					} else {
+						SetupTreeActivation (gos, 1, 2);
+						FreeGlobals.targetLoc.Add (gos [1].transform.position.x);
+						FreeGlobals.targetHFreq.Add(gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq());
+						FreeGlobals.targetVFreq.Add(gos[1].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+						this.treeToActivate = 1;
+					}
+						
 					FreeGlobals.freeState = "nosepoke";
 					FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
+					FreeGlobals.numberOfTrials++;
 				}
 				break;
 				
 			case "nosepoke":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
+				if (!FreeGlobals.stimPersists) {  // 1 is sent from arduino when break beam is made intact at startport
+					if (rs == 1)  // Mouse pulled nose out of startport
+						SetupTreeActivation(gos, -1, gos.Length);
+					else if (rs == 0)
+						SetupTreeActivation(gos, this.treeToActivate, gos.Length);
+				}
+
 				if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) &&
 				    rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
 				    (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) &&
@@ -411,7 +447,6 @@ public class FreeGameControlScript : MonoBehaviour
 						Debug.Log ("correct");
 					}
 
-					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
 					FreeGlobals.WriteToLogFiles ();
 
@@ -436,40 +471,95 @@ public class FreeGameControlScript : MonoBehaviour
 
 			case "loaded":  // Mouse has not yet poked his nose in
 				if (rs == FreeGlobals.freeRewardSite [0]) {
-					float r = UnityEngine.Random.value;
-					float rThresh0 = 0.5F;
-					if (FreeGlobals.numberOfTrials > 1)
-						rThresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
-					Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
-					int treeToActivate = r < rThresh0 ? 0 : 1;
+					if (FreeGlobals.waterAtStart) {
+						int dur = FreeGlobals.freeRewardDur [rs / 2];
+						ard.sendReward (rs, dur);
+						lastRewardTime = DateTime.Now;
+						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+						FreeGlobals.sizeOfRewardGiven.Add (rSize);
+						FreeGlobals.rewardAmountSoFar += rSize;
+					}
 
-					SetupTreeActivation (gos, treeToActivate, 2);
+					float r = UnityEngine.Random.value;
+					float[] rThresh = new float[gos.Length + 1];
+					rThresh [0] = 0;
+					rThresh [gos.Length] = 1;
+					for (int i = 1; i < gos.Length; i++) {
+						rThresh [i] = 1F / gos.Length * i;
+					}
+
+					// Bias correction
+					// This was ON when training batch#1, which learned within 3 days
+					if (FreeGlobals.numberOfTrials >= 1) {
+						float[] bcs = new float[gos.Length];
+						string bcsStr = "";
+						for (int i = 0; i < gos.Length; i++) {
+							bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
+							bcsStr += bcs [i] + " ";
+						}
+						float s = bcs.Sum ();
+						Debug.Log (bcsStr);
+						for (int i = 0; i < gos.Length - 1; i++) {
+							bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
+							rThresh[i+1] = rThresh[i] + bcs[i];
+						}
+					}
+ 	
+					this.treeToActivate = 0;
+					for (int i = 1; i < gos.Length+1; i++) {
+						if (r >= rThresh [i - 1] && r <= rThresh [i])
+							treeToActivate = i - 1;
+					}
+
+					SetupTreeActivation (gos, treeToActivate, gos.Length);
+					string threshStr = "";
+					for (int i = 1; i < rThresh.Length-1; i++) {
+						threshStr += rThresh [i] + ", ";
+					}
+					Debug.Log("[0, " + threshStr + "1] - " + r);
+
 					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
 					FreeGlobals.targetHFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq());
-					FreeGlobals.targetVFreq.Add(gos[treeToActivate].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+					FreeGlobals.targetVFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq());
 
 					FreeGlobals.freeState = "stim_on";
+					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
 				}
 				break;
 
 			case "stim_on":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
-				if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2]) { // licked at 1 of 2 lick ports
-					FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
-					FreeGlobals.firstTurnHFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
-					FreeGlobals.firstTurnVFreq.Add (gos [rs / 2 - 1].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+				if (!FreeGlobals.stimPersists) {  // 1 is sent from arduino when break beam is made intact at startport
+					if (rs == 1)  // Mouse pulled nose out of startport
+						SetupTreeActivation(gos, -1, gos.Length);
+					else if (rs == 0)
+						SetupTreeActivation(gos, this.treeToActivate, gos.Length);
+				}
 
-					FreeGlobals.numberOfTrials++;
+				if ((gos.Length == 2 && (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2])) ||
+					(gos.Length == 4 && (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2]) || 
+						rs == FreeGlobals.freeRewardSite [4] || rs == FreeGlobals.freeRewardSite [5])) { // licked at 1 of 2 lick ports
+					int idx = rs/2 - 1;
+					if (rs == FreeGlobals.freeRewardSite [4] || rs == FreeGlobals.freeRewardSite [5])
+						idx = idx - 1;
+					FreeGlobals.firstTurn.Add (gos [idx].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.firstTurnVFreq.Add (gos [idx].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+
 					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
 
-					SetupTreeActivation (gos, -1, 2); // Hide all trees 
+					SetupTreeActivation (gos, -1, gos.Length); // Hide all trees 
 					FreeGlobals.freeState = "loaded";
 
 					if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) &&
 					    rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
-					    (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) &&
-					    rs == FreeGlobals.freeRewardSite [2])) { // Right tree is on and the mouse licked the lickport there
-
+						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) &&
+					    rs == FreeGlobals.freeRewardSite [2]) || 
+						(gos.Length == 4 && 
+							((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [2].transform.position.x) &&
+								rs == FreeGlobals.freeRewardSite [4]) ||
+							(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [3].transform.position.x) &&
+									rs == FreeGlobals.freeRewardSite [5])))) { 
 						int dur = FreeGlobals.freeRewardDur [rs / 2];
 						ard.sendReward (rs, dur);
 						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
@@ -480,7 +570,7 @@ public class FreeGameControlScript : MonoBehaviour
 						Debug.Log ("correct");
 					} else {  // If wrong choice, show white noise for 4 sec
 						FreeGlobals.sizeOfRewardGiven.Add (0);
-						FreeGlobals.trialDelay = 4;
+						FreeGlobals.trialDelay = 6;
 						this.fadeToBlack.gameObject.SetActive(true);
 						this.fadeToBlack.color = Color.white;
 						this.state = "Paused";
@@ -497,9 +587,21 @@ public class FreeGameControlScript : MonoBehaviour
 
 			case "loaded":  // Mouse has not yet poked his nose in
 				if (rs == FreeGlobals.freeRewardSite [0]) {
+					if (FreeGlobals.waterAtStart) {
+						int dur = FreeGlobals.freeRewardDur [rs / 2];
+						ard.sendReward (rs, dur);
+						lastRewardTime = DateTime.Now;
+						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+						FreeGlobals.sizeOfRewardGiven.Add (rSize);
+						FreeGlobals.rewardAmountSoFar += rSize;
+					}
+
 					float r = UnityEngine.Random.value;
 					double thresh0 = 0.333;
 					double thresh1 = 0.666;
+
+
+					// Bias correction - turned back on
 					float tf0 = FreeGlobals.GetTurnBias (20, 0);
 					float tf1 = FreeGlobals.GetTurnBias (20, 1);
 
@@ -546,7 +648,7 @@ public class FreeGameControlScript : MonoBehaviour
 					}
 
 					Debug.Log("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
-					int treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
+					this.treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
 					SetupTreeActivation(gos, treeToActivate, 2);  // Activate 1 of the 2 eccentric trees if necessary
 					gos[2].GetComponent<WaterTreeScript>().Show();  // Always activate the central tree
 
@@ -555,18 +657,27 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.targetVFreq.Add(gos[treeToActivate].gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
 
 					FreeGlobals.freeState = "stim_on";
+					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
 				}
 				break;
 
 			case "stim_on":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
+				if (!FreeGlobals.stimPersists) {  // 1 is sent from arduino when break beam is made intact at startport
+					if (rs == 1) {  // Mouse pulled nose out of startport
+						SetupTreeActivation (gos, -1, gos.Length);
+					} else if (rs == 0) {
+						SetupTreeActivation(gos, this.treeToActivate, 1);
+						gos[2].GetComponent<WaterTreeScript>().Show();  // Always activate the central tree
+					}
+				}
+
 				if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2] ||
 					rs == FreeGlobals.freeRewardSite[3]) { // licked at 1 of 3 lick ports
 					FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
 					FreeGlobals.firstTurnHFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
 					FreeGlobals.firstTurnVFreq.Add (gos [rs / 2 - 1].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
 
-					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
 
 					SetupTreeActivation (gos, -1, 3); // Hide all trees 
@@ -588,7 +699,7 @@ public class FreeGameControlScript : MonoBehaviour
 						Debug.Log ("correct");
 					} else {  // If wrong choice, show white noise for 4 sec
 						FreeGlobals.sizeOfRewardGiven.Add (0);
-						FreeGlobals.trialDelay = 4;
+						FreeGlobals.trialDelay = 6;
 						this.fadeToBlack.gameObject.SetActive(true);
 						this.fadeToBlack.color = Color.white;
 						this.state = "Paused";
@@ -616,7 +727,7 @@ public class FreeGameControlScript : MonoBehaviour
 			this.numberOfCorrectTurnsText.text = "Correct turns: " +
 			FreeGlobals.numCorrectTurns.ToString ()
 			+ " (" +
-				Mathf.Round(((float)FreeGlobals.numCorrectTurns / ((float)FreeGlobals.numberOfTrials - 1)) * 100).ToString() + "%" 
+				Mathf.Round(((float)FreeGlobals.numCorrectTurns / ((float)FreeGlobals.numberOfTrials)) * 100).ToString() + "%" 
 				+ FreeGlobals.GetTreeAccuracy() + ")";
 			this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(FreeGlobals.GetLastAccuracy(20) * 100) + "%";
 		}
@@ -674,7 +785,7 @@ public class FreeGameControlScript : MonoBehaviour
             this.numberOfCorrectTurnsText.text = "Correct turns: " +
                 FreeGlobals.numCorrectTurns.ToString()
                 + " (" +
-                Mathf.Round(((float)FreeGlobals.numCorrectTurns / ((float)FreeGlobals.numberOfTrials - 1)) * 100).ToString() + "%" 
+                Mathf.Round(((float)FreeGlobals.numCorrectTurns / ((float)FreeGlobals.numberOfTrials)) * 100).ToString() + "%" 
                 + FreeGlobals.GetTreeAccuracy() + ")";
             this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(FreeGlobals.GetLastAccuracy(20) * 100) + "%";
         }

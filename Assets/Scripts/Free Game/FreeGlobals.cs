@@ -36,7 +36,7 @@ public static class FreeGlobals
     public static int numCorrectTurns;
 	public static int trialsSinceMouseStreakEliminated = 3;
 
-	public static int trialDelay;
+	public static int trialDelay; 
 	public static int numberOfTrials;
 
 	public static float centralViewVisibleShift;
@@ -56,9 +56,12 @@ public static class FreeGlobals
     public static DateTime gameStartTime;
 
 	// Rewards that are given for eack lickport, calibrated for each lickport to give a constant amount of reward across ports (to start)
-	public static int[] freeRewardDur = {10, 15, 15, 15, 15, 15};
+	public static int[] freeRewardDur = {38, 38, 38, 38, 38, 38}; // prev 15, 30x
 	public static int[] freeRewardSite = {0, 2, 4, 6, 8, 10};  // corresponds to nosePokeReward et al in Arduino code
-		
+
+	public static bool waterAtStart = false;
+	public static bool stimPersists = true;
+
 	public static string freeState = "preload";
 
     // This function writes out all the statistics to a single file, currently when the game ends.
@@ -179,22 +182,10 @@ public static class FreeGlobals
             end = len;
         }
         numTrials = end - start;
-        if (gos.Length == 2)
+        for (int i = start; i < end; i++)
         {
-            for (int i = start; i < end; i++)
-            {
-                if (firstTurn[i].Equals(gos[treeIndex].transform.position.x))
-                    turn0++;
-            }
-        }
-        else if (gos.Length == 3)
-        {
-            for (int i = start; i < end; i++)
-            {
-                if (firstTurn[i].Equals(gos[treeIndex].transform.position.x))
-                    turn0++;
-            }
-
+            if (firstTurn[i].Equals(gos[treeIndex].transform.position.x))
+                turn0++;
         }
         return (float)turn0 / numTrials;
     }

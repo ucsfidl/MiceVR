@@ -249,10 +249,9 @@ public class FreeLoader : MonoBehaviour {
 					}
 				}
 			} else if (FreeGlobals.gameType.Contains("free_det")) {
-				treeList [0].GetComponent<WaterTreeScript> ().Hide ();
-				treeList [1].GetComponent<WaterTreeScript> ().Hide ();
-				if (FreeGlobals.gameType.Contains("blind"))
-					treeList [2].GetComponent<WaterTreeScript> ().Hide ();
+				for (int i = 0; i < treeList.Count; i++) {
+					treeList [i].GetComponent<WaterTreeScript> ().Hide ();
+				}
 			}
 		    GameObject.Find("GameControl").GetComponent<FreeGameControlScript>().OccludeTree(locx);
 
@@ -421,11 +420,35 @@ public class FreeLoader : MonoBehaviour {
                 {
                     float.TryParse(xn["rewardedVFreq"].InnerText, out FreeGlobals.rewardedVFreq);
                 }
+				if (xn["waterAtStart"] != null)
+				{
+					string waterAtStartXML = xn["waterAtStart"].InnerText;
+					if (waterAtStartXML.Equals("true"))
+						FreeGlobals.waterAtStart = true;
+				}
+				if (xn["stimPersists"] != null)
+				{
+					string waterAtStartXML = xn["stimPersists"].InnerText;
+					if (waterAtStartXML.Equals ("true"))
+						FreeGlobals.stimPersists = true;
+					else
+						FreeGlobals.stimPersists = false;
+				}
+				if (xn["startReward"] != null)
+				{
+					float sr;
+					float.TryParse(xn["startReward"].InnerText, out sr);
+					FreeGlobals.freeRewardDur [0] = (int) (sr / FreeGlobals.rewardSize * FreeGlobals.rewardDur);
+				}
+
             }
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.
+			int i = 0;
             foreach (XmlNode node in levelsList)
             {
+				i++; // internal counter for setting the reward size below
+
                 bool water = false;
                 Vector3 v = Vector3.zero;
                 XmlNodeList levelcontent = node.ChildNodes;
@@ -533,11 +556,12 @@ public class FreeLoader : MonoBehaviour {
 
                         if (rewardSet)
                         {
-                            go.GetComponent<WaterTreeScript>().SetRewardSize(this.rewardSize);
+							FreeGlobals.freeRewardDur [i] = (int)(this.rewardSize / FreeGlobals.rewardSize * FreeGlobals.rewardDur);
+                            //go.GetComponent<WaterTreeScript>().SetRewardSize(this.rewardSize);
                         }
                         else
                         {
-                            go.GetComponent<WaterTreeScript>().SetRewardSize(FreeGlobals.rewardSize);
+                            //go.GetComponent<WaterTreeScript>().SetRewardSize(FreeGlobals.rewardSize);
                         }
 
                         go.GetComponent<WaterTreeScript>().SetRespawn(this.respawn);

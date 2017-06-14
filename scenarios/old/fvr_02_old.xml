@@ -12,24 +12,14 @@
 		</gameConfig>
 	</config>
 	<trees>
-		<t> <!-- Left tree #1 -->
+		<t> <!-- Left tree -->
 			<w>1</w>
-			<pos>19998.75;0;20000.37</pos>
+			<pos>19998.9;0;20000.7</pos>
 			<d>0</d>
 		</t>
-		<t> <!-- Right tree #1 -->
+		<t> <!-- Right tree -->
 			<w>1</w>
-			<pos>20001.25;0;20000.37</pos>
-			<d>0</d>
-		</t>
-		<t> <!-- Left tree #2 -->
-			<w>1</w>
-			<pos>19999.05;0;20000.89</pos>
-			<d>0</d>
-		</t>
-		<t> <!-- Right tree #2 -->
-			<w>1</w>
-			<pos>20000.95;0;20000.89</pos>
+			<pos>20001.1;0;20000.7</pos>
 			<d>0</d>
 		</t>
 	</trees>

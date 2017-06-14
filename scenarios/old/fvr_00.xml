@@ -8,8 +8,7 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>nosepoke</gameType>
-			<startReward>4</startReward>
+			<gameType>setup</gameType>
 		</gameConfig>
 	</config>
 </document>

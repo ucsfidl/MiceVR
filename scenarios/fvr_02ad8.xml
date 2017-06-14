@@ -8,7 +8,9 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>free_det_const</gameType>
+			<gameType>free_det</gameType>
+			<waterAtStart>true</waterAtStart>
+			<stimPersists>false</stimPersists>
 		</gameConfig>
 	</config>
 	<trees>
@@ -16,21 +18,13 @@
 			<w>1</w>
 			<pos>19998.75;0;20000.37</pos>
 			<d>0</d>
+			<rewardSize>8</rewardSize> <!-- in ul -->
 		</t>
 		<t> <!-- Right tree #1 -->
 			<w>1</w>
 			<pos>20001.25;0;20000.37</pos>
 			<d>0</d>
-		</t>
-		<t> <!-- Left tree #2 -->
-			<w>1</w>
-			<pos>19999.05;0;20000.89</pos>
-			<d>0</d>
-		</t>
-		<t> <!-- Right tree #2 -->
-			<w>1</w>
-			<pos>20000.95;0;20000.89</pos>
-			<d>0</d>
+			<rewardSize>8</rewardSize> <!-- in ul -->
 		</t>
 	</trees>
 </document>

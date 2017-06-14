@@ -8,18 +8,18 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>free_det</gameType>
+			<gameType>free_det_const</gameType>
 		</gameConfig>
 	</config>
 	<trees>
-		<t> <!-- Left tree -->
+		<t> <!-- Left tree #1 -->
 			<w>1</w>
-			<pos>19998.9;0;20000.7</pos>
+			<pos>19998.75;0;20000.37</pos>
 			<d>0</d>
 		</t>
-		<t> <!-- Right tree -->
+		<t> <!-- Right tree #1 -->
 			<w>1</w>
-			<pos>20001.1;0;20000.7</pos>
+			<pos>20001.25;0;20000.37</pos>
 			<d>0</d>
 		</t>
 	</trees>

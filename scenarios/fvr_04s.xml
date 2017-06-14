@@ -9,6 +9,7 @@
 		</dryConfig>
 		<gameConfig>
 			<gameType>free_det_const</gameType>
+			<waterAtStart>true</waterAtStart>
 		</gameConfig>
 	</config>
 	<trees>
