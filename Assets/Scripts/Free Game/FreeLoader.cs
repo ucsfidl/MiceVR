@@ -434,6 +434,12 @@ public class FreeLoader : MonoBehaviour {
 					else
 						FreeGlobals.stimPersists = false;
 				}
+				if (xn["persistenceDur"] != null)
+				{
+					float pd;
+					float.TryParse(xn["persistenceDur"].InnerText, out pd);
+					FreeGlobals.persistenceDur = pd;  // In ms
+				}
 				if (xn["startReward"] != null)
 				{
 					float sr;

@@ -56,11 +56,12 @@ public static class FreeGlobals
     public static DateTime gameStartTime;
 
 	// Rewards that are given for eack lickport, calibrated for each lickport to give a constant amount of reward across ports (to start)
-	public static int[] freeRewardDur = {38, 38, 38, 38, 38, 38}; // prev 15, 30x
+	public static int[] freeRewardDur = {15, 30, 30, 38, 38, 38}; // prev 15, 30x
 	public static int[] freeRewardSite = {0, 2, 4, 6, 8, 10};  // corresponds to nosePokeReward et al in Arduino code
 
 	public static bool waterAtStart = false;
 	public static bool stimPersists = true;
+	public static float persistenceDur = -1;  // -1 indicates that the stim persists until a choice is made
 
 	public static string freeState = "preload";
 

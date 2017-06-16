@@ -525,6 +525,9 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.freeState = "stim_on";
 					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
+
+					if (FreeGlobals.persistenceDur != -1)
+						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
 				}
 				break;
 
@@ -534,6 +537,13 @@ public class FreeGameControlScript : MonoBehaviour
 						SetupTreeActivation(gos, -1, gos.Length);
 					else if (rs == 0)
 						SetupTreeActivation(gos, this.treeToActivate, gos.Length);
+				}
+
+				if (FreeGlobals.persistenceDur != -1) {  // Tree might have disappeared, in which case bring it back
+					if (rs == 0) { // Mouse put nose back in startport
+						SetupTreeActivation (gos, this.treeToActivate, gos.Length);
+						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
+					}
 				}
 
 				if ((gos.Length == 2 && (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2])) ||
@@ -667,11 +677,11 @@ public class FreeGameControlScript : MonoBehaviour
 					if (rs == 1) {  // Mouse pulled nose out of startport
 						SetupTreeActivation (gos, -1, gos.Length);
 					} else if (rs == 0) {
-						SetupTreeActivation(gos, this.treeToActivate, 1);
-						gos[2].GetComponent<WaterTreeScript>().Show();  // Always activate the central tree
+						SetupTreeActivation (gos, this.treeToActivate, 1);
+						gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
 					}
 				}
-
+					
 				if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2] ||
 					rs == FreeGlobals.freeRewardSite[3]) { // licked at 1 of 3 lick ports
 					FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
@@ -747,6 +757,11 @@ public class FreeGameControlScript : MonoBehaviour
         }
         */
     }
+
+	private void DisappearTree() { // Called by Invoke
+		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+		SetupTreeActivation(gos, -1, gos.Length);
+	}
 
     public void OccludeTree(float treeLocX)
     {
