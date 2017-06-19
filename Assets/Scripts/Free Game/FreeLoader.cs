@@ -445,6 +445,8 @@ public class FreeLoader : MonoBehaviour {
 					float sr;
 					float.TryParse(xn["startReward"].InnerText, out sr);
 					FreeGlobals.freeRewardDur [0] = (int) (sr / FreeGlobals.rewardSize * FreeGlobals.rewardDur);
+					if (FreeGlobals.freeRewardDur [0] < 15)  // valves will only open for a minimum time
+						FreeGlobals.freeRewardDur [0] = 15;
 				}
 
             }

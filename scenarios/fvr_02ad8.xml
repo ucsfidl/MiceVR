@@ -10,6 +10,7 @@
 		<gameConfig>
 			<gameType>free_det</gameType>
 			<waterAtStart>true</waterAtStart>
+			<startReward>2</startReward>
 			<stimPersists>false</stimPersists>
 		</gameConfig>
 	</config>
