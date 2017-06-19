@@ -18,11 +18,13 @@
 			<w>1</w>
 			<pos>19998.75;0;20000.37</pos>
 			<d>0</d>
+			<rewardSize>4</rewardSize> <!-- in ul -->
 		</t>
 		<t> <!-- Right tree #1 -->
 			<w>1</w>
 			<pos>20001.25;0;20000.37</pos>
 			<d>0</d>
+			<rewardSize>4</rewardSize> <!-- in ul -->
 		</t>
 		<t> <!-- Center tree -->
 			<w>1</w>
@@ -30,6 +32,7 @@
 			<d>0</d>
 			<v>0</v>  <!-- Vfreq of gradient -->
 			<h>4</h>  <!-- Hfreq of gradient -->
+			<rewardSize>4</rewardSize> <!-- in ul -->
 		</t>
 	</trees>
 </document>
