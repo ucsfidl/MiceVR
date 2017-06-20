@@ -415,6 +415,9 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.freeState = "nosepoke";
 					FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
 					FreeGlobals.numberOfTrials++;
+
+					if (FreeGlobals.persistenceDur != -1)
+						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
 				}
 				break;
 				
