@@ -248,7 +248,7 @@ public class FreeLoader : MonoBehaviour {
 						vfreq = treeList [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 					}
 				}
-			} else if (FreeGlobals.gameType.Contains("free_det")) {
+			} else if (FreeGlobals.gameType.Contains("free")) {
 				for (int i = 0; i < treeList.Count; i++) {
 					treeList [i].GetComponent<WaterTreeScript> ().Hide ();
 				}

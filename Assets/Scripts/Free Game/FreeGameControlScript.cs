@@ -59,6 +59,11 @@ public class FreeGameControlScript : MonoBehaviour
 	private int treeToActivate;
 
 	private DateTime oldestStartPokeTime = DateTime.MinValue;
+	private float sampleHFreq;
+	private float sampleVFreq;
+	private float nonSampleHFreq;
+	private float nonSampleVFreq;
+	private bool startTreeSet = false;
 
     // Use this for initialization
     void Start()
@@ -725,80 +730,57 @@ public class FreeGameControlScript : MonoBehaviour
 			GameObject[] gos = GameObject.FindGameObjectsWithTag ("water");
 
 			switch (FreeGlobals.freeState) {
-			case "prestart":  // Mouse has not yet poked his nose into the startport
+			case "pretrial":  // Mouse has not yet poked his nose into the startport
 				if (rs == FreeGlobals.freeRewardSite [0]) {  // Mouse poked nose into the startport
-					if (oldestStartPokeTime != DateTime.MinValue &&
-					    DateTime.Now.Subtract (oldestStartPokeTime).TotalMilliseconds > FreeGlobals.startRewardDelay) {
-						if (FreeGlobals.waterAtStart) {
-							int dur = FreeGlobals.freeRewardDur [rs / 2];
-							ard.sendReward (rs, dur);
-							lastRewardTime = DateTime.Now;
-							float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
-							FreeGlobals.sizeOfRewardGiven.Add (rSize);
-							FreeGlobals.rewardAmountSoFar += rSize;
-						}
-
+					if (!startTreeSet) {
 						// Center tree is the third tree always, so turn that on with a random orientation
 						// No bias correction with orientation of the sample - purely random
 						float rSample = UnityEngine.Random.value;
-						float sampleHFreq;
-						float sampleVFreq;
 						if (rSample < 0.5) { // Sample will be horizontal tree
 							gos [2].GetComponent<WaterTreeScript> ().SetShader (FreeGlobals.rewardedHFreq, 1);
 							sampleHFreq = FreeGlobals.rewardedHFreq;
 							sampleVFreq = 1;
+							nonSampleHFreq = 1;
+							nonSampleVFreq = FreeGlobals.rewardedVFreq;
 						} else { // Sample will be vertical tree
 							gos [2].GetComponent<WaterTreeScript> ().SetShader (1, FreeGlobals.rewardedVFreq);
 							sampleHFreq = 1;
 							sampleVFreq = FreeGlobals.rewardedVFreq;
+							nonSampleHFreq = FreeGlobals.rewardedHFreq;
+							nonSampleVFreq = 1;
 						}
 						SetupTreeActivation (gos, 2, gos.Length);
 
 						// Setup side trees to turn on after the choice delay
 						float rCand = UnityEngine.Random.value;
-						float[] rThresh = new float[gos.Length + 1];
+						float[] rThresh = new float[3];
 						rThresh [0] = 0;
-						rThresh [gos.Length] = 1;
-						for (int i = 1; i < gos.Length; i++) {
-							rThresh [i] = 1F / gos.Length * i;
+						rThresh [2] = 1;
+						for (int i = 1; i < 2; i++) {
+							rThresh [i] = 1F / 2 * i;
 						}
 
 						// Bias correction
 						// This was ON when training batch#1, which learned within 3 days
 						if (FreeGlobals.numberOfTrials >= 1) {
-							float[] bcs = new float[gos.Length];
+							float[] bcs = new float[2];
 							string bcsStr = "";
-							for (int i = 0; i < gos.Length; i++) {
+							for (int i = 0; i < 2; i++) {
 								bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
 								bcsStr += bcs [i] + " ";
 							}
 							float s = bcs.Sum ();
 							Debug.Log (bcsStr);
-							for (int i = 0; i < gos.Length - 1; i++) {
+							for (int i = 0; i < 2 - 1; i++) {
 								bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
 								rThresh [i + 1] = rThresh [i] + bcs [i];
 							}
 						}
 
 						this.treeToActivate = 0;  // treeToActivate is actually the side of the rewarded tree - both will be activated in this scenario
-						for (int i = 1; i < gos.Length + 1; i++) {
+						for (int i = 1; i < 2 + 1; i++) {
 							if (rCand >= rThresh [i - 1] && rCand <= rThresh [i])
-								treeToActivate = i - 1;
-						}
-
-						// Now that I know which side tree will be rewarded, alter its stripes to match the sample
-						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
-						// Alter shading of the non-rewarded tree
-						if (treeToActivate == 0)
-							gos [1].GetComponent<WaterTreeScript> ().SetShader (sampleVFreq, sampleHFreq);
-						else
-							gos [0].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleHFreq);
-
-						// These side trees will only be activated after the choiceDelay
-						if (FreeGlobals.choiceDelay > 0) {
-							Invoke ("ChoicesAppear", FreeGlobals.choiceDelay / 1000);
-						} else {  // Don't allow negative values for choiceDelay!
-							Invoke ("ChoicesAppear", 0);
+								this.treeToActivate = i - 1;
 						}
 
 						// Some debug output to confirm bias correction is working reasonably
@@ -808,17 +790,45 @@ public class FreeGameControlScript : MonoBehaviour
 						}
 						Debug.Log ("[0, " + threshStr + "1] - " + rCand);
 
+						// Now that I know which side tree will be rewarded, alter its stripes to match the sample
+						gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+						// Alter shading of the non-rewarded tree
+						if (treeToActivate == 0)
+							gos [1].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+						else
+							gos [0].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+
 						// Record the state to the log history kept in memory
 						FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
 						FreeGlobals.targetHFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
 						FreeGlobals.targetVFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ());
 
-						FreeGlobals.freeState = "sample_on";
 						FreeGlobals.numberOfTrials++;
 						FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
-					} else {
-						if (oldestStartPokeTime == DateTime.MinValue) {
-							oldestStartPokeTime = DateTime.Now;
+					}
+
+					// These side trees will only be activated after the choiceDelay
+					if (FreeGlobals.startRewardDelay == 0) {
+						if (FreeGlobals.choiceDelay > 0) {
+							Invoke ("ChoicesAppear", FreeGlobals.choiceDelay / 1000);
+						} else {  // Don't allow negative values for choiceDelay!
+							Invoke ("ChoicesAppear", 0);
+						}
+						FreeGlobals.freeState = "sample_on";
+					} else if (oldestStartPokeTime == DateTime.MinValue) {
+						oldestStartPokeTime = DateTime.Now;
+						startTreeSet = true;
+					} else if (oldestStartPokeTime != DateTime.MinValue) {
+						if (DateTime.Now.Subtract (oldestStartPokeTime).TotalMilliseconds > FreeGlobals.startRewardDelay) {
+							if (FreeGlobals.waterAtStart) {
+								int dur = FreeGlobals.freeRewardDur [rs / 2];
+								ard.sendReward (rs, dur);
+								lastRewardTime = DateTime.Now;
+								float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+								FreeGlobals.sizeOfRewardGiven.Add (rSize);
+								FreeGlobals.rewardAmountSoFar += rSize;
+							}
+							FreeGlobals.freeState = "sample_on";
 						}
 					}
 				} else if (rs == 1) {  // mouse pulled nose out of startport
@@ -826,7 +836,12 @@ public class FreeGameControlScript : MonoBehaviour
 				}
 				break;
 
-			case "sample_on":
+			case "sample_on": 
+				if (FreeGlobals.startRewardDelay > 0) {  // This means we are in DMTS #2, Sabrina's design
+					if (rs == 1) {  // Mouse pulled out of the noseport after startRewardDelay
+						ChoicesAppear();
+					}
+				}
 				break;
 
 			case "choices_on":  // Mouse has poked his nose in to start, and sample appeared, and after some delay, choices appeared
@@ -858,6 +873,8 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.WriteToLogFiles ();
 
 					SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
+					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time for advancing to next level
+					startTreeSet = false;
 					FreeGlobals.freeState = "pretrial";
 				}
 				break;
@@ -909,8 +926,11 @@ public class FreeGameControlScript : MonoBehaviour
 
 	private void ChoicesAppear() { // Called by Invoke
 		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-		SetupTreeActivation(gos, 0, 2);
-		SetupTreeActivation(gos, 1, 2);
+		for (int i = 0; i < 2; i++)
+		{
+			gos[i].SetActive(true);
+			gos[i].GetComponent<WaterTreeScript>().Show();
+		}
 		FreeGlobals.freeState = "choices_on";  // Transition states, so that the side lickports are now active
 	}
 

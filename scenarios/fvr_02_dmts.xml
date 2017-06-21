@@ -9,7 +9,7 @@
 		</dryConfig>
 		<gameConfig>
 			<gameType>free_dmts</gameType>
-			<rewardedHFreq>4</rewardedHFreq> <!-- vfreq in this case is 1 -->
+			<rewardedHFreq>8</rewardedHFreq> <!-- vfreq in this case is 1 -->
 			<rewardedVFreq>4</rewardedVFreq> <!-- hfreq in this case is 1 -->
 			<choiceDelay>1000</choiceDelay> <!-- in ms; when the left and right trees come on -->
 		</gameConfig>
