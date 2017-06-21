@@ -65,6 +65,10 @@ public static class FreeGlobals
 
 	public static string freeState = "preload";
 
+	// Parameters for delay match to sample
+	public static float choiceDelay = 0;
+	public static float startRewardDelay = 0;
+
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
     {

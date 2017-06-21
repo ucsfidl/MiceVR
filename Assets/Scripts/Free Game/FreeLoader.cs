@@ -270,8 +270,8 @@ public class FreeLoader : MonoBehaviour {
         }
         else if (start > 0 && start >= treeList.Count)
         {
-			if (!this.scenarioLoaded && FreeGlobals.gameType.Contains("free_det")) {
-				FreeGlobals.freeState = "loaded";
+			if (!this.scenarioLoaded && FreeGlobals.gameType.Contains("free")) {
+				FreeGlobals.freeState = "pretrial";
 			}
             this.scenarioLoaded = true;          
         }
@@ -447,6 +447,18 @@ public class FreeLoader : MonoBehaviour {
 					FreeGlobals.freeRewardDur [0] = (int) (sr / FreeGlobals.rewardSize * FreeGlobals.rewardDur);
 					if (FreeGlobals.freeRewardDur [0] < 15)  // valves will only open for a minimum time
 						FreeGlobals.freeRewardDur [0] = 15;
+				}
+				if (xn["startRewardDelay"] != null)
+				{
+					float srd;
+					float.TryParse(xn["startRewardDelay"].InnerText, out srd);
+					FreeGlobals.startRewardDelay = srd;  // In ms
+				}
+				if (xn["choiceDelay"] != null)
+				{
+					float cd;
+					float.TryParse(xn["choiceDelay"].InnerText, out cd);
+					FreeGlobals.choiceDelay = cd;  // In ms
 				}
 
             }
