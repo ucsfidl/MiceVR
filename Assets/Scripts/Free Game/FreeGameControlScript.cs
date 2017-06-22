@@ -998,6 +998,7 @@ public class FreeGameControlScript : MonoBehaviour
 						this.fadeToBlack.gameObject.SetActive (true);
 						this.fadeToBlack.color = Color.white;
 						this.state = "Paused";
+						Debug.Log ("incorrect");
 					}
 					FreeGlobals.WriteToLogFiles ();
 
