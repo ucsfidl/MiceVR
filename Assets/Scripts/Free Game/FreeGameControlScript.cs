@@ -1108,17 +1108,16 @@ public class FreeGameControlScript : MonoBehaviour
 						Debug.Log ("correct");
 					} else {  // Mouse chose the non-matching tree, so withold reward and log it!
 						FreeGlobals.sizeOfRewardGiven.Add (0);
-						FreeGlobals.trialDelay = 4;
-						this.fadeToBlack.gameObject.SetActive (true);
-						this.fadeToBlack.color = Color.white;
+						FreeGlobals.trialDelay = 3;
+						//this.fadeToBlack.gameObject.SetActive (true);
+						//this.fadeToBlack.color = Color.white;
 						this.state = "Paused";
-						Debug.Log ("inqqqcorrect");
+						Debug.Log ("incorrect");
 					}
 					FreeGlobals.WriteToLogFiles ();
 
-					SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
-					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time for advancing to next level
-					startTreeSet = false;
+					Invoke ("DisappearTree", 3);
+					//SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
 					FreeGlobals.freeState = "pretrial";
 				}
 				break;
