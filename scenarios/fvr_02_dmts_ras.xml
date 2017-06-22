@@ -12,7 +12,7 @@
 			<waterAtStart>true</waterAtStart>
 			<startReward>2</startReward>
 			<startRewardDelay>500</startRewardDelay> <!-- in ms; time after start poke that startReward is given -->
-			<rewardedHFreq>4</rewardedHFreq> <!-- vfreq in this case is 1 -->
+			<rewardedHFreq>8</rewardedHFreq> <!-- vfreq in this case is 1 -->
 			<rewardedVFreq>4</rewardedVFreq> <!-- hfreq in this case is 1 -->
 			<choiceDelay>0</choiceDelay> <!-- in ms; when the left and right trees come on -->
 		</gameConfig>
