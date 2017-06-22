@@ -68,6 +68,7 @@ public static class FreeGlobals
 	// Parameters for delay match to sample
 	public static float choiceDelay = 0;
 	public static float startRewardDelay = 0;
+	public static string rewardedOri;
 
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()

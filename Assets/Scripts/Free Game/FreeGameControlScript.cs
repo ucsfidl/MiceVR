@@ -1009,6 +1009,120 @@ public class FreeGameControlScript : MonoBehaviour
 				}
 				break;
 			}
+		} else if (FreeGlobals.gameType.Equals ("free_disc")) {  
+			int rs = ard.CheckForMouseAction ();
+			GameObject[] gos = GameObject.FindGameObjectsWithTag ("water");
+
+			switch (FreeGlobals.freeState) {
+			case "pretrial":  // Mouse has not yet poked his nose into the startport
+				if (rs == FreeGlobals.freeRewardSite [0]) {  // Mouse poked nose into the startport
+					// Setup side trees to turn on after the choice delay
+					float rCand = UnityEngine.Random.value;
+					float[] rThresh = new float[3];
+					rThresh [0] = 0;
+					rThresh [2] = 1;
+					for (int i = 1; i < 2; i++) {
+						rThresh [i] = 1F / 2 * i;
+					}
+
+					// Bias correction
+					// This was ON when training batch#1, which learned within 3 days
+					if (FreeGlobals.numberOfTrials >= 1) {
+						float[] bcs = new float[2];
+						string bcsStr = "";
+						for (int i = 0; i < 2; i++) {
+							bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
+							bcsStr += bcs [i] + " ";
+						}
+						float s = bcs.Sum ();
+						Debug.Log (bcsStr);
+						for (int i = 0; i < 2 - 1; i++) {
+							bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
+							rThresh [i + 1] = rThresh [i] + bcs [i];
+						}
+					}
+
+					this.treeToActivate = 0;  // treeToActivate is actually the side of the rewarded tree - both will be activated in this scenario
+					for (int i = 1; i < 2 + 1; i++) {
+						if (rCand >= rThresh [i - 1] && rCand <= rThresh [i])
+							this.treeToActivate = i - 1;
+					}
+
+					// Some debug output to confirm bias correction is working reasonably
+					string threshStr = "";
+					for (int i = 1; i < rThresh.Length - 1; i++) {
+						threshStr += rThresh [i] + ", ";
+					}
+					Debug.Log ("[0, " + threshStr + "1] - " + rCand);
+
+					// This need not be set each trial, but whatever
+					if (FreeGlobals.rewardedOri.Equals ("h")) {
+						sampleHFreq = FreeGlobals.rewardedHFreq;
+						sampleVFreq = 1;
+						nonSampleHFreq = 1;
+						nonSampleVFreq = FreeGlobals.rewardedVFreq;
+					} else if (FreeGlobals.rewardedOri.Equals ("v")) {
+						sampleHFreq = 1;
+						sampleVFreq = FreeGlobals.rewardedVFreq;
+						nonSampleHFreq = FreeGlobals.rewardedHFreq;
+						nonSampleVFreq = 1;
+					}
+
+					gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+					// Alter shading of the non-rewarded tree
+					if (treeToActivate == 0)
+						gos [1].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+					else
+						gos [0].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+
+					// Record the state to the log history kept in memory
+					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
+					FreeGlobals.targetHFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.targetVFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+
+					FreeGlobals.numberOfTrials++;
+					FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+
+					ChoicesAppear ();  // Display the trees
+				}
+				break;
+
+			case "choices_on":  // Mouse has poked his nose in to start, and the choices have appeared
+				if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2]) { // licked at 1 of 2 lick ports
+					int idx = rs / 2 - 1;
+
+					// Log the decision
+					FreeGlobals.firstTurn.Add (gos [idx].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.firstTurnVFreq.Add (gos [idx].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
+
+					if (idx == this.treeToActivate) {  // Mouse chose the right tree, so give reward and log it!
+						int dur = FreeGlobals.freeRewardDur [rs / 2]; // This is not quite right - won't work if trees get unequal reward
+						ard.sendReward (rs, dur);
+						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+						FreeGlobals.sizeOfRewardGiven.Add (rSize);
+						FreeGlobals.rewardAmountSoFar += rSize;
+
+						FreeGlobals.numCorrectTurns++;
+						Debug.Log ("correct");
+					} else {  // Mouse chose the non-matching tree, so withold reward and log it!
+						FreeGlobals.sizeOfRewardGiven.Add (0);
+						FreeGlobals.trialDelay = 1;
+						this.fadeToBlack.gameObject.SetActive (true);
+						this.fadeToBlack.color = Color.white;
+						this.state = "Paused";
+						Debug.Log ("inqqqcorrect");
+					}
+					FreeGlobals.WriteToLogFiles ();
+
+					SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
+					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time for advancing to next level
+					startTreeSet = false;
+					FreeGlobals.freeState = "pretrial";
+				}
+				break;
+			}
 		}
 
 		if (FreeGlobals.rewardAmountSoFar >= FreeGlobals.totalRewardSize)

@@ -461,6 +461,11 @@ public class FreeLoader : MonoBehaviour {
 					FreeGlobals.choiceDelay = cd;  // In ms
 				}
 
+				if (xn["rewardedOri"] != null)
+				{
+					string rewardedOriXML = xn["rewardedOri"].InnerText;
+					FreeGlobals.rewardedOri = rewardedOriXML;
+				}
             }
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.

@@ -1,0 +1,35 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>free_dmts_sample_loc_rand</gameType>
+			<rewardedHFreq>8</rewardedHFreq> <!-- vfreq in this case is 1 -->
+			<rewardedVFreq>4</rewardedVFreq> <!-- hfreq in this case is 1 -->
+			<sampleReward>2</sampleReward> <!-- in ul -->
+			<choiceReward>4</choiceReward> <!-- in ul -->
+		</gameConfig>
+	</config>
+	<trees>
+		<t> <!-- Left tree -->
+			<w>1</w>
+			<pos>19998.75;0;20000.37</pos>
+			<d>0</d>
+		</t>
+		<t> <!-- Right tree -->
+			<w>1</w>
+			<pos>20001.25;0;20000.37</pos>
+			<d>0</d>
+		</t>
+		<t> <!-- Center tree -->
+			<w>1</w>
+			<pos>20000;0;20001.3</pos>
+			<d>0</d>
+		</t>
+	</trees>
+</document>
