@@ -36,7 +36,7 @@ public static class FreeGlobals
     public static int numCorrectTurns;
 	public static int trialsSinceMouseStreakEliminated = 3;
 
-	public static int trialDelay; 
+	public static float trialDelay; 
 	public static int numberOfTrials;
 
 	public static float centralViewVisibleShift;

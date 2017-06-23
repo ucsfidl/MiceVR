@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿ using UnityEngine;
 using System;
 using System.Collections;
 using System.Linq;
@@ -1106,9 +1106,13 @@ public class FreeGameControlScript : MonoBehaviour
 
 						FreeGlobals.numCorrectTurns++;
 						Debug.Log ("correct");
+						FreeGlobals.trialDelay = 3;
+						//this.fadeToBlack.gameObject.SetActive (true);
+						//this.fadeToBlack.color = Color.white;
+						this.state = "Paused";
 					} else {  // Mouse chose the non-matching tree, so withold reward and log it!
 						FreeGlobals.sizeOfRewardGiven.Add (0);
-						FreeGlobals.trialDelay = 3;
+						FreeGlobals.trialDelay = 1.5F;
 						//this.fadeToBlack.gameObject.SetActive (true);
 						//this.fadeToBlack.color = Color.white;
 						this.state = "Paused";
@@ -1116,7 +1120,7 @@ public class FreeGameControlScript : MonoBehaviour
 					}
 					FreeGlobals.WriteToLogFiles ();
 
-					Invoke ("DisappearTree", 3);
+					Invoke ("DisappearTree", FreeGlobals.trialDelay);
 					//SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
 					FreeGlobals.freeState = "pretrial";
 				}
@@ -1236,7 +1240,7 @@ public class FreeGameControlScript : MonoBehaviour
 	}
 
 
-	IEnumerator WaitFor(int n)
+	IEnumerator WaitFor(float n)
 	{
 		yield return new WaitForSeconds(n);
 		waitedOneFrame = true;
