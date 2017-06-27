@@ -838,9 +838,16 @@ public class FreeGameControlScript : MonoBehaviour
 
 			case "sample_on": 
 				if (FreeGlobals.startRewardDelay > 0) {  // This means we are in DMTS #2, Sabrina's design
+					/* Design #1 for Sabrina's DMTS
 					if (rs == 1) {  // Mouse pulled out of the noseport after startRewardDelay
 						ChoicesAppear ();
 					}
+					*/
+					// Design #2 - Choices appear after time has elapsed, regardless of whether the mouse has pulled out of the noseport
+					ChoicesAppear();
+
+					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time for advancing to next level
+					startTreeSet = false;
 				}
 				break;
 
@@ -863,18 +870,22 @@ public class FreeGameControlScript : MonoBehaviour
 
 						FreeGlobals.numCorrectTurns++;
 						Debug.Log ("correct");
+						FreeGlobals.trialDelay = 3;
+						//this.fadeToBlack.gameObject.SetActive (true);
+						//this.fadeToBlack.color = Color.white;
+						this.state = "Paused";
 					} else {  // Mouse chose the non-matching tree, so withold reward and log it!
 						FreeGlobals.sizeOfRewardGiven.Add (0);
-						FreeGlobals.trialDelay = 6;
-						this.fadeToBlack.gameObject.SetActive (true);
-						this.fadeToBlack.color = Color.white;
+						FreeGlobals.trialDelay = 1.5F;
+						//this.fadeToBlack.gameObject.SetActive (true);
+						//this.fadeToBlack.color = Color.white;
 						this.state = "Paused";
+						Debug.Log ("incorrect");
 					}
 					FreeGlobals.WriteToLogFiles ();
 
-					SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
-					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time for advancing to next level
-					startTreeSet = false;
+					Invoke ("DisappearTree", FreeGlobals.trialDelay);
+					//SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
 					FreeGlobals.freeState = "pretrial";
 				}
 				break;
@@ -983,6 +994,7 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.firstTurnVFreq.Add (gos [idx].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
 					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
 
+
 					if (idx == this.treeToActivate) {  // Mouse chose the right tree, so give reward and log it!
 						int dur = FreeGlobals.freeRewardDur [rs / 2]; // This is not quite right - won't work if trees get unequal reward
 						ard.sendReward (rs, dur);
@@ -992,19 +1004,22 @@ public class FreeGameControlScript : MonoBehaviour
 
 						FreeGlobals.numCorrectTurns++;
 						Debug.Log ("correct");
+						FreeGlobals.trialDelay = 3;
+						//this.fadeToBlack.gameObject.SetActive (true);
+						//this.fadeToBlack.color = Color.white;
+						this.state = "Paused";
 					} else {  // Mouse chose the non-matching tree, so withold reward and log it!
 						FreeGlobals.sizeOfRewardGiven.Add (0);
-						FreeGlobals.trialDelay = 1;
-						this.fadeToBlack.gameObject.SetActive (true);
-						this.fadeToBlack.color = Color.white;
+						FreeGlobals.trialDelay = 1.5F;
+						//this.fadeToBlack.gameObject.SetActive (true);
+						//this.fadeToBlack.color = Color.white;
 						this.state = "Paused";
-						Debug.Log ("inqqqcorrect");
+						Debug.Log ("incorrect");
 					}
 					FreeGlobals.WriteToLogFiles ();
 
-					SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
-					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time for advancing to next level
-					startTreeSet = false;
+					Invoke ("DisappearTree", FreeGlobals.trialDelay);
+					//SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
 					FreeGlobals.freeState = "pretrial";
 				}
 				break;
