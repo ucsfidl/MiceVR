@@ -70,6 +70,11 @@ public static class FreeGlobals
 	public static float startRewardDelay = 0;
 	public static string rewardedOri;
 
+	// Parameters for curvy vs. straight discrimination
+	public static string rewardedLineType;
+	public static float rewardedAmplitude;
+	public static float rewardedNumCycles;
+
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
     {

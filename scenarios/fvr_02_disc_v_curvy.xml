@@ -8,10 +8,13 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>free_disc</gameType>
-			<rewardedHFreq>8</rewardedHFreq> <!-- vfreq in this case is 1 -->
-			<rewardedVFreq>4</rewardedVFreq> <!-- hfreq in this case is 1 -->
-			<rewardedOri>h</rewardedOri>
+			<gameType>free_disc_single_ori</gameType>
+			<rewardedHFreq>1</rewardedHFreq>
+			<rewardedVFreq>4</rewardedVFreq>
+			<rewardedOri>v</rewardedOri>
+			<rewardedLineType>curvy</rewardedLine>
+			<rewardedAmplitude>0.06</rewardedAmplitude>
+			<rewardedNumCycles>4</rewardedNumCycles>
 		</gameConfig>
 	</config>
 	<trees>

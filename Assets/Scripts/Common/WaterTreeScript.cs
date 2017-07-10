@@ -284,6 +284,19 @@ public class WaterTreeScript : MonoBehaviour {
         //this.bottomCap.SetActive(true);
     }
 
+	// Support for curvy trees - will fail if Curvy hasn't been set as the Shader material
+	public void SetShader(float HFreq, float VFreq, float VAmplitude, float VNumCycles, float VSmooth, float HAmplitude, float HNumCycles, float HSmooth)
+	{
+		this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VAmplitude", VAmplitude);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VNumCycles", VNumCycles);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VSmooth", VSmooth);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_HAmplitude", HAmplitude);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_HNumCycles", HNumCycles);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_HSmooth", HSmooth);
+	}
+
     public void SetShaderRotation(float deg)
     {
         this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
@@ -320,6 +333,11 @@ public class WaterTreeScript : MonoBehaviour {
     {
         this.correctTree = c;
     }
+
+	public void ChangeShader(String shaderStr) {
+		Material m = new Material (Shader.Find (shaderStr));
+		this.crown.GetComponent<Renderer>().material = m;
+	}
 
     public void ChangeTexture(Texture t)
     {

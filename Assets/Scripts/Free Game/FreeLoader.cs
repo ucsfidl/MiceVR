@@ -466,7 +466,27 @@ public class FreeLoader : MonoBehaviour {
 					string rewardedOriXML = xn["rewardedOri"].InnerText;
 					FreeGlobals.rewardedOri = rewardedOriXML;
 				}
-            }
+
+				if (xn["rewardedLineType"] != null)
+				{
+					string rewardedLineTypeXML = xn["rewardedLineType"].InnerText;
+					FreeGlobals.rewardedLineType = rewardedLineTypeXML;
+				}
+
+				if (xn["rewardedAmplitude"] != null) // 0.1 is about full width of vertical line
+				{
+					float ra;
+					float.TryParse(xn["rewardedAmplitude"].InnerText, out ra);
+					FreeGlobals.rewardedAmplitude = ra;
+				}
+
+				if (xn["rewardedNumCycles"] != null)  // Number of cycles of the wave displayed on the tree 
+				{
+					float nc;
+					float.TryParse(xn["rewardedNumCycles"].InnerText, out nc);
+					FreeGlobals.rewardedAmplitude = nc;
+				}
+			}
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.
 			int i = 0;
