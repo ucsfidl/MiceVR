@@ -1196,7 +1196,7 @@ public class FreeGameControlScript : MonoBehaviour
 					// This need not be set each trial, but whatever
 					if (FreeGlobals.rewardedOri.Equals ("h")) {
 						sampleHFreq = FreeGlobals.rewardedHFreq;
-						sampleVFreq = 1;
+						sampleVFreq = FreeGlobals.rewardedVFreq;
 						if (FreeGlobals.rewardedLineType.Equals ("curvy")) {
 							gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1, 0, 0, 1);
 							gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
@@ -1205,7 +1205,7 @@ public class FreeGameControlScript : MonoBehaviour
 							gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1, 0, 0, 1);
 						}
 					} else if (FreeGlobals.rewardedOri.Equals ("v")) {
-						sampleHFreq = 1;
+						sampleHFreq = FreeGlobals.rewardedHFreq;
 						sampleVFreq = FreeGlobals.rewardedVFreq;
 						if (FreeGlobals.rewardedLineType.Equals ("curvy")) {
 							gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1);
