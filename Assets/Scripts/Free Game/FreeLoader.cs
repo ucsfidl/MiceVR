@@ -484,7 +484,7 @@ public class FreeLoader : MonoBehaviour {
 				{
 					float nc;
 					float.TryParse(xn["rewardedNumCycles"].InnerText, out nc);
-					FreeGlobals.rewardedAmplitude = nc;
+					FreeGlobals.rewardedNumCycles = nc;
 				}
 			}
 

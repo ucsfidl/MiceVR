@@ -285,16 +285,16 @@ public class WaterTreeScript : MonoBehaviour {
     }
 
 	// Support for curvy trees - will fail if Curvy hasn't been set as the Shader material
-	public void SetShader(float HFreq, float VFreq, float VAmplitude, float VNumCycles, float VSmooth, float HAmplitude, float HNumCycles, float HSmooth)
+	public void SetShader(float HFreq, float VFreq, float HAmplitude, float HNumCycles, float HSmooth, float VAmplitude, float VNumCycles, float VSmooth)
 	{
 		this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
 		this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
-		this.crown.GetComponent<Renderer>().material.SetFloat("_VAmplitude", VAmplitude);
-		this.crown.GetComponent<Renderer>().material.SetFloat("_VNumCycles", VNumCycles);
-		this.crown.GetComponent<Renderer>().material.SetFloat("_VSmooth", VSmooth);
 		this.crown.GetComponent<Renderer>().material.SetFloat("_HAmplitude", HAmplitude);
 		this.crown.GetComponent<Renderer>().material.SetFloat("_HNumCycles", HNumCycles);
 		this.crown.GetComponent<Renderer>().material.SetFloat("_HSmooth", HSmooth);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VAmplitude", VAmplitude);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VNumCycles", VNumCycles);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VSmooth", VSmooth);
 	}
 
     public void SetShaderRotation(float deg)
