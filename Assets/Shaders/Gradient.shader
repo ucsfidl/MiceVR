@@ -45,7 +45,7 @@ Shader "Custom/Gradient" {
                 fixed4 color;
 				if( _Deg >= 0 )
 				{
-					if ( fmod((i.texcoord0.x+((_Deg/45.0)*i.texcoord0.y))*_VFreq,2.0) < 1.0 ){
+					if ( fmod(2,2.0) < 1.0 ){
 						if ( fmod(i.texcoord0.y*_HFreq,2.0) < 1.0 )
 						{
 							color = _Color1;

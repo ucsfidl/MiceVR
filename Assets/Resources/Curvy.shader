@@ -4,13 +4,13 @@ Shader "Custom/Curvy" {
     Properties {
         _Color1 ("Color1", Color) = (1,1,1,1)
         _Color2 ("Color2", Color) = (0,0,0,0)
-        _VFreq ("VFreq", Range (1,1000)) = 1
-		_HFreq ("HFreq", Range (1,1000)) = 1
+        _VFreq ("VFreq", Range (0,1000)) = 1
+		_HFreq ("HFreq", Range (0,1000)) = 1
 		_Deg ("Degrees", Range (-45,45)) = 0
-		_VAmplitude ("VAmplitude", Range(0, 1)) = 0
+		_VAmplitude ("VAmplitude", Range(0, 100)) = 0
 		_VNumCycles ("VNumCycles", Range(0, 100)) = 0 
 		_VSmooth ("VSmooth", Range(0,1)) = 1
-		_HAmplitude ("HAmplitude", Range(0, 1)) = 0
+		_HAmplitude ("HAmplitude", Range(0, 100)) = 0
 		_HNumCycles ("HNumCycles", Range(0, 100)) = 0 
 		_HSmooth ("HSmooth", Range(0,1)) = 1
     }
@@ -76,7 +76,7 @@ Shader "Custom/Curvy" {
 				else if (_VSmooth == 1)
 				{
 				if ( fmod((i.texcoord0.x + _VAmplitude * sin(_VNumCycles/0.15*i.texcoord0.y - 1.4))*_VFreq + 0.5,2.0) < 1.0 ){
-						if ( fmod(i.texcoord0.y*_HFreq,2.0) < 1.0 )
+						if ( fmod((i.texcoord0.y + _HAmplitude * sin(_HNumCycles*i.texcoord0.x))*_HFreq,2.0) < 1.0 )
 						{
 							color = _Color1;
 						} else {
