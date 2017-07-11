@@ -348,13 +348,14 @@ public class FreeGameControlScript : MonoBehaviour
 
 			case "pretrial":  // Mouse has not yet poked his nose in
 				if (rs == FreeGlobals.freeRewardSite [0]) {
-					if (FreeGlobals.waterAtStart) {
+					if (FreeGlobals.waterAtStart && !startTreeSet) {  // only give water if startTree not set, so only give water once
 						int dur = FreeGlobals.freeRewardDur [rs / 2];
 						ard.sendReward (rs, dur);
 						lastRewardTime = DateTime.Now;
 						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
 						FreeGlobals.sizeOfRewardGiven.Add (rSize);
 						FreeGlobals.rewardAmountSoFar += rSize;
+						startTreeSet = true;
 					}
 
 					// Bias correction
@@ -418,21 +419,32 @@ public class FreeGameControlScript : MonoBehaviour
 						this.treeToActivate = 1;
 					}
 						
-					FreeGlobals.freeState = "nosepoke";
+					FreeGlobals.freeState = "choice";
 					FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
 					FreeGlobals.numberOfTrials++;
 
 					if (FreeGlobals.persistenceDur != -1)
 						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
+
+					oldestStartPokeTime = DateTime.Now;  // Set time, to be evaluated in the stim_on state if startRewardDelay > 0
 				}
 				break;
 				
-			case "nosepoke":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
+			case "choice":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
 				if (!FreeGlobals.stimPersists) {  // 1 is sent from arduino when break beam is made intact at startport
 					if (rs == 1)  // Mouse pulled nose out of startport
 						SetupTreeActivation (gos, -1, gos.Length);
 					else if (rs == 0)
 						SetupTreeActivation (gos, this.treeToActivate, gos.Length);
+				}
+
+				if (FreeGlobals.startRewardDelay > 0) { // Make sure mouse has kept nose in for the minimum amount of time, else stim disappear
+					if (rs == 1) { // Mouse pulled out nose from startport
+						if (DateTime.Now.Subtract (oldestStartPokeTime).TotalMilliseconds < FreeGlobals.startRewardDelay) {
+							FreeGlobals.freeState = "pretrial"; // go back to pretrial state
+							SetupTreeActivation (gos, -1, gos.Length);	// Hide all trees
+						}
+					}
 				}
 
 				if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) &&
@@ -461,6 +473,7 @@ public class FreeGameControlScript : MonoBehaviour
 
 					correctTrial = true;
 					FreeGlobals.freeState = "pretrial";
+					startTreeSet = false;
 				} else if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2]) {
 					if (correctTrial) {
 						FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
@@ -536,13 +549,15 @@ public class FreeGameControlScript : MonoBehaviour
 
 					if (FreeGlobals.persistenceDur != -1)
 						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
+
+					oldestStartPokeTime = DateTime.Now;  // Set time, to be evaluated in the stim_on state if startRewardDelay > 0
 				}
 				break;
 
 			case "stim_on":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
 				if (!FreeGlobals.stimPersists) {  // 1 is sent from arduino when break beam is made intact at startport
 					if (rs == 1)  // Mouse pulled nose out of startport
-						SetupTreeActivation (gos, -1, gos.Length);
+						SetupTreeActivation (gos, -1, gos.Length); // Hide all trees
 					else if (rs == 0)
 						SetupTreeActivation (gos, this.treeToActivate, gos.Length);
 				}
@@ -551,6 +566,15 @@ public class FreeGameControlScript : MonoBehaviour
 					if (rs == 0) { // Mouse put nose back in startport
 						SetupTreeActivation (gos, this.treeToActivate, gos.Length);
 						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
+					}
+				}
+
+				if (FreeGlobals.startRewardDelay > 0) { // Make sure mouse has kept nose in for the minimum amount of time, else stim disappear
+					if (rs == 1) { // Mouse pulled out nose from startport
+						if (DateTime.Now.Subtract (oldestStartPokeTime).TotalMilliseconds < FreeGlobals.startRewardDelay) {
+							FreeGlobals.freeState = "pretrial"; // go back to pretrial state
+							SetupTreeActivation (gos, -1, gos.Length);	// Hide all trees
+						}
 					}
 				}
 
@@ -676,6 +700,9 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.freeState = "stim_on";
 					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+
+					if (FreeGlobals.persistenceDur != -1)
+						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
 				}
 				break;
 
@@ -684,8 +711,16 @@ public class FreeGameControlScript : MonoBehaviour
 					if (rs == 1) {  // Mouse pulled nose out of startport
 						SetupTreeActivation (gos, -1, gos.Length);
 					} else if (rs == 0) {
-						SetupTreeActivation (gos, this.treeToActivate, 1);
+						SetupTreeActivation (gos, this.treeToActivate, 2);
 						gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+					}
+				}
+
+				if (FreeGlobals.persistenceDur != -1) {  // Tree might have disappeared, in which case bring it back
+					if (rs == 0) { // Mouse put nose back in startport
+						SetupTreeActivation (gos, this.treeToActivate, 2);
+						gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
 					}
 				}
 					
@@ -832,7 +867,7 @@ public class FreeGameControlScript : MonoBehaviour
 						}
 					}
 				} else if (rs == 1) {  // mouse pulled nose out of startport
-					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time for advancing to next level
+					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time to start over, forcing mouse to hold nose in for startRewardDelay duration
 				}
 				break;
 

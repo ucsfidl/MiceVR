@@ -8,8 +8,10 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>free_det_const</gameType>
-			<persistenceDur>1000</persistenceDur> <!-- ms -->
+			<gameType>free_det</gameType>
+			<waterAtStart>true</waterAtStart>
+			<startReward>2</startReward>
+			<startRewardDelay>200</startRewardDelay> <!-- in ms; mouse must hold in startport for this period of time for the stim to stay on -->
 		</gameConfig>
 	</config>
 	<trees>
