@@ -348,85 +348,84 @@ public class FreeGameControlScript : MonoBehaviour
 
 			case "pretrial":  // Mouse has not yet poked his nose in
 				if (rs == FreeGlobals.freeRewardSite [0]) {
-					if (FreeGlobals.waterAtStart && !startTreeSet) {  // only give water if startTree not set, so only give water once
-						int dur = FreeGlobals.freeRewardDur [rs / 2];
-						ard.sendReward (rs, dur);
-						lastRewardTime = DateTime.Now;
-						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
-						FreeGlobals.sizeOfRewardGiven.Add (rSize);
-						FreeGlobals.rewardAmountSoFar += rSize;
-						startTreeSet = true;
-					}
-
-					// Bias correction
-					// Had this OFF when training batch #1; this phase took 2-3 days
-					/*
-					float r = UnityEngine.Random.value;
-					float[] rThresh = new float[gos.Length + 1];
-					rThresh [0] = 0;
-					rThresh [gos.Length] = 1;
-					for (int i = 1; i < gos.Length; i++) {
-						rThresh [i] = 1F / gos.Length * i;
-					}
-
-					if (FreeGlobals.numberOfTrials >= 1) {
-						float[] bcs = new float[gos.Length];
-						string bcsStr = "";
-						for (int i = 0; i < gos.Length; i++) {
-							bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
-							bcsStr += bcs [i] + " ";
+					if (!startTreeSet) {
+						if (FreeGlobals.waterAtStart) {  // only give water if startTree not set, so only give water once
+							int dur = FreeGlobals.freeRewardDur [rs / 2];
+							ard.sendReward (rs, dur);
+							lastRewardTime = DateTime.Now;
+							float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+							FreeGlobals.sizeOfRewardGiven.Add (rSize);
+							FreeGlobals.rewardAmountSoFar += rSize;
+							startTreeSet = true;
 						}
-						float s = bcs.Sum ();
-						Debug.Log (bcsStr);
-						for (int i = 0; i < gos.Length - 1; i++) {
-							bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
-							rThresh[i+1] = rThresh[i] + bcs[i];
+
+						// Bias correction
+						// Had this OFF when training batch #1; this phase took 2-3 days
+						/*
+						float r = UnityEngine.Random.value;
+						float[] rThresh = new float[gos.Length + 1];
+						rThresh [0] = 0;
+						rThresh [gos.Length] = 1;
+						for (int i = 1; i < gos.Length; i++) {
+							rThresh [i] = 1F / gos.Length * i;
 						}
-					}
 
-					this.treeToActivate = 0;
-					for (int i = 1; i < gos.Length+1; i++) {
-						if (r >= rThresh [i - 1] && r <= rThresh [i])
-							treeToActivate = i - 1;
-					}
+						if (FreeGlobals.numberOfTrials >= 1) {
+							float[] bcs = new float[gos.Length];
+							string bcsStr = "";
+							for (int i = 0; i < gos.Length; i++) {
+								bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
+								bcsStr += bcs [i] + " ";
+							}
+							float s = bcs.Sum ();
+							Debug.Log (bcsStr);
+							for (int i = 0; i < gos.Length - 1; i++) {
+								bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
+								rThresh[i+1] = rThresh[i] + bcs[i];
+							}
+						}
 
-
-					SetupTreeActivation (gos, treeToActivate, gos.Length);
-					string threshStr = "";
-					for (int i = 1; i < rThresh.Length-1; i++) {
-						threshStr += rThresh [i] + ", ";
-					}
-					Debug.Log("[0, " + threshStr + "1] - " + r);
-
-					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
-					FreeGlobals.targetHFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq());
-					FreeGlobals.targetVFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq());
-					*/
-
-					// No bias correction
-					float r = UnityEngine.Random.value;
-					if (r < 0.5) {
-						SetupTreeActivation (gos, 0, 2);
-						FreeGlobals.targetLoc.Add (gos [0].transform.position.x);
-						FreeGlobals.targetHFreq.Add (gos [0].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
-						FreeGlobals.targetVFreq.Add (gos [0].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
 						this.treeToActivate = 0;
-					} else {
-						SetupTreeActivation (gos, 1, 2);
-						FreeGlobals.targetLoc.Add (gos [1].transform.position.x);
-						FreeGlobals.targetHFreq.Add (gos [1].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
-						FreeGlobals.targetVFreq.Add (gos [1].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
-						this.treeToActivate = 1;
-					}
+						for (int i = 1; i < gos.Length+1; i++) {
+							if (r >= rThresh [i - 1] && r <= rThresh [i])
+								treeToActivate = i - 1;
+						}
+
+
+						SetupTreeActivation (gos, treeToActivate, gos.Length);
+						string threshStr = "";
+						for (int i = 1; i < rThresh.Length-1; i++) {
+							threshStr += rThresh [i] + ", ";
+						}
+						Debug.Log("[0, " + threshStr + "1] - " + r);
+
+						FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
+						FreeGlobals.targetHFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq());
+						FreeGlobals.targetVFreq.Add(gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq());
+						*/
+
+						// No bias correction
+						float r = UnityEngine.Random.value;
+						if (r < 0.5) 
+							this.treeToActivate = 0;
+						else
+							this.treeToActivate = 1;
 						
-					FreeGlobals.freeState = "choice";
-					FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
-					FreeGlobals.numberOfTrials++;
+						FreeGlobals.targetLoc.Add (gos [this.treeToActivate].transform.position.x);
+						FreeGlobals.targetHFreq.Add (gos [this.treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+						FreeGlobals.targetVFreq.Add (gos [this.treeToActivate].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+							
+						FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+						FreeGlobals.numberOfTrials++;
+					}
+					SetupTreeActivation (gos, this.treeToActivate, 2);
 
 					if (FreeGlobals.persistenceDur != -1)
 						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
 
 					oldestStartPokeTime = DateTime.Now;  // Set time, to be evaluated in the stim_on state if startRewardDelay > 0
+					FreeGlobals.freeState = "choice";
+					startTreeSet = true;
 				}
 				break;
 				
@@ -492,65 +491,70 @@ public class FreeGameControlScript : MonoBehaviour
 
 			case "pretrial":  // Mouse has not yet poked his nose in
 				if (rs == FreeGlobals.freeRewardSite [0]) {
-					if (FreeGlobals.waterAtStart) {
-						int dur = FreeGlobals.freeRewardDur [rs / 2];
-						ard.sendReward (rs, dur);
-						lastRewardTime = DateTime.Now;
-						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
-						FreeGlobals.sizeOfRewardGiven.Add (rSize);
-						FreeGlobals.rewardAmountSoFar += rSize;
-					}
-
-					float r = UnityEngine.Random.value;
-					float[] rThresh = new float[gos.Length + 1];
-					rThresh [0] = 0;
-					rThresh [gos.Length] = 1;
-					for (int i = 1; i < gos.Length; i++) {
-						rThresh [i] = 1F / gos.Length * i;
-					}
-
-					// Bias correction
-					// This was ON when training batch#1, which learned within 3 days
-					if (FreeGlobals.numberOfTrials >= 1) {
-						float[] bcs = new float[gos.Length];
-						string bcsStr = "";
-						for (int i = 0; i < gos.Length; i++) {
-							bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
-							bcsStr += bcs [i] + " ";
+					if (!startTreeSet) {
+						if (FreeGlobals.waterAtStart) {
+							int dur = FreeGlobals.freeRewardDur [rs / 2];
+							ard.sendReward (rs, dur);
+							lastRewardTime = DateTime.Now;
+							float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+							FreeGlobals.sizeOfRewardGiven.Add (rSize);
+							FreeGlobals.rewardAmountSoFar += rSize;
 						}
-						float s = bcs.Sum ();
-						Debug.Log (bcsStr);
-						for (int i = 0; i < gos.Length - 1; i++) {
-							bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
-							rThresh [i + 1] = rThresh [i] + bcs [i];
+
+						float r = UnityEngine.Random.value;
+						float[] rThresh = new float[gos.Length + 1];
+						rThresh [0] = 0;
+						rThresh [gos.Length] = 1;
+						for (int i = 1; i < gos.Length; i++) {
+							rThresh [i] = 1F / gos.Length * i;
 						}
-					}
- 	
-					this.treeToActivate = 0;
-					for (int i = 1; i < gos.Length + 1; i++) {
-						if (r >= rThresh [i - 1] && r <= rThresh [i])
-							treeToActivate = i - 1;
+
+						// Bias correction
+						// This was ON when training batch#1, which learned within 3 days
+						if (FreeGlobals.numberOfTrials >= 1) {
+							float[] bcs = new float[gos.Length];
+							string bcsStr = "";
+							for (int i = 0; i < gos.Length; i++) {
+								bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
+								bcsStr += bcs [i] + " ";
+							}
+							float s = bcs.Sum ();
+							Debug.Log (bcsStr);
+							for (int i = 0; i < gos.Length - 1; i++) {
+								bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
+								rThresh [i + 1] = rThresh [i] + bcs [i];
+							}
+						}
+	 	
+						this.treeToActivate = 0;
+						for (int i = 1; i < gos.Length + 1; i++) {
+							if (r >= rThresh [i - 1] && r <= rThresh [i])
+								treeToActivate = i - 1;
+						}
+
+						string threshStr = "";
+						for (int i = 1; i < rThresh.Length - 1; i++) {
+							threshStr += rThresh [i] + ", ";
+						}
+						Debug.Log ("[0, " + threshStr + "1] - " + r);
+
+						FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
+						FreeGlobals.targetHFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+						FreeGlobals.targetVFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+
+						FreeGlobals.numberOfTrials++;
+						FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
 					}
 
-					SetupTreeActivation (gos, treeToActivate, gos.Length);
-					string threshStr = "";
-					for (int i = 1; i < rThresh.Length - 1; i++) {
-						threshStr += rThresh [i] + ", ";
-					}
-					Debug.Log ("[0, " + threshStr + "1] - " + r);
-
-					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
-					FreeGlobals.targetHFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
-					FreeGlobals.targetVFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ());
-
-					FreeGlobals.freeState = "stim_on";
-					FreeGlobals.numberOfTrials++;
-					FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+					SetupTreeActivation (gos, this.treeToActivate, gos.Length);
 
 					if (FreeGlobals.persistenceDur != -1)
 						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
 
 					oldestStartPokeTime = DateTime.Now;  // Set time, to be evaluated in the stim_on state if startRewardDelay > 0
+
+					startTreeSet = true;
+					FreeGlobals.freeState = "stim_on";
 				}
 				break;
 
@@ -592,6 +596,7 @@ public class FreeGameControlScript : MonoBehaviour
 
 					SetupTreeActivation (gos, -1, gos.Length); // Hide all trees 
 					FreeGlobals.freeState = "pretrial";
+					startTreeSet = false;
 
 					if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) &&
 					    rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
@@ -619,6 +624,7 @@ public class FreeGameControlScript : MonoBehaviour
 					}
 					FreeGlobals.WriteToLogFiles ();
 				}
+
 				break;
 			} 
 		} else if (FreeGlobals.gameType.Equals ("free_det_blind")) {
