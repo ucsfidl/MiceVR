@@ -65,6 +65,10 @@ public class FreeGameControlScript : MonoBehaviour
 	private float nonSampleVFreq;
 	private bool startTreeSet = false;
 
+	private DateTime firstStimOnTime = DateTime.MinValue;
+	private DateTime lastStimOnTime = DateTime.MinValue;
+	private float disappearTreeDelay;
+
     // Use this for initialization
     void Start()
     {
@@ -417,11 +421,22 @@ public class FreeGameControlScript : MonoBehaviour
 							
 						FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
 						FreeGlobals.numberOfTrials++;
+
+						// If the stim is persistent, log appropriate values
+						if (FreeGlobals.persistenceDur == -1) {
+							FreeGlobals.stimDur.Add (-1);
+							FreeGlobals.stimReps.Add (1);
+						} else {
+							FreeGlobals.stimDur.Add (0);
+							FreeGlobals.stimReps.Add (0);
+						}
 					}
+
 					SetupTreeActivation (gos, this.treeToActivate, 2);
 
-					if (FreeGlobals.persistenceDur != -1)
-						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
+					if (FreeGlobals.persistenceDur != -1) {
+						DisappearTreeHelper ();
+					}
 
 					oldestStartPokeTime = DateTime.Now;  // Set time, to be evaluated in the stim_on state if startRewardDelay > 0
 					FreeGlobals.freeState = "choice";
@@ -544,12 +559,22 @@ public class FreeGameControlScript : MonoBehaviour
 
 						FreeGlobals.numberOfTrials++;
 						FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+
+						// If the stim is persistent, log appropriate values
+						if (FreeGlobals.persistenceDur == -1) {
+							FreeGlobals.stimDur.Add (-1);
+							FreeGlobals.stimReps.Add (1);
+						} else {
+							FreeGlobals.stimDur.Add (0);
+							FreeGlobals.stimReps.Add (0);
+						}
 					}
 
 					SetupTreeActivation (gos, this.treeToActivate, gos.Length);
 
-					if (FreeGlobals.persistenceDur != -1)
-						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
+					if (FreeGlobals.persistenceDur != -1) {
+						DisappearTreeHelper ();
+					}
 
 					oldestStartPokeTime = DateTime.Now;  // Set time, to be evaluated in the stim_on state if startRewardDelay > 0
 
@@ -569,7 +594,7 @@ public class FreeGameControlScript : MonoBehaviour
 				if (FreeGlobals.persistenceDur != -1) {  // Tree might have disappeared, in which case bring it back
 					if (rs == 0) { // Mouse put nose back in startport
 						SetupTreeActivation (gos, this.treeToActivate, gos.Length);
-						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
+						DisappearTreeHelper ();
 					}
 				}
 
@@ -707,8 +732,16 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
 
-					if (FreeGlobals.persistenceDur != -1)
-						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
+					// If the stim is persistent, log appropriate values
+					if (FreeGlobals.persistenceDur == -1) {
+						FreeGlobals.stimDur.Add (-1);
+						FreeGlobals.stimReps.Add (1);
+					} else {
+						FreeGlobals.stimDur.Add (0);
+						FreeGlobals.stimReps.Add (0);
+						DisappearTreeHelper ();
+					}
+				
 				}
 				break;
 
@@ -726,7 +759,7 @@ public class FreeGameControlScript : MonoBehaviour
 					if (rs == 0) { // Mouse put nose back in startport
 						SetupTreeActivation (gos, this.treeToActivate, 2);
 						gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
-						Invoke ("DisappearTree", FreeGlobals.persistenceDur / 1000);
+						DisappearTreeHelper ();
 					}
 				}
 					
@@ -925,7 +958,7 @@ public class FreeGameControlScript : MonoBehaviour
 					}
 					FreeGlobals.WriteToLogFiles ();
 
-					Invoke ("DisappearTree", FreeGlobals.trialDelay);
+					Invoke ("DisappearAllTrees", FreeGlobals.trialDelay);
 					//SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
 					FreeGlobals.freeState = "pretrial";
 				}
@@ -1059,7 +1092,7 @@ public class FreeGameControlScript : MonoBehaviour
 					}
 					FreeGlobals.WriteToLogFiles ();
 
-					Invoke ("DisappearTree", FreeGlobals.trialDelay);
+					Invoke ("DisappearAllTrees", FreeGlobals.trialDelay);
 					//SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
 					FreeGlobals.freeState = "pretrial";
 				}
@@ -1176,7 +1209,7 @@ public class FreeGameControlScript : MonoBehaviour
 					}
 					FreeGlobals.WriteToLogFiles ();
 
-					Invoke ("DisappearTree", FreeGlobals.trialDelay);
+					Invoke ("DisappearAllTrees", FreeGlobals.trialDelay);
 					//SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
 					FreeGlobals.freeState = "pretrial";
 				}
@@ -1303,7 +1336,7 @@ public class FreeGameControlScript : MonoBehaviour
 					}
 					FreeGlobals.WriteToLogFiles ();
 
-					Invoke ("DisappearTree", FreeGlobals.trialDelay);
+					Invoke ("DisappearAllTrees", FreeGlobals.trialDelay);
 					FreeGlobals.freeState = "pretrial";
 				}
 				break;
@@ -1348,7 +1381,31 @@ public class FreeGameControlScript : MonoBehaviour
         */
     }
 
-	private void DisappearTree() { // Called by Invoke
+	private void DisappearTreeHelper() {
+		lastStimOnTime = DateTime.Now;
+		if (firstStimOnTime == DateTime.MinValue)
+			firstStimOnTime = lastStimOnTime;
+		disappearTreeDelay = FreeGlobals.persistenceDur / 1000;
+		Invoke ("DisappearTreeIfTimeElapsed", disappearTreeDelay);
+	}
+
+	private void DisappearTreeIfTimeElapsed() { // Called by invoke - this causes flickering to go away when mouse pokes nose in multiple times and multiple calls are made to DisappearTreeHelper()
+		if (DateTime.Now.Subtract (lastStimOnTime).Milliseconds >= disappearTreeDelay * 1000)
+			DisappearImpersistentTree ();
+	}
+
+	private void DisappearImpersistentTree() { // Called by Invoke
+		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+		SetupTreeActivation(gos, -1, gos.Length);
+		FreeGlobals.stimDur [FreeGlobals.stimDur.Count - 1] = 
+			System.Convert.ToInt32(FreeGlobals.stimDur [FreeGlobals.stimDur.Count - 1]) + DateTime.Now.Subtract (firstStimOnTime).Milliseconds;
+		FreeGlobals.stimReps [FreeGlobals.stimReps.Count - 1] = 
+			System.Convert.ToInt32(FreeGlobals.stimReps[FreeGlobals.stimReps.Count - 1]) + 1;
+		firstStimOnTime = DateTime.MinValue;
+		lastStimOnTime = DateTime.MinValue;
+	}
+
+	private void DisappearAllTrees() { // Called by Invoke
 		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
 		SetupTreeActivation(gos, -1, gos.Length);
 	}

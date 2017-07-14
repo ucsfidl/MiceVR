@@ -33,6 +33,8 @@ public static class FreeGlobals
     public static ArrayList firstTurn = new ArrayList(); // X coord of tree the mouse hit or would have hit is placed in this list
     public static ArrayList firstTurnHFreq = new ArrayList();  // Orientation of the tree the mouse chose
     public static ArrayList firstTurnVFreq = new ArrayList();  // Orientation of the tree the mouse chose
+	public static ArrayList stimDur = new ArrayList();
+	public static ArrayList stimReps = new ArrayList();
     public static int numCorrectTurns;
 	public static int trialsSinceMouseStreakEliminated = 3;
 
@@ -81,8 +83,8 @@ public static class FreeGlobals
         // overwrite any existing file
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", false);
         // Write file header
-        Debug.Log("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
-        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
+		Debug.Log("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)\tStimDur(ms)\tStimReps");
+		turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)\tStimDur(ms)\tStimReps");
         turnsFile.Close();
     }
 
@@ -100,7 +102,9 @@ public static class FreeGlobals
                     firstTurn[firstTurn.Count - 1] + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
-                    (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]));
+                    (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + 
+					stimDur[stimDur.Count - 1] + "\t" + 
+					stimReps[stimReps.Count - 1]);
 
         turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1] + "\t" +
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
@@ -111,7 +115,9 @@ public static class FreeGlobals
                     firstTurn[firstTurn.Count - 1] + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
-                    (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]));
+					(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + 
+					stimDur[stimDur.Count - 1] + "\t" + 
+					stimReps[stimReps.Count - 1]);
         turnsFile.Close();
         WriteStatsFile();
     }
