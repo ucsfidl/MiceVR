@@ -66,7 +66,6 @@ public class FreeGameControlScript : MonoBehaviour
 	private bool startTreeSet = false;
 
 	private DateTime firstStimOnTime = DateTime.MinValue;
-	private DateTime lastStimOnTime = DateTime.MinValue;
 	private float disappearTreeDelay;
 
     // Use this for initialization
@@ -1395,9 +1394,8 @@ public class FreeGameControlScript : MonoBehaviour
     }
 
 	private void DisappearTreeHelper() {
-		lastStimOnTime = DateTime.Now;
 		if (firstStimOnTime == DateTime.MinValue)
-			firstStimOnTime = lastStimOnTime;
+			firstStimOnTime = DateTime.Now;
 
 		// If any invokes to disappear the tree had been called before, reset them by canceling and calling again
 		CancelInvoke ("DisappearImpersistentTree");
@@ -1418,7 +1416,6 @@ public class FreeGameControlScript : MonoBehaviour
 		FreeGlobals.stimReps [FreeGlobals.stimReps.Count - 1] = 
 			System.Convert.ToInt32(FreeGlobals.stimReps[FreeGlobals.stimReps.Count - 1]) + 1;
 		firstStimOnTime = DateTime.MinValue;
-		lastStimOnTime = DateTime.MinValue;
 
 		Debug.Log (FreeGlobals.stimDur [FreeGlobals.stimDur.Count - 1]);
 	}
