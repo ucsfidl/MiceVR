@@ -12,7 +12,7 @@
 			<rewardedHFreq>1</rewardedHFreq>
 			<rewardedVFreq>4</rewardedVFreq>
 			<rewardedOri>v</rewardedOri>
-			<rewardedLineType>curvy</rewardedLineType>
+			<rewardedLineType>straight</rewardedLineType>
 			<rewardedAmplitude>0.06</rewardedAmplitude>
 			<rewardedNumCycles>4</rewardedNumCycles>
 		</gameConfig>
