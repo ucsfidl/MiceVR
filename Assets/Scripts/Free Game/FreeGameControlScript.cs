@@ -891,6 +891,9 @@ public class FreeGameControlScript : MonoBehaviour
 
 						FreeGlobals.numberOfTrials++;
 						FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+
+						FreeGlobals.stimDur.Add (-1);
+						FreeGlobals.stimReps.Add (1);
 					}
 
 					// These side trees will only be activated after the choiceDelay
@@ -1066,6 +1069,9 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
 
+					FreeGlobals.stimDur.Add (-1);
+					FreeGlobals.stimReps.Add (1);
+
 					ChoicesAppear ();  // Display the trees
 				}
 				break;
@@ -1183,6 +1189,9 @@ public class FreeGameControlScript : MonoBehaviour
 
 					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+
+					FreeGlobals.stimDur.Add (-1);
+					FreeGlobals.stimReps.Add (1);
 
 					ChoicesAppear ();  // Display the trees
 				}
@@ -1310,6 +1319,9 @@ public class FreeGameControlScript : MonoBehaviour
 
 					FreeGlobals.numberOfTrials++;
 					FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+
+					FreeGlobals.stimDur.Add (-1);
+					FreeGlobals.stimReps.Add (1);
 
 					ChoicesAppear ();  // Display the trees
 				}
