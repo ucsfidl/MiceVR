@@ -423,12 +423,16 @@ public class FreeGameControlScript : MonoBehaviour
 						FreeGlobals.numberOfTrials++;
 
 						// If the stim is persistent, log appropriate values
-						if (FreeGlobals.persistenceDur == -1) {
-							FreeGlobals.stimDur.Add (-1);
-							FreeGlobals.stimReps.Add (1);
-						} else {
+						if (FreeGlobals.persistenceDur != -1) {
 							FreeGlobals.stimDur.Add (0);
 							FreeGlobals.stimReps.Add (0);
+						} else if (!FreeGlobals.stimPersists) {
+							FreeGlobals.stimDur.Add (0);
+							FreeGlobals.stimReps.Add (0);
+							firstStimOnTime = DateTime.Now;
+						} else {
+							FreeGlobals.stimDur.Add (-1);
+							FreeGlobals.stimReps.Add (1);
 						}
 					}
 
@@ -446,10 +450,12 @@ public class FreeGameControlScript : MonoBehaviour
 				
 			case "choice":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
 				if (!FreeGlobals.stimPersists) {  // 1 is sent from arduino when break beam is made intact at startport
-					if (rs == 1)  // Mouse pulled nose out of startport
-						SetupTreeActivation (gos, -1, gos.Length);
-					else if (rs == 0)
+					if (rs == 1 && !firstStimOnTime.Equals(DateTime.MinValue)) { // Mouse pulled nose out of startport
+						DisappearImpersistentTree ();
+					} else if (rs == 0 && firstStimOnTime.Equals(DateTime.MinValue)) {  // Mouse poked nose back in to startport
 						SetupTreeActivation (gos, this.treeToActivate, gos.Length);
+						firstStimOnTime = DateTime.Now;
+					}
 				}
 
 				if (FreeGlobals.startRewardDelay > 0) { // Make sure mouse has kept nose in for the minimum amount of time, else stim disappear
@@ -561,12 +567,17 @@ public class FreeGameControlScript : MonoBehaviour
 						FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
 
 						// If the stim is persistent, log appropriate values
-						if (FreeGlobals.persistenceDur == -1) {
-							FreeGlobals.stimDur.Add (-1);
-							FreeGlobals.stimReps.Add (1);
-						} else {
+						if (FreeGlobals.persistenceDur != -1) {
 							FreeGlobals.stimDur.Add (0);
 							FreeGlobals.stimReps.Add (0);
+						} else if (!FreeGlobals.stimPersists) {
+							FreeGlobals.stimDur.Add (0);
+							FreeGlobals.stimReps.Add (0);
+							firstStimOnTime = DateTime.Now;
+							Debug.Log (firstStimOnTime.ToString());
+						} else {
+							FreeGlobals.stimDur.Add (-1);
+							FreeGlobals.stimReps.Add (1);
 						}
 					}
 
@@ -585,10 +596,12 @@ public class FreeGameControlScript : MonoBehaviour
 
 			case "stim_on":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
 				if (!FreeGlobals.stimPersists) {  // 1 is sent from arduino when break beam is made intact at startport
-					if (rs == 1)  // Mouse pulled nose out of startport
-						SetupTreeActivation (gos, -1, gos.Length); // Hide all trees
-					else if (rs == 0)
+					if (rs == 1 && !firstStimOnTime.Equals(DateTime.MinValue)) { // Mouse pulled nose out of startport
+						DisappearImpersistentTree ();
+					} else if (rs == 0 && firstStimOnTime.Equals(DateTime.MinValue)) {  // Mouse poked nose back in to startport
 						SetupTreeActivation (gos, this.treeToActivate, gos.Length);
+						firstStimOnTime = DateTime.Now;
+					}
 				}
 
 				if (FreeGlobals.persistenceDur != -1) {  // Tree might have disappeared, in which case bring it back
@@ -1385,24 +1398,29 @@ public class FreeGameControlScript : MonoBehaviour
 		lastStimOnTime = DateTime.Now;
 		if (firstStimOnTime == DateTime.MinValue)
 			firstStimOnTime = lastStimOnTime;
+
+		// If any invokes to disappear the tree had been called before, reset them by canceling and calling again
+		CancelInvoke ("DisappearImpersistentTree");
+
 		disappearTreeDelay = FreeGlobals.persistenceDur / 1000;
-		Invoke ("DisappearTreeIfTimeElapsed", disappearTreeDelay);
+		Invoke ("DisappearImpersistentTree", disappearTreeDelay);
 	}
-
-	private void DisappearTreeIfTimeElapsed() { // Called by invoke - this causes flickering to go away when mouse pokes nose in multiple times and multiple calls are made to DisappearTreeHelper()
-		if (DateTime.Now.Subtract (lastStimOnTime).Milliseconds >= disappearTreeDelay * 1000)
-			DisappearImpersistentTree ();
-	}
-
+		
 	private void DisappearImpersistentTree() { // Called by Invoke
+		Debug.Log (firstStimOnTime.ToLongTimeString());
+		Debug.Log (DateTime.Now.ToLongTimeString());
+		Debug.Log (DateTime.Now.Subtract (firstStimOnTime).TotalMilliseconds);
 		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
 		SetupTreeActivation(gos, -1, gos.Length);
+
 		FreeGlobals.stimDur [FreeGlobals.stimDur.Count - 1] = 
-			System.Convert.ToInt32(FreeGlobals.stimDur [FreeGlobals.stimDur.Count - 1]) + DateTime.Now.Subtract (firstStimOnTime).Milliseconds;
+			System.Convert.ToDouble(FreeGlobals.stimDur [FreeGlobals.stimDur.Count - 1]) + DateTime.Now.Subtract (firstStimOnTime).TotalMilliseconds;
 		FreeGlobals.stimReps [FreeGlobals.stimReps.Count - 1] = 
 			System.Convert.ToInt32(FreeGlobals.stimReps[FreeGlobals.stimReps.Count - 1]) + 1;
 		firstStimOnTime = DateTime.MinValue;
 		lastStimOnTime = DateTime.MinValue;
+
+		Debug.Log (FreeGlobals.stimDur [FreeGlobals.stimDur.Count - 1]);
 	}
 
 	private void DisappearAllTrees() { // Called by Invoke

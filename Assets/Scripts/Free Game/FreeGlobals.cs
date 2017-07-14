@@ -102,7 +102,7 @@ public static class FreeGlobals
                     firstTurn[firstTurn.Count - 1] + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
-                    (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + 
+                    (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" +
 					stimDur[stimDur.Count - 1] + "\t" + 
 					stimReps[stimReps.Count - 1]);
 
@@ -115,7 +115,7 @@ public static class FreeGlobals
                     firstTurn[firstTurn.Count - 1] + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
-					(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + 
+					(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" +
 					stimDur[stimDur.Count - 1] + "\t" + 
 					stimReps[stimReps.Count - 1]);
         turnsFile.Close();
