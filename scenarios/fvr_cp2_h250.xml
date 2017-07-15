@@ -11,7 +11,7 @@
 			<gameType>free_det_const</gameType>
 			<waterAtStart>false</waterAtStart>
 			<startReward>2</startReward>
-			<startRewardDelay>200</startRewardDelay> <!-- in ms; mouse must hold in startport for this period of time for the stim to stay on -->
+			<startRewardDelay>250</startRewardDelay> <!-- in ms; mouse must hold in startport for this period of time for the stim to stay on -->
 		</gameConfig>
 	</config>
 	<trees>
