@@ -57,6 +57,7 @@ public class FreeGameControlScript : MonoBehaviour
 
 	private bool correctTrial = true;
 	private int treeToActivate;
+	private int distractorTree;
 
 	private DateTime oldestStartPokeTime = DateTime.MinValue;
 	private float sampleHFreq;
@@ -1276,33 +1277,41 @@ public class FreeGameControlScript : MonoBehaviour
 						}
 					}
 
-					gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, sampleDeg);
+					gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, sampleDeg);
 					if (FreeGlobals.numPorts == 2) {
 						// Alter shading of the non-rewarded tree
-						if (treeToActivate == 0)
-							gos [1].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq, nonSampleDeg);
-						else
-							gos [0].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq, nonSampleDeg);
+						if (treeToActivate == 0) {
+							distractorTree = 1;
+						} else {
+							distractorTree = 0;
+						} 
 					} else if (FreeGlobals.numPorts == 3) {
-						int distractorLoc;
 						if (treeToActivate == 0) {
 							if (UnityEngine.Random.value < 0.5)
-								distractorLoc = 1;
+								distractorTree = 1;
 							else
-								distractorLoc = 2;
+								distractorTree = 2;
 						} else if (treeToActivate == 1) {
 							if (UnityEngine.Random.value < 0.5)
-								distractorLoc = 0;
+								distractorTree = 0;
 							else
-								distractorLoc = 2;
+								distractorTree = 2;
 						} else if (treeToActivate == 2) {
 							if (UnityEngine.Random.value < 0.5)
-								distractorLoc = 0;
+								distractorTree = 0;
 							else
-								distractorLoc = 1;
+								distractorTree = 1;
 						}
-						gos [distractorLoc].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq, nonSampleDeg);
 					}
+
+					gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq, nonSampleDeg);
+
+					gos[treeToActivate].SetActive(true);
+					gos[treeToActivate].GetComponent<WaterTreeScript>().Show();
+					gos[distractorTree].SetActive(true);
+					gos[distractorTree].GetComponent<WaterTreeScript>().Show();
+
+					FreeGlobals.freeState = "choices_on";  // Transition states, so that the side lickports are now active
 
 					// Record the state to the log history kept in memory
 					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
@@ -1315,13 +1324,12 @@ public class FreeGameControlScript : MonoBehaviour
 
 					FreeGlobals.stimDur.Add (-1);
 					FreeGlobals.stimReps.Add (1);
-
-					ChoicesAppear ();  // Display the trees
 				}
 				break;
 
 			case "choices_on":  // Mouse has poked his nose in to start, and the choices have appeared
-				if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2]) { // licked at 1 of 2 lick ports
+				if (rs == FreeGlobals.freeRewardSite [treeToActivate + 1] || 
+					rs == FreeGlobals.freeRewardSite [distractorTree + 1]) { // licked at 1 of 2 lick ports
 					int idx = rs / 2 - 1;
 
 					// Log the decision
