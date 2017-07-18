@@ -272,8 +272,8 @@ public class WaterTreeScript : MonoBehaviour {
         this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
         this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
         this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
-        this.topCap.SetActive(true);
-        this.bottomCap.SetActive(true);
+        //this.topCap.SetActive(true);
+        //this.bottomCap.SetActive(true);
     }
 
     public void SetShader(float HFreq, float VFreq)

@@ -486,6 +486,27 @@ public class FreeLoader : MonoBehaviour {
 					float.TryParse(xn["rewardedNumCycles"].InnerText, out nc);
 					FreeGlobals.rewardedNumCycles = nc;
 				}
+
+				if (xn["numStim"] != null)  // Number of stimuli to select from for discrimination task
+				{
+					float ns;
+					float.TryParse(xn["numStim"].InnerText, out ns);
+					FreeGlobals.numStim = ns;
+				}
+
+				if (xn["numPorts"] != null)  // Number of stimuli to select from for discrimination task
+				{
+					float np;
+					float.TryParse(xn["numPorts"].InnerText, out np);
+					FreeGlobals.numPorts = np;
+				}
+
+				if (xn["simulDisplay"] != null)  // Number of stimuli to show simultaneously for discrimination task
+				{
+					float sd;
+					float.TryParse(xn["simulDisplay"].InnerText, out sd);
+					FreeGlobals.simulDisplay = sd;
+				}
 			}
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.

@@ -30,9 +30,11 @@ public static class FreeGlobals
 	public static ArrayList targetLoc = new ArrayList(); // X coord of tree placed in this list
     public static ArrayList targetHFreq = new ArrayList();  // Orientation of target
     public static ArrayList targetVFreq = new ArrayList();  // Orientation of target
+	public static ArrayList targetDeg = new ArrayList();    // Rotation of target
     public static ArrayList firstTurn = new ArrayList(); // X coord of tree the mouse hit or would have hit is placed in this list
     public static ArrayList firstTurnHFreq = new ArrayList();  // Orientation of the tree the mouse chose
     public static ArrayList firstTurnVFreq = new ArrayList();  // Orientation of the tree the mouse chose
+	public static ArrayList firstTurnDeg = new ArrayList();    // Rotation of the tree the mouse chose
 	public static ArrayList stimDur = new ArrayList();
 	public static ArrayList stimReps = new ArrayList();
     public static int numCorrectTurns;
@@ -77,6 +79,11 @@ public static class FreeGlobals
 	public static float rewardedAmplitude;
 	public static float rewardedNumCycles;
 
+	// Parameters for discrimination task
+	public static float numStim = 2;
+	public static float numPorts = 2;
+	public static float simulDisplay = 2;
+
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
     {
@@ -99,9 +106,11 @@ public static class FreeGlobals
                     targetLoc[targetLoc.Count - 1] + "\t" +
                     targetHFreq[targetHFreq.Count - 1] + "\t" +
                     targetVFreq[targetVFreq.Count - 1] + "\t" +
+					targetDeg[targetDeg.Count - 1] + "\t" +
                     firstTurn[firstTurn.Count - 1] + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
+					firstTurnDeg[firstTurnDeg.Count - 1] + "\t" +
                     (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" +
 					stimDur[stimDur.Count - 1] + "\t" + 
 					stimReps[stimReps.Count - 1]);
@@ -112,9 +121,11 @@ public static class FreeGlobals
                     targetLoc[targetLoc.Count - 1] + "\t" +
                     targetHFreq[targetHFreq.Count - 1] + "\t" +
                     targetVFreq[targetVFreq.Count - 1] + "\t" +
+					targetDeg[targetDeg.Count - 1] + "\t" +
                     firstTurn[firstTurn.Count - 1] + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
+					firstTurnDeg[firstTurnDeg.Count - 1] + "\t" +
 					(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" +
 					stimDur[stimDur.Count - 1] + "\t" + 
 					stimReps[stimReps.Count - 1]);
