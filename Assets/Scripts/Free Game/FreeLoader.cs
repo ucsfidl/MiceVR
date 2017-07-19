@@ -423,18 +423,18 @@ public class FreeLoader : MonoBehaviour {
 				if (xn["rewardedColor1"] != null)
 				{
 					float r, g, b;
-					float.TryParse(xn["rewardedColor1"].InnerText.Split(';')[0], out x);
-					float.TryParse(xn["rewardedColor1"].InnerText.Split(';')[1], out y);
-					float.TryParse(xn["rewardedColor1"].InnerText.Split(';')[2], out z);
+					float.TryParse(xn["rewardedColor1"].InnerText.Split(';')[0], out r);
+					float.TryParse(xn["rewardedColor1"].InnerText.Split(';')[1], out g);
+					float.TryParse(xn["rewardedColor1"].InnerText.Split(';')[2], out b);
 
 					FreeGlobals.rewardedColor1 = new Color (r, g, b);
 				}
 				if (xn["rewardedColor2"] != null)
 				{
 					float r, g, b;
-					float.TryParse(xn["rewardedColor2"].InnerText.Split(';')[0], out x);
-					float.TryParse(xn["rewardedColor2"].InnerText.Split(';')[1], out y);
-					float.TryParse(xn["rewardedColor2"].InnerText.Split(';')[2], out z);
+					float.TryParse(xn["rewardedColor2"].InnerText.Split(';')[0], out r);
+					float.TryParse(xn["rewardedColor2"].InnerText.Split(';')[1], out g);
+					float.TryParse(xn["rewardedColor2"].InnerText.Split(';')[2], out b);
 
 					FreeGlobals.rewardedColor2 = new Color (r, g, b);
 				}
@@ -450,18 +450,18 @@ public class FreeLoader : MonoBehaviour {
 				if (xn["nonRewardedColor1"] != null)
 				{
 					float r, g, b;
-					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(';')[0], out x);
-					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(';')[1], out y);
-					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(';')[2], out z);
+					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(';')[0], out r);
+					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(';')[1], out g);
+					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(';')[2], out b);
 
 					FreeGlobals.nonRewardedColor1 = new Color (r, g, b);
 				}
 				if (xn["nonRewardedColor2"] != null)
 				{
 					float r, g, b;
-					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(';')[0], out x);
-					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(';')[1], out y);
-					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(';')[2], out z);
+					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(';')[0], out r);
+					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(';')[1], out g);
+					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(';')[2], out b);
 
 					FreeGlobals.nonRewardedColor2 = new Color (r, g, b);
 				}

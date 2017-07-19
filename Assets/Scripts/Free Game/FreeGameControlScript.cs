@@ -1238,7 +1238,7 @@ public class FreeGameControlScript : MonoBehaviour
 
 					if (FreeGlobals.numStim == 2) {
 						// This need not be set each trial, but whatever
-						if (!string.IsNullOrEmpty (FreeGlobals.nonRewardedHFreq)) {  // Older format of levels did not set nonRewarded
+						if (FreeGlobals.nonRewardedHFreq != null) {  // Older format of levels did not set nonRewarded
 							sampleHFreq = FreeGlobals.rewardedHFreq;
 							sampleVFreq = FreeGlobals.rewardedVFreq;
 							sampleColor1 = FreeGlobals.rewardedColor1;
