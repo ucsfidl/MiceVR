@@ -465,6 +465,13 @@ public class FreeLoader : MonoBehaviour {
 
 					FreeGlobals.nonRewardedColor2 = new Color (r, g, b);
 				}
+				if (xn ["nonRewardedColorSwap"] != null) {
+					string nonRewardedColorSwapXML = xn["nonRewardedColorSwap"].InnerText;
+					if (nonRewardedColorSwapXML.Equals ("true"))
+						FreeGlobals.nonRewardedColorSwap = true;
+					else
+						FreeGlobals.nonRewardedColorSwap = false;
+				}
 
 				if (xn["waterAtStart"] != null)
 				{

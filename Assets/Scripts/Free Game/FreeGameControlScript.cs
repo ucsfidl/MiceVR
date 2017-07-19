@@ -1323,7 +1323,15 @@ public class FreeGameControlScript : MonoBehaviour
 
 					if (sampleColor1 != null) {
 						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors (sampleColor1, sampleColor2);
-						gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
+						if (FreeGlobals.nonRewardedColorSwap) {  // Allows for mouse to learn that both solid black and solid white are not rewarded
+							if (UnityEngine.Random.value < 0.5) {
+								gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
+							} else {
+								gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor2, nonSampleColor1);
+							}
+						} else {
+							gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
+						}
 					}
 
 					gos[treeToActivate].SetActive(true);

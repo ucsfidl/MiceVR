@@ -11,8 +11,13 @@
 			<gameType>free_disc</gameType>
 			<rewardedHFreq>1</rewardedHFreq>
 			<rewardedVFreq>2</rewardedVFreq>
+			<rewardedColor1>1,1,1</rewardedColor1>      <!-- R, G, B -->
+			<rewardedColor2>0,0,0</rewardedColor2>      <!-- R, G, B -->
 			<nonRewardedHFreq>1</nonRewardedHFreq>
 			<nonRewardedVFreq>1</nonRewardedVFreq>
+			<nonRewardedColor1>1,1,1</nonRewardedColor1>  <!-- R, G, B -->
+			<nonRewardedColor2>0,0,0</nonRewardedColor2>  <!-- R, G, B -->
+			<nonRewardedColorSwap>true</nonRewardedColorSwap>
 		</gameConfig>
 	</config>
 	<trees>
