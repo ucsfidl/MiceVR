@@ -63,9 +63,13 @@ public class FreeGameControlScript : MonoBehaviour
 	private float sampleHFreq;
 	private float sampleVFreq;
 	private float sampleDeg = 0;
+	private Color sampleColor1;
+	private Color sampleColor2;
 	private float nonSampleHFreq;
 	private float nonSampleVFreq;
 	private float nonSampleDeg = 0;
+	private Color nonSampleColor1;
+	private Color nonSampleColor2;
 	private bool startTreeSet = false;
 
 	private DateTime firstStimOnTime = DateTime.MinValue;
@@ -1234,17 +1238,28 @@ public class FreeGameControlScript : MonoBehaviour
 
 					if (FreeGlobals.numStim == 2) {
 						// This need not be set each trial, but whatever
-						if (FreeGlobals.rewardedOri.Equals ("h")) {
+						if (!string.IsNullOrEmpty (FreeGlobals.nonRewardedHFreq)) {  // Older format of levels did not set nonRewarded
 							sampleHFreq = FreeGlobals.rewardedHFreq;
-							sampleVFreq = 1;
-							nonSampleHFreq = 1;
-							nonSampleVFreq = FreeGlobals.rewardedVFreq;
-						} else if (FreeGlobals.rewardedOri.Equals ("v")) {
-							sampleHFreq = 1;
 							sampleVFreq = FreeGlobals.rewardedVFreq;
-							nonSampleHFreq = FreeGlobals.rewardedHFreq;
-							nonSampleVFreq = 1;
-						} 
+							sampleColor1 = FreeGlobals.rewardedColor1;
+							sampleColor2 = FreeGlobals.rewardedColor2;
+							nonSampleHFreq = FreeGlobals.nonRewardedHFreq;
+							nonSampleVFreq = FreeGlobals.nonRewardedVFreq;
+							nonSampleColor1 = FreeGlobals.rewardedColor1;
+							nonSampleColor2 = FreeGlobals.rewardedColor2;
+						} else {
+							if (FreeGlobals.rewardedOri.Equals ("h")) {
+								sampleHFreq = FreeGlobals.rewardedHFreq;
+								sampleVFreq = 1;
+								nonSampleHFreq = 1;
+								nonSampleVFreq = FreeGlobals.rewardedVFreq;
+							} else if (FreeGlobals.rewardedOri.Equals ("v")) {
+								sampleHFreq = 1;
+								sampleVFreq = FreeGlobals.rewardedVFreq;
+								nonSampleHFreq = FreeGlobals.rewardedHFreq;
+								nonSampleVFreq = 1;
+							} 
+						}
 					} else if (FreeGlobals.numStim == 3) {
 						if (FreeGlobals.rewardedOri.Equals ("h")) {
 							sampleHFreq = FreeGlobals.rewardedHFreq;
@@ -1277,7 +1292,6 @@ public class FreeGameControlScript : MonoBehaviour
 						}
 					}
 
-					gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, sampleDeg);
 					if (FreeGlobals.numPorts == 2) {
 						// Alter shading of the non-rewarded tree
 						if (treeToActivate == 0) {
@@ -1304,7 +1318,13 @@ public class FreeGameControlScript : MonoBehaviour
 						}
 					}
 
+					gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, sampleDeg);
 					gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq, nonSampleDeg);
+
+					if (sampleColor1 != null) {
+						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors (sampleColor1, sampleColor2);
+						gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
+					}
 
 					gos[treeToActivate].SetActive(true);
 					gos[treeToActivate].GetComponent<WaterTreeScript>().Show();

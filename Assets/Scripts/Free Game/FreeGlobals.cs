@@ -55,6 +55,12 @@ public static class FreeGlobals
     public static bool varyOrientation;
     public static float rewardedHFreq;
     public static float rewardedVFreq;
+	public static Color rewardedColor1;
+	public static Color rewardedColor2;
+	public static float nonRewardedHFreq;
+	public static float nonRewardedVFreq;
+	public static Color nonRewardedColor1;
+	public static Color nonRewardedColor2;
 
     public static FreeMovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<FreeMovementRecorder>();
     public static DateTime gameStartTime;
