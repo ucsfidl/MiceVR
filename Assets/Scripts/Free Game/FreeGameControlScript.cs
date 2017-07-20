@@ -1238,7 +1238,7 @@ public class FreeGameControlScript : MonoBehaviour
 
 					if (FreeGlobals.numStim == 2) {
 						// This need not be set each trial, but whatever
-						if (FreeGlobals.nonRewardedHFreq != null) {  // Older format of levels did not set nonRewarded
+						if (FreeGlobals.nonRewardedHFreq != -1) {  // Older format of levels did not set nonRewarded
 							sampleHFreq = FreeGlobals.rewardedHFreq;
 							sampleVFreq = FreeGlobals.rewardedVFreq;
 							sampleColor1 = FreeGlobals.rewardedColor1;
@@ -1321,7 +1321,8 @@ public class FreeGameControlScript : MonoBehaviour
 					gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, sampleDeg);
 					gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq, nonSampleDeg);
 
-					if (sampleColor1 != null) {
+					if (FreeGlobals.nonRewardedHFreq != -1) {
+						Debug.Log ("colors have been set!");
 						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors (sampleColor1, sampleColor2);
 						if (FreeGlobals.nonRewardedColorSwap) {  // Allows for mouse to learn that both solid black and solid white are not rewarded
 							if (UnityEngine.Random.value < 0.5) {
@@ -1332,6 +1333,8 @@ public class FreeGameControlScript : MonoBehaviour
 						} else {
 							gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
 						}
+					} else {
+						Debug.Log ("colors have NOT been set!");
 					}
 
 					gos[treeToActivate].SetActive(true);

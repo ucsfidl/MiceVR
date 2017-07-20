@@ -57,7 +57,7 @@ public static class FreeGlobals
     public static float rewardedVFreq;
 	public static Color rewardedColor1;
 	public static Color rewardedColor2;
-	public static float nonRewardedHFreq;
+	public static float nonRewardedHFreq = -1;
 	public static float nonRewardedVFreq;
 	public static Color nonRewardedColor1;
 	public static Color nonRewardedColor2;

@@ -97,6 +97,7 @@ public class FreeLoader : MonoBehaviour {
     private float rewardSize;
     private bool rewardSet;
     private bool respawn;
+	private float rot_y = 0;  // rotation of the tree in y
 
     void Start()
     {
@@ -423,18 +424,18 @@ public class FreeLoader : MonoBehaviour {
 				if (xn["rewardedColor1"] != null)
 				{
 					float r, g, b;
-					float.TryParse(xn["rewardedColor1"].InnerText.Split(';')[0], out r);
-					float.TryParse(xn["rewardedColor1"].InnerText.Split(';')[1], out g);
-					float.TryParse(xn["rewardedColor1"].InnerText.Split(';')[2], out b);
+					float.TryParse(xn["rewardedColor1"].InnerText.Split(',')[0], out r);
+					float.TryParse(xn["rewardedColor1"].InnerText.Split(',')[1], out g);
+					float.TryParse(xn["rewardedColor1"].InnerText.Split(',')[2], out b);
 
 					FreeGlobals.rewardedColor1 = new Color (r, g, b);
 				}
 				if (xn["rewardedColor2"] != null)
 				{
 					float r, g, b;
-					float.TryParse(xn["rewardedColor2"].InnerText.Split(';')[0], out r);
-					float.TryParse(xn["rewardedColor2"].InnerText.Split(';')[1], out g);
-					float.TryParse(xn["rewardedColor2"].InnerText.Split(';')[2], out b);
+					float.TryParse(xn["rewardedColor2"].InnerText.Split(',')[0], out r);
+					float.TryParse(xn["rewardedColor2"].InnerText.Split(',')[1], out g);
+					float.TryParse(xn["rewardedColor2"].InnerText.Split(',')[2], out b);
 
 					FreeGlobals.rewardedColor2 = new Color (r, g, b);
 				}
@@ -450,18 +451,18 @@ public class FreeLoader : MonoBehaviour {
 				if (xn["nonRewardedColor1"] != null)
 				{
 					float r, g, b;
-					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(';')[0], out r);
-					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(';')[1], out g);
-					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(';')[2], out b);
+					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(',')[0], out r);
+					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(',')[1], out g);
+					float.TryParse(xn["nonRewardedColor1"].InnerText.Split(',')[2], out b);
 
 					FreeGlobals.nonRewardedColor1 = new Color (r, g, b);
 				}
 				if (xn["nonRewardedColor2"] != null)
 				{
 					float r, g, b;
-					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(';')[0], out r);
-					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(';')[1], out g);
-					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(';')[2], out b);
+					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(',')[0], out r);
+					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(',')[1], out g);
+					float.TryParse(xn["nonRewardedColor2"].InnerText.Split(',')[2], out b);
 
 					FreeGlobals.nonRewardedColor2 = new Color (r, g, b);
 				}
@@ -638,6 +639,10 @@ public class FreeLoader : MonoBehaviour {
                     {
                         respawn = (val.InnerText == "1") ? true : false;
                     }
+					else if (val.Name == "rot_y")
+					{
+						float.TryParse(val.InnerText, out this.rot_y);
+					}
                 }
                 if (water)
                 {
@@ -684,6 +689,9 @@ public class FreeLoader : MonoBehaviour {
                         }
 
                         go.GetComponent<WaterTreeScript>().SetRespawn(this.respawn);
+
+						// Rotate tree to orient the right way for the mouse
+						go.transform.eulerAngles =  new Vector3(0, rot_y, 0);
 					}
                         else if (texture)
                         {
