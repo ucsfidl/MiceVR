@@ -511,6 +511,7 @@ public class FreeGameControlScript : MonoBehaviour
 					correctTrial = true;
 					FreeGlobals.freeState = "pretrial";
 					startTreeSet = false;
+					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time to start over
 				} else if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2]) {
 					if (correctTrial) {
 						FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
@@ -663,6 +664,7 @@ public class FreeGameControlScript : MonoBehaviour
 					SetupTreeActivation (gos, -1, gos.Length); // Hide all trees 
 					FreeGlobals.freeState = "pretrial";
 					startTreeSet = false;
+					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time to start over
 
 					if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) &&
 					    rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
