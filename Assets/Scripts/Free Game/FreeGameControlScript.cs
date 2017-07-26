@@ -1193,199 +1193,212 @@ public class FreeGameControlScript : MonoBehaviour
 			switch (FreeGlobals.freeState) {
 			case "pretrial":  // Mouse has not yet poked his nose into the startport
 				if (rs == FreeGlobals.freeRewardSite [0]) {  // Mouse poked nose into the startport
-					// Setup side trees to turn on after the choice delay
-					if (FreeGlobals.numPorts == 2) {
-						float rCand = UnityEngine.Random.value;
-						float[] rThresh = new float[3];
-						rThresh [0] = 0;
-						rThresh [2] = 1;
-						for (int i = 1; i < 2; i++) {
-							rThresh [i] = 1F / 2 * i;
+					if (!startTreeSet) {
+						if (FreeGlobals.startRewardDelay == 0 && FreeGlobals.waterAtStart) {  // only give water if startTree not set, so only give water once
+							int dur = FreeGlobals.freeRewardDur [rs / 2];
+							ard.sendReward (rs, dur);
+							lastRewardTime = DateTime.Now;
+							float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+							FreeGlobals.sizeOfRewardGiven.Add (rSize);
+							FreeGlobals.rewardAmountSoFar += rSize;
 						}
 
-						// Bias correction
-						// This was ON when training batch#1, which learned within 3 days
-						if (FreeGlobals.numberOfTrials >= 1) {
-							float[] bcs = new float[2];
-							string bcsStr = "";
-							for (int i = 0; i < 2; i++) {
-								bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
-								bcsStr += bcs [i] + " ";
+						// Setup side trees to turn on after the choice delay
+						if (FreeGlobals.numPorts == 2) {
+							float rCand = UnityEngine.Random.value;
+							float[] rThresh = new float[3];
+							rThresh [0] = 0;
+							rThresh [2] = 1;
+							for (int i = 1; i < 2; i++) {
+								rThresh [i] = 1F / 2 * i;
 							}
-							float s = bcs.Sum ();
-							Debug.Log (bcsStr);
-							for (int i = 0; i < 2 - 1; i++) {
-								bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
-								rThresh [i + 1] = rThresh [i] + bcs [i];
-							}
-						}
 
-						this.treeToActivate = 0;  // treeToActivate is actually the side of the rewarded tree - both will be activated in this scenario
-						for (int i = 1; i < 2 + 1; i++) {
-							if (rCand >= rThresh [i - 1] && rCand <= rThresh [i])
-								this.treeToActivate = i - 1;
-						}
-
-						// Some debug output to confirm bias correction is working reasonably
-						string threshStr = "";
-						for (int i = 1; i < rThresh.Length - 1; i++) {
-							threshStr += rThresh [i] + ", ";
-						}
-						Debug.Log ("[0, " + threshStr + "1] - " + rCand);
-					} else if (FreeGlobals.numPorts == 3) {
-						float r = UnityEngine.Random.value;
-						double thresh0 = 0.333;
-						double thresh1 = 0.666;
-
-						// Bias correction - turned back on
-						float tf0 = FreeGlobals.GetTurnBias (20, 0);
-						float tf1 = FreeGlobals.GetTurnBias (20, 1);
-
-						if (!double.IsNaN (tf0) && !double.IsNaN (tf1)) {
-							float tf2 = 1 - (tf0 + tf1);
-
-							Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
-
-							// Solve
-							double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
-							double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
-							double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
-
-							Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
-
-							// Rebalance, pushing mouse to lowest freq direction
-							double d;
-							double max = Math.Max (tf0, Math.Max (tf1, tf2));
-							double min = Math.Min (tf0, Math.Min (tf1, tf2));
-							if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
-								double pmax = Math.Max (p0, Math.Max (p1, p2));
-								if (p0 == pmax) {
-									d = Math.Abs (p1 - p2);
-									p1 *= d;
-									p2 *= d;
-								} else if (p1 == pmax) {
-									d = Math.Abs (p0 - p2);
-									p0 *= d;
-									p2 *= d;
-								} else if (p2 == pmax) {
-									d = Math.Abs (p0 - p1);
-									p0 *= d;
-									p1 *= d;
+							// Bias correction
+							// This was ON when training batch#1, which learned within 3 days
+							if (FreeGlobals.numberOfTrials >= 1) {
+								float[] bcs = new float[2];
+								string bcsStr = "";
+								for (int i = 0; i < 2; i++) {
+									bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
+									bcsStr += bcs [i] + " ";
+								}
+								float s = bcs.Sum ();
+								Debug.Log (bcsStr);
+								for (int i = 0; i < 2 - 1; i++) {
+									bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
+									rThresh [i + 1] = rThresh [i] + bcs [i];
 								}
 							}
 
-							// Normalize so all add up to 1
-							p0 = p0 / (p0 + p1 + p2);
-							p1 = p1 / (p0 + p1 + p2);
-							p2 = p2 / (p0 + p1 + p2);
+							this.treeToActivate = 0;  // treeToActivate is actually the side of the rewarded tree - both will be activated in this scenario
+							for (int i = 1; i < 2 + 1; i++) {
+								if (rCand >= rThresh [i - 1] && rCand <= rThresh [i])
+									this.treeToActivate = i - 1;
+							}
 
-							thresh0 = p0;
-							thresh1 = thresh0 + p1;
+							// Some debug output to confirm bias correction is working reasonably
+							string threshStr = "";
+							for (int i = 1; i < rThresh.Length - 1; i++) {
+								threshStr += rThresh [i] + ", ";
+							}
+							Debug.Log ("[0, " + threshStr + "1] - " + rCand);
+						} else if (FreeGlobals.numPorts == 3) {
+							float r = UnityEngine.Random.value;
+							double thresh0 = 0.333;
+							double thresh1 = 0.666;
+
+							// Bias correction - turned back on
+							float tf0 = FreeGlobals.GetTurnBias (20, 0);
+							float tf1 = FreeGlobals.GetTurnBias (20, 1);
+
+							if (!double.IsNaN (tf0) && !double.IsNaN (tf1)) {
+								float tf2 = 1 - (tf0 + tf1);
+
+								Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
+
+								// Solve
+								double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
+								double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
+								double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
+
+								Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+
+								// Rebalance, pushing mouse to lowest freq direction
+								double d;
+								double max = Math.Max (tf0, Math.Max (tf1, tf2));
+								double min = Math.Min (tf0, Math.Min (tf1, tf2));
+								if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
+									double pmax = Math.Max (p0, Math.Max (p1, p2));
+									if (p0 == pmax) {
+										d = Math.Abs (p1 - p2);
+										p1 *= d;
+										p2 *= d;
+									} else if (p1 == pmax) {
+										d = Math.Abs (p0 - p2);
+										p0 *= d;
+										p2 *= d;
+									} else if (p2 == pmax) {
+										d = Math.Abs (p0 - p1);
+										p0 *= d;
+										p1 *= d;
+									}
+								}
+
+								// Normalize so all add up to 1
+								p0 = p0 / (p0 + p1 + p2);
+								p1 = p1 / (p0 + p1 + p2);
+								p2 = p2 / (p0 + p1 + p2);
+
+								thresh0 = p0;
+								thresh1 = thresh0 + p1;
+							}
+
+							Debug.Log ("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
+							this.treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
 						}
 
-						Debug.Log ("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
-						this.treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
-					}
-
-					if (FreeGlobals.numStim == 2) {
-						// This need not be set each trial, but whatever
-						if (FreeGlobals.nonRewardedHFreq != -1) {  // Older format of levels did not set nonRewarded
-							sampleHFreq = FreeGlobals.rewardedHFreq;
-							sampleVFreq = FreeGlobals.rewardedVFreq;
-							sampleColor1 = FreeGlobals.rewardedColor1;
-							sampleColor2 = FreeGlobals.rewardedColor2;
-							nonSampleHFreq = FreeGlobals.nonRewardedHFreq;
-							nonSampleVFreq = FreeGlobals.nonRewardedVFreq;
-							nonSampleColor1 = FreeGlobals.rewardedColor1;
-							nonSampleColor2 = FreeGlobals.rewardedColor2;
-						} else {
+						if (FreeGlobals.numStim == 2) {
+							// This need not be set each trial, but whatever
+							if (FreeGlobals.nonRewardedHFreq != -1) {  // Older format of levels did not set nonRewarded
+								sampleHFreq = FreeGlobals.rewardedHFreq;
+								sampleVFreq = FreeGlobals.rewardedVFreq;
+								sampleColor1 = FreeGlobals.rewardedColor1;
+								sampleColor2 = FreeGlobals.rewardedColor2;
+								nonSampleHFreq = FreeGlobals.nonRewardedHFreq;
+								nonSampleVFreq = FreeGlobals.nonRewardedVFreq;
+								nonSampleColor1 = FreeGlobals.rewardedColor1;
+								nonSampleColor2 = FreeGlobals.rewardedColor2;
+							} else {
+								if (FreeGlobals.rewardedOri.Equals ("h")) {
+									sampleHFreq = FreeGlobals.rewardedHFreq;
+									sampleVFreq = 1;
+									nonSampleHFreq = 1;
+									nonSampleVFreq = FreeGlobals.rewardedVFreq;
+								} else if (FreeGlobals.rewardedOri.Equals ("v")) {
+									sampleHFreq = 1;
+									sampleVFreq = FreeGlobals.rewardedVFreq;
+									nonSampleHFreq = FreeGlobals.rewardedHFreq;
+									nonSampleVFreq = 1;
+								} 
+							}
+						} else if (FreeGlobals.numStim == 3) {
 							if (FreeGlobals.rewardedOri.Equals ("h")) {
 								sampleHFreq = FreeGlobals.rewardedHFreq;
 								sampleVFreq = 1;
 								nonSampleHFreq = 1;
 								nonSampleVFreq = FreeGlobals.rewardedVFreq;
+								nonSampleDeg = UnityEngine.Random.value < 0.5 ? 0 : 45;  // distractor will be vertical or oblique
 							} else if (FreeGlobals.rewardedOri.Equals ("v")) {
 								sampleHFreq = 1;
 								sampleVFreq = FreeGlobals.rewardedVFreq;
-								nonSampleHFreq = FreeGlobals.rewardedHFreq;
-								nonSampleVFreq = 1;
-							} 
-						}
-					} else if (FreeGlobals.numStim == 3) {
-						if (FreeGlobals.rewardedOri.Equals ("h")) {
-							sampleHFreq = FreeGlobals.rewardedHFreq;
-							sampleVFreq = 1;
-							nonSampleHFreq = 1;
-							nonSampleVFreq = FreeGlobals.rewardedVFreq;
-							nonSampleDeg = UnityEngine.Random.value < 0.5 ? 0 : 45;  // distractor will be vertical or oblique
-						} else if (FreeGlobals.rewardedOri.Equals ("v")) {
-							sampleHFreq = 1;
-							sampleVFreq = FreeGlobals.rewardedVFreq;
-							if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
-								nonSampleHFreq = FreeGlobals.rewardedHFreq;
-								nonSampleVFreq = 1;
-							} else {  // distractor is oblique
-								nonSampleHFreq = 1;
-								nonSampleVFreq = FreeGlobals.rewardedVFreq;
-								nonSampleDeg = 45;
-							}
-						} else if (FreeGlobals.rewardedOri.Equals ("o")) {
-							sampleHFreq = 1;
-							sampleVFreq = FreeGlobals.rewardedVFreq;
-							sampleDeg = 45;
-							if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
-								nonSampleHFreq = FreeGlobals.rewardedHFreq;
-								nonSampleVFreq = 1;
-							} else {  // distractor is vertical
-								nonSampleHFreq = 1;
-								nonSampleVFreq = FreeGlobals.rewardedVFreq;
+								if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
+									nonSampleHFreq = FreeGlobals.rewardedHFreq;
+									nonSampleVFreq = 1;
+								} else {  // distractor is oblique
+									nonSampleHFreq = 1;
+									nonSampleVFreq = FreeGlobals.rewardedVFreq;
+									nonSampleDeg = 45;
+								}
+							} else if (FreeGlobals.rewardedOri.Equals ("o")) {
+								sampleHFreq = 1;
+								sampleVFreq = FreeGlobals.rewardedVFreq;
+								sampleDeg = 45;
+								if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
+									nonSampleHFreq = FreeGlobals.rewardedHFreq;
+									nonSampleVFreq = 1;
+								} else {  // distractor is vertical
+									nonSampleHFreq = 1;
+									nonSampleVFreq = FreeGlobals.rewardedVFreq;
+								}
 							}
 						}
-					}
 
-					if (FreeGlobals.numPorts == 2) {
-						// Alter shading of the non-rewarded tree
-						if (treeToActivate == 0) {
-							distractorTree = 1;
-						} else {
-							distractorTree = 0;
-						} 
-					} else if (FreeGlobals.numPorts == 3) {
-						if (treeToActivate == 0) {
-							if (UnityEngine.Random.value < 0.5)
+						if (FreeGlobals.numPorts == 2) {
+							// Alter shading of the non-rewarded tree
+							if (treeToActivate == 0) {
 								distractorTree = 1;
-							else
-								distractorTree = 2;
-						} else if (treeToActivate == 1) {
-							if (UnityEngine.Random.value < 0.5)
-								distractorTree = 0;
-							else
-								distractorTree = 2;
-						} else if (treeToActivate == 2) {
-							if (UnityEngine.Random.value < 0.5)
-								distractorTree = 0;
-							else
-								distractorTree = 1;
-						}
-					}
-
-					gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, sampleDeg);
-					gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq, nonSampleDeg);
-
-					if (FreeGlobals.nonRewardedHFreq != -1) {
-						Debug.Log ("colors have been set!");
-						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors (sampleColor1, sampleColor2);
-						if (FreeGlobals.nonRewardedColorSwap) {  // Allows for mouse to learn that both solid black and solid white are not rewarded
-							if (UnityEngine.Random.value < 0.5) {
-								gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
 							} else {
-								gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor2, nonSampleColor1);
+								distractorTree = 0;
+							} 
+						} else if (FreeGlobals.numPorts == 3) {
+							if (treeToActivate == 0) {
+								if (UnityEngine.Random.value < 0.5)
+									distractorTree = 1;
+								else
+									distractorTree = 2;
+							} else if (treeToActivate == 1) {
+								if (UnityEngine.Random.value < 0.5)
+									distractorTree = 0;
+								else
+									distractorTree = 2;
+							} else if (treeToActivate == 2) {
+								if (UnityEngine.Random.value < 0.5)
+									distractorTree = 0;
+								else
+									distractorTree = 1;
+							}
+						}
+
+						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, sampleDeg);
+						gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq, nonSampleDeg);
+
+						if (FreeGlobals.nonRewardedHFreq != -1) {
+							Debug.Log ("colors have been set!");
+							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors (sampleColor1, sampleColor2);
+							if (FreeGlobals.nonRewardedColorSwap) {  // Allows for mouse to learn that both solid black and solid white are not rewarded
+								if (UnityEngine.Random.value < 0.5) {
+									gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
+								} else {
+									gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor2, nonSampleColor1);
+								}
+							} else {
+								gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
 							}
 						} else {
-							gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
+							Debug.Log ("colors have NOT been set!");
 						}
-					} else {
-						Debug.Log ("colors have NOT been set!");
+
+						startTreeSet = true;
 					}
 
 					gos[treeToActivate].SetActive(true);
@@ -1448,6 +1461,7 @@ public class FreeGameControlScript : MonoBehaviour
 					Invoke ("DisappearAllTrees", FreeGlobals.trialDelay);
 					//SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
 					FreeGlobals.freeState = "pretrial";
+					startTreeSet = false;
 				}
 				break;
 			} 		
@@ -1458,88 +1472,101 @@ public class FreeGameControlScript : MonoBehaviour
 			switch (FreeGlobals.freeState) {
 			case "pretrial":  // Mouse has not yet poked his nose into the startport
 				if (rs == FreeGlobals.freeRewardSite [0]) {  // Mouse poked nose into the startport
-					// Setup side trees to turn on after the choice delay
-					float rCand = UnityEngine.Random.value;
-					float[] rThresh = new float[3];
-					rThresh [0] = 0;
-					rThresh [2] = 1;
-					for (int i = 1; i < 2; i++) {
-						rThresh [i] = 1F / 2 * i;
-					}
+					if (!startTreeSet) {
+						if (FreeGlobals.startRewardDelay == 0 && FreeGlobals.waterAtStart) {  // only give water if startTree not set, so only give water once
+							int dur = FreeGlobals.freeRewardDur [rs / 2];
+							ard.sendReward (rs, dur);
+							lastRewardTime = DateTime.Now;
+							float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+							FreeGlobals.sizeOfRewardGiven.Add (rSize);
+							FreeGlobals.rewardAmountSoFar += rSize;
+						}
 
-					// Bias correction
-					// This was ON when training batch#1, which learned within 3 days
-					if (FreeGlobals.numberOfTrials >= 1) {
-						float[] bcs = new float[2];
-						string bcsStr = "";
+						// Setup side trees to turn on after the choice delay
+						float rCand = UnityEngine.Random.value;
+						float[] rThresh = new float[3];
+						rThresh [0] = 0;
+						rThresh [2] = 1;
+						for (int i = 1; i < 2; i++) {
+							rThresh [i] = 1F / 2 * i;
+						}
+
+						// Bias correction
+						// This was ON when training batch#1, which learned within 3 days
+						if (FreeGlobals.numberOfTrials >= 1) {
+							float[] bcs = new float[2];
+							string bcsStr = "";
+							for (int i = 0; i < 2; i++) {
+								bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
+								bcsStr += bcs [i] + " ";
+							}
+							float s = bcs.Sum ();
+							Debug.Log (bcsStr);
+							for (int i = 0; i < 2 - 1; i++) {
+								bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
+								rThresh [i + 1] = rThresh [i] + bcs [i];
+							}
+						}
+
+						this.treeToActivate = 0;  // treeToActivate is actually the side of the rewarded tree - both will be activated in this scenario
+						for (int i = 1; i < 2 + 1; i++) {
+							if (rCand >= rThresh [i - 1] && rCand <= rThresh [i])
+								this.treeToActivate = i - 1;
+						}
+
+						int otherTree = this.treeToActivate == 0 ? 1 : 0;
+
+						// Some debug output to confirm bias correction is working reasonably
+						string threshStr = "";
+						for (int i = 1; i < rThresh.Length - 1; i++) {
+							threshStr += rThresh [i] + ", ";
+						}
+						Debug.Log ("[0, " + threshStr + "1] - " + rCand);
+
 						for (int i = 0; i < 2; i++) {
-							bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
-							bcsStr += bcs [i] + " ";
+							gos [i].GetComponent<WaterTreeScript> ().ChangeShader ("Custom/Curvy");
 						}
-						float s = bcs.Sum ();
-						Debug.Log (bcsStr);
-						for (int i = 0; i < 2 - 1; i++) {
-							bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
-							rThresh [i + 1] = rThresh [i] + bcs [i];
+
+						// This need not be set each trial, but whatever
+						if (FreeGlobals.rewardedOri.Equals ("h")) {
+							sampleHFreq = FreeGlobals.rewardedHFreq;
+							sampleVFreq = FreeGlobals.rewardedVFreq;
+							if (FreeGlobals.rewardedLineType.Equals ("curvy")) {
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1, 0, 0, 1);
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
+							} else if (FreeGlobals.rewardedLineType.Equals ("straight")) {
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1, 0, 0, 1);
+							}
+						} else if (FreeGlobals.rewardedOri.Equals ("v")) {
+							sampleHFreq = FreeGlobals.rewardedHFreq;
+							sampleVFreq = FreeGlobals.rewardedVFreq;
+							if (FreeGlobals.rewardedLineType.Equals ("curvy")) {
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1);
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
+							} else if (FreeGlobals.rewardedLineType.Equals ("straight")) {
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1);
+							}
 						}
+							
+						// Record the state to the log history kept in memory
+						FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
+						FreeGlobals.targetHFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+						FreeGlobals.targetVFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+						FreeGlobals.targetDeg.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ());
+						// TODO: Add log of curvy vs. straight reward
+
+						FreeGlobals.numberOfTrials++;
+						FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+
+						FreeGlobals.stimDur.Add (-1);
+						FreeGlobals.stimReps.Add (1);
+
+						ChoicesAppear ();  // Display the trees
+
+						startTreeSet = true;
 					}
-
-					this.treeToActivate = 0;  // treeToActivate is actually the side of the rewarded tree - both will be activated in this scenario
-					for (int i = 1; i < 2 + 1; i++) {
-						if (rCand >= rThresh [i - 1] && rCand <= rThresh [i])
-							this.treeToActivate = i - 1;
-					}
-
-					int otherTree = this.treeToActivate == 0 ? 1 : 0;
-
-					// Some debug output to confirm bias correction is working reasonably
-					string threshStr = "";
-					for (int i = 1; i < rThresh.Length - 1; i++) {
-						threshStr += rThresh [i] + ", ";
-					}
-					Debug.Log ("[0, " + threshStr + "1] - " + rCand);
-
-					for (int i = 0; i < 2; i++) {
-						gos [i].GetComponent<WaterTreeScript> ().ChangeShader ("Custom/Curvy");
-					}
-
-					// This need not be set each trial, but whatever
-					if (FreeGlobals.rewardedOri.Equals ("h")) {
-						sampleHFreq = FreeGlobals.rewardedHFreq;
-						sampleVFreq = FreeGlobals.rewardedVFreq;
-						if (FreeGlobals.rewardedLineType.Equals ("curvy")) {
-							gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1, 0, 0, 1);
-							gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
-						} else if (FreeGlobals.rewardedLineType.Equals ("straight")) {
-							gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
-							gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1, 0, 0, 1);
-						}
-					} else if (FreeGlobals.rewardedOri.Equals ("v")) {
-						sampleHFreq = FreeGlobals.rewardedHFreq;
-						sampleVFreq = FreeGlobals.rewardedVFreq;
-						if (FreeGlobals.rewardedLineType.Equals ("curvy")) {
-							gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1);
-							gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
-						} else if (FreeGlobals.rewardedLineType.Equals ("straight")) {
-							gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
-							gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1);
-						}
-					}
-						
-					// Record the state to the log history kept in memory
-					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
-					FreeGlobals.targetHFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
-					FreeGlobals.targetVFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ());
-					FreeGlobals.targetDeg.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ());
-					// TODO: Add log of curvy vs. straight reward
-
-					FreeGlobals.numberOfTrials++;
-					FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
-
-					FreeGlobals.stimDur.Add (-1);
-					FreeGlobals.stimReps.Add (1);
-
-					ChoicesAppear ();  // Display the trees
 				}
 				break;
 
@@ -1580,6 +1607,7 @@ public class FreeGameControlScript : MonoBehaviour
 
 					Invoke ("DisappearAllTrees", FreeGlobals.trialDelay);
 					FreeGlobals.freeState = "pretrial";
+					startTreeSet = false;
 				}
 				break;
 			}
