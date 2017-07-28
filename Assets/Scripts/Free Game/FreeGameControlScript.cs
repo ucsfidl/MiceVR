@@ -58,6 +58,7 @@ public class FreeGameControlScript : MonoBehaviour
 	private bool correctTrial = true;
 	private int treeToActivate;
 	private int distractorTree;
+	private int sampleLoc;
 
 	private DateTime oldestStartPokeTime = DateTime.MinValue;
 	private float sampleHFreq;
@@ -878,7 +879,7 @@ public class FreeGameControlScript : MonoBehaviour
 				}
 				break;
 			} 
-		} else if (FreeGlobals.gameType.Equals ("free_dmts")) {  
+		} else if (FreeGlobals.gameType.Equals ("free_dmts")) { 
 			int rs = ard.CheckForMouseAction ();
 			GameObject[] gos = GameObject.FindGameObjectsWithTag ("water");
 
@@ -1010,6 +1011,200 @@ public class FreeGameControlScript : MonoBehaviour
 
 			case "choices_on":  // Mouse has poked his nose in to start, and sample appeared, and after some delay, choices appeared
 				if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2]) { // licked at 1 of 2 lick ports
+					int idx = rs / 2 - 1;
+
+					// Log the decision
+					FreeGlobals.firstTurn.Add (gos [idx].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.firstTurnVFreq.Add (gos [idx].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+					FreeGlobals.firstTurnDeg.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderRotation ());
+
+					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
+
+					if (idx == this.treeToActivate) {  // Mouse chose the right tree, so give reward and log it!
+						int dur = FreeGlobals.freeRewardDur [rs / 2]; // This is not quite right - won't work if trees get unequal reward
+						ard.sendReward (rs, dur);
+						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+						FreeGlobals.sizeOfRewardGiven.Add (rSize);
+						FreeGlobals.rewardAmountSoFar += rSize;
+
+						FreeGlobals.numCorrectTurns++;
+						Debug.Log ("correct");
+						FreeGlobals.trialDelay = 3;
+						//this.fadeToBlack.gameObject.SetActive (true);
+						//this.fadeToBlack.color = Color.white;
+						this.state = "Paused";
+					} else {  // Mouse chose the non-matching tree, so withold reward and log it!
+						FreeGlobals.sizeOfRewardGiven.Add (0);
+						FreeGlobals.trialDelay = 1.5F;
+						//this.fadeToBlack.gameObject.SetActive (true);
+						//this.fadeToBlack.color = Color.white;
+						this.state = "Paused";
+						Debug.Log ("incorrect");
+					}
+					FreeGlobals.WriteToLogFiles ();
+
+					Invoke ("DisappearAllTrees", FreeGlobals.trialDelay);
+					//SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
+					FreeGlobals.freeState = "pretrial";
+				}
+				break;
+			} 
+		} else if (FreeGlobals.gameType.Equals ("free_dmts2")) { 
+			int rs = ard.CheckForMouseAction ();
+			GameObject[] gos = GameObject.FindGameObjectsWithTag ("water");
+
+			switch (FreeGlobals.freeState) {
+			case "pretrial":  // Mouse has not yet poked his nose into the startport
+				if (rs == FreeGlobals.freeRewardSite [0]) {  // Mouse poked nose into the startport
+					if (!startTreeSet) {
+						if (FreeGlobals.startRewardDelay == 0 && FreeGlobals.waterAtStart) {  // only give water if startTree not set, so only give water once
+							int dur = FreeGlobals.freeRewardDur [rs / 2];
+							ard.sendReward (rs, dur);
+							lastRewardTime = DateTime.Now;
+							float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+							FreeGlobals.sizeOfRewardGiven.Add (rSize);
+							FreeGlobals.rewardAmountSoFar += rSize;
+						}
+
+						// Bias correction for location of first stim
+						float r = UnityEngine.Random.value;
+						double thresh0 = 0.333;
+						double thresh1 = 0.666;
+
+						// Bias correction - turned back on
+						float tf0 = FreeGlobals.GetTurnBias (20, 0);
+						float tf1 = FreeGlobals.GetTurnBias (20, 1);
+
+						if (!double.IsNaN (tf0) && !double.IsNaN (tf1)) {
+							float tf2 = 1 - (tf0 + tf1);
+
+							Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
+
+							// Solve
+							double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
+							double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
+							double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
+
+							Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+
+							// Rebalance, pushing mouse to lowest freq direction
+							double d;
+							double max = Math.Max (tf0, Math.Max (tf1, tf2));
+							double min = Math.Min (tf0, Math.Min (tf1, tf2));
+							if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
+								double pmax = Math.Max (p0, Math.Max (p1, p2));
+								if (p0 == pmax) {
+									d = Math.Abs (p1 - p2);
+									p1 *= d;
+									p2 *= d;
+								} else if (p1 == pmax) {
+									d = Math.Abs (p0 - p2);
+									p0 *= d;
+									p2 *= d;
+								} else if (p2 == pmax) {
+									d = Math.Abs (p0 - p1);
+									p0 *= d;
+									p1 *= d;
+								}
+							}
+
+							// Normalize so all add up to 1
+							p0 = p0 / (p0 + p1 + p2);
+							p1 = p1 / (p0 + p1 + p2);
+							p2 = p2 / (p0 + p1 + p2);
+
+							thresh0 = p0;
+							thresh1 = thresh0 + p1;
+						}
+
+						Debug.Log ("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
+						sampleLoc = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
+
+						float rSampleOri = UnityEngine.Random.value;
+						if (rSampleOri < 0.5) { // Sample will be horizontal tree
+							gos [sampleLoc].GetComponent<WaterTreeScript> ().SetShader (FreeGlobals.rewardedHFreq, 1);
+							sampleHFreq = FreeGlobals.rewardedHFreq;
+							sampleVFreq = 1;
+							nonSampleHFreq = 1;
+							nonSampleVFreq = FreeGlobals.rewardedVFreq;
+						} else { // Sample will be vertical tree
+							gos [sampleLoc].GetComponent<WaterTreeScript> ().SetShader (1, FreeGlobals.rewardedVFreq);
+							sampleHFreq = 1;
+							sampleVFreq = FreeGlobals.rewardedVFreq;
+							nonSampleHFreq = FreeGlobals.rewardedHFreq;
+							nonSampleVFreq = 1;
+						}
+						gos [sampleLoc].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+						SetupTreeActivation (gos, sampleLoc, gos.Length);
+
+						FreeGlobals.freeState = "sample_on";
+
+						// Record the state to the log history kept in memory
+						FreeGlobals.targetLoc.Add (gos [sampleLoc].transform.position.x);
+						FreeGlobals.targetHFreq.Add (gos [sampleLoc].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+						FreeGlobals.targetVFreq.Add (gos [sampleLoc].GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+						FreeGlobals.targetDeg.Add (gos [sampleLoc].GetComponent<WaterTreeScript> ().GetShaderRotation ());
+
+						FreeGlobals.numberOfTrials++;
+						FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+
+						FreeGlobals.stimDur.Add (-1);
+						FreeGlobals.stimReps.Add (1);
+					}
+				}
+				break;
+
+			case "sample_on": 
+				if (rs == FreeGlobals.freeRewardSite [sampleLoc + 1]) {  // Mouse poked nose into the sample port
+					int dur = FreeGlobals.freeRewardDur [rs / 2];
+					ard.sendReward (rs, dur);
+					lastRewardTime = DateTime.Now;
+					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+					FreeGlobals.sizeOfRewardGiven.Add (rSize);
+					FreeGlobals.rewardAmountSoFar += rSize;
+
+					// Setup side trees to turn on after the choice delay
+					if (sampleLoc == 0) {
+						if (UnityEngine.Random.value < 0.5) {
+							treeToActivate = 1;
+							distractorTree = 2;
+						} else {
+							treeToActivate = 2;
+							distractorTree = 1;
+						}
+					} else if (sampleLoc == 1) {
+						if (UnityEngine.Random.value < 0.5) {
+							treeToActivate = 0;
+							distractorTree = 2;
+						} else {
+							treeToActivate = 2;
+							distractorTree = 0;
+						}
+					} else {
+						if (UnityEngine.Random.value < 0.5) {
+							treeToActivate = 0;
+							distractorTree = 1;
+						} else {
+							treeToActivate = 1;
+							distractorTree = 0;
+						}
+					}
+					gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+					gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+					
+					gos[treeToActivate].SetActive(true);
+					gos[treeToActivate].GetComponent<WaterTreeScript>().Show();
+					gos[distractorTree].SetActive(true);
+					gos[distractorTree].GetComponent<WaterTreeScript>().Show();
+
+					FreeGlobals.freeState = "choices_on";
+				}
+				break;
+
+			case "choices_on":  // Mouse has poked nose in to sample port, so choices have appeared
+				if (rs == FreeGlobals.freeRewardSite [treeToActivate+1] || 
+					rs == FreeGlobals.freeRewardSite [distractorTree+1]) { // licked at 1 of 2 lick ports
 					int idx = rs / 2 - 1;
 
 					// Log the decision
