@@ -1067,7 +1067,7 @@ public class FreeGameControlScript : MonoBehaviour
 							FreeGlobals.rewardAmountSoFar += rSize;
 						}
 
-						// Bias correction for location of first stim
+						// No bias correction, as no incorrect choice
 						float r = UnityEngine.Random.value;
 						double thresh0 = 0.333;
 						double thresh1 = 0.666;
@@ -1164,6 +1164,14 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.sizeOfRewardGiven.Add (rSize);
 					FreeGlobals.rewardAmountSoFar += rSize;
 
+					// Log the decision
+					FreeGlobals.firstTurn.Add (gos [sampleLoc].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add (gos [sampleLoc].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.firstTurnVFreq.Add (gos [sampleLoc].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+					FreeGlobals.firstTurnDeg.Add (gos [sampleLoc].GetComponent<WaterTreeScript> ().GetShaderRotation ());
+
+					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
+
 					// Setup side trees to turn on after the choice delay
 					if (sampleLoc == 0) {
 						if (UnityEngine.Random.value < 0.5) {
@@ -1206,14 +1214,6 @@ public class FreeGameControlScript : MonoBehaviour
 				if (rs == FreeGlobals.freeRewardSite [treeToActivate+1] || 
 					rs == FreeGlobals.freeRewardSite [distractorTree+1]) { // licked at 1 of 2 lick ports
 					int idx = rs / 2 - 1;
-
-					// Log the decision
-					FreeGlobals.firstTurn.Add (gos [idx].transform.position.x);
-					FreeGlobals.firstTurnHFreq.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
-					FreeGlobals.firstTurnVFreq.Add (gos [idx].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
-					FreeGlobals.firstTurnDeg.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderRotation ());
-
-					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
 
 					if (idx == this.treeToActivate) {  // Mouse chose the right tree, so give reward and log it!
 						int dur = FreeGlobals.freeRewardDur [rs / 2]; // This is not quite right - won't work if trees get unequal reward
