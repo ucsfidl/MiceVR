@@ -1469,15 +1469,18 @@ public class FreeGameControlScript : MonoBehaviour
 					if (randomOri < 0.333) {
 						sampleHFreq = FreeGlobals.rewardedHFreq;
 						sampleVFreq = 1;
+						sampleDeg = 0;
 						nonSampleHFreq = 1;
 						nonSampleVFreq = FreeGlobals.rewardedVFreq;
 						nonSampleDeg = UnityEngine.Random.value < 0.5 ? 0 : 45;  // distractor will be vertical or oblique
 					} else if (randomOri < 0.667) {
 						sampleHFreq = 1;
 						sampleVFreq = FreeGlobals.rewardedVFreq;
+						sampleDeg = 0;
 						if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
 							nonSampleHFreq = FreeGlobals.rewardedHFreq;
 							nonSampleVFreq = 1;
+							nonSampleDeg = 0;
 						} else {  // distractor is oblique
 							nonSampleHFreq = 1;
 							nonSampleVFreq = FreeGlobals.rewardedVFreq;
@@ -1490,9 +1493,11 @@ public class FreeGameControlScript : MonoBehaviour
 						if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
 							nonSampleHFreq = FreeGlobals.rewardedHFreq;
 							nonSampleVFreq = 1;
+							nonSampleDeg = 0;
 						} else {  // distractor is vertical
 							nonSampleHFreq = 1;
 							nonSampleVFreq = FreeGlobals.rewardedVFreq;
+							nonSampleDeg = 0;
 						}
 					}
 	
