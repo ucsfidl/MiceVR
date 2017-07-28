@@ -561,6 +561,24 @@ public class FreeLoader : MonoBehaviour {
 					float.TryParse(xn["simulDisplay"].InnerText, out sd);
 					FreeGlobals.simulDisplay = sd;
 				}
+				if (xn["oriPersistenceDur"] != null)
+				{
+					float pd;
+					float.TryParse(xn["oriPersistenceDur"].InnerText, out pd);
+					FreeGlobals.oriPersistenceDur = pd;  // In ms
+				}
+				if (xn["greyPersistenceDur"] != null)
+				{
+					float pd;
+					float.TryParse(xn["greyPersistenceDur"].InnerText, out pd);
+					FreeGlobals.greyPersistenceDur = pd;  // In ms
+				}
+				if (xn["targetChange"] != null)
+				{
+					FreeGlobals.targetChange = xn["targetChange"].InnerText;
+				}
+
+
 			}
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.

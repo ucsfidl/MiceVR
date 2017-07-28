@@ -78,6 +78,13 @@ public class FreeGameControlScript : MonoBehaviour
 
 	private DateTime firstStimOnTime = DateTime.MinValue;
 	private float disappearTreeDelay;
+	private DateTime firstOriOnTime = DateTime.MinValue;
+	private bool oriOn;
+	private Color greyColor = new Color(0.5, 0.5, 0.5);
+	private float targetPrevHFreq;
+	private float targetPrevVFreq;
+	private float distractorPrevHFreq;
+	private float distractorPrevVFreq;
 
     // Use this for initialization
     void Start()
@@ -1067,7 +1074,7 @@ public class FreeGameControlScript : MonoBehaviour
 							FreeGlobals.rewardAmountSoFar += rSize;
 						}
 
-						// No bias correction, as no incorrect choice
+						// Bias correction for location of first stim
 						float r = UnityEngine.Random.value;
 						double thresh0 = 0.333;
 						double thresh1 = 0.666;
@@ -1164,14 +1171,6 @@ public class FreeGameControlScript : MonoBehaviour
 					FreeGlobals.sizeOfRewardGiven.Add (rSize);
 					FreeGlobals.rewardAmountSoFar += rSize;
 
-					// Log the decision
-					FreeGlobals.firstTurn.Add (gos [sampleLoc].transform.position.x);
-					FreeGlobals.firstTurnHFreq.Add (gos [sampleLoc].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
-					FreeGlobals.firstTurnVFreq.Add (gos [sampleLoc].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
-					FreeGlobals.firstTurnDeg.Add (gos [sampleLoc].GetComponent<WaterTreeScript> ().GetShaderRotation ());
-
-					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
-
 					// Setup side trees to turn on after the choice delay
 					if (sampleLoc == 0) {
 						if (UnityEngine.Random.value < 0.5) {
@@ -1214,6 +1213,14 @@ public class FreeGameControlScript : MonoBehaviour
 				if (rs == FreeGlobals.freeRewardSite [treeToActivate+1] || 
 					rs == FreeGlobals.freeRewardSite [distractorTree+1]) { // licked at 1 of 2 lick ports
 					int idx = rs / 2 - 1;
+
+					// Log the decision
+					FreeGlobals.firstTurn.Add (gos [idx].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.firstTurnVFreq.Add (gos [idx].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+					FreeGlobals.firstTurnDeg.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderRotation ());
+
+					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
 
 					if (idx == this.treeToActivate) {  // Mouse chose the right tree, so give reward and log it!
 						int dur = FreeGlobals.freeRewardDur [rs / 2]; // This is not quite right - won't work if trees get unequal reward
@@ -1469,18 +1476,15 @@ public class FreeGameControlScript : MonoBehaviour
 					if (randomOri < 0.333) {
 						sampleHFreq = FreeGlobals.rewardedHFreq;
 						sampleVFreq = 1;
-						sampleDeg = 0;
 						nonSampleHFreq = 1;
 						nonSampleVFreq = FreeGlobals.rewardedVFreq;
 						nonSampleDeg = UnityEngine.Random.value < 0.5 ? 0 : 45;  // distractor will be vertical or oblique
 					} else if (randomOri < 0.667) {
 						sampleHFreq = 1;
 						sampleVFreq = FreeGlobals.rewardedVFreq;
-						sampleDeg = 0;
 						if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
 							nonSampleHFreq = FreeGlobals.rewardedHFreq;
 							nonSampleVFreq = 1;
-							nonSampleDeg = 0;
 						} else {  // distractor is oblique
 							nonSampleHFreq = 1;
 							nonSampleVFreq = FreeGlobals.rewardedVFreq;
@@ -1493,11 +1497,9 @@ public class FreeGameControlScript : MonoBehaviour
 						if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
 							nonSampleHFreq = FreeGlobals.rewardedHFreq;
 							nonSampleVFreq = 1;
-							nonSampleDeg = 0;
 						} else {  // distractor is vertical
 							nonSampleHFreq = 1;
 							nonSampleVFreq = FreeGlobals.rewardedVFreq;
-							nonSampleDeg = 0;
 						}
 					}
 	
@@ -1761,7 +1763,20 @@ public class FreeGameControlScript : MonoBehaviour
 									sampleVFreq = FreeGlobals.rewardedVFreq;
 									nonSampleHFreq = FreeGlobals.rewardedHFreq;
 									nonSampleVFreq = 1;
-								} 
+								} else if (FreeGlobals.targetChange.Equals ("match") || 
+									FreeGlobals.targetChange.Equals("nonmatch")) {
+									if (UnityEngine.Random.value < 0.5) {
+										sampleHFreq = FreeGlobals.rewardedHFreq;
+										sampleVFreq = 1;
+										nonSampleHFreq = 1;
+										nonSampleVFreq = FreeGlobals.rewardedVFreq;
+									} else {
+										sampleHFreq = 1;
+										sampleVFreq = FreeGlobals.rewardedVFreq;
+										nonSampleHFreq = FreeGlobals.rewardedHFreq;
+										nonSampleVFreq = 1;
+									}
+								}
 							}
 						} else if (FreeGlobals.numStim == 3) {
 							if (FreeGlobals.rewardedOri.Equals ("h")) {
@@ -1840,6 +1855,9 @@ public class FreeGameControlScript : MonoBehaviour
 							Debug.Log ("colors have NOT been set!");
 						}
 
+						firstOriOnTime = DateTime.Now;
+						oriOn = true;
+
 						startTreeSet = true;
 					}
 
@@ -1865,6 +1883,60 @@ public class FreeGameControlScript : MonoBehaviour
 				break;
 
 			case "choices_on":  // Mouse has poked his nose in to start, and the choices have appeared
+				// After choices on, alter stim based on a time elapsed
+				if (FreeGlobals.oriPersistenceDur != -1) {  // the scenario file specifies persistence
+					if (oriOn && DateTime.Now.Subtract (firstOriOnTime).TotalMilliseconds > FreeGlobals.oriPersistenceDur) {
+						if (FreeGlobals.greyPersistenceDur == -1) {  // No grey delay
+							if (FreeGlobals.targetChange.Equals ("match")) {
+								float currHFreq = gos [distractorTree].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+								float currVFreq = gos [distractorTree].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+								if (currHFreq == sampleHFreq && currVFreq == sampleVFreq) {
+									gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+								} else {
+									gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+								}
+							} else if (FreeGlobals.targetChange.Equals("nonmatch")) {
+								float currHFreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+								float currVFreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+								if (currHFreq == sampleHFreq && currVFreq == sampleVFreq) {
+									gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+								} else {
+									gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+								}
+							}
+						} else { // Switch trees to grey
+							targetPrevHFreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+							targetPrevVFreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors (greyColor, greyColor);
+							distractorPrevHFreq = gos [distractorTree].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+							distractorPrevVFreq = gos [distractorTree].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+							gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (greyColor, greyColor);
+							oriOn = false;
+						}
+	
+						firstOriOnTime = DateTime.Now;
+					} else if (!oriOn && DateTime.Now.Subtract(firstOriOnTime).TotalMilliseconds > FreeGlobals.greyPersistenceDur) {
+						if (FreeGlobals.targetChange.Equals ("match")) {
+							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (targetPrevHFreq, targetPrevVFreq);
+							if (distractorPrevHFreq == sampleHFreq && distractorPrevVFreq == sampleVFreq) {
+								gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+							} else {
+								gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+							}
+						} else if (FreeGlobals.targetChange.Equals("nonmatch")) {
+							gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (distractorPrevHFreq, distractorPrevVFreq);
+							if (targetPrevHFreq == sampleHFreq && targetPrevVFreq == sampleVFreq) {
+								gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+							} else {
+								gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+							}
+						}
+
+						firstOriOnTime = DateTime.Now;
+						oriOn = true;
+					}
+				}
+
 				if (rs == FreeGlobals.freeRewardSite [treeToActivate + 1] || 
 					rs == FreeGlobals.freeRewardSite [distractorTree + 1]) { // licked at 1 of 2 lick ports
 					int idx = rs / 2 - 1;

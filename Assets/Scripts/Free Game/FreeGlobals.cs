@@ -62,6 +62,10 @@ public static class FreeGlobals
 	public static Color nonRewardedColor1;
 	public static Color nonRewardedColor2;
 	public static bool nonRewardedColorSwap = false;
+	public static float oriPersistenceDur = -1;
+	public static float greyPersistenceDur = -1;
+
+	public static string targetChange;
 
     public static FreeMovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<FreeMovementRecorder>();
     public static DateTime gameStartTime;
