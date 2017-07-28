@@ -70,6 +70,9 @@ public class FreeGameControlScript : MonoBehaviour
 	private float nonSampleDeg = 0;
 	private Color nonSampleColor1;
 	private Color nonSampleColor2;
+	private float lastHFreq;
+	private float lastVFreq;
+	private float lastDeg;
 	private bool startTreeSet = false;
 
 	private DateTime firstStimOnTime = DateTime.MinValue;
@@ -1186,6 +1189,245 @@ public class FreeGameControlScript : MonoBehaviour
 				}
 				break;
 			}
+		} else if (FreeGlobals.gameType.Equals ("free_dmtc")) {  
+			int rs = ard.CheckForMouseAction ();
+			GameObject[] gos = GameObject.FindGameObjectsWithTag ("water");
+
+			switch (FreeGlobals.freeState) {
+			case "pretrial":  // Mouse has not yet poked his nose into the startport
+				if (rs == FreeGlobals.freeRewardSite [0]) {  // Mouse poked nose into the startport
+					// Assumes numPorts = 3
+
+					// Center tree is the third tree always, so turn that on with a random orientation
+					// No bias correction with orientation of the sample - purely random
+					float r = UnityEngine.Random.value;
+					double thresh0 = 0.333;
+					double thresh1 = 0.666;
+
+					// Bias correction - turned back on
+					float tf0 = FreeGlobals.GetTurnBias (20, 0);
+					float tf1 = FreeGlobals.GetTurnBias (20, 1);
+
+					if (!double.IsNaN (tf0) && !double.IsNaN (tf1)) {
+						float tf2 = 1 - (tf0 + tf1);
+
+						Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
+
+						// Solve
+						double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
+						double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
+						double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
+
+						Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+
+						// Rebalance, pushing mouse to lowest freq direction
+						double d;
+						double max = Math.Max (tf0, Math.Max (tf1, tf2));
+						double min = Math.Min (tf0, Math.Min (tf1, tf2));
+						if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
+							double pmax = Math.Max (p0, Math.Max (p1, p2));
+							if (p0 == pmax) {
+								d = Math.Abs (p1 - p2);
+								p1 *= d;
+								p2 *= d;
+							} else if (p1 == pmax) {
+								d = Math.Abs (p0 - p2);
+								p0 *= d;
+								p2 *= d;
+							} else if (p2 == pmax) {
+								d = Math.Abs (p0 - p1);
+								p0 *= d;
+								p1 *= d;
+							}
+						}
+
+						// Normalize so all add up to 1
+						p0 = p0 / (p0 + p1 + p2);
+						p1 = p1 / (p0 + p1 + p2);
+						p2 = p2 / (p0 + p1 + p2);
+
+						thresh0 = p0;
+						thresh1 = thresh0 + p1;
+					}
+
+					Debug.Log ("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
+					this.treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
+
+					if (treeToActivate == 0) {
+						if (UnityEngine.Random.value < 0.5)
+							distractorTree = 1;
+						else
+							distractorTree = 2;
+					} else if (treeToActivate == 1) {
+						if (UnityEngine.Random.value < 0.5)
+							distractorTree = 0;
+						else
+							distractorTree = 2;
+					} else if (treeToActivate == 2) {
+						if (UnityEngine.Random.value < 0.5)
+							distractorTree = 0;
+						else
+							distractorTree = 1;
+					}
+
+					float randomOri = UnityEngine.Random.value;
+					if (randomOri < 0.333) {
+						sampleHFreq = FreeGlobals.rewardedHFreq;
+						sampleVFreq = 1;
+						nonSampleHFreq = 1;
+						nonSampleVFreq = FreeGlobals.rewardedVFreq;
+						nonSampleDeg = UnityEngine.Random.value < 0.5 ? 0 : 45;  // distractor will be vertical or oblique
+					} else if (randomOri < 0.667) {
+						sampleHFreq = 1;
+						sampleVFreq = FreeGlobals.rewardedVFreq;
+						if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
+							nonSampleHFreq = FreeGlobals.rewardedHFreq;
+							nonSampleVFreq = 1;
+						} else {  // distractor is oblique
+							nonSampleHFreq = 1;
+							nonSampleVFreq = FreeGlobals.rewardedVFreq;
+							nonSampleDeg = 45;
+						}
+					} else {
+						sampleHFreq = 1;
+						sampleVFreq = FreeGlobals.rewardedVFreq;
+						sampleDeg = 45;
+						if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
+							nonSampleHFreq = FreeGlobals.rewardedHFreq;
+							nonSampleVFreq = 1;
+						} else {  // distractor is vertical
+							nonSampleHFreq = 1;
+							nonSampleVFreq = FreeGlobals.rewardedVFreq;
+						}
+					}
+	
+					gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, sampleDeg);
+					gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq, nonSampleDeg);
+
+					gos[treeToActivate].SetActive(true);
+					gos[treeToActivate].GetComponent<WaterTreeScript>().Show();
+					gos[distractorTree].SetActive(true);
+					gos[distractorTree].GetComponent<WaterTreeScript>().Show();
+
+					// Record the state to the log history kept in memory
+					// TODO: Record the second set of stimuli as well
+					FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
+					FreeGlobals.targetHFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.targetVFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+					FreeGlobals.targetDeg.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ());
+
+					FreeGlobals.numberOfTrials++;
+					FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+
+					FreeGlobals.stimDur.Add (-1);
+					FreeGlobals.stimReps.Add (1);
+
+					FreeGlobals.freeState = "first_choices_on";
+				}
+				break;
+
+			case "first_choices_on":  // Mouse has poked his nose in to start and first pair of stimuli have appeared
+				if (rs == FreeGlobals.freeRewardSite [treeToActivate+1] || 
+					rs == FreeGlobals.freeRewardSite [distractorTree+1]) { // licked at 1 of 2 choice ports with a stimulus
+					int idx = rs / 2 - 1;
+
+					// Log the decision
+					FreeGlobals.firstTurn.Add (gos [idx].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.firstTurnVFreq.Add (gos [idx].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+					FreeGlobals.firstTurnDeg.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderRotation ());
+
+					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
+
+					// Hide the 2 old trees
+					SetupTreeActivation(gos, -1, gos.Length);
+
+					// Record the decision, and display 2 new trees, one of which matches
+					if (idx != treeToActivate) {
+						float tempHFreq = sampleHFreq;
+						float tempVFreq = sampleVFreq;
+						float tempDeg = sampleDeg;
+						sampleHFreq = nonSampleHFreq;
+						sampleVFreq = nonSampleVFreq;
+						sampleDeg = nonSampleDeg;
+						nonSampleHFreq = tempHFreq;
+						nonSampleVFreq = tempVFreq;
+						nonSampleDeg = tempDeg;
+					} 
+
+					// Setup the remaining 2 locations - NOTE no bias correction here, though there could be
+					if (idx == 0) {
+						if (UnityEngine.Random.value < 0.5) {
+							treeToActivate = 1;
+							distractorTree = 2;
+						} else {
+							treeToActivate = 2;
+							distractorTree = 1;
+						}
+					} else if (idx == 1) {
+						if (UnityEngine.Random.value < 0.5) {
+							treeToActivate = 0;
+							distractorTree = 2;
+						} else {
+							treeToActivate = 2;
+							distractorTree = 0;
+						}
+					} else if (idx == 2) {
+						if (UnityEngine.Random.value < 0.5) {
+							treeToActivate = 0;
+							distractorTree = 1;
+						} else {
+							treeToActivate = 1;
+							distractorTree = 0;
+						}
+					}
+						
+					gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, sampleDeg);
+					gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq, nonSampleDeg);
+
+					gos[treeToActivate].SetActive(true);
+					gos[treeToActivate].GetComponent<WaterTreeScript>().Show();
+					gos[distractorTree].SetActive(true);
+					gos[distractorTree].GetComponent<WaterTreeScript>().Show();
+
+					FreeGlobals.freeState = "second_choices_on";
+				}
+				break;
+
+			case "second_choices_on":  // Mouse has made his first chioce and now is making his second
+				if (rs == FreeGlobals.freeRewardSite [treeToActivate + 1] ||
+				    rs == FreeGlobals.freeRewardSite [distractorTree + 1]) { // licked at 1 of 2 lick ports
+					int idx = rs / 2 - 1;
+
+					if (idx == this.treeToActivate) {  // Mouse chose the right tree, so give reward and log it!
+						int dur = FreeGlobals.freeRewardDur [rs / 2]; // This is not quite right - won't work if trees get unequal reward
+						ard.sendReward (rs, dur);
+						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+						FreeGlobals.sizeOfRewardGiven.Add (rSize);
+						FreeGlobals.rewardAmountSoFar += rSize;
+
+						FreeGlobals.numCorrectTurns++;
+						Debug.Log ("correct");
+						FreeGlobals.trialDelay = 3;
+						//this.fadeToBlack.gameObject.SetActive (true);
+						//this.fadeToBlack.color = Color.white;
+						this.state = "Paused";
+					} else {  // Mouse chose the non-matching tree, so withold reward and log it!
+						FreeGlobals.sizeOfRewardGiven.Add (0);
+						FreeGlobals.trialDelay = 1.5F;
+						//this.fadeToBlack.gameObject.SetActive (true);
+						//this.fadeToBlack.color = Color.white;
+						this.state = "Paused";
+						Debug.Log ("incorrect");
+					}
+					FreeGlobals.WriteToLogFiles ();
+
+					Invoke ("DisappearAllTrees", FreeGlobals.trialDelay);
+					//SetupTreeActivation (gos, -1, gos.Length); // Hide all trees to reset the task
+					FreeGlobals.freeState = "pretrial";
+				}
+				break;
+			} 
 		} else if (FreeGlobals.gameType.Equals ("free_disc")) {  
 			int rs = ard.CheckForMouseAction ();
 			GameObject[] gos = GameObject.FindGameObjectsWithTag ("water");
