@@ -83,7 +83,7 @@ public static class FreeGlobals
 	// Parameters for delay match to sample
 	public static float choiceDelay = 0;
 	public static float startRewardDelay = 0;
-	public static string rewardedOri;
+	public static string rewardedOri = "none";
 
 	// Parameters for curvy vs. straight discrimination
 	public static string rewardedLineType;

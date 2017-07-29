@@ -11,8 +11,8 @@
 			<gameType>free_disc</gameType>
 			<rewardedHFreq>8</rewardedHFreq> <!-- vfreq in this case is 1 -->
 			<rewardedVFreq>4</rewardedVFreq> <!-- hfreq in this case is 1 -->
-			<oriPersistence>500</oriPersistence> <!-- ms -->
-			<greyPersistence>500</greyPersistence> <!-- ms -->
+			<oriPersistenceDur>500</oriPersistenceDur> <!-- ms -->
+			<greyPersistenceDur>500</greyPersistenceDur> <!-- ms -->
 			<targetChange>match</targetChange>
 		</gameConfig>
 	</config>

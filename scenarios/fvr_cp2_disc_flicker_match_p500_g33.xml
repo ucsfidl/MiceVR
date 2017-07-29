@@ -12,7 +12,7 @@
 			<rewardedHFreq>8</rewardedHFreq> <!-- vfreq in this case is 1 -->
 			<rewardedVFreq>4</rewardedVFreq> <!-- hfreq in this case is 1 -->
 			<oriPersistenceDur>500</oriPersistenceDur> <!-- ms -->
-			<greyPersistenceDur>0</greyPersistenceDur> <!-- ms -->
+			<greyPersistenceDur>33</greyPersistenceDur> <!-- ms -->
 			<targetChange>match</targetChange>
 		</gameConfig>
 	</config>
