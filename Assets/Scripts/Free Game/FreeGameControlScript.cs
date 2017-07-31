@@ -1164,6 +1164,10 @@ public class FreeGameControlScript : MonoBehaviour
 			case "sample_on": 
 				if (rs == FreeGlobals.freeRewardSite [sampleLoc + 1]) {  // Mouse poked nose into the sample port
 					int dur = FreeGlobals.freeRewardDur [rs / 2];
+					if (FreeGlobals.firstRewardDur != -1) {
+						dur = (int) FreeGlobals.firstRewardDur;
+					}
+					dur = FreeGlobals.freeRewardDur [rs / 2];
 					ard.sendReward (rs, dur);
 					lastRewardTime = DateTime.Now;
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
@@ -1204,6 +1208,12 @@ public class FreeGameControlScript : MonoBehaviour
 					gos[distractorTree].SetActive(true);
 					gos[distractorTree].GetComponent<WaterTreeScript>().Show();
 
+					// Log the decision - normally this would go later, but it needs to go here for proper bias correction for now
+					FreeGlobals.firstTurn.Add (gos [sampleLoc].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add (gos [sampleLoc].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.firstTurnVFreq.Add (gos [sampleLoc].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+					FreeGlobals.firstTurnDeg.Add (gos [sampleLoc].GetComponent<WaterTreeScript> ().GetShaderRotation ());
+
 					FreeGlobals.freeState = "choices_on";
 				}
 				break;
@@ -1212,12 +1222,6 @@ public class FreeGameControlScript : MonoBehaviour
 				if (rs == FreeGlobals.freeRewardSite [treeToActivate+1] || 
 					rs == FreeGlobals.freeRewardSite [distractorTree+1]) { // licked at 1 of 2 lick ports
 					int idx = rs / 2 - 1;
-
-					// Log the decision
-					FreeGlobals.firstTurn.Add (gos [idx].transform.position.x);
-					FreeGlobals.firstTurnHFreq.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
-					FreeGlobals.firstTurnVFreq.Add (gos [idx].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
-					FreeGlobals.firstTurnDeg.Add (gos [idx].GetComponent<WaterTreeScript> ().GetShaderRotation ());
 
 					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
 
@@ -1472,35 +1476,76 @@ public class FreeGameControlScript : MonoBehaviour
 					}
 
 					float randomOri = UnityEngine.Random.value;
-					if (randomOri < 0.333) {
+					if (FreeGlobals.rewardedOri.Equals ("none")) {
+						if (randomOri < 0.333) {
+							sampleHFreq = FreeGlobals.rewardedHFreq;
+							sampleVFreq = 1;
+							sampleDeg = 0;
+							nonSampleHFreq = 1;
+							nonSampleVFreq = FreeGlobals.rewardedVFreq;
+							nonSampleDeg = UnityEngine.Random.value < 0.5 ? 0 : 45;  // distractor will be vertical or oblique
+						} else if (randomOri < 0.667) {
+							sampleHFreq = 1;
+							sampleVFreq = FreeGlobals.rewardedVFreq;
+							sampleDeg = 0;
+							if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
+								nonSampleHFreq = FreeGlobals.rewardedHFreq;
+								nonSampleVFreq = 1;
+								nonSampleDeg = 0;
+							} else {  // distractor is oblique
+								nonSampleHFreq = 1;
+								nonSampleVFreq = FreeGlobals.rewardedVFreq;
+								nonSampleDeg = 45;
+							}
+						} else {
+							sampleHFreq = 1;
+							sampleVFreq = FreeGlobals.rewardedVFreq;
+							sampleDeg = 45;
+							if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
+								nonSampleHFreq = FreeGlobals.rewardedHFreq;
+								nonSampleVFreq = 1;
+								nonSampleDeg = 0;
+							} else {  // distractor is vertical
+								nonSampleHFreq = 1;
+								nonSampleVFreq = FreeGlobals.rewardedVFreq;
+								nonSampleDeg = 0;
+							}
+						}
+					} else if (FreeGlobals.rewardedOri.Equals ("h")) {  // Always show horizontal in first stimulus pair
 						sampleHFreq = FreeGlobals.rewardedHFreq;
 						sampleVFreq = 1;
 						sampleDeg = 0;
-						nonSampleHFreq = 1;
-						nonSampleVFreq = FreeGlobals.rewardedVFreq;
-						nonSampleDeg = UnityEngine.Random.value < 0.5 ? 0 : 45;  // distractor will be vertical or oblique
-					} else if (randomOri < 0.667) {
-						sampleHFreq = 1;
-						sampleVFreq = FreeGlobals.rewardedVFreq;
-						sampleDeg = 0;
-						if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
-							nonSampleHFreq = FreeGlobals.rewardedHFreq;
-							nonSampleVFreq = 1;
+						if (randomOri < 0.5) {  // Distractor is vertical
+							nonSampleHFreq = 1;
+							nonSampleVFreq = FreeGlobals.rewardedVFreq;
 							nonSampleDeg = 0;
-						} else {  // distractor is oblique
+						} else {  // Distractor is oblique
 							nonSampleHFreq = 1;
 							nonSampleVFreq = FreeGlobals.rewardedVFreq;
 							nonSampleDeg = 45;
 						}
-					} else {
+					} else if (FreeGlobals.rewardedOri.Equals ("v")) {  // Always show vertical in first stimulus pair
 						sampleHFreq = 1;
 						sampleVFreq = FreeGlobals.rewardedVFreq;
-						sampleDeg = 45;
-						if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
+						sampleDeg = 0;
+						if (randomOri < 0.5) {  // Distractor is horizontal
 							nonSampleHFreq = FreeGlobals.rewardedHFreq;
 							nonSampleVFreq = 1;
 							nonSampleDeg = 0;
-						} else {  // distractor is vertical
+						} else {  // Distractor is oblique
+							nonSampleHFreq = 1;
+							nonSampleVFreq = FreeGlobals.rewardedVFreq;
+							nonSampleDeg = 45;
+						}
+					} else if (FreeGlobals.rewardedOri.Equals ("v")) {  // Always show oblique in first stimulus pair
+						sampleHFreq = 1;
+						sampleVFreq = FreeGlobals.rewardedVFreq;
+						sampleDeg = 45;
+						if (randomOri < 0.5) {  // Distractor is horizontal
+							nonSampleHFreq = FreeGlobals.rewardedHFreq;
+							nonSampleVFreq = 1;
+							nonSampleDeg = 0;
+						} else {  // Distractor is vertical
 							nonSampleHFreq = 1;
 							nonSampleVFreq = FreeGlobals.rewardedVFreq;
 							nonSampleDeg = 0;

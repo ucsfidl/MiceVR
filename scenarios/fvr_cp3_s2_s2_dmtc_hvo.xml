@@ -11,6 +11,7 @@
 			<gameType>free_dmtc</gameType>
 			<rewardedHFreq>8</rewardedHFreq> <!-- vfreq in this case is 1 -->
 			<rewardedVFreq>4</rewardedVFreq> <!-- hfreq in this case is 1 -->
+			<rewardedOri>h</rewardedOri>
 			<numStim>3</numStim>
 			<simulDisplay>2</simulDisplay>
 			<numPorts>3</numPorts>

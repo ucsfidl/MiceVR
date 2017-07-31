@@ -577,8 +577,12 @@ public class FreeLoader : MonoBehaviour {
 				{
 					FreeGlobals.targetChange = xn["targetChange"].InnerText;
 				}
-
-
+				if (xn["firstReward"] != null)  // Number of stimuli to select from for discrimination task
+				{
+					float fr;
+					float.TryParse(xn["firstReward"].InnerText, out fr);
+					FreeGlobals.firstRewardDur = (int) (fr / FreeGlobals.rewardSize * FreeGlobals.rewardDur);
+				}
 			}
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.
