@@ -582,6 +582,7 @@ public class FreeLoader : MonoBehaviour {
 					float fr;
 					float.TryParse(xn["firstReward"].InnerText, out fr);
 					FreeGlobals.firstRewardDur = (int) (fr / FreeGlobals.rewardSize * FreeGlobals.rewardDur);
+					Debug.Log ("first Reward read");
 				}
 			}
 

@@ -13,7 +13,7 @@
 			<startReward>2</startReward>
 			<rewardedHFreq>8</rewardedHFreq> <!-- vfreq in this case is 1 -->
 			<rewardedVFreq>4</rewardedVFreq> <!-- hfreq in this case is 1 -->
-			<firstReward>4</firstReward>
+			<firstReward>0</firstReward>
 		</gameConfig>
 	</config>
 	<trees>

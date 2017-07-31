@@ -1165,9 +1165,8 @@ public class FreeGameControlScript : MonoBehaviour
 				if (rs == FreeGlobals.freeRewardSite [sampleLoc + 1]) {  // Mouse poked nose into the sample port
 					int dur = FreeGlobals.freeRewardDur [rs / 2];
 					if (FreeGlobals.firstRewardDur != -1) {
-						dur = (int) FreeGlobals.firstRewardDur;
+						dur = FreeGlobals.firstRewardDur;
 					}
-					dur = FreeGlobals.freeRewardDur [rs / 2];
 					ard.sendReward (rs, dur);
 					lastRewardTime = DateTime.Now;
 					float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
