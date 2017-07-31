@@ -1537,7 +1537,7 @@ public class FreeGameControlScript : MonoBehaviour
 							nonSampleVFreq = FreeGlobals.rewardedVFreq;
 							nonSampleDeg = 45;
 						}
-					} else if (FreeGlobals.rewardedOri.Equals ("v")) {  // Always show oblique in first stimulus pair
+					} else if (FreeGlobals.rewardedOri.Equals ("o")) {  // Always show oblique in first stimulus pair
 						sampleHFreq = 1;
 						sampleVFreq = FreeGlobals.rewardedVFreq;
 						sampleDeg = 45;
