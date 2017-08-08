@@ -29,6 +29,8 @@ public class WaterTreeScript : MonoBehaviour {
     private int rewardDur;  // amount of reward to dispense for this tree, in ms
     private bool respawn;
     private bool correctTree;
+	private float vCycPerSec;  // for animation of the each tree
+	private float hCycPerSec;  // for animation of the each tree
 
 
 	// Use this for initialization
@@ -64,6 +66,19 @@ public class WaterTreeScript : MonoBehaviour {
             gradient = true;
         }
     }
+
+	// Update is called once per frame
+	// Used to make the grating move along the cylinder, if required
+	void Update() {
+		if (vCycPerSec > 0 && GetShaderVFreq() > 1) {
+			float vp = this.crown.GetComponent<Renderer>().material.GetFloat("_VPhase");
+			this.crown.GetComponent<Renderer>().material.SetFloat("_VPhase", vp + 360 / vCycPerSec * Time.deltaTime);
+		}
+		if (hCycPerSec > 0 && GetShaderHFreq() > 1) {
+			float hp = this.crown.GetComponent<Renderer>().material.GetFloat("_HPhase");
+			this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", hp + 360 / hCycPerSec * Time.deltaTime);
+		}
+	}
 
     void OnTriggerEnter(Collider c)
     {
@@ -324,10 +339,16 @@ public class WaterTreeScript : MonoBehaviour {
         Debug.Log("Reward duration set: " + this.rewardDur);
     }
 
-    public void SetRespawn(bool r)
-    {
-        this.respawn = r;
-    }
+	public void SetRespawn(bool r)
+	{
+		this.respawn = r;
+	}
+
+	public void SetCycPerSec(float vcps, float hcps)
+	{
+		this.vCycPerSec = vcps;
+		this.hCycPerSec = hcps;
+	}
 
     public void SetCorrect(bool c)
     {

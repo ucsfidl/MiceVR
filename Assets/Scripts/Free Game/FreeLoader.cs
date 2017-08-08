@@ -98,6 +98,8 @@ public class FreeLoader : MonoBehaviour {
     private bool rewardSet;
     private bool respawn;
 	private float rot_y = 0;  // rotation of the tree in y
+	private float vCycPerSec = 0;  // animation of grating
+	private float hCycPerSec = 0;  // animation of grating
 
     void Start()
     {
@@ -582,7 +584,6 @@ public class FreeLoader : MonoBehaviour {
 					float fr;
 					float.TryParse(xn["firstReward"].InnerText, out fr);
 					FreeGlobals.firstRewardDur = (int) (fr / FreeGlobals.rewardSize * FreeGlobals.rewardDur);
-					Debug.Log ("first Reward read");
 				}
 			}
 
@@ -666,6 +667,14 @@ public class FreeLoader : MonoBehaviour {
 					{
 						float.TryParse(val.InnerText, out this.rot_y);
 					}
+					else if (val.Name == "vCyclesPerSec")
+					{
+						float.TryParse(val.InnerText, out this.vCycPerSec);
+					}
+					else if (val.Name == "hCyclesPerSec")
+					{
+						float.TryParse(val.InnerText, out this.hCycPerSec);
+					}
                 }
                 if (water)
                 {
@@ -712,6 +721,7 @@ public class FreeLoader : MonoBehaviour {
                         }
 
                         go.GetComponent<WaterTreeScript>().SetRespawn(this.respawn);
+						go.GetComponent<WaterTreeScript> ().SetCycPerSec (this.vCycPerSec, this.hCycPerSec);
 
 						// Rotate tree to orient the right way for the mouse
 						go.transform.eulerAngles =  new Vector3(0, rot_y, 0);

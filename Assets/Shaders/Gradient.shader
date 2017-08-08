@@ -7,6 +7,8 @@ Shader "Custom/Gradient" {
         _VFreq ("VFreq", Range (1,1000)) = 1
 		_HFreq ("HFreq", Range (1,1000)) = 1
 		_Deg ("Degrees", Range (-45,45)) = 0
+		_VPhase ("VPhase", Range (0, 359)) = 0
+		_HPhase ("HPhase", Range (0, 359)) = 0
     }
 	SubShader {
 		Tags { "RenderType" = "Opaque"}
@@ -23,6 +25,8 @@ Shader "Custom/Gradient" {
 			float _VFreq;
 			float _HFreq;
 			float _Deg;
+			float _VPhase;
+			float _HPhase;
 
             struct vertexInput {
                 float4 vertex : POSITION;
@@ -45,15 +49,15 @@ Shader "Custom/Gradient" {
                 fixed4 color;
 				if( _Deg >= 0 )
 				{
-					if ( fmod((i.texcoord0.x+((_Deg/45.0)*i.texcoord0.y))*_VFreq,2.0) < 1.0 ){
-						if ( fmod(i.texcoord0.y*_HFreq,2.0) < 1.0 )
+					if ( fmod((i.texcoord0.x+((_Deg/45.0)*i.texcoord0.y))*_VFreq + _VPhase/180,2.0) < 1.0 ){
+						if ( fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0) < 1.0 )
 						{
 							color = _Color1;
 						} else {
 							color = _Color2;
 						}
 					} else {
-						if ( fmod(i.texcoord0.y*_HFreq,2.0) > 1.0 )
+						if ( fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0) > 1.0 )
 						{
 							color = _Color1;
 						} else {
@@ -63,15 +67,15 @@ Shader "Custom/Gradient" {
 				}
 				else
 				{
-				if ( fmod(((1.0+i.texcoord0.x)+((_Deg/45.0)*i.texcoord0.y))*_VFreq,2.0) < 1.0 ){
-						if ( fmod(i.texcoord0.y*_HFreq,2.0) < 1.0 )
+				if ( fmod(((1.0+i.texcoord0.x)+((_Deg/45.0)*i.texcoord0.y))*_VFreq + _VPhase/180,2.0) < 1.0 ){
+						if ( fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0) < 1.0 )
 						{
 							color = _Color1;
 						} else {
 							color = _Color2;
 						}
 					} else {
-						if ( fmod(i.texcoord0.y*_HFreq,2.0) > 1.0 )
+						if ( fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0) > 1.0 )
 						{
 							color = _Color1;
 						} else {
