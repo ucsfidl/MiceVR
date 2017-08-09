@@ -1129,13 +1129,11 @@ public class FreeGameControlScript : MonoBehaviour
 
 						float rSampleOri = UnityEngine.Random.value;
 						if (rSampleOri < 0.5) { // Sample will be horizontal tree
-							gos [sampleLoc].GetComponent<WaterTreeScript> ().SetShader (FreeGlobals.rewardedHFreq, 1);
 							sampleHFreq = FreeGlobals.rewardedHFreq;
 							sampleVFreq = 1;
 							nonSampleHFreq = 1;
 							nonSampleVFreq = FreeGlobals.rewardedVFreq;
 						} else { // Sample will be vertical tree
-							gos [sampleLoc].GetComponent<WaterTreeScript> ().SetShader (1, FreeGlobals.rewardedVFreq);
 							sampleHFreq = 1;
 							sampleVFreq = FreeGlobals.rewardedVFreq;
 							nonSampleHFreq = FreeGlobals.rewardedHFreq;

@@ -49,15 +49,15 @@ Shader "Custom/Gradient" {
                 fixed4 color;
 				if( _Deg >= 0 )
 				{
-					if ( fmod((i.texcoord0.x+((_Deg/45.0)*i.texcoord0.y))*_VFreq + _VPhase/180,2.0) < 1.0 ){
-						if ( fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0) < 1.0 )
+					if ( abs(fmod((i.texcoord0.x+((_Deg/45.0)*i.texcoord0.y)) * _VFreq + _VPhase/180,2.0)) < 1.0 ){
+						if ( abs(fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0)) < 1.0 )
 						{
 							color = _Color1;
 						} else {
 							color = _Color2;
 						}
 					} else {
-						if ( fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0) > 1.0 )
+						if ( abs(fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0)) > 1.0 )
 						{
 							color = _Color1;
 						} else {
@@ -67,15 +67,15 @@ Shader "Custom/Gradient" {
 				}
 				else
 				{
-				if ( fmod(((1.0+i.texcoord0.x)+((_Deg/45.0)*i.texcoord0.y))*_VFreq + _VPhase/180,2.0) < 1.0 ){
-						if ( fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0) < 1.0 )
+				if ( abs(fmod(((1.0+i.texcoord0.x)+((_Deg/45.0)*i.texcoord0.y)) * _VFreq + _VPhase/180,2.0)) < 1.0 ){
+						if ( abs(fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0)) < 1.0 )
 						{
 							color = _Color1;
 						} else {
 							color = _Color2;
 						}
 					} else {
-						if ( fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0) > 1.0 )
+						if ( abs(fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0)) > 1.0 )
 						{
 							color = _Color1;
 						} else {

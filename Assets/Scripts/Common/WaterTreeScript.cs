@@ -70,14 +70,18 @@ public class WaterTreeScript : MonoBehaviour {
 	// Update is called once per frame
 	// Used to make the grating move along the cylinder, if required
 	void Update() {
-		if (vCycPerSec > 0 && GetShaderVFreq() > 1) {
-			float vp = this.crown.GetComponent<Renderer>().material.GetFloat("_VPhase");
-			this.crown.GetComponent<Renderer>().material.SetFloat("_VPhase", vp + 360 / vCycPerSec * Time.deltaTime);
+		float vp = 0;
+		float hp = 0;;
+		if (Math.Abs(vCycPerSec) > 0 && GetShaderVFreq() > 1) {
+			vp = this.crown.GetComponent<Renderer>().material.GetFloat("_VPhase");
+			this.crown.GetComponent<Renderer>().material.SetFloat("_VPhase", vp + 360 * vCycPerSec * Time.deltaTime);
 		}
-		if (hCycPerSec > 0 && GetShaderHFreq() > 1) {
-			float hp = this.crown.GetComponent<Renderer>().material.GetFloat("_HPhase");
-			this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", hp + 360 / hCycPerSec * Time.deltaTime);
+		if (Math.Abs(hCycPerSec) > 0 && GetShaderHFreq() > 1) {
+			hp = this.crown.GetComponent<Renderer>().material.GetFloat("_HPhase");
+			this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", hp + 360 * hCycPerSec * Time.deltaTime);
 		}
+		//Debug.Log (vp);
+		//Debug.Log (hp);
 	}
 
     void OnTriggerEnter(Collider c)
@@ -284,24 +288,33 @@ public class WaterTreeScript : MonoBehaviour {
 
     public void SetShader(float HFreq, float VFreq, float deg)
     {
-        this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
+		this.enabled = false; // Turns off Update routine while we fiddle with variables
+		this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
         this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
         this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VPhase", 0);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", 0);
+		this.enabled = true;
         //this.topCap.SetActive(true);
         //this.bottomCap.SetActive(true);
     }
 
     public void SetShader(float HFreq, float VFreq)
     {
+		this.enabled = false; // Turns off Update routine while we fiddle with variables
         this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
         this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
-        //this.topCap.SetActive(true);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VPhase", 0);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", 0);
+		this.enabled = true;
+		//this.topCap.SetActive(true);
         //this.bottomCap.SetActive(true);
     }
 
 	// Support for curvy trees - will fail if Curvy hasn't been set as the Shader material
 	public void SetShader(float HFreq, float VFreq, float HAmplitude, float HNumCycles, float HSmooth, float VAmplitude, float VNumCycles, float VSmooth)
 	{
+		this.enabled = false; // Turns off Update routine while we fiddle with variables
 		this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
 		this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
 		this.crown.GetComponent<Renderer>().material.SetFloat("_HAmplitude", HAmplitude);
@@ -310,6 +323,9 @@ public class WaterTreeScript : MonoBehaviour {
 		this.crown.GetComponent<Renderer>().material.SetFloat("_VAmplitude", VAmplitude);
 		this.crown.GetComponent<Renderer>().material.SetFloat("_VNumCycles", VNumCycles);
 		this.crown.GetComponent<Renderer>().material.SetFloat("_VSmooth", VSmooth);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VPhase", 0);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", 0);
+		this.enabled = true;
 	}
 
     public void SetShaderRotation(float deg)
@@ -328,11 +344,14 @@ public class WaterTreeScript : MonoBehaviour {
         return this.crown.GetComponent<Renderer>().material.GetFloat("_VFreq");
     }
 
-    public float GetShaderRotation()
-    {
-        return this.crown.GetComponent<Renderer>().material.GetFloat("_Deg");
-    }
-		
+	public float GetShaderRotation()
+	{
+		return this.crown.GetComponent<Renderer>().material.GetFloat("_Deg");
+	}
+	public float ResetPhase()
+	{
+		return this.crown.GetComponent<Renderer>().material.GetFloat("_Deg");
+	}		
     public void SetRewardSize(float r)
     {
         this.rewardDur = (int)Math.Round(r / (Globals.rewardSize / Globals.rewardDur));
