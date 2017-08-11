@@ -9,13 +9,11 @@
 		</dryConfig>
 		<gameConfig>
 			<gameType>free_disc</gameType>
-			<waterAtStart>false</waterAtStart>
-			<startReward>2</startReward>
 			<rewardedHFreq>8</rewardedHFreq> <!-- vfreq in this case is 1 -->
 			<rewardedVFreq>4</rewardedVFreq> <!-- hfreq in this case is 1 -->
 			<oriPersistenceDur>100</oriPersistenceDur> <!-- ms -->
 			<greyPersistenceDur>0</greyPersistenceDur> <!-- ms -->
-			<targetChange>nonmatch</targetChange>
+			<targetChange>match</targetChange>
 		</gameConfig>
 	</config>
 	<trees>
