@@ -529,6 +529,12 @@ public class FreeLoader : MonoBehaviour {
 					FreeGlobals.rewardedLineType = rewardedLineTypeXML;
 				}
 
+				if (xn["nonRewardedLineType"] != null)
+				{
+					string nonRewardedLineTypeXML = xn["nonRewardedLineType"].InnerText;
+					FreeGlobals.nonRewardedLineType = nonRewardedLineTypeXML;
+				}
+
 				if (xn["rewardedAmplitude"] != null) // 0.1 is about full width of vertical line
 				{
 					float ra;

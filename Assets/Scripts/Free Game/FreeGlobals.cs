@@ -84,10 +84,11 @@ public static class FreeGlobals
 	public static float choiceDelay = 0;
 	public static float startRewardDelay = 0;
 	public static string rewardedOri = "none";
-	public static int firstRewardDur = -1; // ms
+	public static float firstRewardDur = -1; // ms
 
 	// Parameters for curvy vs. straight discrimination
 	public static string rewardedLineType;
+	public static string nonRewardedLineType = "curvy";  // for backwards compatibility with initial levels
 	public static float rewardedAmplitude;
 	public static float rewardedNumCycles;
 

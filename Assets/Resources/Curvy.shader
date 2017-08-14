@@ -57,7 +57,16 @@ Shader "Custom/Curvy" {
                 fixed4 color;
 				if( _VSmooth == 0 )
 				{
-					if ( fmod((i.texcoord0.x + (_VAmplitude*2 / (_VNumCycles/10)) * (_VNumCycles/10 - abs(fmod(i.texcoord0.y, 2*_VNumCycles/10) - _VNumCycles/10)))*_VFreq + 0.35, 2.0) <= 1.0 ){
+					float P = 0.15 / _VNumCycles * 3.1;  // P is the half period
+					float VA =_VAmplitude*2; //_VAmplitude * 2;
+					float PI = 3.1415926535;
+					float w = _VNumCycles * 2.1;
+					color = _Color1;
+					//if ( fmod((i.texcoord0.x + (_VAmplitude*2 / (_VNumCycles/10)) * (_VNumCycles/10 - abs(fmod(i.texcoord0.y, 2*_VNumCycles/10) - _VNumCycles/10)))*_VFreq + 0.35, 2.0) <= 1.0 ){
+					//if ( fmod((i.texcoord0.x + (VA/P) * (P - abs(fmod(i.texcoord0.y, 2*P) - P)))*_VFreq - 5.333*VA + 6.65, 2.0) < 1.0 ){
+					//if ( fmod((i.texcoord0.x + (1-2*VA*abs(1./VA - frac(1./VA * i.texcoord0.y + 1./(2*VA)))))*_VFreq + 0.5, 2.0) < 1.0 ){
+					//if ( fmod((i.texcoord0.x + (1-VA*abs(1 - (VA*((1./2*i.texcoord0.y + 1./4) % 1)))))*_VFreq + 0.5, 2.0) < 1.0 ){
+					if ( fmod((i.texcoord0.x + (VA/PI*asin(sin(PI*i.texcoord0.y*w - 1.3))))*_VFreq + 0.5, 2.0) < 1.0 ){
 						if ( fmod(i.texcoord0.y*_HFreq,2.0) < 1.0 )
 						{
 							color = _Color1;

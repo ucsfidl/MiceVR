@@ -1,0 +1,35 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>free_disc_single_ori</gameType>
+			<rewardedHFreq>1</rewardedHFreq>
+			<rewardedVFreq>4</rewardedVFreq>
+			<rewardedOri>v</rewardedOri>
+			<rewardedLineType>pointy</rewardedLineType>
+			<nonRewardedLineType>straight</nonRewardedLineType>
+			<rewardedAmplitude>0.07</rewardedAmplitude>
+			<rewardedNumCycles>4</rewardedNumCycles>
+		</gameConfig>
+	</config>
+	<trees>
+		<t> <!-- Left tree #1 -->
+			<w>1</w>
+			<pos>19998.75;0;20000.37</pos>
+			<d>0</d>
+			<rewardSize>4</rewardSize> <!-- in ul -->
+		</t>
+		<t> <!-- Right tree #1 -->
+			<w>1</w>
+			<pos>20001.25;0;20000.37</pos>
+			<d>0</d>
+			<rewardSize>4</rewardSize> <!-- in ul -->
+		</t>
+	</trees>
+</document>

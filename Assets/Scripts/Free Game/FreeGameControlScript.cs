@@ -2096,22 +2096,40 @@ public class FreeGameControlScript : MonoBehaviour
 						if (FreeGlobals.rewardedOri.Equals ("h")) {
 							sampleHFreq = FreeGlobals.rewardedHFreq;
 							sampleVFreq = FreeGlobals.rewardedVFreq;
-							if (FreeGlobals.rewardedLineType.Equals ("curvy")) {
-								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1, 0, 0, 1);
-								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
-							} else if (FreeGlobals.rewardedLineType.Equals ("straight")) {
+
+							if (FreeGlobals.rewardedLineType.Equals ("straight")) {
 								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
+							} else if (FreeGlobals.rewardedLineType.Equals ("curvy")) {
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1, 0, 0, 1);
+							} else if (FreeGlobals.rewardedLineType.Equals ("pointy")) {
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1, 0, 0, 0);
+							}
+
+							if (FreeGlobals.nonRewardedLineType.Equals ("straight")) {
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
+							} else if (FreeGlobals.nonRewardedLineType.Equals ("curvy")) {
 								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1, 0, 0, 1);
+							} else if (FreeGlobals.nonRewardedLineType.Equals ("pointy")) {
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1, 0, 0, 0);
 							}
 						} else if (FreeGlobals.rewardedOri.Equals ("v")) {
 							sampleHFreq = FreeGlobals.rewardedHFreq;
 							sampleVFreq = FreeGlobals.rewardedVFreq;
-							if (FreeGlobals.rewardedLineType.Equals ("curvy")) {
-								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1);
-								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
-							} else if (FreeGlobals.rewardedLineType.Equals ("straight")) {
+
+							if (FreeGlobals.rewardedLineType.Equals ("straight")) {
 								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
+							} else if (FreeGlobals.rewardedLineType.Equals ("curvy")) {
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1);
+							} else if (FreeGlobals.rewardedLineType.Equals ("pointy")) {
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 0);
+							}
+
+							if (FreeGlobals.nonRewardedLineType.Equals ("straight")) {
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, 0, 0, 1);
+							} else if (FreeGlobals.nonRewardedLineType.Equals ("curvy")) {
 								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 1);
+							} else if (FreeGlobals.nonRewardedLineType.Equals ("pointy")) {
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, 0, 0, 1, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, 0);
 							}
 						}
 							
