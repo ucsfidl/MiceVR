@@ -10,12 +10,12 @@
 		<gameConfig>
 			<gameType>free_disc_single_ori</gameType>
 			<waterAtStart>true</waterAtStart>
-			<startReward>2</startReward>
+			<startReward>4</startReward>
 			<rewardedHFreq>1</rewardedHFreq>
 			<rewardedVFreq>4</rewardedVFreq>
 			<rewardedOri>v</rewardedOri>
-			<rewardedLineType>straight</rewardedLineType>
-			<nonRewardedLineType>pointy</nonRewardedLineType>
+			<rewardedLineType>pointy</rewardedLineType>
+			<nonRewardedLineType>curvy</nonRewardedLineType>
 			<rewardedAmplitude>0.07</rewardedAmplitude>
 			<rewardedNumCycles>4</rewardedNumCycles>
 		</gameConfig>

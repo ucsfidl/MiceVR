@@ -14,7 +14,7 @@
 			<rewardedHFreq>1</rewardedHFreq>
 			<rewardedVFreq>4</rewardedVFreq>
 			<rewardedOri>v</rewardedOri>
-			<rewardedLineType>straight</rewardedLineType>
+			<rewardedLineType>curvy</rewardedLineType>
 			<nonRewardedLineType>pointy</nonRewardedLineType>
 			<rewardedAmplitude>0.07</rewardedAmplitude>
 			<rewardedNumCycles>4</rewardedNumCycles>

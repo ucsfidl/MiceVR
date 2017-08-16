@@ -10,7 +10,7 @@
 		<gameConfig>
 			<gameType>free_disc_single_ori</gameType>
 			<waterAtStart>true</waterAtStart>
-			<startReward>2</startReward>
+			<startReward>4</startReward>
 			<rewardedHFreq>1</rewardedHFreq>
 			<rewardedVFreq>4</rewardedVFreq>
 			<rewardedOri>v</rewardedOri>
