@@ -5,14 +5,17 @@ Shader "Custom/Curvy" {
         _Color1 ("Color1", Color) = (1,1,1,1)
         _Color2 ("Color2", Color) = (0,0,0,0)
         _VFreq ("VFreq", Range (0,1000)) = 1
+		_VPhase ("VPhase", Range (0, 2)) = 0.3
 		_HFreq ("HFreq", Range (0,1000)) = 1
+		_HPhase ("HPhase", Range (0, 2)) = 0
 		_Deg ("Degrees", Range (-45,45)) = 0
+		_Smooth ("Smooth", Range(0,1)) = 1
 		_VAmplitude ("VAmplitude", Range(0, 100)) = 0
 		_VNumCycles ("VNumCycles", Range(0, 100)) = 0 
-		_VSmooth ("VSmooth", Range(0,1)) = 1
+		_VWavePhase ("VWavePhase", Range(-3.14, 3.14)) = -1.35
 		_HAmplitude ("HAmplitude", Range(0, 100)) = 0
 		_HNumCycles ("HNumCycles", Range(0, 100)) = 0 
-		_HSmooth ("HSmooth", Range(0,1)) = 1
+		_HWavePhase ("HWavePhase", Range(-3.14, 3.14)) = 0
     }
 	SubShader {
 		Tags { "RenderType" = "Opaque"}
@@ -27,14 +30,17 @@ Shader "Custom/Curvy" {
 			fixed4 _Color1;
 			fixed4 _Color2;
 			float _VFreq;
+			float _VPhase;
 			float _HFreq;
+			float _HPhase;
 			float _Deg;
+			float _Smooth;
 			float _VAmplitude;
 			float _VNumCycles;
-			float _VSmooth;
+			float _VWavePhase;
 			float _HAmplitude;
 			float _HNumCycles;
-			float _HSmooth;
+			float _HWavePhase;
 
             struct vertexInput {
                 float4 vertex : POSITION;
@@ -55,7 +61,7 @@ Shader "Custom/Curvy" {
 
             fixed4 frag(fragmentInput i) : SV_Target {
                 fixed4 color;
-				if( _VSmooth == 0 )
+				if( _Smooth == 0 )
 				{
 					float P = 0.15 / _VNumCycles * 3.1;  // P is the half period
 					float VA =_VAmplitude*2; //_VAmplitude * 2;
@@ -66,15 +72,15 @@ Shader "Custom/Curvy" {
 					//if ( fmod((i.texcoord0.x + (VA/P) * (P - abs(fmod(i.texcoord0.y, 2*P) - P)))*_VFreq - 5.333*VA + 6.65, 2.0) < 1.0 ){
 					//if ( fmod((i.texcoord0.x + (1-2*VA*abs(1./VA - frac(1./VA * i.texcoord0.y + 1./(2*VA)))))*_VFreq + 0.5, 2.0) < 1.0 ){
 					//if ( fmod((i.texcoord0.x + (1-VA*abs(1 - (VA*((1./2*i.texcoord0.y + 1./4) % 1)))))*_VFreq + 0.5, 2.0) < 1.0 ){
-					if ( fmod((i.texcoord0.x + (VA/PI*asin(sin(PI*i.texcoord0.y*w - 1.3))))*_VFreq + 0.5, 2.0) < 1.0 ){
-						if ( fmod(i.texcoord0.y*_HFreq,2.0) < 1.0 )
+					if ( fmod((i.texcoord0.x + (VA/PI*asin(sin(PI*i.texcoord0.y*w + _VWavePhase))))*_VFreq + _VPhase + 0.2, 2.0) < 1.0 ){
+						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase,2.0) < 1.0 )
 						{
 							color = _Color1;
 						} else {
 							color = _Color2;
 						}
 					} else {
-						if ( fmod(i.texcoord0.y*_HFreq,2.0) > 1.0 )
+						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase,2.0) > 1.0 )
 						{
 							color = _Color1;
 						} else {
@@ -82,17 +88,17 @@ Shader "Custom/Curvy" {
 						}
 					}
 				}
-				else if (_VSmooth == 1)
+				else if (_Smooth == 1)
 				{
-				if ( fmod((i.texcoord0.x + _VAmplitude * sin(_VNumCycles/0.15*i.texcoord0.y - 1.4))*_VFreq + 0.5,2.0) < 1.0 ){
-						if ( fmod((i.texcoord0.y + _HAmplitude * sin(_HNumCycles*i.texcoord0.x))*_HFreq,2.0) < 1.0 )
+					if ( fmod((i.texcoord0.x + _VAmplitude * sin(_VNumCycles/0.15*i.texcoord0.y + _VWavePhase))*_VFreq + _VPhase + 0.2,2.0) < 1.0 ){
+						if ( fmod((i.texcoord0.y + _HAmplitude * sin(_HNumCycles*i.texcoord0.x + _HWavePhase))*_HFreq + _HPhase,2.0) < 1.0 )
 						{
 							color = _Color1;
 						} else {
 							color = _Color2;
 						}
 					} else {
-						if ( fmod(i.texcoord0.y*_HFreq,2.0) > 1.0 )
+						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase,2.0) > 1.0 )
 						{
 							color = _Color1;
 						} else {
