@@ -286,19 +286,6 @@ public class WaterTreeScript : MonoBehaviour {
         this.waterBase.GetComponent<Renderer>().material.color = (this.training) ? this.waterBaseColor : Color.black;
     }
 
-    public void SetShader(float HFreq, float VFreq, float deg)
-    {
-		this.enabled = false; // Turns off Update routine while we fiddle with variables
-		this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
-        this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
-        this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
-		this.crown.GetComponent<Renderer>().material.SetFloat("_VPhase", 0);
-		this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", 0);
-		this.enabled = true;
-        //this.topCap.SetActive(true);
-        //this.bottomCap.SetActive(true);
-    }
-
     public void SetShader(float HFreq, float VFreq)
     {
 		this.enabled = false; // Turns off Update routine while we fiddle with variables
@@ -310,6 +297,32 @@ public class WaterTreeScript : MonoBehaviour {
 		//this.topCap.SetActive(true);
         //this.bottomCap.SetActive(true);
     }
+
+	public void SetShader(float HFreq, float VFreq, float deg)
+	{
+		this.enabled = false; // Turns off Update routine while we fiddle with variables
+		this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VPhase", 0);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", 0);
+		this.enabled = true;
+		//this.topCap.SetActive(true);
+		//this.bottomCap.SetActive(true);
+	}
+
+	public void SetShader(float HFreq, float HPhase, float VFreq, float VPhase, float deg)
+	{
+		this.enabled = false; // Turns off Update routine while we fiddle with variables
+		this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_HFreq", HFreq);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VFreq", VFreq);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", HPhase);
+		this.crown.GetComponent<Renderer>().material.SetFloat("_VPhase", VPhase);
+		this.enabled = true;
+		//this.topCap.SetActive(true);
+		//this.bottomCap.SetActive(true);
+	}
 
 	// Support for curvy trees - will fail if Curvy hasn't been set as the Shader material
 	public void SetShader(float HFreq, float HPhase, float VFreq, float VPhase, float HAmplitude, float HNumCycles, float HWavePhase, float VAmplitude, float VNumCycles, float VWavePhase, float Smooth)

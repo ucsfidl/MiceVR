@@ -5,10 +5,10 @@ Shader "Custom/Gradient" {
         _Color1 ("Color1", Color) = (1,1,1,1)
         _Color2 ("Color2", Color) = (0,0,0,0)
         _VFreq ("VFreq", Range (1,1000)) = 1
-		_HFreq ("HFreq", Range (1,1000)) = 1
-		_Deg ("Degrees", Range (-45,45)) = 0
 		_VPhase ("VPhase", Range (0, 359)) = 0
+		_HFreq ("HFreq", Range (1,1000)) = 1
 		_HPhase ("HPhase", Range (0, 359)) = 0
+		_Deg ("Degrees", Range (-45,45)) = 0
     }
 	SubShader {
 		Tags { "RenderType" = "Opaque"}

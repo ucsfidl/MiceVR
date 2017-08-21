@@ -591,6 +591,20 @@ public class FreeLoader : MonoBehaviour {
 					float.TryParse(xn["firstReward"].InnerText, out fr);
 					FreeGlobals.firstRewardDur = (int) (fr / FreeGlobals.rewardSize * FreeGlobals.rewardDur);
 				}
+				if (xn["randomPhase"] != null)
+				{
+					string rpXML = xn["randomPhase"].InnerText;
+					if (rpXML.Equals ("true"))
+						FreeGlobals.randomPhase = true;
+					else
+						FreeGlobals.randomPhase = false;
+				}
+				if (xn["luminanceDiff"] != null)  // Number of stimuli to select from for discrimination task
+				{
+					float ld;
+					float.TryParse(xn["luminanceDiff"].InnerText, out ld);
+					FreeGlobals.luminanceDiff = ld;
+				}
 			}
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.

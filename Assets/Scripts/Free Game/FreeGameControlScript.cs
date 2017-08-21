@@ -1786,72 +1786,120 @@ public class FreeGameControlScript : MonoBehaviour
 							Debug.Log ("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
 							this.treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
 						}
+							
+						float sampleHPhase = 0;
+						float sampleVPhase = 0;
+						float nonSampleHPhase = 0;
+						float nonSampleVPhase = 0;
 
 						if (FreeGlobals.numStim == 2) {
 							// This need not be set each trial, but whatever
-							if (FreeGlobals.nonRewardedHFreq != -1) {  // Older format of levels did not set nonRewarded
+							if (FreeGlobals.nonRewardedHFreq != -1) {  // Older format of levels did not set nonRewarded - Also used by color/brightness experiments
 								sampleHFreq = FreeGlobals.rewardedHFreq;
 								sampleVFreq = FreeGlobals.rewardedVFreq;
-								sampleColor1 = FreeGlobals.rewardedColor1;
-								sampleColor2 = FreeGlobals.rewardedColor2;
 								nonSampleHFreq = FreeGlobals.nonRewardedHFreq;
 								nonSampleVFreq = FreeGlobals.nonRewardedVFreq;
-								nonSampleColor1 = FreeGlobals.rewardedColor1;
-								nonSampleColor2 = FreeGlobals.rewardedColor2;
+
+								if (FreeGlobals.luminanceDiff == -1) {
+									sampleColor1 = FreeGlobals.rewardedColor1;
+									sampleColor2 = FreeGlobals.rewardedColor2;
+									nonSampleColor1 = FreeGlobals.rewardedColor1;
+									nonSampleColor2 = FreeGlobals.rewardedColor2;
+								} else { // Do brightness training - vary the rewarded color randomly and subtract the luminanceDiff for the nonrewarded Color
+									float range = 1 - FreeGlobals.luminanceDiff;
+									float rl = UnityEngine.Random.value * range + FreeGlobals.luminanceDiff;
+									float nrl = rl - FreeGlobals.luminanceDiff;
+									sampleColor1 = new Color (rl, rl, rl);
+									sampleColor2 = sampleColor1;
+									nonSampleColor1 = new Color (nrl, nrl, nrl);
+									nonSampleColor2 = nonSampleColor1;
+								}
 							} else {
 								if (FreeGlobals.rewardedOri.Equals ("h")) {
 									sampleHFreq = FreeGlobals.rewardedHFreq;
+									sampleHPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 									sampleVFreq = 1;
+									sampleVPhase = 0;
 									nonSampleHFreq = 1;
+									nonSampleHPhase = 0;
 									nonSampleVFreq = FreeGlobals.rewardedVFreq;
+									nonSampleVPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 								} else if (FreeGlobals.rewardedOri.Equals ("v")) {
 									sampleHFreq = 1;
+									sampleHPhase = 0;
 									sampleVFreq = FreeGlobals.rewardedVFreq;
+									sampleVPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 									nonSampleHFreq = FreeGlobals.rewardedHFreq;
+									nonSampleHPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 									nonSampleVFreq = 1;
+									nonSampleVPhase = 0;
 								} else if (FreeGlobals.targetChange.Equals ("match") || 
 									FreeGlobals.targetChange.Equals("nonmatch")) {
 									if (UnityEngine.Random.value < 0.5) {
 										sampleHFreq = FreeGlobals.rewardedHFreq;
+										sampleHPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 										sampleVFreq = 1;
+										sampleVPhase = 0;
 										nonSampleHFreq = 1;
+										nonSampleHPhase = 0;
 										nonSampleVFreq = FreeGlobals.rewardedVFreq;
+										nonSampleVPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 									} else {
 										sampleHFreq = 1;
+										sampleHPhase = 0;
 										sampleVFreq = FreeGlobals.rewardedVFreq;
+										sampleVPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 										nonSampleHFreq = FreeGlobals.rewardedHFreq;
+										nonSampleHPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 										nonSampleVFreq = 1;
+										nonSampleVPhase = 0;
 									}
 								}
 							}
 						} else if (FreeGlobals.numStim == 3) {
 							if (FreeGlobals.rewardedOri.Equals ("h")) {
 								sampleHFreq = FreeGlobals.rewardedHFreq;
+								sampleHPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 								sampleVFreq = 1;
+								sampleVPhase = 0;
 								nonSampleHFreq = 1;
+								nonSampleHPhase = 0;
 								nonSampleVFreq = FreeGlobals.rewardedVFreq;
+								nonSampleVPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 								nonSampleDeg = UnityEngine.Random.value < 0.5 ? 0 : 45;  // distractor will be vertical or oblique
 							} else if (FreeGlobals.rewardedOri.Equals ("v")) {
 								sampleHFreq = 1;
+								sampleHPhase = 0;
 								sampleVFreq = FreeGlobals.rewardedVFreq;
+								sampleVPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 								if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
 									nonSampleHFreq = FreeGlobals.rewardedHFreq;
+									nonSampleHPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 									nonSampleVFreq = 1;
+									nonSampleVPhase = 0;
 								} else {  // distractor is oblique
 									nonSampleHFreq = 1;
+									nonSampleHPhase = 0;
 									nonSampleVFreq = FreeGlobals.rewardedVFreq;
+									nonSampleVPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 									nonSampleDeg = 45;
 								}
 							} else if (FreeGlobals.rewardedOri.Equals ("o")) {
 								sampleHFreq = 1;
+								sampleHPhase = 0;
 								sampleVFreq = FreeGlobals.rewardedVFreq;
+								sampleVPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 								sampleDeg = 45;
 								if (UnityEngine.Random.value < 0.5) {  // distractor is horizontal
 									nonSampleHFreq = FreeGlobals.rewardedHFreq;
+									nonSampleHPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 									nonSampleVFreq = 1;
+									nonSampleVPhase = 0;
 								} else {  // distractor is vertical
 									nonSampleHFreq = 1;
+									nonSampleHPhase = 0;
 									nonSampleVFreq = FreeGlobals.rewardedVFreq;
+									nonSampleVPhase = FreeGlobals.randomPhase ? UnityEngine.Random.value * 360 : 0;
 								}
 							}
 						}
@@ -1881,9 +1929,9 @@ public class FreeGameControlScript : MonoBehaviour
 									distractorTree = 1;
 							}
 						}
-
-						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq, sampleDeg);
-						gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq, nonSampleDeg);
+							
+						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleHPhase, sampleVFreq, sampleVPhase, sampleDeg);
+						gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleHPhase, nonSampleVFreq, nonSampleVPhase, nonSampleDeg);
 
 						if (FreeGlobals.nonRewardedHFreq != -1) {
 							Debug.Log ("colors have been set!");
@@ -2095,10 +2143,17 @@ public class FreeGameControlScript : MonoBehaviour
 						sampleHFreq = FreeGlobals.rewardedHFreq;
 						sampleVFreq = FreeGlobals.rewardedVFreq;
 
-						float rPhase1 = UnityEngine.Random.value * 2;  // range is 0-2
-						float rPhase2 = UnityEngine.Random.value * 2;  // range is 0-2
-						float rWavePhase1 = (UnityEngine.Random.value - 0.5F) * 6.28F;  // range is -3.14 -> 3.14
-						float rWavePhase2 = (UnityEngine.Random.value - 0.5F) * 6.28F;  // range is -3.14 -> 3.14
+						float rPhase1 = 0;
+						float rPhase2 = 0;
+						float rWavePhase1 = 0;
+						float rWavePhase2 = 0;
+
+						if (FreeGlobals.randomPhase) {
+							rPhase1 = UnityEngine.Random.value * 2;  // range is 0-2
+							rPhase2 = UnityEngine.Random.value * 2;  // range is 0-2
+							rWavePhase1 = (UnityEngine.Random.value - 0.5F) * 6.28F;  // range is -3.14 -> 3.14
+							rWavePhase2 = (UnityEngine.Random.value - 0.5F) * 6.28F;  // range is -3.14 -> 3.14
+						}
 
 						// This need not be set each trial, but whatever
 						if (FreeGlobals.rewardedOri.Equals ("h")) {

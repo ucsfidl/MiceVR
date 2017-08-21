@@ -64,6 +64,7 @@ public static class FreeGlobals
 	public static bool nonRewardedColorSwap = false;
 	public static float oriPersistenceDur = -1;
 	public static float greyPersistenceDur = -1;
+	public static float luminanceDiff = -1;
 
 	public static string targetChange;
 
@@ -91,6 +92,7 @@ public static class FreeGlobals
 	public static string nonRewardedLineType = "curvy";  // for backwards compatibility with initial levels
 	public static float rewardedAmplitude;
 	public static float rewardedNumCycles;
+	public static bool randomPhase = true;
 
 	// Parameters for discrimination task
 	public static float numStim = 2;
