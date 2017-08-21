@@ -402,6 +402,14 @@ public class WaterTreeScript : MonoBehaviour {
         this.bottomCap.SetActive(true);
     }
 
+	public Color GetColor1() {
+		return this.crown.GetComponent<Renderer> ().material.GetColor ("_Color1");
+	}
+
+	public Color GetColor2() {
+		return this.crown.GetComponent<Renderer> ().material.GetColor ("_Color2");
+	}
+
 	public void SetColors(Color c1, Color c2) {
 		this.crown.GetComponent<Renderer>().material.SetColor("_Color1", c1);
 		this.crown.GetComponent<Renderer>().material.SetColor("_Color2", c2);

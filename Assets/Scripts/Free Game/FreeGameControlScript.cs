@@ -2000,20 +2000,39 @@ public class FreeGameControlScript : MonoBehaviour
 					if (oriOn && DateTime.Now.Subtract (firstOriOnTime).TotalMilliseconds > FreeGlobals.oriPersistenceDur) {
 						if (FreeGlobals.greyPersistenceDur == -1 || FreeGlobals.greyPersistenceDur == 0) {  // No grey delay
 							if (FreeGlobals.targetChange.Equals ("match")) {
-								float currHFreq = gos [distractorTree].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
-								float currVFreq = gos [distractorTree].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-								if (currHFreq == sampleHFreq && currVFreq == sampleVFreq) {
-									gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+								if (FreeGlobals.flickerType.Equals("solid")) {
+									Color currColor = gos[distractorTree].GetComponent<WaterTreeScript>().GetColor1();
+									Debug.Log (currColor.ToString ());
+									if (currColor.Equals(FreeGlobals.nonRewardedColor1)) {
+										gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors(FreeGlobals.nonRewardedColor2, FreeGlobals.nonRewardedColor2);
+									} else {
+										gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors(FreeGlobals.nonRewardedColor1, FreeGlobals.nonRewardedColor1);
+									}
 								} else {
-									gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+									float currHFreq = gos [distractorTree].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+									float currVFreq = gos [distractorTree].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+									if (currHFreq == sampleHFreq && currVFreq == sampleVFreq) {
+										gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+									} else {
+										gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+									}
 								}
 							} else if (FreeGlobals.targetChange.Equals("nonmatch")) {
-								float currHFreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
-								float currVFreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-								if (currHFreq == sampleHFreq && currVFreq == sampleVFreq) {
-									gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+								if (FreeGlobals.flickerType.Equals("solid")) {
+									Color currColor = gos[treeToActivate].GetComponent<WaterTreeScript>().GetColor1();
+									if (currColor.Equals(FreeGlobals.rewardedColor1)) {
+										gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors(FreeGlobals.rewardedColor2, FreeGlobals.rewardedColor2);
+									} else {
+										gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors(FreeGlobals.rewardedColor1, FreeGlobals.rewardedColor1);
+									}
 								} else {
-									gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+									float currHFreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+									float currVFreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+									if (currHFreq == sampleHFreq && currVFreq == sampleVFreq) {
+										gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleVFreq);
+									} else {
+										gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleVFreq);
+									}
 								}
 							}
 						} else { // Switch trees to grey

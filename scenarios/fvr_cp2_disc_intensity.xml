@@ -19,7 +19,7 @@
 			<nonRewardedColor1>0,0,0</nonRewardedColor1>  <!-- R, G, B -->
 			<nonRewardedColor2>0,0,0</nonRewardedColor2>  <!-- R, G, B -->
 			<nonRewardedColorSwap>true</nonRewardedColorSwap>
-			<luninanceDiff>0.5</luminanceDiff>
+			<luminanceDiff>0.5</luminanceDiff>
 		</gameConfig>
 	</config>
 	<trees>

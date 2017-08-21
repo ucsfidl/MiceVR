@@ -17,7 +17,7 @@
 			<nonRewardedVFreq>1</nonRewardedVFreq>
 			<nonRewardedColor1>0.5,0.5,0.5</nonRewardedColor1>  <!-- R, G, B -->
 			<nonRewardedColor2>0.5,0.5,0.5</nonRewardedColor2>  <!-- R, G, B -->
-			<oriPersistenceDur>100</oriPersistenceDur> <!-- ms -->
+			<oriPersistenceDur>50</oriPersistenceDur> <!-- ms -->
 			<greyPersistenceDur>0</greyPersistenceDur> <!-- ms -->
 			<targetChange>nonmatch</targetChange>
 			<flickerType>solid</flickerType>
