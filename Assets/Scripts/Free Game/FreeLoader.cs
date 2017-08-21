@@ -605,6 +605,10 @@ public class FreeLoader : MonoBehaviour {
 					float.TryParse(xn["luminanceDiff"].InnerText, out ld);
 					FreeGlobals.luminanceDiff = ld;
 				}
+				if (xn["flickerType"] != null)
+				{
+					FreeGlobals.flickerType = xn["flickerType"].InnerText;
+				}
 			}
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.

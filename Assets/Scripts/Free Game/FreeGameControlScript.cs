@@ -1801,10 +1801,27 @@ public class FreeGameControlScript : MonoBehaviour
 								nonSampleVFreq = FreeGlobals.nonRewardedVFreq;
 
 								if (FreeGlobals.luminanceDiff == -1) {
-									sampleColor1 = FreeGlobals.rewardedColor1;
-									sampleColor2 = FreeGlobals.rewardedColor2;
-									nonSampleColor1 = FreeGlobals.rewardedColor1;
-									nonSampleColor2 = FreeGlobals.rewardedColor2;
+									if (FreeGlobals.flickerType.Equals("solid")) { // Solid flicker stim, so alternate colors instead of drawing stripes
+										if (UnityEngine.Random.value < 0.5) {
+											sampleColor1 = FreeGlobals.rewardedColor1;
+											sampleColor2 = FreeGlobals.rewardedColor1;
+										} else {
+											sampleColor1 = FreeGlobals.rewardedColor2;
+											sampleColor2 = FreeGlobals.rewardedColor2;
+										}
+										if (UnityEngine.Random.value < 0.5) {
+											nonSampleColor1 = FreeGlobals.nonRewardedColor1;
+											nonSampleColor2 = FreeGlobals.nonRewardedColor1;
+										} else {
+											nonSampleColor1 = FreeGlobals.nonRewardedColor2;
+											nonSampleColor2 = FreeGlobals.nonRewardedColor2;
+										}
+									} else {	
+										sampleColor1 = FreeGlobals.rewardedColor1;
+										sampleColor2 = FreeGlobals.rewardedColor2;
+										nonSampleColor1 = FreeGlobals.rewardedColor1;
+										nonSampleColor2 = FreeGlobals.rewardedColor2;
+									}
 								} else { // Do brightness training - vary the rewarded color randomly and subtract the luminanceDiff for the nonrewarded Color
 									float range = 1 - FreeGlobals.luminanceDiff;
 									float rl = UnityEngine.Random.value * range + FreeGlobals.luminanceDiff;

@@ -65,6 +65,7 @@ public static class FreeGlobals
 	public static float oriPersistenceDur = -1;
 	public static float greyPersistenceDur = -1;
 	public static float luminanceDiff = -1;
+	public static string flickerType = "stripes";
 
 	public static string targetChange;
 
