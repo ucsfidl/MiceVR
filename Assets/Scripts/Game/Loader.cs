@@ -129,25 +129,50 @@ public class Loader : MonoBehaviour {
 						vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
 					}
 					Debug.Log ("[0, 0.5, 1] - " + r);
+				} else if (end == 2) { // 2-choice detection
+					if (r < 0.5) {
+						treeList [1].GetComponent<WaterTreeScript> ().Hide ();
+						locx = treeList [0].transform.position.x;
+						hfreq = treeList [0].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = treeList [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+					} else {
+						treeList [0].GetComponent<WaterTreeScript> ().Hide ();
+						locx = treeList [1].transform.position.x;
+						hfreq = treeList [1].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = treeList [1].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+					}
+					Debug.Log ("[0, 0.5, 1] - " + r);
+				} else if (end == 4) { // 4-choice detection
+					if (r < 0.25) {
+						locx = treeList [0].transform.position.x;
+						hfreq = treeList [0].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = treeList [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+						treeList [1].GetComponent<WaterTreeScript> ().Hide ();
+						treeList [2].GetComponent<WaterTreeScript> ().Hide ();
+						treeList [3].GetComponent<WaterTreeScript> ().Hide ();
+					} else if (r < 0.5) {
+						locx = treeList [1].transform.position.x;
+						hfreq = treeList [1].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = treeList [1].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+						treeList [0].GetComponent<WaterTreeScript> ().Hide ();
+						treeList [2].GetComponent<WaterTreeScript> ().Hide ();
+						treeList [3].GetComponent<WaterTreeScript> ().Hide ();
+					} else if (r < 0.75) {
+						locx = treeList [2].transform.position.x;
+						hfreq = treeList [2].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = treeList [2].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+						treeList [0].GetComponent<WaterTreeScript> ().Hide ();
+						treeList [1].GetComponent<WaterTreeScript> ().Hide ();
+						treeList [3].GetComponent<WaterTreeScript> ().Hide ();
+					} else {
+						locx = treeList [3].transform.position.x;
+						hfreq = treeList [3].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = treeList [3].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+						treeList [0].GetComponent<WaterTreeScript> ().Hide ();
+						treeList [1].GetComponent<WaterTreeScript> ().Hide ();
+						treeList [2].GetComponent<WaterTreeScript> ().Hide ();
+					}
 				}
-                if (end == 2)  // 2-choice detection
-                {
-                    if (r < 0.5)
-                    {
-                        treeList[1].GetComponent<WaterTreeScript>().Hide();
-                        locx = treeList[0].transform.position.x;
-                        hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                        vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                    }
-                    else
-                    {
-                        treeList[0].GetComponent<WaterTreeScript>().Hide();
-                        locx = treeList[1].transform.position.x;
-                        hfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                        vfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                    }
-                    Debug.Log("[0, 0.5, 1] - " + r);
-                }
             }
             else if (Globals.gameType.Equals("det_blind"))
             {

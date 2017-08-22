@@ -165,34 +165,32 @@ public static class Globals
         int start;
         int end;
         int numTrials;
-        if (len >= histLen)
-        {
+        if (len >= histLen) {
             end = len;
             start = len - histLen;
-        }
-        else
-        {
+        } else {
             start = 0;
             end = len;
         }
         numTrials = end - start;
-        if (gos.Length == 2)
-        {
-            for (int i = start; i < end; i++)
-            {
-                if (Globals.firstTurn[i].Equals(gos[treeIndex].transform.position.x))
-                    turn0++;
-            }
-        }
-        else if (gos.Length == 3)
-        {
-            for (int i = start; i < end; i++)
-            {
-                if (Globals.firstTurn[i].Equals(gos[treeIndex].transform.position.x))
-                    turn0++;
-            }
+		// TODO: Do I even need this if set?
+		if (gos.Length == 2) {
+			for (int i = start; i < end; i++) {
+				if (Globals.firstTurn [i].Equals (gos [treeIndex].transform.position.x))
+					turn0++;
+			}
+		} else if (gos.Length == 3) {
+			for (int i = start; i < end; i++) {
+				if (Globals.firstTurn [i].Equals (gos [treeIndex].transform.position.x))
+					turn0++;
+			}
+		} else if (gos.Length == 4) {
+			for (int i = start; i < end; i++) {
+				if (Globals.firstTurn [i].Equals (gos [treeIndex].transform.position.x))
+					turn0++;
+			}
+		}
 
-        }
         return (float)turn0 / numTrials;
     }
 

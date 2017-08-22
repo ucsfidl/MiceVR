@@ -4,7 +4,7 @@
 
 		Tags {"Queue" = "Transparent-10" }
 
-		// Dont' draw in the RGBA channels; judt the depth buffer
+		// Dont' draw in the RGBA channels; just the depth buffer
 
 		ColorMask 0
 		Zwrite On

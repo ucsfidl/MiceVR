@@ -1,0 +1,103 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>
+			<gameTurnControl>roll</gameTurnControl>
+		</gameConfig>
+	</config>
+	<trees>  <!-- All tree X positions are different, as used as an ID -->
+		<t> <!-- Left front tree -->
+			<w>1</w>
+			<pos>19989;0;20020</pos>  
+			<d>0</d>
+			<r>0</r>
+		</t>
+		<t> <!-- Right front tree -->
+			<w>1</w>
+			<pos>20011;0;20020</pos>
+			<d>0</d>
+			<r>2</r>
+		</t>
+		<t> <!-- Left back tree -->
+			<w>1</w>
+			<pos>19990;0;20045</pos>
+			<d>0</d>
+			<r>0</r>
+		</t>
+		<t> <!-- Right back tree -->
+			<w>1</w>
+			<pos>20010;0;20045</pos>
+			<d>0</d>
+			<r>2</r>
+		</t>
+	</trees>
+	<walls>
+		<wall> <!-- Left wall -->
+			<pos>19994;2;20006.5</pos>
+			<rot>0;0;0</rot>
+			<scale>2;4;21.6</scale>
+		</wall>
+		<wall> <!-- Right wall -->
+			<pos>20006;2;20006.5</pos>
+			<rot>0;0;0</rot>
+			<scale>2;4;21.6</scale>
+		</wall>
+		<wall> <!-- Front wall -->
+			<pos>20000;2;19994</pos>
+			<rot>0;90;0</rot>
+			<scale>2;4;15</scale>
+		</wall>
+		<wall> <!-- Back wall / OUTSIDE THE MAZE -->
+			<pos>20000;2;20070</pos>
+			<rot>0;-90;0</rot>
+			<scale>2;4;15</scale>
+		</wall>
+		<wall> <!-- Left Back Y left wall -->
+			<pos>19985;2;20040</pos>
+			<rot>0;-45;0</rot>
+			<scale>2;4;21</scale>
+		</wall>
+		<wall> <!-- Left Back Y right wall -->
+			<pos>19993.5;2;20050</pos>
+			<rot>0;-45;0</rot>
+			<scale>2;4;20</scale>
+		</wall>
+		<wall> <!-- Right Back Y left wall -->
+			<pos>20006.5;2;20050</pos>
+			<rot>0;45;0</rot>
+			<scale>2;4;20</scale>
+		</wall>
+		<wall> <!-- Right Back Y right wall -->
+			<pos>20015;2;20040</pos>
+			<rot>0;45;0</rot>
+			<scale>2;4;21</scale>
+		</wall>
+		<wall> <!-- Right Front Y left wall -->
+			<pos>20015;2;20025</pos>
+			<rot>0;135;0</rot>
+			<scale>2;4;21</scale>
+		</wall>
+		<wall> <!-- Right Front Y right wall -->
+			<pos>20015;2;20010</pos>
+			<rot>0;135;0</rot>
+			<scale>2;4;20</scale>
+		</wall>
+		<wall> <!-- Left Front Y left wall -->
+			<pos>19985;2;20010</pos>
+			<rot>0;-135;0</rot>
+			<scale>2;4;21</scale>
+		</wall>
+		<wall> <!-- Left Front Y right wall -->
+			<pos>19985;2;20025</pos>
+			<rot>0;-135;0</rot>
+			<scale>2;4;20</scale>
+		</wall>
+	</walls>
+</document>

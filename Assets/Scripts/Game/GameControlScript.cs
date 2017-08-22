@@ -369,6 +369,7 @@ public class GameControlScript : MonoBehaviour
         else if (treeLocX < 20000)
             lp.x = Globals.centralViewVisibleShift;
         treeOccluder.transform.localPosition = lp;
+		Debug.Log ("Tree at " + treeLocX);
     }
 
 
@@ -494,8 +495,7 @@ public class GameControlScript : MonoBehaviour
         float r = UnityEngine.Random.value;
 		if (Globals.gameType.Equals("detection") || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target"))
         {
-            if (gos.Length == 1)  // Linear track
-            {
+			if (gos.Length == 1)  { // Linear track
                 if (Globals.varyOrientation)
                 {
                     if (r > 0.5)  // Half the time, swap the orientation of the tree
@@ -505,9 +505,7 @@ public class GameControlScript : MonoBehaviour
                         vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
                     }
                 }
-            }
-			else if (gos.Length == 2 || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target"))
-            {
+            } else if (gos.Length == 2 || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target")) {
                 float rThresh0 = 1 - Globals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
                 Debug.Log("Loc: [0, " + rThresh0 + ", 1] - " + r);
                 treeToActivate = r < rThresh0 ? 0 : 1;
@@ -559,7 +557,33 @@ public class GameControlScript : MonoBehaviour
 				locx = gos[treeToActivate].transform.position.x;
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
-            }
+			} else if (gos.Length == 4) {
+				// Turn on bias correction after testing that logic works!
+				// Bias correction algo #1
+				float tf0 = Globals.GetTurnBias(20, 0);
+				float tf1 = Globals.GetTurnBias(20, 1);
+				float tf2 = Globals.GetTurnBias (20, 2);
+				float tf3 = 1 - (tf0 + tf1 + tf2);
+
+				float t0 = 1 - tf0;
+				float t1 = 1 - tf1;
+				float t2 = 1 - tf2;
+				float t3 = 1 - tf3;
+
+				Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2 + ", " + tf3);
+
+				float thresh0 = t0 / (t0 + t1 + t2 + t3);
+				float thresh1 = t1 / (t0 + t1 + t2 + t3) + thresh0;
+				float thresh2 = t2 / (t0 + t1 + t2 + t3) + thresh1;
+
+				Debug.Log ("random: " + r + " --- range: [0, " + thresh0 + ", " + thresh1 + ", " + thresh2 + ", 1]");
+
+				treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : 3;
+				locx = gos[treeToActivate].transform.position.x;
+				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
+				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				SetupTreeActivation (gos, treeToActivate, 4);
+			}
         } 
         else if (Globals.gameType.Equals("det_blind"))
         {
