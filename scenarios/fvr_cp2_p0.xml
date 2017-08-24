@@ -9,7 +9,7 @@
 		</dryConfig>
 		<gameConfig>
 			<gameType>free_det_const</gameType>
-			<persistenceDur>0</persistenceDur> <!-- ms -->
+			<stimPersists>false</stimPersists> <!-- ms -->
 		</gameConfig>
 	</config>
 	<trees>

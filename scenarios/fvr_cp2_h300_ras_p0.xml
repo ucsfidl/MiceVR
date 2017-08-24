@@ -12,7 +12,7 @@
 			<waterAtStart>true</waterAtStart>
 			<startReward>2</startReward>
 			<startRewardDelay>300</startRewardDelay> <!-- in ms; mouse must hold in startport for this period of time for the stim to stay on -->
-			<persistenceDur>0</persistenceDur> <!-- ms -->
+			<stimPersists>false</stimPersists> <!-- ms -->
 		</gameConfig>
 	</config>
 	<trees>
