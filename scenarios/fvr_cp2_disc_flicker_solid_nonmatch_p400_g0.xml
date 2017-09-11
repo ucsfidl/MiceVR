@@ -1,0 +1,40 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>free_disc</gameType>
+			<rewardedHFreq>1</rewardedHFreq> <!-- vfreq in this case is 1 -->
+			<rewardedVFreq>1</rewardedVFreq> <!-- hfreq in this case is 1 -->
+			<rewardedColor1>1,1,1</rewardedColor1>      <!-- R, G, B -->
+			<rewardedColor2>0,0,0</rewardedColor2>      <!-- R, G, B -->
+			<nonRewardedHFreq>1</nonRewardedHFreq>
+			<nonRewardedVFreq>1</nonRewardedVFreq>
+			<nonRewardedColor1>0.5,0.5,0.5</nonRewardedColor1>  <!-- R, G, B -->
+			<nonRewardedColor2>0.5,0.5,0.5</nonRewardedColor2>  <!-- R, G, B -->
+			<oriPersistenceDur>400</oriPersistenceDur> <!-- ms -->
+			<greyPersistenceDur>0</greyPersistenceDur> <!-- ms -->
+			<targetChange>nonmatch</targetChange>
+			<flickerType>solid</flickerType>
+		</gameConfig>
+	</config>
+	<trees>
+		<t> <!-- Left tree #1 -->
+			<w>1</w>
+			<pos>19998.75;0;20000.37</pos>
+			<d>0</d>
+			<rewardSize>4</rewardSize> <!-- in ul -->
+		</t>
+		<t> <!-- Right tree #1 -->
+			<w>1</w>
+			<pos>20001.25;0;20000.37</pos>
+			<d>0</d>
+			<rewardSize>4</rewardSize> <!-- in ul -->
+		</t>
+	</trees>
+</document>
