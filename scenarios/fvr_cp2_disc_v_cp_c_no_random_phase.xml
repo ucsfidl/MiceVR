@@ -16,6 +16,7 @@
 			<rewardedLineType>curvy</rewardedLineType>
 			<nonRewardedLineType>pointy</nonRewardedLineType>
 			<rewardedAmplitude>0.09</rewardedAmplitude>
+			<nonRewardedAmplitude>0.09</nonRewardedAmplitude>
 			<rewardedNumCycles>4</rewardedNumCycles>
 		</gameConfig>
 	</config>

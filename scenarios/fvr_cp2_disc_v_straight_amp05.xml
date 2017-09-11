@@ -14,6 +14,7 @@
 			<rewardedOri>v</rewardedOri>
 			<rewardedLineType>straight</rewardedLineType>
 			<rewardedAmplitude>0.05</rewardedAmplitude>
+			<nonRewardedAmplitude>0.05</nonRewardedAmplitude>
 			<rewardedNumCycles>4</rewardedNumCycles>
 		</gameConfig>
 	</config>

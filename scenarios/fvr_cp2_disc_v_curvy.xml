@@ -14,6 +14,7 @@
 			<rewardedOri>v</rewardedOri>
 			<rewardedLineType>curvy</rewardedLineType>
 			<rewardedAmplitude>0.06</rewardedAmplitude>
+			<nonRewardedAmplitude>0.06</nonRewardedAmplitude>
 			<rewardedNumCycles>4</rewardedNumCycles>
 		</gameConfig>
 	</config>

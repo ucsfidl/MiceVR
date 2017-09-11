@@ -541,6 +541,12 @@ public class FreeLoader : MonoBehaviour {
 					float.TryParse(xn["rewardedAmplitude"].InnerText, out ra);
 					FreeGlobals.rewardedAmplitude = ra;
 				}
+				if (xn["nonRewardedAmplitude"] != null) // 0.1 is about full width of vertical line
+				{
+					float nra;
+					float.TryParse(xn["nonRewardedAmplitude"].InnerText, out nra);
+					FreeGlobals.nonRewardedAmplitude = nra;
+				}
 
 				if (xn["rewardedNumCycles"] != null)  // Number of cycles of the wave displayed on the tree 
 				{

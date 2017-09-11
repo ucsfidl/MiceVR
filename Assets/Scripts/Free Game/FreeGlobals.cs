@@ -92,6 +92,7 @@ public static class FreeGlobals
 	public static string rewardedLineType;
 	public static string nonRewardedLineType = "curvy";  // for backwards compatibility with initial levels
 	public static float rewardedAmplitude;
+	public static float nonRewardedAmplitude;
 	public static float rewardedNumCycles;
 	public static bool randomPhase = true;
 

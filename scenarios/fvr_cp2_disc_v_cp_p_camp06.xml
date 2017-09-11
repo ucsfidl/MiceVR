@@ -12,8 +12,9 @@
 			<rewardedHFreq>1</rewardedHFreq>
 			<rewardedVFreq>4</rewardedVFreq>
 			<rewardedOri>v</rewardedOri>
-			<rewardedLineType>straight</rewardedLineType>
-			<rewardedAmplitude>0.06</rewardedAmplitude>
+			<rewardedLineType>pointy</rewardedLineType>
+			<nonRewardedLineType>curvy</nonRewardedLineType>
+			<rewardedAmplitude>0.09</rewardedAmplitude>
 			<nonRewardedAmplitude>0.06</nonRewardedAmplitude>
 			<rewardedNumCycles>4</rewardedNumCycles>
 		</gameConfig>
