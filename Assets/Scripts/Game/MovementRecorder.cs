@@ -12,6 +12,7 @@ public class MovementRecorder : MonoBehaviour {
     private string dayName;
     private string scenarioName;
     private string sessionName;
+	private string degCentrallyVisible;
     private string replayFileName;
     private bool fileSet;
 	private int licks, rewards, lastLick, lastReward;
@@ -69,6 +70,21 @@ public class MovementRecorder : MonoBehaviour {
         MakeReplayName();
     }
 
+	public void SetSessionName (string s)
+	{
+		this.sessionName = s;
+		MakeReplayName();
+	}
+
+	public void SetDegCentrallyVisible(string s)
+	{
+		int deg;
+		this.degCentrallyVisible = s;
+		int.TryParse(this.degCentrallyVisible, out deg);
+		Globals.SetCentrallyVisible(deg);
+		Debug.Log(Globals.centralViewVisibleShift);
+	}
+
     public void SetScenarioName(string s)
     {
         if (s.EndsWith(".xml"))
@@ -79,12 +95,7 @@ public class MovementRecorder : MonoBehaviour {
         MakeReplayName();
     }
 
-    public void SetSessionName (string s)
-    {
-        this.sessionName = s;
-        MakeReplayName();
-    }
-
+    
     public void SetReplayFileName(string s)
     {
         this.replayFileName = s;

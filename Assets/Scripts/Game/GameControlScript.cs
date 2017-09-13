@@ -190,9 +190,7 @@ public class GameControlScript : MonoBehaviour
         int.TryParse(_rewardDur, out Globals.rewardDur);
         float.TryParse(_rewardSize, out Globals.rewardSize);
 
-        // Calculate tree view block value: 0 is full occlusion in the central screen = 120 degrees
-        // 0.9 is full visibility with occluder pushed all the way to the screen
-        Globals.centralViewVisibleShift = (float)(centralViewVisible * 0.58/120);  // 0.45/120
+		Globals.SetCentrallyVisible(centralViewVisible);
 
 		//Debug.Log (Globals.centralViewVisibleShift);
         // trying to avoid first drops of water

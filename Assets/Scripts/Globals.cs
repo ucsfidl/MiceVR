@@ -220,4 +220,10 @@ public static class Globals
         return (float)corr / numTrials;
     }
 
+	// Calculate tree view block value: 0 is full occlusion in the central screen = 120 degrees
+	// 0.9 is full visibility with occluder pushed all the way to the screen
+	public static void SetCentrallyVisible(int deg) {
+		Globals.centralViewVisibleShift = (float)(deg * 0.58/120);  // 0.45/120
+	}
+
 }
