@@ -2002,7 +2002,7 @@ public class FreeGameControlScript : MonoBehaviour
 							if (FreeGlobals.targetChange.Equals ("match")) {
 								if (FreeGlobals.flickerType.Equals("solid")) {
 									Color currColor = gos[distractorTree].GetComponent<WaterTreeScript>().GetColor1();
-									Debug.Log (currColor.ToString ());
+									//Debug.Log (currColor.ToString ());
 									if (currColor.Equals(FreeGlobals.nonRewardedColor1)) {
 										gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors(FreeGlobals.nonRewardedColor2, FreeGlobals.nonRewardedColor2);
 									} else {
