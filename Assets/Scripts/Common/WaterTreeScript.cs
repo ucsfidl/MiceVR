@@ -383,6 +383,23 @@ public class WaterTreeScript : MonoBehaviour {
 		this.hCycPerSec = hcps;
 	}
 
+	public void SetVCycPerSec(float vcps)
+	{
+		this.vCycPerSec = vcps;
+	}
+	public float GetVCycPerSec()
+	{
+		return this.vCycPerSec;
+	}
+	public void SetHCycPerSec(float hcps)
+	{
+		this.hCycPerSec = hcps;
+	}
+	public float GetHCycPerSec()
+	{
+		return this.hCycPerSec;
+	}
+
     public void SetCorrect(bool c)
     {
         this.correctTree = c;

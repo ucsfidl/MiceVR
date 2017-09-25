@@ -2199,6 +2199,16 @@ public class FreeGameControlScript : MonoBehaviour
 								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, rPhase1, sampleVFreq, 0, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, rWavePhase1, 0, 0, 0, 1);
 							} else if (FreeGlobals.rewardedLineType.Equals ("pointy")) {
 								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, rPhase1, sampleVFreq, 0, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, rWavePhase1, 0, 0, 0, 0);
+							} else if (FreeGlobals.rewardedLineType.Equals("motion_up")){
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, rPhase1, sampleVFreq, 0, 0, 0, 0, 0, 0, 0, 1);
+								float vcps = gos [this.treeToActivate].GetComponent<WaterTreeScript> ().GetVCycPerSec();
+								if (vcps > 0)  // postivie vcps means downward motion, so flip
+									gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetVCycPerSec(-vcps);
+							} else if (FreeGlobals.rewardedLineType.Equals("motion_down")){
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, rPhase1, sampleVFreq, 0, 0, 0, 0, 0, 0, 0, 1);
+								float vcps = gos [this.treeToActivate].GetComponent<WaterTreeScript> ().GetVCycPerSec();
+								if (vcps < 0)  // negative vcps means upward motion, so flip
+									gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetVCycPerSec(-vcps);
 							}
 
 							if (FreeGlobals.nonRewardedLineType.Equals ("straight")) {
@@ -2207,7 +2217,18 @@ public class FreeGameControlScript : MonoBehaviour
 								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, rPhase2, sampleVFreq, 0, FreeGlobals.nonRewardedAmplitude, FreeGlobals.rewardedNumCycles, rWavePhase2, 0, 0, 0, 1);
 							} else if (FreeGlobals.nonRewardedLineType.Equals ("pointy")) {
 								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, rPhase2, sampleVFreq, 0, FreeGlobals.nonRewardedAmplitude, FreeGlobals.rewardedNumCycles, rWavePhase2, 0, 0, 0, 0);
+							} else if (FreeGlobals.nonRewardedLineType.Equals("motion_up")){
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, rPhase2, sampleVFreq, 0, 0, 0, 0, 0, 0, 0, 1);
+								float vcps = gos [otherTree].GetComponent<WaterTreeScript> ().GetVCycPerSec();
+								if (vcps > 0)  // postivie vcps means downward motion, so flip
+									gos [otherTree].GetComponent<WaterTreeScript> ().SetVCycPerSec(-vcps);
+							} else if (FreeGlobals.nonRewardedLineType.Equals("motion_down")){
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, rPhase2, sampleVFreq, 0, 0, 0, 0, 0, 0, 0, 1);
+								float vcps = gos [otherTree].GetComponent<WaterTreeScript> ().GetVCycPerSec();
+								if (vcps < 0)  // negative vcps means upward motion, so flip
+									gos [otherTree].GetComponent<WaterTreeScript> ().SetVCycPerSec(-vcps);
 							}
+
 						} else if (FreeGlobals.rewardedOri.Equals ("v")) {
 							if (FreeGlobals.rewardedLineType.Equals ("straight")) {
 								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, 0, sampleVFreq, rPhase1, 0, 0, 0, 0, 0, 0, 1);
@@ -2215,6 +2236,16 @@ public class FreeGameControlScript : MonoBehaviour
 								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, 0, sampleVFreq, rPhase1, 0, 0, 0, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, rWavePhase1, 1);
 							} else if (FreeGlobals.rewardedLineType.Equals ("pointy")) {
 								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, 0, sampleVFreq, rPhase1, 0, 0, 0, FreeGlobals.rewardedAmplitude, FreeGlobals.rewardedNumCycles, rWavePhase1, 0);
+							} else if (FreeGlobals.rewardedLineType.Equals("motion_right")){
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, 0, sampleVFreq, rPhase1, 0, 0, 0, 0, 0, 0, 1);
+								float hcps = gos [this.treeToActivate].GetComponent<WaterTreeScript> ().GetHCycPerSec();
+								if (hcps > 0)  // postivie hcps means leftward motion, so flip
+									gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetHCycPerSec(-hcps);
+							} else if (FreeGlobals.rewardedLineType.Equals("motion_left")){
+								gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, 0, sampleVFreq, rPhase1, 0, 0, 0, 0, 0, 0, 1);
+								float hcps = gos [this.treeToActivate].GetComponent<WaterTreeScript> ().GetHCycPerSec();
+								if (hcps < 0)  // negative hcps means rightward motion, so flip
+									gos [this.treeToActivate].GetComponent<WaterTreeScript> ().SetHCycPerSec(-hcps);
 							}
 
 							if (FreeGlobals.nonRewardedLineType.Equals ("straight")) {
@@ -2223,6 +2254,16 @@ public class FreeGameControlScript : MonoBehaviour
 								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, 0, sampleVFreq, rPhase2, 0, 0, 0, FreeGlobals.nonRewardedAmplitude, FreeGlobals.rewardedNumCycles, rWavePhase2, 1);
 							} else if (FreeGlobals.nonRewardedLineType.Equals ("pointy")) {
 								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, 0, sampleVFreq, rPhase2, 0, 0, 0, FreeGlobals.nonRewardedAmplitude, FreeGlobals.rewardedNumCycles, rWavePhase2, 0);
+							} else if (FreeGlobals.nonRewardedLineType.Equals("motion_right")){
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, 0, sampleVFreq, rPhase1, 0, 0, 0, 0, 0, 0, 1);
+								float hcps = gos [otherTree].GetComponent<WaterTreeScript> ().GetHCycPerSec();
+								if (hcps > 0)  // postivie hcps means leftward motion, so flip
+									gos [otherTree].GetComponent<WaterTreeScript> ().SetHCycPerSec(-hcps);
+							} else if (FreeGlobals.nonRewardedLineType.Equals("motion_left")){
+								gos [otherTree].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, 0, sampleVFreq, rPhase1, 0, 0, 0, 0, 0, 0, 1);
+								float hcps = gos [otherTree].GetComponent<WaterTreeScript> ().GetHCycPerSec();
+								if (hcps < 0)  // negative hcps means rightward motion, so flip
+									gos [otherTree].GetComponent<WaterTreeScript> ().SetHCycPerSec(-hcps);
 							}
 						}
 							
@@ -2231,7 +2272,7 @@ public class FreeGameControlScript : MonoBehaviour
 						FreeGlobals.targetHFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
 						FreeGlobals.targetVFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ());
 						FreeGlobals.targetDeg.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ());
-						// TODO: Add log of curvy vs. straight reward
+						// TODO: Add log of curvy vs. straight reward, and of motion (rewardedType in general)
 
 						FreeGlobals.numberOfTrials++;
 						FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
