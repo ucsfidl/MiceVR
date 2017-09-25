@@ -10,7 +10,7 @@
 		<gameConfig>
 			<gameType>free_disc_single_ori</gameType>
 			<rewardedHFreq>8</rewardedHFreq>
-			<rewardedVFreq>1</rewardedVFreq>
+			<rewardedVFreq>0</rewardedVFreq>
 			<rewardedOri>h</rewardedOri>
 			<rewardedLineType>motion_down</rewardedLineType>
 			<nonRewardedLineType>motion_up</nonRewardedLineType>
