@@ -81,7 +81,7 @@ public class WaterTreeScript : MonoBehaviour {
 			this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", (hp + 360 * hCycPerSec * Time.deltaTime) % 360);
 		}
 		//Debug.Log (vp);
-		Debug.Log (hp);
+		//Debug.Log (hp);
 	}
 
     void OnTriggerEnter(Collider c)

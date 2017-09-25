@@ -11,7 +11,7 @@
 			<gameType>free_disc_single_ori</gameType>
 			<rewardedHFreq>1</rewardedHFreq>
 			<rewardedVFreq>4</rewardedVFreq>
-			<rewardedOri>h</rewardedOri>
+			<rewardedOri>v</rewardedOri>
 			<rewardedLineType>motion_right</rewardedLineType>
 			<nonRewardedLineType>motion_left</nonRewardedLineType>
 
