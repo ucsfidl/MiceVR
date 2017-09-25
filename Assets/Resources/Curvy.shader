@@ -5,9 +5,9 @@ Shader "Custom/Curvy" {
         _Color1 ("Color1", Color) = (1,1,1,1)
         _Color2 ("Color2", Color) = (0,0,0,0)
         _VFreq ("VFreq", Range (0,1000)) = 1
-		_VPhase ("VPhase", Range (0, 2)) = 0.3
+		_VPhase ("VPhase", Range (0, 359)) = 0
 		_HFreq ("HFreq", Range (0,1000)) = 1
-		_HPhase ("HPhase", Range (0, 2)) = 0
+		_HPhase ("HPhase", Range (0, 359)) = 0
 		_Deg ("Degrees", Range (-45,45)) = 0
 		_Smooth ("Smooth", Range(0,1)) = 1
 		_VAmplitude ("VAmplitude", Range(0, 100)) = 0
@@ -72,15 +72,15 @@ Shader "Custom/Curvy" {
 					//if ( fmod((i.texcoord0.x + (VA/P) * (P - abs(fmod(i.texcoord0.y, 2*P) - P)))*_VFreq - 5.333*VA + 6.65, 2.0) < 1.0 ){
 					//if ( fmod((i.texcoord0.x + (1-2*VA*abs(1./VA - frac(1./VA * i.texcoord0.y + 1./(2*VA)))))*_VFreq + 0.5, 2.0) < 1.0 ){
 					//if ( fmod((i.texcoord0.x + (1-VA*abs(1 - (VA*((1./2*i.texcoord0.y + 1./4) % 1)))))*_VFreq + 0.5, 2.0) < 1.0 ){
-					if ( fmod((i.texcoord0.x + (VA/PI*asin(sin(PI*i.texcoord0.y*w + _VWavePhase))))*_VFreq + _VPhase + 0.35, 2.0) < 1.0 ){
-						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase,2.0) < 1.0 )
+					if ( fmod((i.texcoord0.x + (VA/PI*asin(sin(PI*i.texcoord0.y*w + _VWavePhase))))*_VFreq + _VPhase/180 + 0.35, 2.0) < 1.0 ){
+						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase/180,2.0) < 1.0 )
 						{
 							color = _Color1;
 						} else {
 							color = _Color2;
 						}
 					} else {
-						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase,2.0) > 1.0 )
+						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase/180,2.0) > 1.0 )
 						{
 							color = _Color1;
 						} else {
@@ -90,15 +90,15 @@ Shader "Custom/Curvy" {
 				}
 				else if (_Smooth == 1)
 				{
-					if ( fmod((i.texcoord0.x + _VAmplitude * sin(_VNumCycles/0.15*i.texcoord0.y + _VWavePhase))*_VFreq + _VPhase + 0.35,2.0) < 1.0 ){
-						if ( fmod((i.texcoord0.y + _HAmplitude * sin(_HNumCycles*i.texcoord0.x + _HWavePhase))*_HFreq + _HPhase,2.0) < 1.0 )
+					if ( fmod((i.texcoord0.x + _VAmplitude * sin(_VNumCycles/0.15*i.texcoord0.y + _VWavePhase))*_VFreq + _VPhase/180 + 0.35,2.0) < 1.0 ){
+						if ( fmod((i.texcoord0.y + _HAmplitude * sin(_HNumCycles*i.texcoord0.x + _HWavePhase))*_HFreq + _HPhase/180,2.0) < 1.0 )
 						{
 							color = _Color1;
 						} else {
 							color = _Color2;
 						}
 					} else {
-						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase,2.0) > 1.0 )
+						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase/180,2.0) > 1.0 )
 						{
 							color = _Color1;
 						} else {

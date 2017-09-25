@@ -74,14 +74,14 @@ public class WaterTreeScript : MonoBehaviour {
 		float hp = 0;;
 		if (Math.Abs(vCycPerSec) > 0 && GetShaderVFreq() > 1) {
 			vp = this.crown.GetComponent<Renderer>().material.GetFloat("_VPhase");
-			this.crown.GetComponent<Renderer>().material.SetFloat("_VPhase", vp + 360 * vCycPerSec * Time.deltaTime);
+			this.crown.GetComponent<Renderer>().material.SetFloat("_VPhase", (vp + 360 * vCycPerSec * Time.deltaTime) % 360);
 		}
 		if (Math.Abs(hCycPerSec) > 0 && GetShaderHFreq() > 1) {
 			hp = this.crown.GetComponent<Renderer>().material.GetFloat("_HPhase");
-			this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", hp + 360 * hCycPerSec * Time.deltaTime);
+			this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", (hp + 360 * hCycPerSec * Time.deltaTime) % 360);
 		}
 		//Debug.Log (vp);
-		//Debug.Log (hp);
+		Debug.Log (hp);
 	}
 
     void OnTriggerEnter(Collider c)
