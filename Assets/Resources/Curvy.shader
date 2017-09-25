@@ -72,15 +72,15 @@ Shader "Custom/Curvy" {
 					//if ( fmod((i.texcoord0.x + (VA/P) * (P - abs(fmod(i.texcoord0.y, 2*P) - P)))*_VFreq - 5.333*VA + 6.65, 2.0) < 1.0 ){
 					//if ( fmod((i.texcoord0.x + (1-2*VA*abs(1./VA - frac(1./VA * i.texcoord0.y + 1./(2*VA)))))*_VFreq + 0.5, 2.0) < 1.0 ){
 					//if ( fmod((i.texcoord0.x + (1-VA*abs(1 - (VA*((1./2*i.texcoord0.y + 1./4) % 1)))))*_VFreq + 0.5, 2.0) < 1.0 ){
-					if ( fmod((i.texcoord0.x + (VA/PI*asin(sin(PI*i.texcoord0.y*w + _VWavePhase))))*_VFreq + _VPhase/180 + 0.35, 2.0) < 1.0 ){
-						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase/180,2.0) < 1.0 )
+					if ( fmod((i.texcoord0.x + (VA/PI*asin(sin(PI*i.texcoord0.y*w + _VWavePhase))))*_VFreq + (_VPhase+360)/180 + 0.35, 2.0) < 1.0 ){
+						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + (_HPhase+360)/180,2.0) < 1.0 )
 						{
 							color = _Color1;
 						} else {
 							color = _Color2;
 						}
 					} else {
-						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase/180,2.0) > 1.0 )
+						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + (_HPhase+360)/180,2.0) > 1.0 )
 						{
 							color = _Color1;
 						} else {
@@ -90,15 +90,15 @@ Shader "Custom/Curvy" {
 				}
 				else if (_Smooth == 1)
 				{
-					if ( fmod((i.texcoord0.x + _VAmplitude * sin(_VNumCycles/0.15*i.texcoord0.y + _VWavePhase))*_VFreq + _VPhase/180 + 0.35,2.0) < 1.0 ){
-						if ( fmod((i.texcoord0.y + _HAmplitude * sin(_HNumCycles*i.texcoord0.x + _HWavePhase))*_HFreq + _HPhase/180,2.0) < 1.0 )
+					if ( fmod((i.texcoord0.x + _VAmplitude * sin(_VNumCycles/0.15*i.texcoord0.y + _VWavePhase))*_VFreq + (_VPhase+360)/180 + 0.35,2.0) < 1.0 ){
+						if ( fmod((i.texcoord0.y + _HAmplitude * sin(_HNumCycles*i.texcoord0.x + _HWavePhase))*_HFreq + (_HPhase+360)/180,2.0) < 1.0 )
 						{
 							color = _Color1;
 						} else {
 							color = _Color2;
 						}
 					} else {
-						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + _HPhase/180,2.0) > 1.0 )
+						if ( fmod((i.texcoord0.y + _HWavePhase)*_HFreq + (_HPhase+360)/180,2.0) > 1.0 )
 						{
 							color = _Color1;
 						} else {
