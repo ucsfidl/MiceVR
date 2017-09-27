@@ -233,6 +233,7 @@ public class FreeGameControlScript : MonoBehaviour
         
         if (!this.state.Equals("LoadScenario") || (this.state.Equals("LoadScenario") && EventSystem.current.currentSelectedGameObject == null))
         {
+			// Keyboard controls for giving water
 			int idx = -1;
 			if (Input.GetKeyUp (KeyCode.U)) {
 				idx = 0;
@@ -255,6 +256,22 @@ public class FreeGameControlScript : MonoBehaviour
 				FreeGlobals.sizeOfRewardGiven.Add (rSize);
 				FreeGlobals.rewardAmountSoFar += rSize;
 			}
+
+			// Keyboard controls for simulating nosepokes
+			if (Input.GetKeyUp (KeyCode.B)) {  // Fake start nosepoke
+				ard.QueueMouseAction(FreeGlobals.freeRewardSite[0]);
+			} else if (Input.GetKeyUp (KeyCode.V)) {  // Fake left nosepoke
+				ard.QueueMouseAction(FreeGlobals.freeRewardSite[1]);
+			} else if (Input.GetKeyUp (KeyCode.N)) {  // Fake right nosepoke
+				ard.QueueMouseAction(FreeGlobals.freeRewardSite[2]);
+			} else if (Input.GetKeyUp (KeyCode.G)) {  // Fake center nosepoke
+				ard.QueueMouseAction(FreeGlobals.freeRewardSite[3]);
+			} else if (Input.GetKeyUp (KeyCode.F)) {  // Fake back left nosepoke
+				ard.QueueMouseAction(FreeGlobals.freeRewardSite[4]);
+			} else if (Input.GetKeyUp (KeyCode.H)) {  // Fake back right nosepoke
+				ard.QueueMouseAction(FreeGlobals.freeRewardSite[5]);
+			}
+				
         }
     }
 
@@ -845,9 +862,9 @@ public class FreeGameControlScript : MonoBehaviour
 						DisappearTreeHelper ();
 					}
 				}
-					
+
 				if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2] ||
-				    rs == FreeGlobals.freeRewardSite [3]) { // licked at 1 of 3 lick ports
+					rs == FreeGlobals.freeRewardSite [3]) { // licked at 1 of 3 lick ports
 					FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
 					FreeGlobals.firstTurnHFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
 					FreeGlobals.firstTurnVFreq.Add (gos [rs / 2 - 1].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
@@ -861,11 +878,270 @@ public class FreeGameControlScript : MonoBehaviour
 					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time to start over
 
 					if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) &&
-					    rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
-					    (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) &&
-					    rs == FreeGlobals.freeRewardSite [2]) || // Right tree is on and the mouse licked the lickport there
-					    (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [2].transform.position.x) &&
-					    rs == FreeGlobals.freeRewardSite [3])) { // Center tree is on and the mouse licked the lickport there 
+						rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
+						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) &&
+							rs == FreeGlobals.freeRewardSite [2]) || // Right tree is on and the mouse licked the lickport there
+						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [2].transform.position.x) &&
+							rs == FreeGlobals.freeRewardSite [3])) { // Center tree is on and the mouse licked the lickport there 
+						int dur = FreeGlobals.freeRewardDur [rs / 2];
+						ard.sendReward (rs, dur);
+						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+						FreeGlobals.sizeOfRewardGiven.Add (rSize);
+						FreeGlobals.rewardAmountSoFar += rSize;
+
+						FreeGlobals.numCorrectTurns++;
+						Debug.Log ("correct");
+					} else {  // If wrong choice, show white noise for 4 sec
+						FreeGlobals.sizeOfRewardGiven.Add (0);
+						FreeGlobals.trialDelay = 6;
+						this.fadeToBlack.gameObject.SetActive (true);
+						this.fadeToBlack.color = Color.white;
+						this.state = "Paused";
+					}
+					FreeGlobals.WriteToLogFiles ();
+				}
+				break;
+			} 
+		} else if (FreeGlobals.gameType.Equals ("free_disc_blind")) {  // Support for flicker blindsight, color blindsight, and motion blindsight
+			int rs = ard.CheckForMouseAction ();
+			GameObject[] gos = GameObject.FindGameObjectsWithTag ("water");
+			switch (FreeGlobals.freeState) {
+
+			case "pretrial":  // Mouse has not yet poked his nose in
+				if (rs == FreeGlobals.freeRewardSite [0]) {
+					if (!startTreeSet) {
+						if (FreeGlobals.startRewardDelay == 0 && FreeGlobals.waterAtStart) {  // only give water if startTree not set, so only give water once
+							int dur = FreeGlobals.freeRewardDur [rs / 2];
+							ard.sendReward (rs, dur);
+							lastRewardTime = DateTime.Now;
+							float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+							FreeGlobals.sizeOfRewardGiven.Add (rSize);
+							FreeGlobals.rewardAmountSoFar += rSize;
+						}
+
+						float r = UnityEngine.Random.value;
+						double thresh0 = 0.333;
+						double thresh1 = 0.666;
+
+						// Bias correction - turned back on
+						float tf0 = FreeGlobals.GetTurnBias (20, 0);
+						float tf1 = FreeGlobals.GetTurnBias (20, 1);
+
+						if (!double.IsNaN (tf0) && !double.IsNaN (tf1)) {
+							float tf2 = 1 - (tf0 + tf1);
+
+							Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
+
+							// Solve
+							double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
+							double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
+							double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
+
+							Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+
+							// Rebalance, pushing mouse to lowest freq direction
+							double d;
+							double max = Math.Max (tf0, Math.Max (tf1, tf2));
+							double min = Math.Min (tf0, Math.Min (tf1, tf2));
+							if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
+								double pmax = Math.Max (p0, Math.Max (p1, p2));
+								if (p0 == pmax) {
+									d = Math.Abs (p1 - p2);
+									p1 *= d;
+									p2 *= d;
+								} else if (p1 == pmax) {
+									d = Math.Abs (p0 - p2);
+									p0 *= d;
+									p2 *= d;
+								} else if (p2 == pmax) {
+									d = Math.Abs (p0 - p1);
+									p0 *= d;
+									p1 *= d;
+								}
+							}
+
+							// Normalize so all add up to 1
+							p0 = p0 / (p0 + p1 + p2);
+							p1 = p1 / (p0 + p1 + p2);
+							p2 = p2 / (p0 + p1 + p2);
+
+							thresh0 = p0;
+							thresh1 = thresh0 + p1;
+						}
+
+						Debug.Log ("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
+						this.treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
+							
+						float sampleHPhase = 0;
+						float sampleVPhase = 0;
+						float nonSampleHPhase = 0;
+						float nonSampleVPhase = 0;
+
+						sampleHFreq = FreeGlobals.rewardedHFreq;
+						sampleVFreq = FreeGlobals.rewardedVFreq;
+						nonSampleHFreq = FreeGlobals.nonRewardedHFreq;
+						nonSampleVFreq = FreeGlobals.nonRewardedVFreq;
+
+						if (treeToActivate == 0) {  // Show rewarded stim on left tree
+							distractorTree = 1;
+						} else if (treeToActivate == 1) {
+							distractorTree = 0;
+						}
+
+						if (treeToActivate != 2) {
+							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (sampleHFreq, sampleHPhase, sampleVFreq, sampleVPhase, sampleDeg);
+							gos [distractorTree].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleHPhase, nonSampleVFreq, nonSampleVPhase, nonSampleDeg);
+						} else if (treeToActivate == 2) {  // Center tree is rewarded, so set both left/right trees to the wrong specs
+							gos [0].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleHPhase, nonSampleVFreq, nonSampleVPhase, nonSampleDeg);
+							gos [1].GetComponent<WaterTreeScript> ().SetShader (nonSampleHFreq, nonSampleHPhase, nonSampleVFreq, nonSampleVPhase, nonSampleDeg);
+						}
+
+						// Special stuff to support flicker discrimination perception - init static and flickering tree colors
+						if (FreeGlobals.subType.Equals ("flicker")) {
+							// Randomize the initial color of the flickering tree
+							if (UnityEngine.Random.value < 0.5) {
+								sampleColor1 = FreeGlobals.rewardedColor1;
+								sampleColor2 = FreeGlobals.rewardedColor1;
+							} else {
+								sampleColor1 = FreeGlobals.rewardedColor2;
+								sampleColor2 = FreeGlobals.rewardedColor2;
+							}
+							if (UnityEngine.Random.value < 0.5) {
+								nonSampleColor1 = FreeGlobals.nonRewardedColor1;
+								nonSampleColor2 = FreeGlobals.nonRewardedColor1;
+							} else {
+								nonSampleColor1 = FreeGlobals.nonRewardedColor2;
+								nonSampleColor2 = FreeGlobals.nonRewardedColor2;
+							}
+
+							if (treeToActivate != 2) {
+								gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors (sampleColor1, sampleColor2);
+								gos [distractorTree].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
+							} else if (treeToActivate == 2) {
+								gos [0].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
+								gos [1].GetComponent<WaterTreeScript> ().SetColors (nonSampleColor1, nonSampleColor2);
+							}
+						}
+
+						FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
+						FreeGlobals.targetHFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+						FreeGlobals.targetVFreq.Add (gos [treeToActivate].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+						FreeGlobals.targetDeg.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ());
+
+						FreeGlobals.numberOfTrials++;
+						FreeGlobals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+
+						if (FreeGlobals.persistenceDur != -1) {
+							FreeGlobals.stimDur.Add (0);
+							FreeGlobals.stimReps.Add (0);
+						} else if (!FreeGlobals.stimPersists) {
+							FreeGlobals.stimDur.Add (0);
+							FreeGlobals.stimReps.Add (0);
+							firstStimOnTime = DateTime.Now;
+							Debug.Log (firstStimOnTime.ToString());
+						} else {
+							FreeGlobals.stimDur.Add (-1);
+							FreeGlobals.stimReps.Add (1);
+						}
+						startTreeSet = true;
+					}
+
+					if (treeToActivate != 2) {
+						gos [treeToActivate].SetActive (true);
+						gos [treeToActivate].GetComponent<WaterTreeScript> ().Show ();
+						gos [distractorTree].SetActive (true);
+						gos [distractorTree].GetComponent<WaterTreeScript> ().Show ();
+					} else {
+						gos [0].SetActive (true);
+						gos [0].GetComponent<WaterTreeScript> ().Show ();
+						gos [1].SetActive (true);
+						gos [1].GetComponent<WaterTreeScript> ().Show ();
+					}
+					gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+
+					if (FreeGlobals.persistenceDur != -1) {
+						DisappearTreeHelper ();
+					}
+
+					if (FreeGlobals.startRewardDelay == 0) {  // No reward delay, so move on to next phase
+						FreeGlobals.freeState = "choice";
+					} else if (FreeGlobals.startRewardDelay > 0) {
+						if (oldestStartPokeTime == DateTime.MinValue) {  // For this bout of nose in, this is the first event
+							oldestStartPokeTime = DateTime.Now;
+						} else if (DateTime.Now.Subtract (oldestStartPokeTime).TotalMilliseconds > FreeGlobals.startRewardDelay) {
+							if (FreeGlobals.waterAtStart) {
+								int dur = FreeGlobals.freeRewardDur [rs / 2];
+								ard.sendReward (rs, dur);
+								lastRewardTime = DateTime.Now;
+								float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
+								FreeGlobals.sizeOfRewardGiven.Add (rSize);
+								FreeGlobals.rewardAmountSoFar += rSize;
+							}
+							FreeGlobals.freeState = "choice";
+						}
+					}
+
+					firstOriOnTime = DateTime.Now;
+
+				} else if (rs == 1) {  // mouse pulled nose out of startport; only detected if startRewardDelay > 0
+					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time to start over, forcing mouse to hold nose in for startRewardDelay duration
+					SetupTreeActivation (gos, -1, gos.Length); // Hide all trees
+				}
+				break;
+
+			case "choice":  // Mouse has poked his nose in, so only reward him if he goes to the correct lickport
+				if (!FreeGlobals.stimPersists) {  // 1 is sent from arduino when break beam is made intact at startport
+					if (rs == 1) {  // Mouse pulled nose out of startport
+						SetupTreeActivation (gos, -1, gos.Length);
+					} else if (rs == 0) {
+						SetupTreeActivation (gos, this.treeToActivate, 2);
+						gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+					}
+				}
+
+				// For flickering
+				if (FreeGlobals.oriPersistenceDur != -1) {  // the scenario file specifies persistence
+					if (DateTime.Now.Subtract (firstOriOnTime).TotalMilliseconds > FreeGlobals.oriPersistenceDur) {
+						if (FreeGlobals.subType.Equals ("flicker") && treeToActivate != 2) {
+							Color currColor = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetColor1 ();
+							if (currColor.Equals (FreeGlobals.rewardedColor1)) {
+								gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors (FreeGlobals.rewardedColor2, FreeGlobals.rewardedColor2);
+							} else {
+								gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors (FreeGlobals.rewardedColor1, FreeGlobals.rewardedColor1);
+							}
+						}
+						firstOriOnTime = DateTime.Now;
+					}
+				}
+
+				if (FreeGlobals.persistenceDur != -1) {  // Tree might have disappeared, in which case bring it back
+					if (rs == 0) { // Mouse put nose back in startport
+						SetupTreeActivation (gos, this.treeToActivate, 2);
+						gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+						DisappearTreeHelper ();
+					}
+				}
+
+				if (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2] ||
+					rs == FreeGlobals.freeRewardSite [3]) { // licked at 1 of 3 lick ports
+					FreeGlobals.firstTurn.Add (gos [rs / 2 - 1].transform.position.x);
+					FreeGlobals.firstTurnHFreq.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+					FreeGlobals.firstTurnVFreq.Add (gos [rs / 2 - 1].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+					FreeGlobals.firstTurnDeg.Add (gos [rs / 2 - 1].GetComponent<WaterTreeScript> ().GetShaderRotation ());
+
+					FreeGlobals.trialEndTime.Add (DateTime.Now.TimeOfDay);
+
+					SetupTreeActivation (gos, -1, 3); // Hide all trees 
+					FreeGlobals.freeState = "pretrial";
+					startTreeSet = false;
+					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time to start over
+
+					if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) &&
+						rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
+						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) &&
+							rs == FreeGlobals.freeRewardSite [2]) || // Right tree is on and the mouse licked the lickport there
+						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [2].transform.position.x) &&
+							rs == FreeGlobals.freeRewardSite [3])) { // Center tree is on and the mouse licked the lickport there 
 						int dur = FreeGlobals.freeRewardDur [rs / 2];
 						ard.sendReward (rs, dur);
 						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;

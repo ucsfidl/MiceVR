@@ -401,6 +401,11 @@ public class FreeLoader : MonoBehaviour {
                     FreeGlobals.gameType = xn["gameType"].InnerText;
                 }
 
+				if (xn["subType"] != null)
+				{
+					FreeGlobals.subType = xn["subType"].InnerText;
+				}
+
                 if (xn["gameTurnControl"] != null)
                 {
                     string gameTurnControlXML = xn["gameTurnControl"].InnerText;

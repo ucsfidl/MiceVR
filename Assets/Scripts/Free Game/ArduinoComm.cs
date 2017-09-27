@@ -22,6 +22,7 @@ public class ArduinoComm : MonoBehaviour
     private string singleFlush;
 
 	private int lastArdMsg = -1;
+	private int queuedArdMsg = -1;
 
     // start from unity3d
     void Awake()
@@ -193,9 +194,14 @@ public class ArduinoComm : MonoBehaviour
 	public int CheckForMouseAction() {
 		int ardmsg;
 		try {
-			if (!this.usbWriter.IsOpen)
-				this.usbWriter.Open();
-			ardmsg = Convert.ToInt32(this.usbWriter.ReadLine());
+			if (queuedArdMsg != -1) {
+				ardmsg = queuedArdMsg;
+				queuedArdMsg = -1;
+			} else {
+				if (!this.usbWriter.IsOpen)
+					this.usbWriter.Open();
+				ardmsg = Convert.ToInt32(this.usbWriter.ReadLine());
+			}
 			lastArdMsg = ardmsg;
 			Debug.Log("Got from arduino:" + ardmsg);
 			return ardmsg;
@@ -209,9 +215,14 @@ public class ArduinoComm : MonoBehaviour
 		}
 		catch (Exception err)
 		{
-			Debug.Log(err.ToString());
+			//Debug.Log(err.ToString());
 			return -1;
 		}
+	}
+
+	// Used to queue mouse actions for testing using the keyboard
+	public void QueueMouseAction(int ardmsg) {
+		queuedArdMsg = ardmsg;
 	}
 
 	public void sendReward(int lickportID, int dur) {
