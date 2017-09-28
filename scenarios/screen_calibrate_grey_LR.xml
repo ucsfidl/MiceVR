@@ -11,12 +11,12 @@
 			<gameType>free_disc</gameType>
 			<rewardedHFreq>1</rewardedHFreq> <!-- vfreq in this case is 1 -->
 			<rewardedVFreq>1</rewardedVFreq> <!-- hfreq in this case is 1 -->
-			<rewardedColor1>0.5,0.5,0.5</rewardedColor1>      <!-- R, G, B -->
-			<rewardedColor2>0.5,0.5,0.5</rewardedColor2>      <!-- R, G, B -->
+			<rewardedColor1>0.75,0.75,0.75</rewardedColor1>      <!-- R, G, B -->
+			<rewardedColor2>0.75,0.75,0.75</rewardedColor2>      <!-- R, G, B -->
 			<nonRewardedHFreq>1</nonRewardedHFreq>
 			<nonRewardedVFreq>1</nonRewardedVFreq>
-			<nonRewardedColor1>0.5,0.5,0.5</nonRewardedColor1>  <!-- R, G, B -->
-			<nonRewardedColor2>0.5,0.5,0.5</nonRewardedColor2>  <!-- R, G, B -->
+			<nonRewardedColor1>0.75,0.75,0.75</nonRewardedColor1>  <!-- R, G, B -->
+			<nonRewardedColor2>0.75,0.75,0.75</nonRewardedColor2>  <!-- R, G, B -->
 			<oriPersistenceDur>17</oriPersistenceDur> <!-- ms -->
 			<greyPersistenceDur>0</greyPersistenceDur> <!-- ms -->
 			<targetChange>nonmatch</targetChange>
