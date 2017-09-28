@@ -18,8 +18,8 @@
 			
 			<nonRewardedHFreq>1</nonRewardedHFreq>
 			<nonRewardedVFreq>1</nonRewardedVFreq>
-			<nonRewardedColor1>0.5,0.5,0.5</nonRewardedColor1>  <!-- R, G, B -->
-			<nonRewardedColor2>0.5,0.5,0.5</nonRewardedColor2>  <!-- R, G, B -->
+			<nonRewardedColor1>0.72,0.72,0.72</nonRewardedColor1>  <!-- R, G, B -->
+			<nonRewardedColor2>0.72,0.72,0.72</nonRewardedColor2>  <!-- R, G, B -->
 			
 			<oriPersistenceDur>17</oriPersistenceDur> <!-- ms -->
 		</gameConfig>
