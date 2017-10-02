@@ -1,0 +1,41 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>free_disc</gameType>
+			<randomPhase>false</randomPhase>
+			<rewardedHFreq>1</rewardedHFreq>
+			<rewardedVFreq>1</rewardedVFreq>
+			<rewardedColor1>1,1,1</rewardedColor1>      <!-- R, G, B -->
+			<rewardedColor2>1,1,1</rewardedColor2>      <!-- R, G, B -->
+			<nonRewardedHFreq>1</nonRewardedHFreq>
+			<nonRewardedVFreq>1</nonRewardedVFreq>
+			<nonRewardedColor1>0,0,0</nonRewardedColor1>  <!-- R, G, B -->
+			<nonRewardedColor2>0,0,0</nonRewardedColor2>  <!-- R, G, B -->
+			<nonRewardedColorSwap>true</nonRewardedColorSwap>
+			<luminanceDiff>0.9</luminanceDiff>
+		</gameConfig>
+	</config>
+	<trees>
+		<t> <!-- Left tree #1 -->
+			<w>1</w>
+			<pos>19998.75;0;20000.37</pos>
+			<d>0</d>
+			<rewardSize>4</rewardSize> <!-- in ul -->
+			<rot_y>15</rot_y>
+		</t>
+		<t> <!-- Right tree #1 -->
+			<w>1</w>
+			<pos>20001.25;0;20000.37</pos>
+			<d>0</d>
+			<rewardSize>4</rewardSize> <!-- in ul -->
+			<rot_y>-23</rot_y>
+		</t>
+	</trees>
+</document>
