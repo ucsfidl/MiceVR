@@ -169,6 +169,8 @@ public class GameControlScript : MonoBehaviour
         string _centralViewVisible = "";
         string _rewardSize = "";
 
+		Debug.Log ("Init view value: " + _centralViewVisible);
+
         foreach (XmlNode xn in gameConfigList)
         {
 			_runDuration = xn["runDuration"].InnerText;
@@ -192,7 +194,8 @@ public class GameControlScript : MonoBehaviour
 
 		Globals.SetCentrallyVisible(centralViewVisible);
 
-		//Debug.Log (Globals.centralViewVisibleShift);
+		Debug.Log ("Init view value: " + _centralViewVisible);
+		Debug.Log ("Central view shift: " + Globals.centralViewVisibleShift);
         // trying to avoid first drops of water
         this.udpSender.ForceStopSolenoid();
         this.udpSender.setAmount(Globals.rewardDur);

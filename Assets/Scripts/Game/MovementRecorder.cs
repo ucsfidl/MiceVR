@@ -78,9 +78,11 @@ public class MovementRecorder : MonoBehaviour {
 
 	public void SetDegCentrallyVisible(string s)
 	{
-		int deg;
-		this.degCentrallyVisible = s;
-		int.TryParse(this.degCentrallyVisible, out deg);
+		int deg = 30;
+		if (!s.Equals ("")) {
+			this.degCentrallyVisible = s;
+			int.TryParse (this.degCentrallyVisible, out deg);
+		}
 		Globals.SetCentrallyVisible(deg);
 		Debug.Log(Globals.centralViewVisibleShift);
 	}

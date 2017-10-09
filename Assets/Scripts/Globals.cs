@@ -39,7 +39,7 @@ public static class Globals
 	public static int trialDelay;
 	public static int numberOfTrials;
 
-	public static float centralViewVisibleShift;
+	public static float centralViewVisibleShift; // Set in gameconfig file
 
     public static int rewardDur;  // duration in ms of a single drop
     public static float rewardSize;  // what the above duration results in in ul
