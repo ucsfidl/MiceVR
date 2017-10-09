@@ -8,7 +8,7 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
+			<gameType>det_blind</gameType> <!-- Options: match, nonmatch -->
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
 			<biasCorrection>false</biasCorrection>
 			<probeLocX>20010</probeLocX>

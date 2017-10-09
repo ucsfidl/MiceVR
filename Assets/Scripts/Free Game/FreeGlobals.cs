@@ -102,6 +102,9 @@ public static class FreeGlobals
 	public static float numPorts = 2;
 	public static float simulDisplay = 2;
 
+	public static bool biasCorrection = true;
+	public static float probeLocX = float.NaN;
+
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
     {

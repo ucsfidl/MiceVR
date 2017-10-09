@@ -620,6 +620,23 @@ public class FreeLoader : MonoBehaviour {
 				{
 					FreeGlobals.flickerType = xn["flickerType"].InnerText;
 				}
+				if (xn["biasCorrection"] != null)
+				{
+					string xml = xn["biasCorrection"].InnerText;
+					if (xml.Equals ("false")) {
+						FreeGlobals.biasCorrection = false;
+						Debug.Log ("read false");
+					} else {
+						FreeGlobals.biasCorrection = true;
+						Debug.Log ("read true");
+					}
+				}
+				if (xn["probeLocX"] != null)  // Number of stimuli to select from for discrimination task
+				{
+					float.TryParse(xn["probeLocX"].InnerText, out FreeGlobals.probeLocX);
+					Debug.Log ("probeLocX loaded: " + FreeGlobals.probeLocX);
+				}
+
 			}
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.

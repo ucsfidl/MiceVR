@@ -576,20 +576,22 @@ public class FreeGameControlScript : MonoBehaviour
 							rThresh [i] = 1F / gos.Length * i;
 						}
 
-						// Bias correction
-						// This was ON when training batch#1, which learned within 3 days
-						if (FreeGlobals.numberOfTrials >= 1) {
-							float[] bcs = new float[gos.Length];
-							string bcsStr = "";
-							for (int i = 0; i < gos.Length; i++) {
-								bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
-								bcsStr += bcs [i] + " ";
-							}
-							float s = bcs.Sum ();
-							Debug.Log (bcsStr);
-							for (int i = 0; i < gos.Length - 1; i++) {
-								bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
-								rThresh [i + 1] = rThresh [i] + bcs [i];
+						if (FreeGlobals.biasCorrection) {
+							// Bias correction
+							// This was ON when training batch#1, which learned within 3 days
+							if (FreeGlobals.numberOfTrials >= 1) {
+								float[] bcs = new float[gos.Length];
+								string bcsStr = "";
+								for (int i = 0; i < gos.Length; i++) {
+									bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
+									bcsStr += bcs [i] + " ";
+								}
+								float s = bcs.Sum ();
+								Debug.Log (bcsStr);
+								for (int i = 0; i < gos.Length - 1; i++) {
+									bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
+									rThresh [i + 1] = rThresh [i] + bcs [i];
+								}
 							}
 						}
 	 	
@@ -743,50 +745,53 @@ public class FreeGameControlScript : MonoBehaviour
 						double thresh0 = 0.333;
 						double thresh1 = 0.666;
 
-						// Bias correction - turned back on
-						float tf0 = FreeGlobals.GetTurnBias (20, 0);
-						float tf1 = FreeGlobals.GetTurnBias (20, 1);
+						if (FreeGlobals.biasCorrection) {
 
-						if (!double.IsNaN (tf0) && !double.IsNaN (tf1)) {
-							float tf2 = 1 - (tf0 + tf1);
+							// Bias correction - turned back on
+							float tf0 = FreeGlobals.GetTurnBias (20, 0);
+							float tf1 = FreeGlobals.GetTurnBias (20, 1);
 
-							Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
+							if (!double.IsNaN (tf0) && !double.IsNaN (tf1)) {
+								float tf2 = 1 - (tf0 + tf1);
 
-							// Solve
-							double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
-							double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
-							double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
+								Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
 
-							Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+								// Solve
+								double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
+								double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
+								double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
 
-							// Rebalance, pushing mouse to lowest freq direction
-							double d;
-							double max = Math.Max (tf0, Math.Max (tf1, tf2));
-							double min = Math.Min (tf0, Math.Min (tf1, tf2));
-							if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
-								double pmax = Math.Max (p0, Math.Max (p1, p2));
-								if (p0 == pmax) {
-									d = Math.Abs (p1 - p2);
-									p1 *= d;
-									p2 *= d;
-								} else if (p1 == pmax) {
-									d = Math.Abs (p0 - p2);
-									p0 *= d;
-									p2 *= d;
-								} else if (p2 == pmax) {
-									d = Math.Abs (p0 - p1);
-									p0 *= d;
-									p1 *= d;
+								Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+
+								// Rebalance, pushing mouse to lowest freq direction
+								double d;
+								double max = Math.Max (tf0, Math.Max (tf1, tf2));
+								double min = Math.Min (tf0, Math.Min (tf1, tf2));
+								if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
+									double pmax = Math.Max (p0, Math.Max (p1, p2));
+									if (p0 == pmax) {
+										d = Math.Abs (p1 - p2);
+										p1 *= d;
+										p2 *= d;
+									} else if (p1 == pmax) {
+										d = Math.Abs (p0 - p2);
+										p0 *= d;
+										p2 *= d;
+									} else if (p2 == pmax) {
+										d = Math.Abs (p0 - p1);
+										p0 *= d;
+										p1 *= d;
+									}
 								}
+
+								// Normalize so all add up to 1
+								p0 = p0 / (p0 + p1 + p2);
+								p1 = p1 / (p0 + p1 + p2);
+								p2 = p2 / (p0 + p1 + p2);
+
+								thresh0 = p0;
+								thresh1 = thresh0 + p1;
 							}
-
-							// Normalize so all add up to 1
-							p0 = p0 / (p0 + p1 + p2);
-							p1 = p1 / (p0 + p1 + p2);
-							p2 = p2 / (p0 + p1 + p2);
-
-							thresh0 = p0;
-							thresh1 = thresh0 + p1;
 						}
 
 						Debug.Log ("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
@@ -877,12 +882,17 @@ public class FreeGameControlScript : MonoBehaviour
 					startTreeSet = false;
 					oldestStartPokeTime = DateTime.MinValue;  // reset oldest start time to start over
 
+					Debug.Log ("probeLocX = " + FreeGlobals.probeLocX);
+					Debug.Log ("target = " + FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1]);
+
 					if ((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) &&
 						rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
 						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) &&
 							rs == FreeGlobals.freeRewardSite [2]) || // Right tree is on and the mouse licked the lickport there
 						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [2].transform.position.x) &&
-							rs == FreeGlobals.freeRewardSite [3])) { // Center tree is on and the mouse licked the lickport there 
+							rs == FreeGlobals.freeRewardSite [3]) || // Center tree is on and the mouse licked the lickport there
+						(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (FreeGlobals.probeLocX) &&
+							rs == FreeGlobals.freeRewardSite [3])) {  // Correct tree is elsewhere but the mouse licked the center tree
 						int dur = FreeGlobals.freeRewardDur [rs / 2];
 						ard.sendReward (rs, dur);
 						float rSize = FreeGlobals.rewardSize / FreeGlobals.rewardDur * dur;
