@@ -169,14 +169,16 @@ public class WaterTreeScript : MonoBehaviour {
 						if (respawn)
 							GiveReward (rewardDur, true);
 					} else if (Globals.gameType.Equals ("det_blind")) {
-						if (this.GetShaderVFreq () == 0) {  // The mouse ran into the special center tree - give reward only if no other trees displayed
+						if (this.GetShaderVFreq () == 0) {  // The mouse ran into the special center tree - give reward only if no other trees displayed, unless 
 							bool alone = true;
+							float otherActiveTreeLocX = float.NaN;
 							for (int i = 0; i < gos.Length - 1; i++) {  // This special tree is always listed last
 								if (gos [i].transform.GetChild (0).gameObject.activeSelf) {
 									alone = false;
+									otherActiveTreeLocX = gos [i].transform.position.x;
 								}
 							}
-							if (alone) {
+							if (alone || Globals.probeLocX == otherActiveTreeLocX) {  // Give reward if center is only tree or if mouse goes center on a probe trial (contralesional tree)
 								GiveReward (rewardDur, true);
 							} else {  // error trial
 								WitholdReward ();

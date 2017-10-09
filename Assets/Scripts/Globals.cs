@@ -41,6 +41,9 @@ public static class Globals
 
 	public static float centralViewVisibleShift; // Set in gameconfig file
 
+	public static bool biasCorrection = true;  // default to true if nothing entered in scenario file
+	public static float probeLocX = float.NaN;
+
     public static int rewardDur;  // duration in ms of a single drop
     public static float rewardSize;  // what the above duration results in in ul
     public static float totalRewardSize = 1000;  // total amount the mouse can be given, in ul

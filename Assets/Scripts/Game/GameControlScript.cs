@@ -507,11 +507,15 @@ public class GameControlScript : MonoBehaviour
                     }
                 }
             } else if (gos.Length == 2 || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target")) {
-                float rThresh0 = 1 - Globals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
+				float rThresh0 = 0.5F;
+				if (Globals.biasCorrection) {
+	                rThresh0 = 1 - Globals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
+				}
                 Debug.Log("Loc: [0, " + rThresh0 + ", 1] - " + r);
                 treeToActivate = r < rThresh0 ? 0 : 1;
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
+
 				if (gos.Length == 2) {
 					SetupTreeActivation (gos, treeToActivate, 2);
 				} else if (Globals.gameType.Equals ("det_target")) {
@@ -559,23 +563,29 @@ public class GameControlScript : MonoBehaviour
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
 			} else if (gos.Length == 4) {
-				// Turn on bias correction after testing that logic works!
-				// Bias correction algo #1
-				float tf0 = Globals.GetTurnBias(20, 0);
-				float tf1 = Globals.GetTurnBias(20, 1);
-				float tf2 = Globals.GetTurnBias (20, 2);
-				float tf3 = 1 - (tf0 + tf1 + tf2);
+				float thresh0 = 0.25F;
+				float thresh1 = 0.5F;
+				float thresh2 = 0.75F;
 
-				float t0 = 1 - tf0;
-				float t1 = 1 - tf1;
-				float t2 = 1 - tf2;
-				float t3 = 1 - tf3;
+				if (Globals.biasCorrection) {
+					// Turn on bias correction after testing that logic works!
+					// Bias correction algo #1
+					float tf0 = Globals.GetTurnBias(20, 0);
+					float tf1 = Globals.GetTurnBias(20, 1);
+					float tf2 = Globals.GetTurnBias (20, 2);
+					float tf3 = 1 - (tf0 + tf1 + tf2);
 
-				Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2 + ", " + tf3);
+					float t0 = 1 - tf0;
+					float t1 = 1 - tf1;
+					float t2 = 1 - tf2;
+					float t3 = 1 - tf3;
 
-				float thresh0 = t0 / (t0 + t1 + t2 + t3);
-				float thresh1 = t1 / (t0 + t1 + t2 + t3) + thresh0;
-				float thresh2 = t2 / (t0 + t1 + t2 + t3) + thresh1;
+					Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2 + ", " + tf3);
+
+					thresh0 = t0 / (t0 + t1 + t2 + t3);
+					thresh1 = t1 / (t0 + t1 + t2 + t3) + thresh0;
+					thresh2 = t2 / (t0 + t1 + t2 + t3) + thresh1;
+				}
 
 				Debug.Log ("random: " + r + " --- range: [0, " + thresh0 + ", " + thresh1 + ", " + thresh2 + ", 1]");
 
@@ -588,65 +598,71 @@ public class GameControlScript : MonoBehaviour
         } 
         else if (Globals.gameType.Equals("det_blind"))
         {
-            float tf0 = Globals.GetTurnBias(20, 0);
-            float tf1 = Globals.GetTurnBias(20, 1);
+			double thresh0 = 0.333D;
+			double thresh1 = 0.666D;
 
-			// Algorithm #1 - Ninny kept refusing to go straight, so modified
-			/*
-			float t0 = 1 - tf0;
-            float t1 = 1 - tf1;
-            float t2 = tf0 + tf1;
+			if (Globals.biasCorrection) {
+	            float tf0 = Globals.GetTurnBias(20, 0);
+	            float tf1 = Globals.GetTurnBias(20, 1);
 
-            float thresh0 = t0 / (t0 + t1 + t2);
-            float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
-            */
+				// Algorithm #1 - Ninny kept refusing to go straight, so modified
+				/*
+				float t0 = 1 - tf0;
+	            float t1 = 1 - tf1;
+	            float t2 = tf0 + tf1;
 
-			// Algorithm #2: Treat as 2 line equation, solve, rebalance and normalize
+	            float thresh0 = t0 / (t0 + t1 + t2);
+	            float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
+	            */
 
-			float tf2 = 1 - (tf0 + tf1);
+				// Algorithm #2: Treat as 2 line equation, solve, rebalance and normalize
 
-			Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
+				float tf2 = 1 - (tf0 + tf1);
 
-			// Solve
-			double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
-			double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
-			double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
+				Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
 
-			Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+				// Solve
+				double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
+				double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
+				double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
 
-			// Rebalance, pushing mouse to lowest freq direction
-			double d;
-			double max = Math.Max (tf0, Math.Max (tf1, tf2));
-			double min = Math.Min (tf0, Math.Min (tf1, tf2));
-			if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
-				double pmax = Math.Max(p0, Math.Max(p1, p2));
-				if (p0 == pmax) {
-					d = Math.Abs (p1 - p2);
-					p1 *= d;
-					p2 *= d;
-				} else if (p1 == pmax) {
-					d = Math.Abs (p0 - p2);
-					p0 *= d;
-					p2 *= d;
-				} else if (p2 == pmax) {
-					d = Math.Abs (p0 - p1);
-					p0 *= d;
-					p1 *= d;
+				Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+
+				// Rebalance, pushing mouse to lowest freq direction
+				double d;
+				double max = Math.Max (tf0, Math.Max (tf1, tf2));
+				double min = Math.Min (tf0, Math.Min (tf1, tf2));
+				if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
+					double pmax = Math.Max(p0, Math.Max(p1, p2));
+					if (p0 == pmax) {
+						d = Math.Abs (p1 - p2);
+						p1 *= d;
+						p2 *= d;
+					} else if (p1 == pmax) {
+						d = Math.Abs (p0 - p2);
+						p0 *= d;
+						p2 *= d;
+					} else if (p2 == pmax) {
+						d = Math.Abs (p0 - p1);
+						p0 *= d;
+						p1 *= d;
+					}
 				}
+
+				// Normalize so all add up to 1
+				p0 = p0 / (p0 + p1 + p2);
+				p1 = p1 / (p0 + p1 + p2);
+				p2 = p2 / (p0 + p1 + p2);
+
+				thresh0 = p0;
+				thresh1 = thresh0 + p1;
 			}
-
-			// Normalize so all add up to 1
-			p0 = p0 / (p0 + p1 + p2);
-			p1 = p1 / (p0 + p1 + p2);
-			p2 = p2 / (p0 + p1 + p2);
-
-			double thresh0 = p0;
-			double thresh1 = thresh0 + p1;
 
             Debug.Log("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
             treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
             SetupTreeActivation(gos, treeToActivate, 2);
-            locx = gos[treeToActivate].transform.position.x;
+
+			locx = gos[treeToActivate].transform.position.x;
             hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
             vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
         }

@@ -527,6 +527,20 @@ public class Loader : MonoBehaviour {
 					float.TryParse(xn["distractorIntensity2"].InnerText, out i2);
 					Globals.distColor2 = new Color (i2, i2, i2);
 				}
+
+				if (xn["biasCorrection"] != null)
+				{
+					string biasCorrXML = xn["biasCorrection"].InnerText;
+					if (biasCorrXML.Equals("false"))
+						Globals.biasCorrection = false;
+					else
+						Globals.biasCorrection = true;
+				}
+				if (xn["probeLocX"] != null)
+				{
+					float.TryParse(xn["probeLocX"].InnerText, out Globals.probeLocX);
+				}
+
             }
 
             XmlNodeList levelsList = xmlDoc.GetElementsByTagName("t"); // array of the level nodes.
