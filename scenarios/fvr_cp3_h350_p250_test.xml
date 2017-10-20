@@ -1,0 +1,42 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>free_det_blind</gameType>
+			<waterAtStart>false</waterAtStart>
+			<startReward>2</startReward>
+			<startRewardDelay>350</startRewardDelay> <!-- in ms; mouse must hold in startport for this period of time for the stim to stay on -->
+			<persistenceDur>250</persistenceDur> <!-- ms -->
+			<biasCorrection>false</biasCorrection>
+			<probeLocX>20001.25</probeLocX>
+		</gameConfig>
+	</config>
+	<trees>
+		<t> <!-- Left tree #1 -->
+			<w>1</w>
+			<pos>19998.75;0;20000.37</pos>
+			<d>0</d>
+			<rewardSize>4</rewardSize> <!-- in ul -->
+		</t>
+		<t> <!-- Right tree #1 -->
+			<w>1</w>
+			<pos>20001.25;0;20000.37</pos>
+			<d>0</d>
+			<rewardSize>4</rewardSize> <!-- in ul -->
+		</t>
+		<t> <!-- Center tree -->
+			<w>1</w>
+			<pos>20000;0;20001.3</pos>
+			<d>0</d>
+			<v>0</v>  <!-- Vfreq of gradient -->
+			<h>4</h>  <!-- Hfreq of gradient -->
+			<rewardSize>4</rewardSize> <!-- in ul -->
+		</t>
+	</trees>
+</document>
