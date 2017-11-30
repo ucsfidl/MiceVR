@@ -54,6 +54,7 @@ public class MovementRecorder : MonoBehaviour {
     public void SetMouseName(string s)
     {
         this.mouseName = s;
+		Globals.mouseName = this.mouseName;
         MakeReplayName();
     }
 
@@ -67,12 +68,14 @@ public class MovementRecorder : MonoBehaviour {
     public void SetDayName(string s)
     {
         this.dayName = s;
+		Globals.trainingDayNumber = this.dayName;
         MakeReplayName();
     }
 
 	public void SetSessionName (string s)
 	{
 		this.sessionName = s;
+		Globals.scenarioSessionNumber = this.sessionName;
 		MakeReplayName();
 	}
 
@@ -84,7 +87,6 @@ public class MovementRecorder : MonoBehaviour {
 			int.TryParse (this.degCentrallyVisible, out deg);
 		}
 		Globals.SetCentrallyVisible(deg);
-		Debug.Log(Globals.centralViewVisibleShift);
 	}
 
     public void SetScenarioName(string s)
@@ -93,7 +95,7 @@ public class MovementRecorder : MonoBehaviour {
             this.scenarioName = s.Substring(0, s.Length - 4);
         else
             this.scenarioName = s;
-        //Debug.Log(this.scenarioName);
+		Globals.scenarioName = this.scenarioName;
         MakeReplayName();
     }
 

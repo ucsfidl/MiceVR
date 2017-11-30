@@ -167,7 +167,7 @@ public class WaterTreeScript : MonoBehaviour {
                     // (2) Actually give or withold reward, depending on the gametype!
 					if (Globals.gameType.Equals ("detection") || Globals.gameType.Equals ("det_target")) {
 						if (respawn)
-							GiveReward (rewardDur, true);
+							GiveReward (rewardDur, true, true);
 					} else if (Globals.gameType.Equals ("det_blind")) {
 						if (this.GetShaderVFreq () == 0) {  // The mouse ran into the special center tree - give reward only if no other trees displayed, unless 
 							bool alone = true;
@@ -178,23 +178,25 @@ public class WaterTreeScript : MonoBehaviour {
 									otherActiveTreeLocX = gos [i].transform.position.x;
 								}
 							}
-							if (alone || Globals.probeLocX == otherActiveTreeLocX) {  // Give reward if center is only tree or if mouse goes center on a probe trial (contralesional tree)
-								GiveReward (rewardDur, true);
+							if (alone) {  // Give reward if center is only tree or if mouse goes center on a probe trial (contralesional tree)
+								GiveReward (rewardDur, true, true);
+							} else if ( Globals.probeLocX == otherActiveTreeLocX) {
+								GiveReward (rewardDur, true, false);
 							} else {  // error trial
 								WitholdReward ();
 							}
 						} else {
-							GiveReward (rewardDur, true);
+							GiveReward (rewardDur, true, true);
 						}
 					} else if (Globals.gameType.Equals ("discrimination")) {
 						if (correctTree)
-							GiveReward (rewardDur, true);
+							GiveReward (rewardDur, true, true);
 						else
 							WitholdReward ();                        
 					} else if (Globals.gameType.Equals ("disc_target")) {
 						if (respawn) {
 							if (correctTree)
-								GiveReward (rewardDur, true);
+								GiveReward (rewardDur, true, true);
 							else
 								WitholdReward ();
 						}
@@ -203,11 +205,11 @@ public class WaterTreeScript : MonoBehaviour {
                     {
                         if (!respawn)  // This is the starting central tree
                         {
-                            GiveReward(rewardDur, false);
+							GiveReward(rewardDur, false, false);
                         }
                         else if (correctTree)
                         {
-                            GiveReward(rewardDur, true);
+							GiveReward(rewardDur, true, true);
                         }
                         else
                         {
@@ -221,7 +223,7 @@ public class WaterTreeScript : MonoBehaviour {
 		}
     }
 
-    private void GiveReward(int rewardDur, bool addToTurns)
+	private void GiveReward(int rewardDur, bool addToTurns, bool trueCorrect)
     {
         GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward(rewardDur);
         this.depleted = true;
@@ -234,8 +236,10 @@ public class WaterTreeScript : MonoBehaviour {
         Globals.hasNotTurned = false;
         if (addToTurns)
         {
-            Globals.numCorrectTurns++;
-            Globals.firstTurn.Add(this.gameObject.transform.position.x);
+			if (trueCorrect) {
+				Globals.numCorrectTurns++;
+			}
+			Globals.firstTurn.Add(this.gameObject.transform.position.x);
             Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
             Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
         }

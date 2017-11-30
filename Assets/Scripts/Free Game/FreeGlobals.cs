@@ -105,6 +105,11 @@ public static class FreeGlobals
 	public static bool biasCorrection = true;
 	public static float probeLocX = float.NaN;
 
+	public static string mouseName = "";
+	public static string scenarioName = "";
+	public static string trainingDayNumber = "";
+	public static string scenarioSessionNumber = "";
+
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
     {

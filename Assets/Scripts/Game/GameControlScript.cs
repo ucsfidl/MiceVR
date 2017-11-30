@@ -25,6 +25,8 @@ public class GameControlScript : MonoBehaviour
 	public Text numberOfTrialsText;
     public Text lastAccuracyText;
     public Text timeElapsedText;
+	public Text mouseNameText;
+	public Text scenarioNameText;
     public UDPSend udpSender;
     public MovementRecorder movementRecorder;
 
@@ -214,8 +216,8 @@ public class GameControlScript : MonoBehaviour
                 this.udpSender.SendWaterReward(Globals.rewardDur);
                 Globals.numberOfUnearnedRewards++;
                 Globals.rewardAmountSoFar += Globals.rewardSize;
-                this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar);
-                //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
+				updateRewardAmountText ();
+				//this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
             } else if (Input.GetKeyUp(KeyCode.T))
             {
                 // Mouse is stuck so teleport to beginning
@@ -272,7 +274,10 @@ public class GameControlScript : MonoBehaviour
             this.characterController.enabled = true;  // Bring back character movement
             this.state = "Running";
 
-            Globals.InitLogFiles();
+			this.mouseNameText.text = "Name: " + Globals.mouseName;
+			this.scenarioNameText.text = "Scenario: " + Globals.scenarioName + " (Day " + Globals.trainingDayNumber + ", session #" + Globals.scenarioSessionNumber + ", setting " + Globals.inputDeg + ")";
+
+			Globals.InitLogFiles();
             Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
         }
     }
@@ -333,9 +338,9 @@ public class GameControlScript : MonoBehaviour
 			this.movementRecorder.logReward(false, true);
         //this.movementRecorder.logReward(this.udpSender.CheckReward());
         //this.movementRecorder.logReward(true);
-		this.numberOfTrialsText.text = "Current trial: # " + Globals.numberOfTrials.ToString ();
-        this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar).ToString();
-        /*
+		updateTrialsText();
+		updateRewardAmountText ();
+		/*
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
 		this.numberOfDryTreesText.text = "Number of dry trees entered: " + Globals.numberOfDryTrees.ToString();
@@ -391,16 +396,12 @@ public class GameControlScript : MonoBehaviour
 
 	public void Pause()
 	{
-        this.rewardAmountText.text = "Reward amount so far: " + Math.Round(Globals.rewardAmountSoFar).ToString();
-        //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
+		updateRewardAmountText ();
+		//this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
         if (Globals.numberOfTrials > 1) {
-            this.numberOfCorrectTurnsText.text = "Correct turns: " +
-                Globals.numCorrectTurns.ToString()
-                + " (" +
-                Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials - 1)) * 100).ToString() + "%" 
-                + Globals.GetTreeAccuracy() + ")";
-            this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
+			updateCorrectTurnsText ();
+			this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
         }
 
         // NB Hack to get screen to go black before pausing for trialDelay
@@ -855,5 +856,21 @@ public class GameControlScript : MonoBehaviour
     {
         this.udpSender.FlushWater();
     }
+
+	private void updateTrialsText() {
+		this.numberOfTrialsText.text = "Trial: #" + Globals.numberOfTrials.ToString ();
+	}
+
+	private void updateRewardAmountText() {
+		this.rewardAmountText.text = "Reward: " + Math.Round(Globals.rewardAmountSoFar).ToString() + " of " + Math.Round(Globals.totalRewardSize) + " ul";
+	}
+
+	private void updateCorrectTurnsText() {
+		this.numberOfCorrectTurnsText.text = "Correct: " +
+			Globals.numCorrectTurns.ToString ()
+			+ " (" +
+			Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials -1)) * 100).ToString() + "%" 
+			+ Globals.GetTreeAccuracy() + ")";
+	}
 
 }

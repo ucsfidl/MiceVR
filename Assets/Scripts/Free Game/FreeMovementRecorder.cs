@@ -53,6 +53,7 @@ public class FreeMovementRecorder : MonoBehaviour {
     public void SetMouseName(string s)
     {
         this.mouseName = s;
+		FreeGlobals.mouseName = this.mouseName;
         MakeReplayName();
     }
 
@@ -60,12 +61,12 @@ public class FreeMovementRecorder : MonoBehaviour {
     {
         this.maxReward = s;
         float.TryParse(this.maxReward, out FreeGlobals.totalRewardSize);
-        Debug.Log(FreeGlobals.totalRewardSize);
     }
 
     public void SetDayName(string s)
     {
         this.dayName = s;
+		FreeGlobals.trainingDayNumber = this.dayName;
         MakeReplayName();
     }
 
@@ -75,13 +76,14 @@ public class FreeMovementRecorder : MonoBehaviour {
             this.scenarioName = s.Substring(0, s.Length - 4);
         else
             this.scenarioName = s;
-        //Debug.Log(this.scenarioName);
+		FreeGlobals.scenarioName = this.scenarioName;
         MakeReplayName();
     }
 
     public void SetSessionName (string s)
     {
         this.sessionName = s;
+		FreeGlobals.scenarioSessionNumber = this.sessionName;
         MakeReplayName();
     }
 

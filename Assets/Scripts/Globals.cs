@@ -41,9 +41,6 @@ public static class Globals
 
 	public static float centralViewVisibleShift; // Set in gameconfig file
 
-	public static bool biasCorrection = true;  // default to true if nothing entered in scenario file
-	public static float probeLocX = float.NaN;
-
     public static int rewardDur;  // duration in ms of a single drop
     public static float rewardSize;  // what the above duration results in in ul
     public static float totalRewardSize = 1000;  // total amount the mouse can be given, in ul
@@ -60,6 +57,16 @@ public static class Globals
 
     public static MovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<MovementRecorder>();
     public static DateTime gameStartTime;
+
+	public static bool biasCorrection = true;  // default to true if nothing entered in scenario file
+	public static float probeLocX = float.NaN;
+
+	public static string mouseName = "";
+	public static string scenarioName = "";
+	public static string trainingDayNumber = "";
+	public static string scenarioSessionNumber = "";
+
+	public static int inputDeg;
 
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
@@ -227,6 +234,25 @@ public static class Globals
 	// 0.9 is full visibility with occluder pushed all the way to the screen
 	public static void SetCentrallyVisible(int deg) {
 		Globals.centralViewVisibleShift = (float)(deg * 0.58/120);  // 0.45/120
+		Globals.inputDeg = deg;
 	}
+
+	/*
+	private void updateTrialsText() {
+		this.numberOfTrialsText.text = "Trial: #" + Globals.numberOfTrials.ToString ();
+	}
+
+	private void updateRewardAmountText() {
+		this.rewardAmountText.text = "Reward: " + Math.Round(Globals.rewardAmountSoFar).ToString() + " of " + Math.Round(Globals.totalRewardSize);
+	}
+
+	private void updateCorrectTurnsText() {
+		this.numberOfCorrectTurnsText.text = "Correct: " +
+			Globals.numCorrectTurns.ToString ()
+			+ " (" +
+			Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials)) * 100).ToString() + "%" 
+			+ FreeGlobals.GetTreeAccuracy() + ")";
+	}
+	*/
 
 }

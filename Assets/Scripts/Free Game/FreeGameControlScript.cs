@@ -25,6 +25,8 @@ public class FreeGameControlScript : MonoBehaviour
 	public Text numberOfTrialsText;
     public Text lastAccuracyText;
     public Text timeElapsedText;
+	public Text mouseNameText;
+	public Text scenarioNameText;
     public ArduinoComm ard;
     public FreeMovementRecorder movementRecorder;
 
@@ -120,7 +122,7 @@ public class FreeGameControlScript : MonoBehaviour
 		Debug.Log ("focused!");
 		*/
 
-        init();
+        readConfig();
     }
 
     // Update is called once per frame
@@ -175,7 +177,7 @@ public class FreeGameControlScript : MonoBehaviour
         }
     }
 
-    public void init()
+    public void readConfig()
     {
         if (!Directory.Exists(PlayerPrefs.GetString("configFolder")))
             Debug.Log("No config file");
@@ -323,7 +325,10 @@ public class FreeGameControlScript : MonoBehaviour
             this.characterController.enabled = true;  // Bring back character movement
             this.state = "Running";
 
-            FreeGlobals.InitLogFiles();
+			this.mouseNameText.text = "Name: " + FreeGlobals.mouseName;
+			this.scenarioNameText.text = "Scenario: " + FreeGlobals.scenarioName + " (Day " + FreeGlobals.trainingDayNumber + ", session #" + FreeGlobals.scenarioSessionNumber + ")";
+
+			FreeGlobals.InitLogFiles();
             //FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
         }
     }
@@ -899,7 +904,10 @@ public class FreeGameControlScript : MonoBehaviour
 						FreeGlobals.sizeOfRewardGiven.Add (rSize);
 						FreeGlobals.rewardAmountSoFar += rSize;
 
-						FreeGlobals.numCorrectTurns++;
+						if (!(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (FreeGlobals.probeLocX) &&
+						    rs == FreeGlobals.freeRewardSite [3])) {  // Only add to correctTurns if this wasn't a probe trial
+							FreeGlobals.numCorrectTurns++;
+						}
 						Debug.Log ("correct");
 					} else {  // If wrong choice, show white noise for 4 sec
 						FreeGlobals.sizeOfRewardGiven.Add (0);
@@ -2623,18 +2631,14 @@ public class FreeGameControlScript : MonoBehaviour
 		//	this.movementRecorder.logReward(false, true);
         //this.movementRecorder.logReward(this.udpSender.CheckReward());
         //this.movementRecorder.logReward(true);
-		this.numberOfTrialsText.text = "Current trial: # " + FreeGlobals.numberOfTrials.ToString ();
-        this.rewardAmountText.text = "Reward amount so far: " + Math.Round(FreeGlobals.rewardAmountSoFar).ToString();
+		updateTrialsText();
+		updateRewardAmountText ();
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + FreeGlobals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + FreeGlobals.numberOfUnearnedRewards.ToString();
 		//this.numberOfDryTreesText.text = "Number of dry trees entered: " + FreeGlobals.numberOfDryTrees.ToString();
 
 		if (FreeGlobals.numberOfTrials > 1) {
-			this.numberOfCorrectTurnsText.text = "Correct turns: " +
-			FreeGlobals.numCorrectTurns.ToString ()
-			+ " (" +
-				Mathf.Round(((float)FreeGlobals.numCorrectTurns / ((float)FreeGlobals.numberOfTrials)) * 100).ToString() + "%" 
-				+ FreeGlobals.GetTreeAccuracy() + ")";
+			updateCorrectTurnsText ();
 			this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(FreeGlobals.GetLastAccuracy(20) * 100) + "%";
 		}
 		//this.frameCounter++;
@@ -2730,16 +2734,12 @@ public class FreeGameControlScript : MonoBehaviour
 
 	public void Pause()
 	{
-        this.rewardAmountText.text = "Reward amount so far: " + Math.Round(FreeGlobals.rewardAmountSoFar).ToString();
+		updateRewardAmountText ();
         //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + FreeGlobals.numberOfEarnedRewards.ToString();
         //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + FreeGlobals.numberOfUnearnedRewards.ToString();
         if (FreeGlobals.numberOfTrials > 1) {
-            this.numberOfCorrectTurnsText.text = "Correct turns: " +
-                FreeGlobals.numCorrectTurns.ToString()
-                + " (" +
-                Mathf.Round(((float)FreeGlobals.numCorrectTurns / ((float)FreeGlobals.numberOfTrials)) * 100).ToString() + "%" 
-                + FreeGlobals.GetTreeAccuracy() + ")";
-            this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(FreeGlobals.GetLastAccuracy(20) * 100) + "%";
+			updateCorrectTurnsText ();
+			this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(FreeGlobals.GetLastAccuracy(20) * 100) + "%";
         }
 
         // NB Hack to get screen to go black before pausing for trialDelay
@@ -2934,5 +2934,21 @@ public class FreeGameControlScript : MonoBehaviour
     {
         //this.udpSender.FlushWater();
     }
+
+	private void updateTrialsText() {
+		this.numberOfTrialsText.text = "Trial: #" + FreeGlobals.numberOfTrials.ToString ();
+	}
+
+	private void updateRewardAmountText() {
+		this.rewardAmountText.text = "Reward: " + Math.Round(FreeGlobals.rewardAmountSoFar).ToString() + " of " + Math.Round(FreeGlobals.totalRewardSize) + " ul";
+	}
+
+	private void updateCorrectTurnsText() {
+		this.numberOfCorrectTurnsText.text = "Correct: " +
+			FreeGlobals.numCorrectTurns.ToString ()
+			+ " (" +
+			Mathf.Round(((float)FreeGlobals.numCorrectTurns / ((float)FreeGlobals.numberOfTrials)) * 100).ToString() + "%" 
+			+ FreeGlobals.GetTreeAccuracy() + ")";
+	}
 
 }
