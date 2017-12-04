@@ -108,7 +108,8 @@ public class WaterTreeScript : MonoBehaviour {
                         int biasDir = -1;
                         float biasAmt = -1;
 
-                        if (!Globals.gameType.Equals("det_blind"))  // List 3-choice games here 
+						// TODO - This is not supporting the 4 choice game!
+						if (!Globals.gameType.Equals("det_blind") || (Globals.gameType.Equals("det_blind") && gos.Length == 2))  // List 3-choice games here 
                         {
                             if (turn0Bias > turn1Bias)
                             {
@@ -121,7 +122,7 @@ public class WaterTreeScript : MonoBehaviour {
                                 biasAmt = turn1Bias;
                             }
                         }
-                        else
+                        else // 3-choice det_blind task
                         {
                             chance = (float)1 / 3;
                             if (turn0Bias > turn1Bias && turn0Bias > turn2Bias)

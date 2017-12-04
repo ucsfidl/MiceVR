@@ -176,32 +176,43 @@ public class Loader : MonoBehaviour {
             }
             else if (Globals.gameType.Equals("det_blind"))
             {
-                if (r < 0.333)
-                {
-                    treeList[1].GetComponent<WaterTreeScript>().Hide();
-                    locx = treeList[0].transform.position.x;
-                    hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                    vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                    //Debug.Log("activated first tree in loader");
-                }
-                else if (r < 0.667)
-                {
-                    treeList[0].GetComponent<WaterTreeScript>().Hide();
-                    locx = treeList[1].transform.position.x;
-                    hfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                    vfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                    //Debug.Log("activated second tree in loader");
-                }
-                else
-                {
-                    treeList[0].GetComponent<WaterTreeScript>().Hide();
-                    treeList[1].GetComponent<WaterTreeScript>().Hide();
-                    locx = treeList[2].transform.position.x;
-                    hfreq = treeList[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                    vfreq = treeList[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                    //Debug.Log("deactivated both trees in loader");
-                }
-                Debug.Log("[0, 0.333, 0.667, 1] - " + r);
+				if (treeList.Count == 3) {  // regular level
+	                if (r < 0.333)
+	                {
+	                    treeList[1].GetComponent<WaterTreeScript>().Hide();
+	                    locx = treeList[0].transform.position.x;
+	                    hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+	                    vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+	                }
+	                else if (r < 0.667)
+	                {
+	                    treeList[0].GetComponent<WaterTreeScript>().Hide();
+	                    locx = treeList[1].transform.position.x;
+	                    hfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
+	                    vfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+	                }
+	                else
+	                {
+	                    treeList[0].GetComponent<WaterTreeScript>().Hide();
+	                    treeList[1].GetComponent<WaterTreeScript>().Hide();
+	                    locx = treeList[2].transform.position.x;
+	                    hfreq = treeList[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
+	                    vfreq = treeList[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
+	                }
+	                Debug.Log("[0, 0.333, 0.667, 1] - " + r);
+				} else if (treeList.Count == 2) { // level for pre-training lesioned animals
+					if (r < 0.5) {
+						locx = treeList[0].transform.position.x;
+						hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+						vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+					} else {
+						treeList[0].GetComponent<WaterTreeScript>().Hide();
+						locx = treeList[1].transform.position.x;
+						hfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
+						vfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+					}
+					Debug.Log("[0, 0.5, 1] - " + r);
+				}
             }
             else if (Globals.gameType.Equals("det_target"))
             {
