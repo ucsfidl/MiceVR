@@ -170,6 +170,7 @@ public class GameControlScript : MonoBehaviour
         string _rewardDur = "";
         string _centralViewVisible = "";
         string _rewardSize = "";
+		string _numMice = "";
 
 		Debug.Log ("Init view value: " + _centralViewVisible);
 
@@ -183,6 +184,7 @@ public class GameControlScript : MonoBehaviour
 			_centralViewVisible = xn ["treeVisibleOnCenterScreen"].InnerText;
             _rewardDur = xn["rewardDur"].InnerText;
             _rewardSize = xn["rewardSize"].InnerText;
+			_numMice = xn["numMice"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
@@ -193,6 +195,7 @@ public class GameControlScript : MonoBehaviour
 		int.TryParse (_centralViewVisible, out this.centralViewVisible);
         int.TryParse(_rewardDur, out Globals.rewardDur);
         float.TryParse(_rewardSize, out Globals.rewardSize);
+		int.TryParse(_numMice, out Globals.numMice);
 
 		Globals.SetCentrallyVisible(centralViewVisible);
 
@@ -816,18 +819,24 @@ public class GameControlScript : MonoBehaviour
 		if (Globals.newData) {
 			Globals.newData = false;
 
-			// Keep a buffer of the last 5 movement deltas to smoothen some movement
 			if (this.last5Mouse2Y.Count == smoothingWindow)
 				this.last5Mouse2Y.Dequeue ();
 			if (this.last5Mouse1Y.Count == smoothingWindow)
 				this.last5Mouse1Y.Dequeue ();
 
-            if (Globals.gameTurnControl.Equals("roll"))
-                this.last5Mouse1Y.Enqueue(-Globals.sphereInput.mouse1Y);
-            else
-                this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1X);
+			// Mouse 1 does rotation, mouse 2 does forward/backward movement
+			if (Globals.numMice == 2) {
+				if (Globals.gameTurnControl.Equals ("roll"))
+					this.last5Mouse1Y.Enqueue (-Globals.sphereInput.mouse1Y);
+				else
+					this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1X);
+				this.last5Mouse2Y.Enqueue (Globals.sphereInput.mouse2Y);
+			} else if (Globals.numMice == 1) {  // In this case, mouse is also rotated sideways, so x and y are flipped
+				// Be sure to run MouseUDP_1_mouse.py on RPi, instead of regular MouseUDP.py
+				this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1Y);
+				this.last5Mouse2Y.Enqueue (Globals.sphereInput.mouse1X);
+			}
 
-			this.last5Mouse2Y.Enqueue (Globals.sphereInput.mouse2Y);
 		
 			// transform sphere data into unity movement
 			//if (this.frameCounter - this.previousFrameCounter > 1)

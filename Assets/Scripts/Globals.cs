@@ -68,6 +68,8 @@ public static class Globals
 
 	public static int inputDeg;
 
+	public static int numMice = 2;  // Number of optical mice detectors: default is 2, 1 is used if only yaw is used for rotation
+
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
     {
