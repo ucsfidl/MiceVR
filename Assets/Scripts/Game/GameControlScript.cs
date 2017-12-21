@@ -171,6 +171,13 @@ public class GameControlScript : MonoBehaviour
         string _centralViewVisible = "";
         string _rewardSize = "";
 		string _numMice = "";
+		string _monitorPositiveElevation = "";
+		string _monitorNegativeElevation = "";
+		string _monitorAzimuth = "";
+		string _fovNasalAzimuth = "";
+		string _fovTemporalAzimuth = "";
+		string _occluderXScale = "";
+		string _occluderYScale = "";
 
 		Debug.Log ("Init view value: " + _centralViewVisible);
 
@@ -185,6 +192,13 @@ public class GameControlScript : MonoBehaviour
             _rewardDur = xn["rewardDur"].InnerText;
             _rewardSize = xn["rewardSize"].InnerText;
 			_numMice = xn["numMice"].InnerText;
+			_monitorPositiveElevation = xn ["monitorPositiveElevation"].InnerText;
+			_monitorNegativeElevation = xn ["monitorNegativeElevation"].InnerText;
+			_monitorAzimuth = xn ["monitorAzimuth"].InnerText;
+			_fovNasalAzimuth = xn ["fovNasalAzimuth"].InnerText;
+			_fovTemporalAzimuth = xn ["fovTemporalAzimuth"].InnerText;
+			_occluderXScale = xn ["occluderXScale"].InnerText;
+			_occluderYScale = xn ["occluderYScale"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
@@ -196,8 +210,15 @@ public class GameControlScript : MonoBehaviour
         int.TryParse(_rewardDur, out Globals.rewardDur);
         float.TryParse(_rewardSize, out Globals.rewardSize);
 		int.TryParse(_numMice, out Globals.numMice);
+		float.TryParse(_monitorPositiveElevation, out Globals.monitorPositiveElevation);
+		float.TryParse(_monitorNegativeElevation, out Globals.monitorNegativeElevation);
+		float.TryParse(_monitorAzimuth, out Globals.monitorAzimuth);
+		float.TryParse(_fovNasalAzimuth, out Globals.fovNasalAzimuth);
+		float.TryParse(_fovTemporalAzimuth, out Globals.fovTemporalAzimuth);
+		float.TryParse(_occluderXScale, out Globals.occluderXScale);
+		float.TryParse(_occluderYScale, out Globals.occluderYScale);
 
-		Globals.SetCentrallyVisible(centralViewVisible);
+		//Globals.SetCentrallyVisible(centralViewVisible);
 
 		Debug.Log ("Init view value: " + _centralViewVisible);
 		Debug.Log ("Central view shift: " + Globals.centralViewVisibleShift);
@@ -278,7 +299,9 @@ public class GameControlScript : MonoBehaviour
             this.state = "Running";
 
 			this.mouseNameText.text = "Name: " + Globals.mouseName;
-			this.scenarioNameText.text = "Scenario: " + Globals.scenarioName + " (Day " + Globals.trainingDayNumber + ", session #" + Globals.scenarioSessionNumber + ", setting " + Globals.inputDeg + ")";
+			//this.scenarioNameText.text = "Scenario: " + Globals.scenarioName + " (Day " + Globals.trainingDayNumber + ", session #" + Globals.scenarioSessionNumber + ", setting " + Globals.inputDeg + ")";
+			this.scenarioNameText.text = "Scenario: " + Globals.scenarioName + " (Day " + Globals.trainingDayNumber + ", session #" + Globals.scenarioSessionNumber + ", fov " + Globals.visibleNasalBoundary + ", " 
+				+ Globals.visibleTemporalBoundary + ", " + Globals.visibleHighBoundary + ", " + Globals.visibleLowBoundary + ")";
 
 			Globals.InitLogFiles();
             Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
@@ -373,9 +396,9 @@ public class GameControlScript : MonoBehaviour
     {
         GameObject treeOccluder = GameObject.Find("TreeOccluder");
         Vector3 lp = treeOccluder.transform.localPosition;
-        if (treeLocX > 20000)  // Target tree is on right side
+		if (treeLocX > Globals.worldXCenter)  // Target tree is on right side
             lp.x = -Globals.centralViewVisibleShift;
-        else if (treeLocX < 20000)
+		else if (treeLocX < Globals.worldXCenter)
             lp.x = Globals.centralViewVisibleShift;
         treeOccluder.transform.localPosition = lp;
 		Debug.Log ("Tree at " + treeLocX);
@@ -478,8 +501,8 @@ public class GameControlScript : MonoBehaviour
         //Debug.Log ("Respawning");
 
         // NB edit - commented out to teleport mouse back to the beginning
-        //int x = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
-        //int z = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
+        //int x = Globals.worldXCenter - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
+        //int z = Globals.worldXCenter - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
         //float rot = Random.Range(0f, 360f);
 
         //this.player.transform.position = new Vector3(x, this.player.transform.position.y, z);
@@ -769,7 +792,8 @@ public class GameControlScript : MonoBehaviour
             Debug.Log("[0, " + rThresh0 + ", 1] - " + rSide);
         }
 
-        OccludeTree(locx);
+        //OccludeTree(locx);
+		Globals.SetOccluders(locx);
 
         Globals.targetLoc.Add(locx);
         Globals.targetHFreq.Add(hfreq);

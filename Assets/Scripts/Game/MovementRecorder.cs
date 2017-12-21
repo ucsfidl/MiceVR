@@ -89,6 +89,34 @@ public class MovementRecorder : MonoBehaviour {
 		Globals.SetCentrallyVisible(deg);
 	}
 
+	public void SetVisibleNasalBoundary(string s)
+	{
+		if (!s.Equals ("")) {
+			float.TryParse (s, out Globals.visibleNasalBoundary);
+		}
+	}
+
+	public void SetVisibleTemporalBoundary(string s)
+	{
+		if (!s.Equals ("")) {
+			float.TryParse (s, out Globals.visibleTemporalBoundary);
+		}
+	}
+
+	public void SetVisibleHighBoundary(string s)
+	{
+		if (!s.Equals ("")) {
+			float.TryParse (s, out Globals.visibleHighBoundary);
+		}
+	}
+
+	public void SetVisibleLowBoundary(string s)
+	{
+		if (!s.Equals ("")) {
+			float.TryParse (s, out Globals.visibleLowBoundary);
+		}
+	}
+
     public void SetScenarioName(string s)
     {
         if (s.EndsWith(".xml"))

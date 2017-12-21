@@ -70,6 +70,23 @@ public static class Globals
 
 	public static int numMice = 2;  // Number of optical mice detectors: default is 2, 1 is used if only yaw is used for rotation
 
+	public static float monitorPositiveElevation;
+	public static float monitorNegativeElevation;
+	public static float monitorAzimuth;
+	public static float fovNasalAzimuth;  // FOV of monitors, as opposed to limits of tree visibility (see below)
+	public static float fovTemporalAzimuth;
+
+	public static float occluderXScale;
+	public static float occluderYScale;
+
+	public static float visibleNasalBoundary = 0;
+	public static float visibleTemporalBoundary = 90;
+	public static float visibleHighBoundary = 50;
+	public static float visibleLowBoundary = -30;
+
+	public static float worldXCenter = 20000;  // used to discriminate trees placed on the left vs the right
+
+
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
     {
@@ -256,5 +273,136 @@ public static class Globals
 			+ FreeGlobals.GetTreeAccuracy() + ")";
 	}
 	*/
+
+	public static void SetOccluders(float locx) {
+		GameObject tolt = GameObject.Find("TreeOccluderLT");
+		GameObject tolmt = GameObject.Find("TreeOccluderLMT");
+		GameObject tolmn = GameObject.Find("TreeOccluderLMN");
+		GameObject tolb = GameObject.Find("TreeOccluderLB");
+		GameObject toct = GameObject.Find("TreeOccluderCT");
+		GameObject tocmt = GameObject.Find("TreeOccluderCMT");
+		GameObject tocmn = GameObject.Find("TreeOccluderCMN");
+		GameObject tocb = GameObject.Find("TreeOccluderCB");
+		GameObject tort = GameObject.Find("TreeOccluderRT");
+		GameObject tormt = GameObject.Find("TreeOccluderRMT");
+		GameObject tormn = GameObject.Find("TreeOccluderRMN");
+		GameObject torb = GameObject.Find("TreeOccluderRB");
+
+		// Local vars to store calculations to reuse
+		float ysp = monitorPositiveElevation / (monitorPositiveElevation - monitorNegativeElevation) * occluderYScale;
+		float ysn = monitorNegativeElevation / (monitorNegativeElevation - monitorPositiveElevation) * occluderYScale;
+		Vector3 newPos;
+
+		// PULL BACK CURTAINS
+		// ==================
+		// First, set the x and y scale values and positions of each occluder based on parameters found in the gameconfig file.
+		// There are 3 occluders on the left screen, 6 occluders on the center screen, and 3 occluders on the right screen.
+		// Occluders are setup so that based on the user values, all one needs to do is shift the position of each occluder to create the intended visible window.
+		// After sized each curtain, shift all of the curtains away so everything is visible.  Depending on the user inputs, we will shift them back to occlude trees.  
+		// If the user left all params blank at the start of the session, then trees will simply be restricted to the corresponding hemifield separated by the vertical midline.
+
+		// LEFT SCREEN FOR LEFT TREES
+		tolt.transform.localScale = new Vector3(occluderXScale, ysp, 1);
+		tolt.transform.localPosition = new Vector3 (0, occluderYScale/2 + ysp/2, 0.5F);
+		tolmt.transform.localScale = new Vector3(occluderXScale, occluderYScale, 1);
+		tolmt.transform.localPosition = new Vector3 (-occluderXScale, 0, 0.5F);
+		tolmn.transform.localScale = tolmt.transform.localScale;
+		tolmn.transform.localPosition = tolmt.transform.localPosition;
+		tolb.transform.localScale = new Vector3(occluderXScale, ysn, 1);
+		tolb.transform.localPosition = new Vector3 (0, -(ysn/2 + occluderYScale/2), 0.5F);
+
+		// CENTER SCREEN FOR BOTH TREES
+		toct.transform.localScale = new Vector3 (occluderXScale, ysp, 1);
+		toct.transform.localPosition = new Vector3 (0, occluderYScale / 2 + ysp / 2, 0.5F);
+		tocb.transform.localScale = new Vector3 (occluderXScale, ysn, 1);
+		tocb.transform.localPosition = new Vector3 (0, -(ysn / 2 + occluderYScale / 2), 0.5F);
+		if (locx < worldXCenter) {  // Tree is on left side, so shift center curtains to the right of center
+			tocmt.transform.localScale = new Vector3 (occluderXScale, occluderYScale, 1);
+			tocmt.transform.localPosition = new Vector3 (occluderXScale / 2, 0, 0.5F);
+		} else {  // Tree is on the right side, so shift center curtain to the left of center
+			tocmt.transform.localScale = new Vector3 (occluderXScale, occluderYScale, 1);
+			tocmt.transform.localPosition = new Vector3 (-occluderXScale / 2, 0, 0.5F);
+		}
+		tocmn.transform.localScale = tocmt.transform.localScale;
+		tocmn.transform.localPosition = tocmt.transform.localPosition;
+
+		// RIGHT SCREEN FOR RIGHT TREES
+		tort.transform.localScale = new Vector3(occluderXScale, ysp, 1);
+		tort.transform.localPosition = new Vector3 (0, occluderYScale/2 + ysp/2, 0.5F);
+		tormt.transform.localScale = new Vector3(occluderXScale, occluderYScale, 1);
+		tormt.transform.localPosition = new Vector3 (occluderXScale, 0, 0.5F);
+		tormn.transform.localScale = tormt.transform.localScale;
+		tormn.transform.localPosition = tormt.transform.localPosition;
+		torb.transform.localScale = new Vector3(occluderXScale, ysn, 1);
+		torb.transform.localPosition = new Vector3 (0, -(ysn/2 + occluderYScale/2), 0.5F);	
+
+		// Now that all the occluders are setup properly, just shift their positions to get to the intended visible window
+		// First, shift the top curtains
+		if (visibleHighBoundary < monitorPositiveElevation) {
+			newPos = new Vector3(0, occluderYScale / 2 + ysp / 2 - ysp * (1 - visibleHighBoundary / monitorPositiveElevation), 0.5F);
+			tolt.transform.localPosition = newPos;
+			toct.transform.localPosition = newPos;
+			tort.transform.localPosition = newPos;
+		}
+
+		// Second, shift the bottom curtains
+		if (visibleLowBoundary > monitorNegativeElevation) {
+			newPos = new Vector3(0, -(ysn/2 + occluderYScale/2) + ysn * (1 - visibleLowBoundary / monitorNegativeElevation), 0.5F);
+			tolb.transform.localPosition = newPos;
+			tocb.transform.localPosition = newPos;
+			torb.transform.localPosition = newPos;
+		}
+	
+		// Third, shift the curtains to enforce a nasal border
+		if (visibleNasalBoundary > fovNasalAzimuth) {
+			if (visibleNasalBoundary > monitorAzimuth / 2) {
+				// Move central occluder all the way temporal
+				tocmn.transform.localPosition = new Vector3 (0, 0, 0.5F);
+				float margin = visibleNasalBoundary - monitorAzimuth / 2;
+				if (locx < worldXCenter) {
+					tolmn.transform.localPosition = new Vector3 (occluderXScale - (margin / monitorAzimuth * occluderXScale), 0, 0.5F);
+				} else {
+					tormn.transform.localPosition = new Vector3 (-occluderXScale + (margin / monitorAzimuth * occluderXScale), 0, 0.5F);
+				}
+			} else {
+				if (locx < worldXCenter) {
+					tocmn.transform.localPosition = new Vector3 ((1 - visibleNasalBoundary/(monitorAzimuth/2)) * (occluderXScale/2), 0, 0.5F);
+				} else {
+					tocmn.transform.localPosition = new Vector3 (-(1 - visibleNasalBoundary/(monitorAzimuth/2)) * (occluderXScale/2), 0, 0.5F);
+				}
+			}
+		}
+
+		// Fourth and finally, shift the curtains to enforce a temporal border
+		if (visibleTemporalBoundary < fovTemporalAzimuth) {
+			if (visibleTemporalBoundary < fovTemporalAzimuth - monitorAzimuth) { // boundary spans more than the side monitor
+				if (locx < worldXCenter) {  // Tree is on the left
+					tolmt.transform.localPosition = new Vector3 (0, 0, 0.5F);
+					tocmt.transform.localPosition = new Vector3 (-occluderXScale + ((monitorAzimuth / 2 - visibleTemporalBoundary) / monitorAzimuth) * occluderXScale, 0, 0.5F);
+				} else {
+					tormt.transform.localPosition = new Vector3 (0, 0, 0.5F);
+					tocmt.transform.localPosition = new Vector3 (occluderXScale - ((monitorAzimuth / 2 - visibleTemporalBoundary) / monitorAzimuth) * occluderXScale, 0, 0.5F);
+				}
+			} else {  // boundary is restricted to the side monitor
+				if (locx < worldXCenter) {
+					tolmt.transform.localPosition = new Vector3 (-occluderXScale + ((fovTemporalAzimuth - visibleTemporalBoundary) / monitorAzimuth) * occluderXScale, 0, 0.5F);
+				} else {
+					tormt.transform.localPosition = new Vector3 (occluderXScale - ((fovTemporalAzimuth - visibleTemporalBoundary) / monitorAzimuth) * occluderXScale, 0, 0.5F);
+				}
+			}
+		}
+
+
+
+			/*
+		Vector3 lp = treeOccluder.transform.localPosition;
+		if (treeLocX > worldXCenter)  // Target tree is on right side
+			lp.x = -Globals.centralViewVisibleShift;
+		else if (treeLocX < worldXCenter)
+			lp.x = Globals.centralViewVisibleShift;
+		treeOccluder.transform.localPosition = lp;
+		Debug.Log ("Tree at " + treeLocX);
+		*/
+	}
 
 }

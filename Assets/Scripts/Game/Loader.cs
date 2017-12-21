@@ -357,7 +357,7 @@ public class Loader : MonoBehaviour {
                     }
                 }
             }
-            GameObject.Find("GameControl").GetComponent<GameControlScript>().OccludeTree(locx);  // Will occlude tree if tree visibility is to be restricted to 1 FOV
+			Globals.SetOccluders(locx);  // Will occlude tree if tree visibility is to be restricted to 1 FOV
 
             Globals.targetLoc.Add(locx);
             Globals.targetHFreq.Add(hfreq);

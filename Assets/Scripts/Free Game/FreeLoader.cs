@@ -256,7 +256,7 @@ public class FreeLoader : MonoBehaviour {
 					treeList [i].GetComponent<WaterTreeScript> ().Hide ();
 				}
 			}
-		    GameObject.Find("GameControl").GetComponent<FreeGameControlScript>().OccludeTree(locx);
+		    //GameObject.Find("GameControl").GetComponent<FreeGameControlScript>().OccludeTree(locx);
 
             //FreeGlobals.targetLoc.Add(locx);
             //FreeGlobals.targetHFreq.Add(hfreq);

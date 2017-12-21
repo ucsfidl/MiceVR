@@ -110,6 +110,8 @@ public static class FreeGlobals
 	public static string trainingDayNumber = "";
 	public static string scenarioSessionNumber = "";
 
+	public static float worldXCenter = 20000;
+
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
     {
