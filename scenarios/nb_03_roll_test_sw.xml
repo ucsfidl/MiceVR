@@ -39,12 +39,12 @@
 		<wall> <!-- Left wall -->
 			<pos>19994;1;20006.5</pos>
 			<rot>0;0;0</rot>
-			<scale>2;1;21.6</scale>
+			<scale>2;2;21.6</scale>
 		</wall>
 		<wall> <!-- Left front wall -->
 			<pos>19986;1;20019</pos>
 			<rot>0;270;0</rot>
-			<scale>2;1;19.1</scale>
+			<scale>2;2;19.1</scale>
 		</wall>
 		<wall> <!-- Left turn wall -->
 			<pos>19980;1;20028</pos>

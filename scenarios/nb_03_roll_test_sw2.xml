@@ -8,8 +8,8 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>det_blind</gameType> <!-- Options: match, nonmatch -->
-			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<gameType>det_blind</gameType>
+			<gameTurnControl>roll</gameTurnControl>
 			<biasCorrection>false</biasCorrection>
 			<probeLocX>20010</probeLocX>
 		</gameConfig>
@@ -39,62 +39,62 @@
 		<wall> <!-- Left wall -->
 			<pos>19994;1;20006.5</pos>
 			<rot>0;0;0</rot>
-			<scale>2;2;21.6</scale>
+			<scale>2;1.5;21.6</scale>
 		</wall>
 		<wall> <!-- Left front wall -->
 			<pos>19986;1;20019</pos>
 			<rot>0;270;0</rot>
-			<scale>2;2;19.1</scale>
+			<scale>2;1.5;19.1</scale>
 		</wall>
 		<wall> <!-- Left turn wall -->
 			<pos>19980;1;20028</pos>
 			<rot>0;0;0</rot>
-			<scale>2;2;20</scale>
+			<scale>2;1.5;20</scale>
 		</wall>
 		<wall> <!-- Left Back wall -->
 			<pos>19986;1;20037</pos>
 			<rot>0;270;0</rot>
-			<scale>2;2;19.1</scale>
+			<scale>2;1.5;19.1</scale>
 		</wall>
 		<wall> <!-- Left back receding wall -->
 			<pos>19994;1;20047</pos>
 			<rot>0;0;0</rot>
-			<scale>2;2;20</scale>
+			<scale>2;1.5;20</scale>
 		</wall>
 		<wall> <!-- Back wall -->
 			<pos>20000;1;20050.5</pos>
 			<rot>0;270;0</rot>
-			<scale>2;2;20</scale>
+			<scale>2;1.5;20</scale>
 		</wall>
 		<wall> <!-- Right back receding wall -->
 			<pos>20006;1;20047</pos>
 			<rot>0;0;0</rot>
-			<scale>2;2;20</scale>
+			<scale>2;1.5;20</scale>
 		</wall>
 		<wall> <!-- Right Back wall -->
 			<pos>20014;1;20037</pos>
 			<rot>0;270;0</rot>
-			<scale>2;2;19.1</scale>
+			<scale>2;1.5;19.1</scale>
 		</wall>
 		<wall> <!-- Right turn wall -->
 			<pos>20020;1;20028</pos>
 			<rot>0;0;0</rot>
-			<scale>2;2;20</scale>
+			<scale>2;1.5;20</scale>
 		</wall>
 		<wall> <!-- Right front wall -->
 			<pos>20014;1;20019</pos>
 			<rot>0;270;0</rot>
-			<scale>2;2;19.1</scale>
+			<scale>2;1.5;19.1</scale>
 		</wall>
 		<wall> <!-- Right wall -->
 			<pos>20006;1;20006.5</pos>
 			<rot>0;0;0</rot>
-			<scale>2;2;21.6</scale>
+			<scale>2;1.5;21.6</scale>
 		</wall>
 		<wall> <!-- Front wall -->
 			<pos>20000;1;19994</pos>
 			<rot>0;90.00003;0</rot>
-			<scale>2;2;15</scale>
+			<scale>2;1.5;15</scale>
 		</wall>
 	</walls>
 </document>
