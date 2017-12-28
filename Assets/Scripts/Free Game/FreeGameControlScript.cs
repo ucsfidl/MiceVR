@@ -880,15 +880,25 @@ public class FreeGameControlScript : MonoBehaviour
 					if (rs == 1) {  // Mouse pulled nose out of startport
 						SetupTreeActivation (gos, -1, gos.Length);
 					} else if (rs == 0) {
-						SetupTreeActivation (gos, this.treeToActivate, 2);
-						gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+						if (gos.Length == 3) {
+							SetupTreeActivation (gos, treeToActivate, 2);  // Activate 1 of the 2 eccentric trees if necessary
+							gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+						} else if (gos.Length == 2) {
+							SetupTreeActivation (gos, treeToActivate, 1);  // Activate the first tree if necessary
+							gos [1].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+						}
 					}
 				}
 
 				if (FreeGlobals.persistenceDur != -1) {  // Tree might have disappeared, in which case bring it back
 					if (rs == 0) { // Mouse put nose back in startport
-						SetupTreeActivation (gos, this.treeToActivate, 2);
-						gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+						if (gos.Length == 3) {
+							SetupTreeActivation (gos, treeToActivate, 2);  // Activate 1 of the 2 eccentric trees if necessary
+							gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+						} else if (gos.Length == 2) {
+							SetupTreeActivation (gos, treeToActivate, 1);  // Activate the first tree if necessary
+							gos [1].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+						}
 						DisappearTreeHelper ();
 					}
 				}
@@ -896,8 +906,8 @@ public class FreeGameControlScript : MonoBehaviour
 				if ((gos.Length == 3 && 
 						(rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2] || rs == FreeGlobals.freeRewardSite [3])) ||
 					(gos.Length == 2 && 
-						(gos[0].transform.position.x < 20000 & (rs == FreeGlobals.freeRewardSite[1] || rs == FreeGlobals.freeRewardSite[3])) ||
-						(gos[0].transform.position.x > 20000 & (rs == FreeGlobals.freeRewardSite[2] || rs == FreeGlobals.freeRewardSite[3])))) { // licked at 1 of 3 lick ports
+						(gos[0].transform.position.x < FreeGlobals.worldXCenter & (rs == FreeGlobals.freeRewardSite[1] || rs == FreeGlobals.freeRewardSite[3])) ||
+						(gos[0].transform.position.x > FreeGlobals.worldXCenter & (rs == FreeGlobals.freeRewardSite[2] || rs == FreeGlobals.freeRewardSite[3])))) { // licked at 1 of 3 lick ports
 					int gosIndex = rs / 2 - 1;
 					if (gos.Length == 2) {
 						if (rs == 2 || rs == 4) {
@@ -2746,9 +2756,9 @@ public class FreeGameControlScript : MonoBehaviour
 		/*
         GameObject treeOccluder = GameObject.Find("TreeOccluder");
         Vector3 lp = treeOccluder.transform.localPosition;
-        if (treeLocX > 20000)  // Target tree is on right side
+        if (treeLocX > FreeGlobals.worldXCenter)  // Target tree is on right side
             lp.x = -FreeGlobals.centralViewVisibleShift;
-        else if (treeLocX < 20000)
+        else if (treeLocX < FreeGlobals.worldXCenter)
             lp.x = FreeGlobals.centralViewVisibleShift;
         treeOccluder.transform.localPosition = lp;
         */
@@ -2857,8 +2867,8 @@ public class FreeGameControlScript : MonoBehaviour
         //Debug.Log ("Respawning");
 
         // NB edit - commented out to teleport mouse back to the beginning
-        //int x = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
-        //int z = 20000 - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
+        //int x = FreeGlobals.worldXCenter - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
+        //int z = FreeGlobals.worldXCenter - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
         //float rot = Random.Range(0f, 360f);
 
         //this.player.transform.position = new Vector3(x, this.player.transform.position.y, z);
