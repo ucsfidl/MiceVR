@@ -138,20 +138,30 @@ public class UDPReceive : MonoBehaviour
     
     private UDPInput DecodeMessage(byte[] data)
     {
-        if (data.Length == 4)
-        {
-            byte[] dchannel = new byte[2];
-            Array.Copy(data, 1, dchannel, 0, 1);
+		//Debug.Log ("data chunk length = " + data.Length);
+		if (data.Length == 4) {
+			byte[] dchannel = new byte[2];
+			Array.Copy (data, 1, dchannel, 0, 1);
 
-            UDPInput input = new UDPInput(
-                Convert.ToChar(data[0]),
-                BitConverter.ToUInt16(dchannel, 0),
-                (sbyte)(data[2]),
-                (sbyte)(data[3]));
+			UDPInput input = new UDPInput (
+				                 Convert.ToChar (data [0]),
+				                 BitConverter.ToUInt16 (dchannel, 0),
+				                 (sbyte)(data [2]),
+				                 (sbyte)(data [3]));
 
-            return input;
-        }
-        else
-            return new UDPInput();
+			return input;
+		} else if (data.Length == 12) {
+			Debug.Log (BitConverter.ToInt32 (data, 4) + " " + BitConverter.ToInt32 (data, 8));
+			UDPInput input = new UDPInput (
+				                 Convert.ToChar (data [0]),
+				                 BitConverter.ToUInt16 (data, 1),
+				                 BitConverter.ToInt32 (data, 4), 
+				                 BitConverter.ToInt32 (data, 8)
+			                 );
+			return input;
+		} else {
+			return new UDPInput ();
+		}
+
     }
 }

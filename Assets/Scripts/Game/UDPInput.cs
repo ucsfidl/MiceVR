@@ -7,8 +7,8 @@ public class UDPInput {
     public char lb2 { get; set; }
     public ushort channel { get; set; }
     public sbyte button { get; set; }
-    public sbyte dx { get; set; }
-    public sbyte dy { get; set; }
+    public int dx { get; set; }
+	public int dy { get; set; }
     public sbyte wheel { get; set; }
 
     public UDPInput()
@@ -16,7 +16,7 @@ public class UDPInput {
         this.channel = 99;
     }
 
-    public UDPInput(char _lb1, char _lb2, ushort _channel, sbyte _button, sbyte _dx, sbyte _dy, sbyte _wheel)
+	public UDPInput(char _lb1, char _lb2, ushort _channel, sbyte _button, int _dx, int _dy, sbyte _wheel)
     {
         this.lb1 = _lb1;
         this.lb2 = _lb2;
@@ -26,7 +26,7 @@ public class UDPInput {
         this.dy = _dy;
         this.wheel = _wheel;
     }
-     public UDPInput(char _lb1, ushort _channel, sbyte _dx, sbyte _dy)
+	public UDPInput(char _lb1, ushort _channel, int _dx, int _dy)
     {
         this.lb1 = _lb1;
 		this.lb2 = _lb1;
