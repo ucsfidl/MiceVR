@@ -636,6 +636,11 @@ public class FreeLoader : MonoBehaviour {
 					float.TryParse(xn["probeLocX"].InnerText, out FreeGlobals.probeLocX);
 					Debug.Log ("probeLocX loaded: " + FreeGlobals.probeLocX);
 				}
+				if (xn["probeLocX2"] != null)  // Number of stimuli to select from for discrimination task
+				{
+					float.TryParse(xn["probeLocX2"].InnerText, out FreeGlobals.probeLocX2);
+					Debug.Log ("probeLocX2 loaded: " + FreeGlobals.probeLocX2);
+				}
 
 			}
 

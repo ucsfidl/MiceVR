@@ -683,8 +683,7 @@ public class FreeGameControlScript : MonoBehaviour
 				}
 
 				if ((gos.Length == 2 && (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2])) ||
-				    (gos.Length == 4 && (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2]) ||
-				    rs == FreeGlobals.freeRewardSite [4] || rs == FreeGlobals.freeRewardSite [5])) { // licked at 1 of 2 lick ports
+				    (gos.Length == 4 && (rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2] || rs == FreeGlobals.freeRewardSite [4] || rs == FreeGlobals.freeRewardSite [5]))) { // licked at 1 of 2 lick ports
 					int idx = rs / 2 - 1;
 					if (rs == FreeGlobals.freeRewardSite [4] || rs == FreeGlobals.freeRewardSite [5])
 						idx = idx - 1;
@@ -747,12 +746,15 @@ public class FreeGameControlScript : MonoBehaviour
 						}
 
 						float r = UnityEngine.Random.value;
-						double thresh0 = 0.333;
-						double thresh1 = 0.666;
+						float[] rThresh = new float[gos.Length + 1];
+						rThresh [0] = 0;
+						rThresh [gos.Length] = 1;
+						for (int i = 1; i < gos.Length; i++) {
+							rThresh [i] = 1F / gos.Length * i;
+						}
 
 						if (gos.Length == 3) { // Regular fvr_cp3
 							if (FreeGlobals.biasCorrection) {
-								// Bias correction - turned back on
 								float tf0 = FreeGlobals.GetTurnBias (20, 0);
 								float tf1 = FreeGlobals.GetTurnBias (20, 1);
 
@@ -762,16 +764,16 @@ public class FreeGameControlScript : MonoBehaviour
 									Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
 
 									// Solve
-									double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
-									double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
-									double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
+									float p0 = tf0 < 1 / 3F ? -2 * tf0 + 1 : -tf0 / 2 + 0.5F;
+									float p1 = tf1 < 1 / 3F ? -2 * tf1 + 1 : -tf1 / 2 + 0.5F;
+									float p2 = tf2 < 1 / 3F ? -2 * tf2 + 1 : -tf2 / 2 + 0.5F;
 
 									Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
 
 									// Rebalance, pushing mouse to lowest freq direction
-									double d;
-									double max = Math.Max (tf0, Math.Max (tf1, tf2));
-									double min = Math.Min (tf0, Math.Min (tf1, tf2));
+									float d;
+									float max = Math.Max (tf0, Math.Max (tf1, tf2));
+									float min = Math.Min (tf0, Math.Min (tf1, tf2));
 									if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
 										double pmax = Math.Max (p0, Math.Max (p1, p2));
 										if (p0 == pmax) {
@@ -794,28 +796,48 @@ public class FreeGameControlScript : MonoBehaviour
 									p1 = p1 / (p0 + p1 + p2);
 									p2 = p2 / (p0 + p1 + p2);
 
-									thresh0 = p0;
-									thresh1 = thresh0 + p1;
+									rThresh[1] = p0;
+									rThresh[2] = rThresh[1] + p1;
+								}
+							}
+						} else if (gos.Length == 5) {  // Mega level fvr_cp5 to try to prevent front left/right bias from developing - can they learn this?
+							if (FreeGlobals.biasCorrection) {
+								if (FreeGlobals.numberOfTrials >= 1) {
+									float[] bcs = new float[gos.Length];
+									string bcsStr = "";
+									for (int i = 0; i < gos.Length; i++) {
+										bcs [i] = 1 - FreeGlobals.GetTurnBias (20, i);
+										bcsStr += bcs [i] + " ";
+									}
+									float s = bcs.Sum ();
+									Debug.Log (bcsStr);
+									for (int i = 0; i < gos.Length - 1; i++) {
+										bcs [i] = bcs [i] / s;  // Normalize all the bias corrections
+										rThresh [i + 1] = rThresh [i] + bcs [i];
+									}
 								}
 							}
 						} else if (gos.Length == 2) {  // Training a lesioned animal that has not been trained before lesioning
-							Debug.Log("In length 2");
-							thresh0 = 0.5F;
+							rThresh[1] = 0.5F;
 							if (FreeGlobals.biasCorrection) {
-								thresh0 = 1 - FreeGlobals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
+								rThresh[1] = 1 - FreeGlobals.GetTurnBias (20, 0);  // varies the boundary based on history of mouse turns
 							}
-							if (double.IsNaN (thresh0)) {
-								thresh0 = 0.5F;
+							if (double.IsNaN (rThresh[1])) {
+								rThresh[1] = 0.5F;
 							}
 						}
 
-						if (gos.Length == 3) {
-							Debug.Log ("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
-							this.treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
-						} else if (gos.Length == 2) {
-							Debug.Log ("[0, " + thresh0 + ", 1] - " + r);
-							this.treeToActivate = r < thresh0 ? 0 : 1;
+						this.treeToActivate = 0;
+						for (int i = 1; i < gos.Length + 1; i++) {
+							if (r >= rThresh [i - 1] && r <= rThresh [i])
+								treeToActivate = i - 1;
 						}
+
+						string threshStr = "";
+						for (int i = 1; i < rThresh.Length - 1; i++) {
+							threshStr += rThresh [i] + ", ";
+						}
+						Debug.Log ("[0, " + threshStr + "1] - " + r);
 
 						FreeGlobals.targetLoc.Add (gos [treeToActivate].transform.position.x);
 						FreeGlobals.targetHFreq.Add (gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
@@ -843,6 +865,9 @@ public class FreeGameControlScript : MonoBehaviour
 					if (gos.Length == 3) {
 						SetupTreeActivation (gos, treeToActivate, 2);  // Activate 1 of the 2 eccentric trees if necessary
 						gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+					} else if (gos.Length == 5) {
+						SetupTreeActivation (gos, treeToActivate, 4);
+						gos [4].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
 					} else if (gos.Length == 2) {
 						SetupTreeActivation (gos, treeToActivate, 1);  // Activate the first tree if necessary
 						gos [1].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
@@ -883,6 +908,9 @@ public class FreeGameControlScript : MonoBehaviour
 						if (gos.Length == 3) {
 							SetupTreeActivation (gos, treeToActivate, 2);  // Activate 1 of the 2 eccentric trees if necessary
 							gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+						} else if (gos.Length == 5) {
+							SetupTreeActivation (gos, treeToActivate, 4);  // Activate 1 of the 2 eccentric trees if necessary
+							gos [4].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
 						} else if (gos.Length == 2) {
 							SetupTreeActivation (gos, treeToActivate, 1);  // Activate the first tree if necessary
 							gos [1].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
@@ -895,6 +923,9 @@ public class FreeGameControlScript : MonoBehaviour
 						if (gos.Length == 3) {
 							SetupTreeActivation (gos, treeToActivate, 2);  // Activate 1 of the 2 eccentric trees if necessary
 							gos [2].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
+						} else if (gos.Length == 5) {
+							SetupTreeActivation (gos, treeToActivate, 4);  // Activate the first tree if necessary
+							gos [4].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
 						} else if (gos.Length == 2) {
 							SetupTreeActivation (gos, treeToActivate, 1);  // Activate the first tree if necessary
 							gos [1].GetComponent<WaterTreeScript> ().Show ();  // Always activate the central tree
@@ -905,17 +936,26 @@ public class FreeGameControlScript : MonoBehaviour
 
 				if ((gos.Length == 3 && 
 						(rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2] || rs == FreeGlobals.freeRewardSite [3])) ||
+					(gos.Length == 5 &&
+						(rs == FreeGlobals.freeRewardSite [1] || rs == FreeGlobals.freeRewardSite [2] || rs == FreeGlobals.freeRewardSite [3] || rs == FreeGlobals.freeRewardSite [4] || rs == FreeGlobals.freeRewardSite [5])) ||
 					(gos.Length == 2 && 
 						(gos[0].transform.position.x < FreeGlobals.worldXCenter & (rs == FreeGlobals.freeRewardSite[1] || rs == FreeGlobals.freeRewardSite[3])) ||
 						(gos[0].transform.position.x > FreeGlobals.worldXCenter & (rs == FreeGlobals.freeRewardSite[2] || rs == FreeGlobals.freeRewardSite[3])))) { // licked at 1 of 3 lick ports
 					int gosIndex = rs / 2 - 1;
 					if (gos.Length == 2) {
-						if (rs == 2 || rs == 4) {
+						if (rs == FreeGlobals.freeRewardSite[1] || rs == FreeGlobals.freeRewardSite[2]) {
 							gosIndex = 0;
-						} else if (rs == 6) {
+						} else if (rs == FreeGlobals.freeRewardSite[3]) {
 							gosIndex = 1;
 						}
+					} else if (gos.Length == 5) {
+						if (rs == FreeGlobals.freeRewardSite [3]) {
+							gosIndex = 4;
+						} else if (rs == FreeGlobals.freeRewardSite [4] || rs == FreeGlobals.freeRewardSite [5]) {
+							gosIndex = rs / 2 - 2;
+						}
 					}
+
 					FreeGlobals.firstTurn.Add (gos [gosIndex].transform.position.x);
 					FreeGlobals.firstTurnHFreq.Add (gos [gosIndex].GetComponent<WaterTreeScript> ().GetShaderHFreq ());
 					FreeGlobals.firstTurnVFreq.Add (gos [gosIndex].gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
@@ -937,6 +977,14 @@ public class FreeGameControlScript : MonoBehaviour
 							 (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) && rs == FreeGlobals.freeRewardSite [2]) || // Right tree is on and the mouse licked the lickport there
 							 (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [2].transform.position.x) && rs == FreeGlobals.freeRewardSite [3]) || // Center tree is on and the mouse licked the lickport there
  							 (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (FreeGlobals.probeLocX) && rs == FreeGlobals.freeRewardSite [3]))) || // Correct tree is elsewhere but the mouse licked the center tree
+						(gos.Length == 5 &&
+							((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) && rs == FreeGlobals.freeRewardSite [1]) || // left tree is on and the mouse licked the lickport there
+							 (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) && rs == FreeGlobals.freeRewardSite [2]) || // Right tree is on and the mouse licked the lickport there
+							 (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [2].transform.position.x) && rs == FreeGlobals.freeRewardSite [4]) || // Center tree is on and the mouse licked the lickport there
+							 (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [3].transform.position.x) && rs == FreeGlobals.freeRewardSite [5]) || // Center tree is on and the mouse licked the lickport there
+							 (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [4].transform.position.x) && rs == FreeGlobals.freeRewardSite [3]) || // Center tree is on and the mouse licked the lickport there
+							 (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (FreeGlobals.probeLocX2) && rs == FreeGlobals.freeRewardSite [3]) ||
+							 (FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (FreeGlobals.probeLocX) && rs == FreeGlobals.freeRewardSite [3]))) || // Correct tree is elsewhere but the mouse licked the center tree
 						(gos.Length == 2 && 
 							((FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [0].transform.position.x) && (rs == FreeGlobals.freeRewardSite[1] || rs == FreeGlobals.freeRewardSite[2])) ||
 								(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (gos [1].transform.position.x) && rs == FreeGlobals.freeRewardSite [3]))))	{  
@@ -946,8 +994,8 @@ public class FreeGameControlScript : MonoBehaviour
 						FreeGlobals.sizeOfRewardGiven.Add (rSize);
 						FreeGlobals.rewardAmountSoFar += rSize;
 
-						if (!(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (FreeGlobals.probeLocX) &&
-						    rs == FreeGlobals.freeRewardSite [3])) {  // Only add to correctTurns if this wasn't a probe trial
+						if (!(rs == FreeGlobals.freeRewardSite [3] && 
+							(FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (FreeGlobals.probeLocX) || FreeGlobals.targetLoc [FreeGlobals.targetLoc.Count - 1].Equals (FreeGlobals.probeLocX2)))) {  // Only add to correctTurns if this wasn't a probe trial
 							FreeGlobals.numCorrectTurns++;
 						}
 						Debug.Log ("correct");
