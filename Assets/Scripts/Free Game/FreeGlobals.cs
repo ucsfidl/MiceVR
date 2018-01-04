@@ -104,6 +104,7 @@ public static class FreeGlobals
 
 	public static bool biasCorrection = true;
 	public static float probeLocX = float.NaN;
+	public static float probeLocX2 = float.NaN;
 
 	public static string mouseName = "";
 	public static string scenarioName = "";
