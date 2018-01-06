@@ -79,10 +79,15 @@ public static class Globals
 	public static float occluderXScale;
 	public static float occluderYScale;
 
-	public static float visibleNasalBoundary = 0;
-	public static float visibleTemporalBoundary = 90;
-	public static float visibleHighBoundary = 50;
-	public static float visibleLowBoundary = -30;
+	public static float defaultVisibleNasalBoundary = 0;
+	public static float defaultVisibleTemporalBoundary = 90;
+	public static float defaultVisibleHighBoundary = 50;
+	public static float defaultVisibleLowBoundary = -30;
+
+	public static float visibleNasalBoundary = defaultVisibleNasalBoundary;
+	public static float visibleTemporalBoundary = defaultVisibleTemporalBoundary;
+	public static float visibleHighBoundary = defaultVisibleHighBoundary;
+	public static float visibleLowBoundary = defaultVisibleLowBoundary;
 
 	public static float worldXCenter = 20000;  // used to discriminate trees placed on the left vs the right
 
