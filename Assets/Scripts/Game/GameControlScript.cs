@@ -863,12 +863,13 @@ public class GameControlScript : MonoBehaviour
 				this.last5Mouse1Y.Dequeue ();
 
 			// Mouse 1 does rotation, mouse 2 does forward/backward movement
+			// Updated to account for new design where the mice are rotated sideways
 			if (Globals.numMice == 2) {
 				if (Globals.gameTurnControl.Equals ("roll"))
-					this.last5Mouse1Y.Enqueue (-Globals.sphereInput.mouse1Y);
-				else
 					this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1X);
-				this.last5Mouse2Y.Enqueue (Globals.sphereInput.mouse2Y);
+				else
+					this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1Y);
+				this.last5Mouse2Y.Enqueue (Globals.sphereInput.mouse2X);
 			} else if (Globals.numMice == 1) {  // In this case, mouse is also rotated sideways, so x and y are flipped
 				// Be sure to run MouseUDP_1_mouse.py on RPi, instead of regular MouseUDP.py
 				this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1Y);
