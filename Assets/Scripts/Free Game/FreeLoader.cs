@@ -745,6 +745,11 @@ public class FreeLoader : MonoBehaviour {
 						go.transform.parent = treeParent.transform;
 						go.isStatic = true;
 						go.SetActive (false);
+						//  Have all trees occluded
+						foreach (Transform t in go.transform) {
+							//t.gameObject.layer = LayerMask.NameToLayer ("Left Visible Only");
+							t.gameObject.AddComponent<SetRenderQueue>();
+						}
 						// Implements restriction of a tree to just one side screen
 						if (restrict) {
 							if (restrictToCamera == 0) {
