@@ -80,6 +80,15 @@ public class FreeMovementRecorder : MonoBehaviour {
         MakeReplayName();
     }
 
+	public void SetVisibleHighBoundary(string s)
+	{
+		float deg = FreeGlobals.defaultVisibleHighBoundary;
+		if (!s.Equals ("")) {
+			float.TryParse (s, out deg);
+		}
+		FreeGlobals.visibleHighBoundary = deg;
+	}
+
     public void SetSessionName (string s)
     {
         this.sessionName = s;

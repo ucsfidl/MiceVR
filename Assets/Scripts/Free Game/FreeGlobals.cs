@@ -113,6 +113,14 @@ public static class FreeGlobals
 
 	public static float worldXCenter = 20000;
 
+	public static float defaultVisibleHighBoundary = 66;
+
+	public static float visibleHighBoundary = defaultVisibleHighBoundary;
+
+	public static float occluderYScale;
+	public static float monitorPositiveElevation;
+
+
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
     {
@@ -272,5 +280,18 @@ public static class FreeGlobals
         }
         return (float)corr / numTrials;
     }
+
+	public static void SetOccluders() // Set once at start of FreeMoving game, to clip the top of the field of view
+	{
+		GameObject tol = GameObject.Find("TreeOccluderL");
+		GameObject toc = GameObject.Find("TreeOccluderC");
+		GameObject tor = GameObject.Find("TreeOccluderR");
+
+		float occluderYPos = visibleHighBoundary / monitorPositiveElevation * occluderYScale;
+		Vector3 newPos = new Vector3(0, occluderYPos, 0.11F);
+		tol.transform.localPosition = newPos;
+		toc.transform.localPosition = newPos;
+		tor.transform.localPosition = newPos;
+	}
 
 }

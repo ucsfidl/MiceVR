@@ -195,6 +195,8 @@ public class FreeGameControlScript : MonoBehaviour
         string _rewardDur = "";
         string _centralViewVisible = "";
         string _rewardSize = "";
+		string _freeMonitorPositiveElevation = "";
+		string _freeOccluderYScale = "";
 
         foreach (XmlNode xn in gameConfigList)
         {
@@ -206,6 +208,8 @@ public class FreeGameControlScript : MonoBehaviour
 			_centralViewVisible = xn ["treeVisibleOnCenterScreen"].InnerText;
             _rewardDur = xn["rewardDur"].InnerText;
             _rewardSize = xn["rewardSize"].InnerText;
+			_freeMonitorPositiveElevation = xn ["freeMonitorPositiveElevation"].InnerText;
+			_freeOccluderYScale = xn ["freeOccluderYScale"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
@@ -216,16 +220,13 @@ public class FreeGameControlScript : MonoBehaviour
 		int.TryParse (_centralViewVisible, out this.centralViewVisible);
         int.TryParse(_rewardDur, out FreeGlobals.rewardDur);
         float.TryParse(_rewardSize, out FreeGlobals.rewardSize);
+		float.TryParse(_freeOccluderYScale, out FreeGlobals.occluderYScale);
+		float.TryParse(_freeMonitorPositiveElevation, out FreeGlobals.monitorPositiveElevation);
 
         // Calculate tree view block value: 0 is full occlusion in the central screen = 120 degrees
         // 0.9 is full visibility with occluder pushed all the way to the screen
         FreeGlobals.centralViewVisibleShift = (float)(centralViewVisible * 0.58/120);  // 0.45/120
 
-		//Debug.Log (FreeGlobals.centralViewVisibleShift);
-        // trying to avoid first drops of water
-        //this.udpSender.ForceStopSolenoid();
-        //this.udpSender.setAmount(FreeGlobals.rewardDur);
-        //this.udpSender.CheckReward();
     }
 
     private void CatchKeyStrokes()
@@ -326,7 +327,9 @@ public class FreeGameControlScript : MonoBehaviour
             this.state = "Running";
 
 			this.mouseNameText.text = "Name: " + FreeGlobals.mouseName;
-			this.scenarioNameText.text = "Scenario: " + FreeGlobals.scenarioName + " (Day " + FreeGlobals.trainingDayNumber + ", session #" + FreeGlobals.scenarioSessionNumber + ")";
+			this.scenarioNameText.text = "Scenario: " + FreeGlobals.scenarioName + " (Day " + FreeGlobals.trainingDayNumber + ", session #" + FreeGlobals.scenarioSessionNumber + ", h=" + FreeGlobals.visibleHighBoundary + ")";
+
+			FreeGlobals.SetOccluders();
 
 			FreeGlobals.InitLogFiles();
             //FreeGlobals.trialStartTime.Add(DateTime.Now.TimeOfDay);
