@@ -224,7 +224,7 @@ public static class FreeGlobals
 			}
 
 			for (int i = 0; i < data.rows.Count; i++) {
-				if (data.rows [i].cells [8].value.Equals ("") && data.rows [i].cells [9].value.Equals ("")) {
+				if (data.rows [i].cells [9].value.Equals ("") && data.rows [i].cells [10].value.Equals ("")) {
 					int row = i + 1;
 					// Add the date (L), duration, rewards, trials, earned, unearned on ball, and total stats to the Google Sheet
 					worksheet.ModifyRowData (row, new Dictionary<string, string> {
@@ -237,8 +237,8 @@ public static class FreeGlobals
 						{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials) * 100) + "%" },
 						{ "earned", Math.Round (totalEarnedRewardSize).ToString () },
 						{ "ugame", Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString () },
-						{ "stats", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials) * 100) + "%" + GetTreeAccuracy () },
-						{ "totalh2o", "=SUM(P" + (row + 1) + ":R" + (row + 1) + ")" }
+						{ "results", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials) * 100) + GetTreeAccuracy () },
+						{ "totalh2o", "=SUM(Q" + (row + 1) + ":S" + (row + 1) + ")" }
 					}
 					);
 
@@ -275,7 +275,7 @@ public static class FreeGlobals
         string output = "";
         for (int i = 0; i < numTrials.Length; i++)
         {
-            output += "/" + Math.Round((float)numCorrTrials[i] / numTrials[i] * 100) + "%";
+            output += "/" + Math.Round((float)numCorrTrials[i] / numTrials[i] * 100);
         }
         return output;
     }

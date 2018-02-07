@@ -392,10 +392,10 @@ public class Loader : MonoBehaviour {
 			WorksheetData data = worksheet.LoadAllWorksheetInformation ();
 
 			for (int i = 0; i < data.rows.Count; i++) {
-				Debug.Log ("Examining row " + i);
+				//Debug.Log ("Examining row " + i);
 
 				// Find the first row with blank date and duration, and read the settings from that line
-				if (data.rows [i].cells [11].value.Equals ("") && data.rows [i].cells [12].value.Equals ("")) {
+				if (data.rows [i].cells [12].value.Equals ("") && data.rows [i].cells [13].value.Equals ("")) {
 					Debug.Log ("Criteria met!");
 					RowData rData = data.rows[i];
 

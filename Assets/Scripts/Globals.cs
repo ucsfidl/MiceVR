@@ -173,7 +173,6 @@ public static class Globals
 			Debug.Log ("Data not saved to Sheets, as worksheet named '" + mouseName + "' was NOT found");
 			return false;
 		} else {
-			Debug.Log ("loaded worksheet " + mouseName);
 			WorksheetData data = worksheet.LoadAllWorksheetInformation ();
 
 			// Helper vars
@@ -187,8 +186,9 @@ public static class Globals
 				totalEarnedRewardSize += (float)System.Convert.ToDouble (sizeOfRewardGiven [i]);
 			}
 
+			// Iterate the file
 			for (int i = 0; i < data.rows.Count; i++) {
-				if (data.rows [i].cells [11].value.Equals ("") && data.rows [i].cells [12].value.Equals ("")) {
+				if (data.rows [i].cells [12].value.Equals ("") && data.rows [i].cells [13].value.Equals ("")) {
 					int row = i + 1;
 					// Add the date (L), duration, rewards, trials, earned, unearned on ball, and total stats to the Google Sheet
 					worksheet.ModifyRowData (row, new Dictionary<string, string> {
@@ -201,14 +201,15 @@ public static class Globals
 						{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + "%" },
 						{ "earned", Math.Round (totalEarnedRewardSize).ToString () },
 						{ "uball", Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString () },
-						{ "stats", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + "%" + GetTreeAccuracy () },
-						{ "totalh2o", "=SUM(S" + (row + 1) + ":U" + (row + 1) + ")" }
+						{ "results", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + GetTreeAccuracy () },
+						{ "totalh2o", "=SUM(T" + (row + 1) + ":V" + (row + 1) + ")" }
 					}
 					);
 
 					break;
 				}
 			}
+			Debug.Log ("wrote to worksheet " + mouseName);
 			return true;
 		}
 	}
@@ -238,7 +239,7 @@ public static class Globals
         string output = "";
         for (int i = 0; i < numTrials.Length; i++)
         {
-            output += "/" + Math.Round((float)numCorrTrials[i] / numTrials[i] * 100) + "%";
+            output += "/" + Math.Round((float)numCorrTrials[i] / numTrials[i] * 100)	;
         }
         return output;
     }
