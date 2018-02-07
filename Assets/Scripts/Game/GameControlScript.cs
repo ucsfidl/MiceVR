@@ -178,6 +178,7 @@ public class GameControlScript : MonoBehaviour
 		string _fovTemporalAzimuth = "";
 		string _occluderXScale = "";
 		string _occluderYScale = "";
+		string _vrGoogleSheetsName = "";
 
 		Debug.Log ("Init view value: " + _centralViewVisible);
 
@@ -199,6 +200,7 @@ public class GameControlScript : MonoBehaviour
 			_fovTemporalAzimuth = xn ["fovTemporalAzimuth"].InnerText;
 			_occluderXScale = xn ["occluderXScale"].InnerText;
 			_occluderYScale = xn ["occluderYScale"].InnerText;
+			_vrGoogleSheetsName = xn ["vrGoogleSheetsName"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
@@ -217,6 +219,7 @@ public class GameControlScript : MonoBehaviour
 		float.TryParse(_fovTemporalAzimuth, out Globals.fovTemporalAzimuth);
 		float.TryParse(_occluderXScale, out Globals.occluderXScale);
 		float.TryParse(_occluderYScale, out Globals.occluderYScale);
+		Globals.vrGoogleSheetsName = _vrGoogleSheetsName;
 
 		//Globals.SetCentrallyVisible(centralViewVisible);
 
@@ -230,7 +233,7 @@ public class GameControlScript : MonoBehaviour
 
     private void CatchKeyStrokes()
     {
-        if (Input.GetKey(KeyCode.Escape))
+		if (Input.GetKey(KeyCode.Escape) && !this.state.Equals("WaitingForQuitCmd"))
             this.state = "GameOver";
         
         if (!this.state.Equals("LoadScenario") || (this.state.Equals("LoadScenario") && EventSystem.current.currentSelectedGameObject == null))
@@ -835,9 +838,14 @@ public class GameControlScript : MonoBehaviour
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";
+		if (Globals.gameEndTime == DateTime.MinValue) {
+			Globals.gameEndTime = DateTime.Now;
+			Debug.Log ("Set end time to now");
+		}
         if (Input.GetKeyUp(KeyCode.Escape))
         {
             StartCoroutine(CheckForQ());
+			this.state = "WaitingForQuitCmd";
         }
     }
 
@@ -846,9 +854,17 @@ public class GameControlScript : MonoBehaviour
         Debug.Log("Waiting for Q");
         yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
-        Globals.WriteStatsFile();
 		this.udpSender.close();
-        Application.Quit();
+        Globals.WriteStatsFile();
+		bool wroteData = Globals.WriteStatsToGoogleSheet();
+		if (wroteData) {
+			Application.Quit ();
+		} else {
+			this.fadeToBlackText.text = "Data not saved in sheets, so manually enter";
+			this.state = "NotSavedToSheets";
+			yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
+			Application.Quit ();
+		}
     }
 
     private void MovePlayer()

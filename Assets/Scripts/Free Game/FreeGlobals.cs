@@ -2,6 +2,8 @@
 using System.Collections;
 using System.IO;
 using System;
+using GoogleSheetsToUnity;
+using System.Collections.Generic;
 
 public static class FreeGlobals
 {
@@ -72,6 +74,7 @@ public static class FreeGlobals
 
     public static FreeMovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<FreeMovementRecorder>();
     public static DateTime gameStartTime;
+	public static DateTime gameEndTime = new DateTime();
 
 	// Rewards that are given for eack lickport, calibrated for each lickport to give a constant amount of reward across ports (to start)
 	public static int[] freeRewardDur = {15, 30, 30, 38, 38, 38}; // prev 15, 30x
@@ -120,6 +123,7 @@ public static class FreeGlobals
 	public static float occluderYScale;
 	public static float monitorPositiveElevation;
 
+	public static string freeGoogleSheetsName;
 
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()
@@ -181,7 +185,7 @@ public static class FreeGlobals
         statsFile.WriteLine("\t\t<numUnearnedRewards>" + numberOfUnearnedRewards + "</numUnearnedRewards>");
         statsFile.WriteLine("\t\t<trials>" + (numberOfTrials - 1) + "</trials>");
 
-        TimeSpan te = DateTime.Now.Subtract(gameStartTime);
+		TimeSpan te = gameEndTime.Subtract(gameStartTime);
         statsFile.WriteLine("\t\t<timeElapsed>" + string.Format("{0:D2}:{1:D2}", te.Hours * 60 + te.Minutes, te.Seconds) + "</timeElapsed>");
 
         float totalEarnedRewardSize = 0;
@@ -195,6 +199,56 @@ public static class FreeGlobals
         statsFile.WriteLine("</document>");
         statsFile.Close();
     }
+
+	// Write the data to Google Sheets so that the experimenter does not need to memorize and type in results, which is prone to error
+	public static bool WriteStatsToGoogleSheet() {
+		SpreadSheetManager manager = new SpreadSheetManager();
+		GS2U_SpreadSheet spreadsheet = manager.LoadSpreadSheet (freeGoogleSheetsName);
+		GS2U_Worksheet worksheet = spreadsheet.LoadWorkSheet(mouseName);
+		if (worksheet == null) {
+			Debug.Log ("Data not saved to Sheets, as worksheet named '" + mouseName + "' was NOT found");
+			return false;
+		} else {
+			Debug.Log ("loaded worksheet " + mouseName);
+			WorksheetData data = worksheet.LoadAllWorksheetInformation ();
+
+			// Helper vars
+			TimeSpan te = gameEndTime.Subtract (gameStartTime);
+			int numMinElapsed = te.Hours * 60 + te.Minutes + (int)Math.Round ((double)te.Seconds / 60);
+			if (numMinElapsed == 0)
+				numMinElapsed = 1;
+
+			float totalEarnedRewardSize = 0;
+			for (int i = 0; i < sizeOfRewardGiven.Count; i++) {
+				totalEarnedRewardSize += (float)System.Convert.ToDouble (sizeOfRewardGiven [i]);
+			}
+
+			for (int i = 0; i < data.rows.Count; i++) {
+				if (data.rows [i].cells [8].value.Equals ("") && data.rows [i].cells [9].value.Equals ("")) {
+					int row = i + 1;
+					// Add the date (L), duration, rewards, trials, earned, unearned on ball, and total stats to the Google Sheet
+					worksheet.ModifyRowData (row, new Dictionary<string, string> {
+						{ "date", DateTime.Today.ToString ("d") },
+						{ "durm", numMinElapsed.ToString() },
+						{ "rewards", numCorrectTurns.ToString () },
+						{ "rmin", string.Format ("{0:N1}", (numCorrectTurns / numMinElapsed)) },
+						{ "trials", (numberOfTrials).ToString () },
+						{ "tmin", string.Format ("{0:N1}", (numberOfTrials - 1) / numMinElapsed) },
+						{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials) * 100) + "%" },
+						{ "earned", Math.Round (totalEarnedRewardSize).ToString () },
+						{ "ugame", Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString () },
+						{ "stats", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials) * 100) + "%" + GetTreeAccuracy () },
+						{ "totalh2o", "=SUM(P" + (row + 1) + ":R" + (row + 1) + ")" }
+					}
+					);
+
+					break;
+				}
+			}
+			return true;
+		}
+	}
+
 
     public static string GetTreeAccuracy()
     {
@@ -221,7 +275,7 @@ public static class FreeGlobals
         string output = "";
         for (int i = 0; i < numTrials.Length; i++)
         {
-            output += " / " + Math.Round((float)numCorrTrials[i] / numTrials[i] * 100) + "%";
+            output += "/" + Math.Round((float)numCorrTrials[i] / numTrials[i] * 100) + "%";
         }
         return output;
     }

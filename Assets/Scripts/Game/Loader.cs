@@ -4,6 +4,8 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using UnityEngine.UI;
+using GoogleSheetsToUnity;
+
 
 public class Loader : MonoBehaviour {
 
@@ -376,7 +378,77 @@ public class Loader : MonoBehaviour {
         {
             this.scenarioLoaded = true;          
         }
-    }
+	}
+
+	public void LoadSettingsFromSheets() {
+		// First, get each setting from the Sheet
+		SpreadSheetManager manager = new SpreadSheetManager();
+		GS2U_SpreadSheet spreadsheet = manager.LoadSpreadSheet (Globals.vrGoogleSheetsName);
+		GS2U_Worksheet worksheet = spreadsheet.LoadWorkSheet(Globals.mouseName);
+		if (worksheet == null) {
+			GameObject.Find ("ErrorText").GetComponent<Text> ().text = "Worksheet '" + Globals.mouseName + "' NOT found!";
+		} else {
+			Debug.Log ("loaded worksheet " + Globals.mouseName);
+			WorksheetData data = worksheet.LoadAllWorksheetInformation ();
+
+			for (int i = 0; i < data.rows.Count; i++) {
+				Debug.Log ("Examining row " + i);
+
+				// Find the first row with blank date and duration, and read the settings from that line
+				if (data.rows [i].cells [11].value.Equals ("") && data.rows [i].cells [12].value.Equals ("")) {
+					Debug.Log ("Criteria met!");
+					RowData rData = data.rows[i];
+
+					for (int j = 0; j < rData.cells.Count; j++) {
+						switch (rData.cells [j].cellColumTitle) {
+						case "day":
+							{
+								GameObject.Find ("DayOnBallInput").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						case "scenario":
+							{
+								GameObject.Find ("ScenarioInput").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						case "session":
+							{
+								GameObject.Find ("ScenarioSessionInput").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						case "n":
+							{
+								GameObject.Find ("VisibleNasalBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						case "t":
+							{
+								GameObject.Find ("VisibleTemporalBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						case "h":
+							{
+								GameObject.Find ("VisibleHighBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						case "l":
+							{
+								GameObject.Find ("VisibleLowBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						case "maxh2o":
+							{
+								GameObject.Find ("MaxReward").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						}
+					}
+					break;
+				}
+			}
+
+		}
+	}
 
 	public void LoadScenario()
 	{
@@ -559,6 +631,8 @@ public class Loader : MonoBehaviour {
             {
                 bool water = false;
                 Vector3 v = Vector3.zero;
+				Vector3 treeRotation = Vector3.zero;
+				Vector3 treeScale = Vector3.zero;
                 XmlNodeList levelcontent = node.ChildNodes;
 
                 GameObject go;
@@ -574,6 +648,7 @@ public class Loader : MonoBehaviour {
 
                 foreach (XmlNode val in levelcontent)
                 {
+
                     if (val.Name == "w")
                     {
                         water = (val.InnerText == "1") ? true : false;
@@ -627,8 +702,28 @@ public class Loader : MonoBehaviour {
                     {
                         respawn = (val.InnerText == "1") ? true : false;
                     }
+					else if (val.Name == "scale")
+					{
+						float x, y, z;
+
+						float.TryParse(val.InnerText.Split(';')[0], out x);
+						float.TryParse(val.InnerText.Split(';')[1], out y);
+						float.TryParse(val.InnerText.Split(';')[2], out z);
+
+						treeScale = new Vector3(x, y, z);
+					}
+					else if (val.Name == "rot")
+					{
+						float x, y, z;
+
+						float.TryParse(val.InnerText.Split(';')[0], out x);
+						float.TryParse(val.InnerText.Split(';')[1], out y);
+						float.TryParse(val.InnerText.Split(';')[2], out z);
+
+						treeRotation = new Vector3(x, y, z);
+					}
                 }
-                if (water)
+				if (water)
                 {
 					// Dummy object to reduce repetition in code
 					//go = (GameObject)Instantiate(this.waterTreePrefab, v, Quaternion.identity);
@@ -637,6 +732,8 @@ public class Loader : MonoBehaviour {
 						go = (GameObject)Instantiate (this.waterTreePrefab, v, Quaternion.identity);
 						go.GetComponent<WaterTreeScript> ().SetShaderRotation (this.deg_LS);
 						go.GetComponent<WaterTreeScript> ().SetForTraining (waterTraining);
+						go.transform.eulerAngles = treeRotation;
+						go.transform.localScale += treeScale;
 						go.transform.parent = treeParent.transform;
 						go.isStatic = true;
 						go.SetActive (false);
@@ -811,7 +908,7 @@ public class Loader : MonoBehaviour {
                         float.TryParse(val.InnerText.Split(';')[1], out y);
                         float.TryParse(val.InnerText.Split(';')[2], out z);
 
-                        v = new Vector3(Mathf.RoundToInt(x), Mathf.RoundToInt(y), Mathf.RoundToInt(z));
+                        v = new Vector3(x, y, z);
                     }
                     if (val.Name == "rot")
                     {

@@ -197,6 +197,7 @@ public class FreeGameControlScript : MonoBehaviour
         string _rewardSize = "";
 		string _freeMonitorPositiveElevation = "";
 		string _freeOccluderYScale = "";
+		string _freeGoogleSheetsName = "";
 
         foreach (XmlNode xn in gameConfigList)
         {
@@ -210,6 +211,7 @@ public class FreeGameControlScript : MonoBehaviour
             _rewardSize = xn["rewardSize"].InnerText;
 			_freeMonitorPositiveElevation = xn ["freeMonitorPositiveElevation"].InnerText;
 			_freeOccluderYScale = xn ["freeOccluderYScale"].InnerText;
+			_freeGoogleSheetsName = xn ["freeGoogleSheetsName"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
@@ -222,6 +224,7 @@ public class FreeGameControlScript : MonoBehaviour
         float.TryParse(_rewardSize, out FreeGlobals.rewardSize);
 		float.TryParse(_freeOccluderYScale, out FreeGlobals.occluderYScale);
 		float.TryParse(_freeMonitorPositiveElevation, out FreeGlobals.monitorPositiveElevation);
+		FreeGlobals.freeGoogleSheetsName = _freeGoogleSheetsName;
 
         // Calculate tree view block value: 0 is full occlusion in the central screen = 120 degrees
         // 0.9 is full visibility with occluder pushed all the way to the screen
@@ -231,7 +234,7 @@ public class FreeGameControlScript : MonoBehaviour
 
     private void CatchKeyStrokes()
     {
-        if (Input.GetKey(KeyCode.Escape))
+		if (Input.GetKey(KeyCode.Escape) && !this.state.Equals("WaitingForQuitCmd"))
             this.state = "GameOver";
         
         if (!this.state.Equals("LoadScenario") || (this.state.Equals("LoadScenario") && EventSystem.current.currentSelectedGameObject == null))
@@ -2968,11 +2971,13 @@ public class FreeGameControlScript : MonoBehaviour
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";
-
 		ard.close ();
+		if (FreeGlobals.gameEndTime == DateTime.MinValue) 
+			FreeGlobals.gameEndTime = DateTime.Now;
         if (Input.GetKeyUp(KeyCode.Escape))
         {
             StartCoroutine(CheckForQ());
+			this.state = "WaitingForQuitCmd";
         }
     }
 
@@ -2982,8 +2987,15 @@ public class FreeGameControlScript : MonoBehaviour
         yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
         FreeGlobals.WriteStatsFile();
-		//this.udpSender.close();
-        Application.Quit();
+		bool wroteData = FreeGlobals.WriteStatsToGoogleSheet();
+		if (wroteData) {
+			Application.Quit ();
+		} else {
+			this.fadeToBlackText.text = "Data not saved in sheets, so manually enter";
+			this.state = "NotSavedToSheets";
+			yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
+			Application.Quit ();
+		}
     }
 
     private void MovePlayer()

@@ -15,6 +15,8 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using UnityEngine.UI;
+using GoogleSheetsToUnity;
+
 
 public class FreeLoader : MonoBehaviour {
 
@@ -279,6 +281,62 @@ public class FreeLoader : MonoBehaviour {
             this.scenarioLoaded = true;          
         }
     }
+
+	public void LoadSettingsFromSheets() {
+		// First, get each setting from the Sheet
+		SpreadSheetManager manager = new SpreadSheetManager();
+		GS2U_SpreadSheet spreadsheet = manager.LoadSpreadSheet (FreeGlobals.freeGoogleSheetsName);
+		GS2U_Worksheet worksheet = spreadsheet.LoadWorkSheet(FreeGlobals.mouseName);
+		if (worksheet == null) {
+			GameObject.Find ("ErrorText").GetComponent<Text> ().text = "Worksheet '" + Globals.mouseName + "' NOT found!";
+		} else {
+			Debug.Log ("loaded worksheet " + Globals.mouseName);
+			WorksheetData data = worksheet.LoadAllWorksheetInformation ();
+
+			for (int i = 0; i < data.rows.Count; i++) {
+				Debug.Log ("Examining row " + i);
+
+				// Find the first row with blank date and duration, and read the settings from that line
+				if (data.rows [i].cells [8].value.Equals ("") && data.rows [i].cells [9].value.Equals ("")) {
+					Debug.Log ("Criteria met!");
+					RowData rData = data.rows[i];
+
+					for (int j = 0; j < rData.cells.Count; j++) {
+						switch (rData.cells [j].cellColumTitle) {
+						case "day":
+							{
+								GameObject.Find ("DayOnBallInput").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						case "scenario":
+							{
+								GameObject.Find ("ScenarioInput").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						case "session":
+							{
+								GameObject.Find ("ScenarioSessionInput").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						case "h":
+							{
+								GameObject.Find ("VisibleHighBoundaryInput").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						case "maxh2o":
+							{
+								GameObject.Find ("MaxReward").GetComponent<InputField> ().text = rData.cells [j].value;
+								break;
+							}
+						}
+					}
+					break;
+				}
+			}
+
+		}
+	}
+
 
 	public void LoadScenario()
 	{
@@ -977,6 +1035,8 @@ public class FreeLoader : MonoBehaviour {
                     this.errorText.text = "ERROR: Replay file field empty";
                 }*/
     }
+
+
 
     public void SetLoadScenarioName(string s)
     {
