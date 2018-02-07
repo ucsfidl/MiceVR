@@ -11,7 +11,7 @@
 			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
 			<gameTurnControl>roll</gameTurnControl>  <!-- yaw | roll -->
 			<biasCorrection>false</biasCorrection>
-			<probeLocX>20010</probeLocX>
+			<probeLocX>20020</probeLocX>
 		</gameConfig>
 	</config>
 	<trees>
