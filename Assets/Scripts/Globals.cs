@@ -177,7 +177,7 @@ public static class Globals
 
 			// Helper vars
 			TimeSpan te = gameEndTime.Subtract (gameStartTime);
-			int numMinElapsed = te.Hours * 60 + te.Minutes + (int)Math.Round ((double)te.Seconds / 60);
+			float numMinElapsed = te.Hours * 60 + te.Minutes + (int)Math.Round ((double)te.Seconds / 60);
 			if (numMinElapsed == 0)
 				numMinElapsed = 1;
 

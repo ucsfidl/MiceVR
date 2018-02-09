@@ -396,7 +396,9 @@ public class Loader : MonoBehaviour {
 
 				// Find the first row with blank date and duration, and read the settings from that line
 				if (data.rows [i].cells [12].value.Equals ("") && data.rows [i].cells [13].value.Equals ("")) {
-					Debug.Log ("Criteria met!");
+					Debug.Log ("Criteria met on row " + (i+2));
+					Debug.Log (data.rows [i].cells [12].cellColumTitle + " value is " + data.rows [i].cells [12].value);
+					Debug.Log (data.rows [i].cells [13].cellColumTitle + " value is " + data.rows [i].cells [13].value);
 					RowData rData = data.rows[i];
 
 					for (int j = 0; j < rData.cells.Count; j++) {
