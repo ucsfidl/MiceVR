@@ -53,6 +53,11 @@
 			<rot>0;270;0</rot>
 			<scale>2;0;19.1</scale>
 		</wall>
+		<wall> <!-- Left Closing wall -->
+			<pos>19976;0.5;20028</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;19.1</scale>
+		</wall>
 		<wall> <!-- Left Back wall -->
 			<pos>19986;0.5;20037</pos>
 			<rot>0;270;0</rot>
@@ -76,6 +81,11 @@
 		<wall> <!-- Right Back wall -->
 			<pos>20014;0.5;20037</pos>
 			<rot>0;270;0</rot>
+			<scale>2;0;19.1</scale>
+		</wall>
+		<wall> <!-- Right Closing wall -->
+			<pos>20024;0.5;20028</pos>
+			<rot>0;0;0</rot>
 			<scale>2;0;19.1</scale>
 		</wall>
 		<wall> <!-- Right front wall -->
