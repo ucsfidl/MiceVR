@@ -152,6 +152,12 @@ public class GameControlScript : MonoBehaviour
         }
     }
 
+	void LateUpdate() {
+		if (this.state.Equals("Running") && Globals.numCameras > 0) {
+			this.udpSender.SendFrameTrigger ();
+		}
+	}
+
     public void init()
     {
         if (!Directory.Exists(PlayerPrefs.GetString("configFolder")))
@@ -179,6 +185,7 @@ public class GameControlScript : MonoBehaviour
 		string _occluderXScale = "";
 		string _occluderYScale = "";
 		string _vrGoogleSheetsName = "";
+		string _numCameras = "";
 
 		Debug.Log ("Init view value: " + _centralViewVisible);
 
@@ -201,6 +208,7 @@ public class GameControlScript : MonoBehaviour
 			_occluderXScale = xn ["occluderXScale"].InnerText;
 			_occluderYScale = xn ["occluderYScale"].InnerText;
 			_vrGoogleSheetsName = xn ["vrGoogleSheetsName"].InnerText;
+			_numCameras = xn ["numCameras"].InnerText;
         }
 
         int.TryParse(_runDuration, out this.runDuration);
@@ -220,6 +228,7 @@ public class GameControlScript : MonoBehaviour
 		float.TryParse(_occluderXScale, out Globals.occluderXScale);
 		float.TryParse(_occluderYScale, out Globals.occluderYScale);
 		Globals.vrGoogleSheetsName = _vrGoogleSheetsName;
+		int.TryParse(_numCameras, out Globals.numCameras);
 
 		//Globals.SetCentrallyVisible(centralViewVisible);
 
@@ -385,7 +394,7 @@ public class GameControlScript : MonoBehaviour
         */
 
         TimeSpan te = DateTime.Now.Subtract(Globals.gameStartTime);
-        this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}", te.Hours * 60 + te.Minutes, te.Seconds);
+		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}:{2}", te.Hours * 60 + te.Minutes, te.Seconds, frameCounter++);
         if (Time.time - this.runTime >= this.runDuration)
         {
             // fadetoblack + respawn
@@ -393,7 +402,7 @@ public class GameControlScript : MonoBehaviour
             this.fadeToBlack.gameObject.SetActive(true);
             this.state = "Fading";
         }
-    }
+	}
 
     public void OccludeTree(float treeLocX)
     {

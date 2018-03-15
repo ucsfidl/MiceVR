@@ -96,6 +96,8 @@ public static class Globals
 
 	public static string vrGoogleSheetsName;
 
+	public static int numCameras = 0;
+
 
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles()

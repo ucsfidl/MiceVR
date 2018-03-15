@@ -6,6 +6,8 @@ const int syncPin = 7;
 const int wallPin = 4;
 const int vPin = 3;  // hack to keep the valve from flickering on program load, which leaks water everywhere
 const int touchPin = 2;
+const int camTrigPin1 = 5;  // For triggering the camera on the left eye
+const int camTrigPin2 = 6;  // For triggering the camera on the right eye
 
 void setup() {
   
@@ -29,27 +31,22 @@ void loop() {
     int data = Serial.parseInt();
     Serial.println(data);
     if ( data != '\n') {
-      // sync msg
-      if ( data == 0 )
-      {
+      if ( data == 0 ) {            // sync msg
         Serial.println("Ard:Synced!");
         digitalWrite(syncPin, HIGH);
-      }
-      // wall collision
-      else if ( data == -1 )
-      {
+      } else if ( data == -1 ) {    // wall collision
         digitalWrite(wallPin, HIGH);
-      }
-      // ForceStopSolenoid
-      else if (data == -2)
-      {
+      } else if (data == -2) {      // ForceStopSolenoid
         Serial.println("ForceStopped!");       
         digitalWrite(waterPin, LOW);
         digitalWrite(ledPin, LOW);
-      }
-      // Water
-      else
-      {
+      } else if (data == -3) {      // Trigger the cameras
+        digitalWrite(camTrigPin1, HIGH);
+        digitalWrite(camTrigPin2, HIGH);
+        delay(1);  // Adjust this delay if a 1 ms high is insufficient to trigger camera exposure
+        digitalWrite(camTrigPin1, LOW);
+        digitalWrite(camTrigPin2, LOW);        
+      } else {        // Water
         digitalWrite(waterPin, HIGH);
         digitalWrite(ledPin, HIGH);
         delay(data); // 40ms = 2.8ul, 25ms = ~2 ul
@@ -62,7 +59,6 @@ void loop() {
 
 void sendTouch(){
   Serial.println("touch");
-  
 }
 
 

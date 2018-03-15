@@ -160,6 +160,19 @@ public class UDPSend : MonoBehaviour
         }
     }
 
+	public void SendFrameTrigger()
+	{
+		int msg = -3;
+		try {
+			if (!this.usbWriter.IsOpen)
+				this.usbWriter.Open();
+
+			this.usbWriter.Write(msg.ToString());
+		} catch (Exception err) {
+			Debug.Log(err.ToString());
+		}
+	}
+
 	public bool CheckReward()
 	{	string ardmsg="";
 		try
