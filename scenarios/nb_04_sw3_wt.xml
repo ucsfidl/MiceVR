@@ -85,9 +85,19 @@
 			<rot>0;-45;0</rot>
 			<scale>2;0;20</scale>
 		</wall>
+		<wall> <!-- Left Back Y back wall -->
+			<pos>19983.5;0.5;20050</pos>
+			<rot>0;45;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
 		<wall> <!-- Right Back Y left wall -->
 			<pos>20006.5;0.5;20050</pos>
 			<rot>0;45;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
+		<wall> <!-- Right Back Y left wall -->
+			<pos>20016.5;0.5;20050</pos>
+			<rot>0;-45;0</rot>
 			<scale>2;0;20</scale>
 		</wall>
 		<wall> <!-- Right Back Y right wall -->
@@ -105,6 +115,11 @@
 			<rot>0;135;0</rot>
 			<scale>2;0;20</scale>
 		</wall>
+		<wall> <!-- Right Front Y back wall -->
+			<pos>20022;0.5;20010</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
 		<wall> <!-- Left Front Y left wall -->
 			<pos>19985;0.5;20010</pos>
 			<rot>0;-135;0</rot>
@@ -113,6 +128,11 @@
 		<wall> <!-- Left Front Y right wall -->
 			<pos>19985;0.5;20025</pos>
 			<rot>0;-135;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
+		<wall> <!-- Left Front Y back wall -->
+			<pos>19978;0.5;20010</pos>
+			<rot>0;0;0</rot>
 			<scale>2;0;20</scale>
 		</wall>
 	</walls>
