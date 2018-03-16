@@ -57,7 +57,7 @@ public class GameControlScript : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-		Debug.Log ("started!");
+		//Application.targetFrameRate = 60;
         this.frameCounter = this.previousFrameCounter = 0;
         this.runNumber = 1;
 		this.last5Mouse1Y = new System.Collections.Generic.Queue<float>(smoothingWindow);
@@ -95,10 +95,10 @@ public class GameControlScript : MonoBehaviour
     // Update is called once per frame
     void Update()
 	{
-
-		//Debug.Log ("Framerate: " + 1.0f / Time.deltaTime);
-		CatchKeyStrokes ();
-
+		if (this.state == "Running" && Globals.numCameras > 0) {
+			this.udpSender.SendFrameTrigger ();
+		}
+			
 		// Keep mouse from scaling walls - 
 		if (this.player.transform.position.y > this.startingPos.y + 0.1) {
 			Vector3 tempPos = this.player.transform.position;
@@ -153,9 +153,8 @@ public class GameControlScript : MonoBehaviour
     }
 
 	void LateUpdate() {
-		if (this.state.Equals("Running") && Globals.numCameras > 0) {
-			this.udpSender.SendFrameTrigger ();
-		}
+		//Debug.Log ("Framerate: " + 1.0f / Time.deltaTime);
+		CatchKeyStrokes ();
 	}
 
     public void init()
@@ -357,7 +356,7 @@ public class GameControlScript : MonoBehaviour
      */
     private void Run()
     {
-        // send SYNC msg on first frame of every run.
+		// send SYNC msg on first frame of every run.
         if( this.firstFrameRun )
         {
             this.udpSender.SendRunSync();
@@ -394,7 +393,7 @@ public class GameControlScript : MonoBehaviour
         */
 
         TimeSpan te = DateTime.Now.Subtract(Globals.gameStartTime);
-		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}:{2}", te.Hours * 60 + te.Minutes, te.Seconds, frameCounter++);
+		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}:{2:G4}:{3}", te.Hours * 60 + te.Minutes, te.Seconds, Time.deltaTime * 1000, frameCounter++);
         if (Time.time - this.runTime >= this.runDuration)
         {
             // fadetoblack + respawn
