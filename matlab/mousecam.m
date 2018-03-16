@@ -63,7 +63,7 @@ for i=1:n
     log{i} = vid{i}.EventLog;    
 end
 
-save('data', 'log');
+save(fname, 'log');
 
 close all;
 end
