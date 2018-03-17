@@ -7,6 +7,7 @@ const int vPin = 3;  // hack to keep the valve from flickering on program load, 
 const int touchPin = 2;
 const int camTrigPin = 5;  // For triggering the camera on the left eye
 //const int camTrigPin2 = 6;
+const int camGndPin = 9;  // Out of ground pins on Arduino board
 
 void setup() {
   Serial.begin(2000000);
@@ -24,6 +25,8 @@ void setup() {
   digitalWrite(camTrigPin, LOW);
   //pinMode(camTrigPin2, OUTPUT);
   //digitalWrite(camTrigPin2, LOW);
+  pinMode(camGndPin, OUTPUT);
+  digitalWrite(camGndPin, LOW);
 
   digitalWrite(vPin, HIGH);  // The built-in 5V pin for some reason fluctuates during program upload, so use this instead for the valve controller
 }
