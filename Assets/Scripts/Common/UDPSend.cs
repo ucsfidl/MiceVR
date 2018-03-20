@@ -68,9 +68,9 @@ public class UDPSend : MonoBehaviour
         inDryREP = new IPEndPoint(IPAddress.Parse(inDry.Split(';')[1]), int.Parse(inDry.Split(';')[0]));
         inWallREP = new IPEndPoint(IPAddress.Parse(inWall.Split(';')[1]), int.Parse(inWall.Split(';')[0]));
         client = new UdpClient();
-        this.usbWriter = new SerialPort(this.USBPort, 9600);
+        this.usbWriter = new SerialPort(this.USBPort, 2000000);
 		this.usbWriter.ReadTimeout = 1;
-
+		//this.usbWriter.WriteTimeout = 1;
 
     }
 
@@ -163,11 +163,13 @@ public class UDPSend : MonoBehaviour
 	public void SendFrameTrigger()
 	{
 		int msg = -3;
+		//Debug.Log ("Sent cam trigger");
 		try {
 			if (!this.usbWriter.IsOpen)
 				this.usbWriter.Open();
 
 			this.usbWriter.Write(msg.ToString());
+			Debug.Log(msg.ToString());
 		} catch (Exception err) {
 			Debug.Log(err.ToString());
 		}
