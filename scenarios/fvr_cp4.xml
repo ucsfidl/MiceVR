@@ -12,25 +12,25 @@
 		</gameConfig>
 	</config>
 	<trees>
-		<t> <!-- Left tree #1 -->
+		<t> <!-- Left front tree #1 -->
 			<w>1</w>
 			<pos>19998.75;0;20000.37</pos>
 			<d>0</d>
 			<rewardSize>4</rewardSize> <!-- in ul -->
 		</t>
-		<t> <!-- Right tree #1 -->
+		<t> <!-- Right front tree #1 -->
 			<w>1</w>
 			<pos>20001.25;0;20000.37</pos>
 			<d>0</d>
 			<rewardSize>4</rewardSize> <!-- in ul -->
 		</t>
-		<t> <!-- Left tree #2 -->
+		<t> <!-- Left back tree #2 -->
 			<w>1</w>
 			<pos>19999.05;0;20000.89</pos>
 			<d>0</d>
 			<rewardSize>4</rewardSize> <!-- in ul -->
 		</t>
-		<t> <!-- Right tree #2 -->
+		<t> <!-- Right back tree #2 -->
 			<w>1</w>
 			<pos>20000.95;0;20000.89</pos>
 			<d>0</d>
