@@ -1,0 +1,14 @@
+function videoCollageAllAVIToMP4()
+% Batch script run at the end of each day to take eye tracking videos and
+% compress them as low resolution MP4s.
+%
+% Relies on Parallel Computing Toolbox!
+
+list1 = dir('*1.avi'); % right eye videos
+list2 = dir('*2.avi'); % left eye
+
+parfor i=1:length(list1)
+  videoCollageToMP4(list(i).name, 60, 0.25, 0, .25, 1);
+end
+
+end

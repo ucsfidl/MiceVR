@@ -23,7 +23,8 @@ for i=1:n
     %src.AcquisitionFrameRate = 60;
 
     vid{i}.DiskLogger = VideoWriter(strcat(fname, '_', num2str(i), '.avi'), 'Grayscale AVI');
-
+    vid{i}.DiskLogger.FrameRate = 60;
+    
     preview(vid{i}); 
 end
 
