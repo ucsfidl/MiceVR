@@ -97,6 +97,7 @@ public static class Globals
 	public static string vrGoogleSheetsName;
 
 	public static int numCameras = 0;
+	public static int currFrame = 1;
 
 
     // This function writes out all the statistics to a single file, currently when the game ends.
@@ -105,8 +106,8 @@ public static class Globals
         // overwrite any existing file
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", false);
         // Write file header
-        Debug.Log("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
-        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
+        Debug.Log("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
+        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
         turnsFile.Close();
     }
 
@@ -117,6 +118,7 @@ public static class Globals
 
         Debug.Log(trialStartTime[trialStartTime.Count - 1] + "\t" +
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
+					currFrame + "\t" + 
                     ((TimeSpan)trialEndTime[trialEndTime.Count - 1]).Subtract((TimeSpan)trialStartTime[trialStartTime.Count - 1]) + "\t" +
                     targetLoc[targetLoc.Count - 1] + "\t" +
                     targetHFreq[targetHFreq.Count - 1] + "\t" +
@@ -128,6 +130,7 @@ public static class Globals
 
         turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1] + "\t" +
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
+					currFrame + "\t" + 
                     ((TimeSpan)trialEndTime[trialEndTime.Count - 1]).Subtract((TimeSpan)trialStartTime[trialStartTime.Count - 1]) + "\t" +
                     targetLoc[targetLoc.Count - 1] + "\t" +
                     targetHFreq[targetHFreq.Count - 1] + "\t" +

@@ -4,7 +4,8 @@ function trackPupils(collageFileName, frameLim, fps, otsuWeight, minPupilSzPx, s
 % It then saves several outputs:
 %  - The centroids of each pupil over time
 %  - The size of each pupil over time (pixel area)
-%  - The deviation in elevation of the pupil over time
+%  - The deviation in elevation of the pupil over time (extracted from
+%  centroids - PCA?)
 %  - The deviation in azimuth of the pupil over time
 %  - A list of trial boundary times
 %  - A list of eye blinks over time?
@@ -107,7 +108,8 @@ while currFrame <= frameStop
                 c = s(idx).Centroid;
                 rMaj = s(idx).MajorAxisLength / 2;
                 rMin = s(idx).MinorAxisLength / 2;
-                angle = -s(idx).Orientation;
+                if i == 1
+                    angle = -s(idx).Orientation;
                 dxMaj = rMaj * cosd(angle);
                 dyMaj = rMaj * sind(angle);
                 dxMin = rMin * cosd(angle+90);
@@ -115,7 +117,7 @@ while currFrame <= frameStop
                 lines = [c(1)-dxMaj, c(2)-dyMaj, c(1)+dxMaj, c(2)+dyMaj;
                          c(1)-dxMin, c(2)-dyMin, c(1)+dxMin, c(2)+dyMin];
                 imLR(:,:,:,i) = insertShape(imLR(:,:,:,i), 'line', lines, ...
-                    'LineWidth', 2, 'Color', 'red');
+                    'LineWidth', 1, 'Color', 'red');
             end
         else
             centers(currFrame,:,i) = [NaN NaN];
@@ -142,18 +144,18 @@ for t=1:length(centers)
     end
 end
 
-save([collageFileName(1:end-4) '_ann.mat'], 'log', 'centers', 'areas', 'elavDeltas', 'azimDeltas');
+save([collageFileName(1:end-4) '.mat'], 'log', 'centers', 'areas', 'elavDeltas', 'azimDeltas');
 
 % left eye for now
 figure;
 plot(1:length(elavDeltas), elavDeltas(:, :));
-title([collageFileName(1:end-4) ': Pupil Elevation']);
+title('Pupil elevation');
 legend('left', 'right');
 ylim([-20 20]);
 
 figure;
 plot(1:length(azimDeltas), azimDeltas(:, :));
-title([collageFileName(1:end-4) ': Pupil Azimuth']);
+title('Pupil azimuth');
 legend('left', 'right');
 ylim([-20 20]);
 

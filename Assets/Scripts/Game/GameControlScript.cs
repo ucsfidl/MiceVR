@@ -97,6 +97,7 @@ public class GameControlScript : MonoBehaviour
 	{
 		if (this.state == "Running" && Globals.numCameras > 0) {
 			this.udpSender.SendFrameTrigger ();
+			Globals.currFrame = Globals.currFrame + 1;
 		}
 			
 		// Keep mouse from scaling walls - 
