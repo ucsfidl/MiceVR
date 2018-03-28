@@ -14,7 +14,8 @@ for i=1:n
     vid{i}.LoggingMode = 'disk';
     vid{i}.ReturnedColorspace = 'grayscale';
     vid{i}.TriggerRepeat = Inf;
-    vid{i}.ROIPosition = [240, 212, 800, 600];
+    vid{i}.ROIPosition = [440, 362, 400, 300];
+    %vid{i}.ROIPosition = [240, 212, 800, 600];
 
     src.ExposureTime = 14000;  %15000 might be too fast
     src.AcquisitionFrameRateMode = 'Off';  
@@ -22,8 +23,9 @@ for i=1:n
     %src.AcquisitionFrameRateMode = 'Basic';  
     %src.AcquisitionFrameRate = 60;
 
-    vid{i}.DiskLogger = VideoWriter(strcat(fname, '_', num2str(i), '.avi'), 'Grayscale AVI');
-    vid{i}.DiskLogger.FrameRate = 60;
+    vw = VideoWriter(strcat(fname, '_', num2str(i), '.avi'), 'Grayscale AVI');
+    vw.FrameRate = 60;
+    vid{i}.DiskLogger = vw;
     
     preview(vid{i}); 
 end
