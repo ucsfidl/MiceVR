@@ -52,8 +52,6 @@ end
 
 close(vj);
 
-beep;
-
 toc
 
 end

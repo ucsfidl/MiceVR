@@ -22,7 +22,7 @@ for i=1:n
     % Keep this commented OUT, else lots of dropped frames!
     %src.AcquisitionFrameRateMode = 'Basic';  
     %src.AcquisitionFrameRate = 60;
-
+    
     vw = VideoWriter(strcat(fname, '_', num2str(i), '.avi'), 'Grayscale AVI');
     vw.FrameRate = 60;
     vid{i}.DiskLogger = vw;
@@ -55,6 +55,13 @@ for i=1:n
     src.TriggerSelector = 'FrameStart';
     src.TriggerSource = 'Line0';
 
+    % Setup the feedback to send a signal each time a frame is triggered,
+    % so that Unity can log the time associated with the signal to find the
+    % frames in which a new trial started for eyetracking analysis.
+    src.LineSelector = 'Line1';
+    src.LineMode = 'Output';
+    src.LineSource = 'ExposureActive';    
+    
     start(vid{i});
 end
 
