@@ -965,7 +965,7 @@ public class Loader : MonoBehaviour {
     {
         if (!s.EndsWith(".xml"))
             s = s + ".xml";
-        Debug.Log(s);
+        //Debug.Log(s);
         this.loadScenarioFile = s;
     }
     

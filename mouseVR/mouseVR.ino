@@ -5,14 +5,14 @@ const int syncPin = 7;
 const int wallPin = 4;
 const int vPin = 3;  // hack to keep the valve from flickering on program load, which leaks water everywhere
 const int touchPin = 2;
-const int camTrigPin = 5;  // For triggering the camera on the left eye
+const int camTrigPin = 5;  // For triggering the cameras pointing to each eye
 //const int camTrigPin2 = 6;
 const int camGndPin = 9;  // Out of ground pins on Arduino board
 
 void setup() {
   Serial.begin(2000000);
   //while(!Serial);  // Wait on serial to be running
-  Serial.setTimeout(1);
+  Serial.setTimeout(1);  // This is important, now that we run serial at 2 MHz
   
   pinMode(ledPin, OUTPUT);
   pinMode(waterPin, OUTPUT);
@@ -49,8 +49,8 @@ void loop() {
         digitalWrite(waterPin, LOW);
         digitalWrite(ledPin, LOW);
       } else if (data == -3) {      // Trigger the cameras
+        //Serial.println("Sent trigger");
         digitalWrite(camTrigPin, HIGH);
-        //delay(16);  // Adjust this delay if a 1 ms high is insufficient to trigger camera exposure
         digitalWrite(camTrigPin, LOW);
       } else if (data > 0) {        // Water
         digitalWrite(waterPin, HIGH);

@@ -2,9 +2,14 @@ function x = mousecam(fname)
 
 imaqreset;
 
-vid = cell(1,2);
+global trialStarts;
+global lastEventTime;
 
-n = 2;
+n = 1;
+
+vid = cell(n,1);
+trialStarts = struct([]);
+lastEventTime = 0;
 
 for i=1:n
     vid{i} = videoinput('gentl', i, 'Mono8');  % Change 1 to 2 if wrong camera previewed
@@ -26,6 +31,8 @@ for i=1:n
     vw = VideoWriter(strcat(fname, '_', num2str(i), '.avi'), 'Grayscale AVI');
     vw.FrameRate = 60;
     vid{i}.DiskLogger = vw;
+    
+    vid{i}.TriggerFcn = {'logTrialStarts'};
     
     preview(vid{i}); 
 end
@@ -58,9 +65,11 @@ for i=1:n
     % Setup the feedback to send a signal each time a frame is triggered,
     % so that Unity can log the time associated with the signal to find the
     % frames in which a new trial started for eyetracking analysis.
-    src.LineSelector = 'Line1';
-    src.LineMode = 'Output';
-    src.LineSource = 'ExposureActive';    
+    %src.LineSelector = 'Line1';
+    %src.LineMode = 'Output';
+    %src.LineSource = 'FrameTriggerWait';    
+    %src.OutputDurationMode = 'On';
+    %src.OutputDurationTime = 909;
     
     start(vid{i});
 end
@@ -73,7 +82,9 @@ for i=1:n
     log{i} = vid{i}.EventLog;    
 end
 
-save(fname, 'log');
+x = ['Captured ' num2str(vid{1}.TriggersExecuted) ' frames!'];
+
+save(fname, 'trialStarts');
 
 close all;
 end
