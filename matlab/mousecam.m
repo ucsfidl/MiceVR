@@ -12,7 +12,7 @@ trialStarts = struct([]);
 lastEventTime = 0;
 
 for i=1:n
-    vid{i} = videoinput('gentl', i, 'Mono8');  % Change 1 to 2 if wrong camera previewed
+    vid{i} = videoinput('gentl', i, 'Mono8');
     src = getselectedsource(vid{i});
     
     vid{i}.FramesPerTrigger = 1;

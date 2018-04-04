@@ -1,4 +1,4 @@
-function videoCollageToMP4(v1name, v2name, vjname, numFrames, fps, vals, scale)
+function videoCollageToMP4(vLeftName, vRightName, vjname, numFrames, fps, vals, scale)
 % v1 is the LEFT eye's video, v2 is the RIGHT eye's video
 %
 % lowVal = 0
@@ -8,8 +8,8 @@ function videoCollageToMP4(v1name, v2name, vjname, numFrames, fps, vals, scale)
 % scale = 0.5 (down to 200 x 150)
 tic
 
-v1 = VideoReader(v1name);
-v2 = VideoReader(v2name);
+vL = VideoReader(vLeftName);
+vR = VideoReader(vRightName);
 
 %vj = VideoWriter(vjname, 'Grayscale AVI');
 vj = VideoWriter(vjname, 'MPEG-4');
@@ -22,29 +22,35 @@ currFrame = 0;
 lowVal = vals(1);
 highVal = vals(2);
 
-if numFrames == 0 || numFrames > v1.NumberOfFrames
-    numFrames = v1.NumberOfFrames;
+if numFrames == 0 || numFrames > vL.NumberOfFrames || numFrame > vR.NumberOfFrames
+    if (vR.NumberOfFrames ~= vL.NumberOfFrames)
+        error('Videos are not same length, so something went wrong with syncing!  Aborting.');
+    end
+    numFrames = vL.NumberOfFrames;
 end
 
-v1 = VideoReader(v1name); % Reopen because Matlab is lame
+% Reopen because Matlab is lame and calls to NumberOfFrames screws up the
+% current position in the file.
+vL = VideoReader(vLeftName); 
+vR = VideoReader(vRightName);
 
 % Read in the actions file, and label where the stimulus was, and what the
 % response was, in the processed video.
 
 while currFrame < numFrames
     %disp(currFrame);
-    im1 = readFrame(v1);
-    im2 = readFrame(v2);
+    imL = readFrame(vL);
+    imR = readFrame(vR);
 
     % Adjust contrast
-    im1 = imadjust(im1, [lowVal, highVal]);
-    im2 = imadjust(im2, [lowVal, highVal]);
+    imL = imadjust(imL, [lowVal, highVal]);
+    imR = imadjust(imR, [lowVal, highVal]);
     
     % Adjust size
-    im1 = imresize(im1, scale);
-    im2 = imresize(im2, scale);
+    imL = imresize(imL, scale);
+    imR = imresize(imR, scale);
     
-    join = cat(2, im2(:,:,1), im1(:,:,1));
+    join = cat(2, imR(:,:,1), imL(:,:,1));
     writeVideo(vj, join);
     
     currFrame = currFrame + 1;

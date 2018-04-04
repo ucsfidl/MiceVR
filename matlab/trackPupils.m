@@ -1,4 +1,4 @@
-function trackPupils(collageFileName, frameLim, fps, otsuWeight, pupilSzRangePx, seSize, useGPU)
+function trackPupils(collageFileName, frameLim, fps, otsuWeight, pupilSzRangePx, maxPupilAspectRatio, seSize, degPerPix, useGPU)
 % This script will analyze a video file containing both eyes, the right eye
 % on the left side and the left eye on the right side of the video. 
 % It then saves several outputs:
@@ -16,6 +16,12 @@ function trackPupils(collageFileName, frameLim, fps, otsuWeight, pupilSzRangePx,
 % outlined.
 
 % Good settings for arguments:
+% NEW - single illuminator above
+% otsuweight = 0.4      BAD = [0.5 0.47 0.44] Cryo_117
+% maxPupilAspectRatio = 1.5   Used to detect eye blinks and to ignore
+% candidate pupil
+
+% OLD
 % With imopen: 0.5 otsuweight is good with minSize = 200, [0.497vid-0.3] are
 % bad, with Cryo - but 0.5 is bad with Candy, but 0.492 is fine
 % minPupilSize = 140 also bad with 0.5 otsuweight.
@@ -32,6 +38,7 @@ sizeWt = 0.25; % Cryo 112 - 0.2 has some occasional failures
 distWt = 10;
 solWt = 1;
 distFudge = 0.001;
+trialStartOffset = 1;  % Add this much to the recorded trial frame starts
 
 pupilPosHistLen = 40;  % Keep track of the pupil over N frames
 
@@ -115,6 +122,9 @@ while relFrame + frameStart <= frameStop + 1
         % subIm = imclearborder(subIm);
         
         cc = bwconncomp(subIm);
+        if (relFrame == 122 && i == 2)
+            a = 0;
+        end
         if (~isempty (cc.PixelIdxList))
             %numPixels = cellfun(@numel, cc.PixelIdxList);
             %idx = find(numPixels > minPupilSzPx);
@@ -130,9 +140,6 @@ while relFrame + frameStart <= frameStop + 1
             if (~isempty(s))
                 cA = [s.ConvexArea];
                 solidity = [s.Solidity];
-                if (relFrame == 820)
-                    a = 0;
-                end
                 if (relFrame > 1)
                     curPos = cat(1, s.Centroid);
                     if (relFrame-1 > pupilPosHistLen)
@@ -158,9 +165,8 @@ while relFrame + frameStart <= frameStop + 1
                                solWt * solidity/max(solidity) + ...
                                distWt * min(dist) ./ (dist+distFudge) + ...
                                sizeWt * cA/max(cA));
-                % Write variables to a data file, and also plot them at the end
-                % if desired.
                 if (~isempty(idx))
+                    if (s(idx).MajorAxisLength / s(idx).MinorAxisLength > maxPupilAspectRatio)
                     centers(relFrame,:,i) = s(idx).Centroid; % raw pixel position
                     areas(relFrame,:,i) = s(idx).ConvexArea;  % in px - need to calibrate
                     %%% DRAW ONTO VIDEO FOR VALIDATION %%%
@@ -210,7 +216,15 @@ for t=1:length(centers)
 end
 
 % If trial times are available, incorporate into the graphs
-trialStartFrames = [];
+load([collageFileName(1:end-4) '.mat'], 'trialStarts');
+trialStartFrames = [trialStarts.FrameNumber] + trialStartOffset;
+trialStartFrames = trialStartFrames(trialStartFrames <= frameStop);  % Get rid of extras
+trialStartFrames = trialStartFrames(trialStartFrames >= frameStart);
+%trialStartFrames = trialStartFrames - frameStart + 1;
+
+
+%{
+% Old code for reading the actions file - inaccurate so DO NOT USE
 trialFile = fopen([collageFileName(1:end-4) '_actions.txt']);
 if (trialFile ~= -1) % File found
     fgetl(trialFile);  % First line is a header so ignore
@@ -230,30 +244,39 @@ if (trialFile ~= -1) % File found
         end
     end
 end
+%}
+
 
 save([collageFileName(1:end-4) '_ann.mat'], 'centers', 'areas', 'elavDeltas', 'azimDeltas', 'trialStartFrames');
 
 ymin = -40;
-ymax = 40;
+ymax = 60;
+
+elavDeltasDeg = elavDeltas .* degPerPix;
+azimDeltasDeg = azimDeltas .* degPerPix;
 
 % Plot both eyes
-plot(1:length(elavDeltas), elavDeltas(:, :));
-hold on
 if (~isempty(trialStartFrames))
-    plot(cat(1, trialStartFrames, trialStartFrames), [ymin ymax], 'LineWidth', 1, 'Color', [0.5 0.5 0.5]);
+    plot(cat(1, trialStartFrames, trialStartFrames), [ymin ymax], 'LineWidth', 1, 'Color', [0.8 0.8 0.8]);
 end
+hold on
+h = plot(frameStart:frameStop, elavDeltasDeg(:, 1), 'r', frameStart:frameStop, elavDeltasDeg(:, 2), 'b');
 title([collageFileName(1:end-4) ': Pupil Elevation'], 'Interpreter', 'none');
-legend('left', 'right');
+ylabel('elevation rel. to first frame (deg, + left, - right)');
+xlabel('frame #');
+legend(h, 'left eye', 'right eye');
 ylim([ymin ymax]);
 
 figure;
-plot(1:length(azimDeltas), azimDeltas(:, :));
-hold on
 if (~isempty(trialStartFrames))
-    plot(cat(1, trialStartFrames, trialStartFrames), [ymin ymax], 'LineWidth', 1, 'Color', [0.5 0.5 0.5]);
+    plot(cat(1, trialStartFrames, trialStartFrames), [ymin ymax], 'LineWidth', 1, 'Color', [0.8 0.8 0.8]);
 end
+hold on
+h = plot(frameStart:frameStop, azimDeltasDeg(:, 1), 'r', frameStart:frameStop, azimDeltasDeg(:, 2), 'b');
 title([collageFileName(1:end-4) ': Pupil Azimuth'], 'Interpreter', 'none');
-legend('left', 'right');
+ylabel('azimuth rel. to first frame (deg, + left, - right)');
+xlabel('frame #');
+legend(h, 'left eye', 'right eye');
 ylim([ymin ymax]);
 
 close(vout);
