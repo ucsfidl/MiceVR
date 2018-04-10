@@ -1,4 +1,4 @@
-function trackPupils(collageFileName, frameLim, fps, otsuWeight, pupilSzRangePx, maxPupilAspectRatio, seSize, degPerPix, useGPU)
+function trackPupils(collageFileName, frameLim, fps, otsuWeight, pupilSzRangePx, seSize, degPerPx, useGPU)
 % This script will analyze a video file containing both eyes, the right eye
 % on the left side and the left eye on the right side of the video. 
 % It then saves several outputs:
@@ -17,7 +17,9 @@ function trackPupils(collageFileName, frameLim, fps, otsuWeight, pupilSzRangePx,
 
 % Good settings for arguments:
 % NEW - single illuminator above
-% otsuweight = 0.4      BAD = [0.5 0.47 0.44] Cryo_117
+% otsuweight = 0.34      BAD = [0.5 0.47 0.44] Cryo_117
+%                        BAD = [0.4 0.35] Berlin_001
+%                        BAD = [0.3], GOOD [0.35] Alpha_133
 % maxPupilAspectRatio = 1.5   Used to detect eye blinks and to ignore
 % candidate pupil
 
@@ -33,6 +35,10 @@ function trackPupils(collageFileName, frameLim, fps, otsuWeight, pupilSzRangePx,
 % seSize = 10 hides whiskers/eye lashes, 5 does not!
 
 tic
+
+maxPupilAspectRatio = 1.5;  % 1.437; 1.45 lets some through, so go smaller, but not less than 1.4; motion blur causes 1.4326
+
+% Wash to extend blanks out by 1 on either side?
 
 sizeWt = 0.25; % Cryo 112 - 0.2 has some occasional failures
 distWt = 10;
@@ -63,9 +69,6 @@ vin.CurrentTime = frameStart * 1/fps - 1/fps;
 % Init storage variables
 centers = zeros(numFrames, 2, 2); % Z dimension is 1 for each eye, left eye first
 areas = zeros(numFrames, 1, 2);  % Z dimension is 1 for each eye, left eye first
-elavDeltas = zeros(numFrames, 2); % x dimension is 1 for each eye, left eye first
-azimDeltas = zeros(numFrames, 2); % x dimension is 1 for each eye, left eye first
-%trialStartFrames;
 
 if (seSize > 0)
     vout = VideoWriter([collageFileName(1:end-4) '_opened_ann.mp4'], 'MPEG-4');
@@ -116,26 +119,15 @@ while relFrame + frameStart <= frameStop + 1
         % Need to complement, so that pupil is white instead of black;
         % Matlab treats white as foreground and black as background.
         subIm = imcomplement(subIm(:,:,1));
-        % Remove pixels touching the edge of the screen
-        % Not needed because using continuity to bias objects found where
-        % the pupil was previously found.
-        % subIm = imclearborder(subIm);
         
         cc = bwconncomp(subIm);
-        if (relFrame == 122 && i == 2)
+        % For debugging:
+        if (relFrame == 91 && i == 2)
             a = 0;
         end
         if (~isempty (cc.PixelIdxList))
-            %numPixels = cellfun(@numel, cc.PixelIdxList);
-            %idx = find(numPixels > minPupilSzPx);
-            %[~,idx] = max(numPixels);
-            %if (~isempty(idx))
-                %subIm = ismember(labelmatrix(cc), idx);
             s = regionprops(subIm, {'Centroid', 'MajorAxisLength', 'MinorAxisLength', ...
                 'Orientation', 'ConvexArea', 'Solidity'});
-            %[~,idx] = min(roundy);
-            % Important to do the following step after getting the
-            % convex areas.
             s = s([s.ConvexArea] > pupilSzRangePx(1) & [s.ConvexArea] < pupilSzRangePx(2));
             if (~isempty(s))
                 cA = [s.ConvexArea];
@@ -166,22 +158,28 @@ while relFrame + frameStart <= frameStop + 1
                                distWt * min(dist) ./ (dist+distFudge) + ...
                                sizeWt * cA/max(cA));
                 if (~isempty(idx))
-                    if (s(idx).MajorAxisLength / s(idx).MinorAxisLength > maxPupilAspectRatio)
-                    centers(relFrame,:,i) = s(idx).Centroid; % raw pixel position
-                    areas(relFrame,:,i) = s(idx).ConvexArea;  % in px - need to calibrate
-                    %%% DRAW ONTO VIDEO FOR VALIDATION %%%
-                    c = s(idx).Centroid;
-                    rMaj = s(idx).MajorAxisLength / 2;
-                    rMin = s(idx).MinorAxisLength / 2;
-                    angle = -s(idx).Orientation;
-                    dxMaj = rMaj * cosd(angle);
-                    dyMaj = rMaj * sind(angle);
-                    dxMin = rMin * cosd(angle+90);
-                    dyMin = rMin * sind(angle+90);
-                    lines = [c(1)-dxMaj, c(2)-dyMaj, c(1)+dxMaj, c(2)+dyMaj;
-                             c(1)-dxMin, c(2)-dyMin, c(1)+dxMin, c(2)+dyMin];
-                    imLR(:,:,:,i) = insertShape(imLR(:,:,:,i), 'line', lines, ...
-                        'LineWidth', 2, 'Color', 'red');
+                    % When the mouse blinks, the aspect ratio gets less
+                    % circular and more elliptical.  This tests for that.
+                    if (s(idx).MajorAxisLength / s(idx).MinorAxisLength < maxPupilAspectRatio)
+                        centers(relFrame,:,i) = s(idx).Centroid; % raw pixel position
+                        areas(relFrame,:,i) = s(idx).ConvexArea;  % in px - need to calibrate
+                        %%% DRAW ONTO VIDEO FOR VALIDATION %%%
+                        c = s(idx).Centroid;
+                        rMaj = s(idx).MajorAxisLength / 2;
+                        rMin = s(idx).MinorAxisLength / 2;
+                        angle = -s(idx).Orientation;
+                        dxMaj = rMaj * cosd(angle);
+                        dyMaj = rMaj * sind(angle);
+                        dxMin = rMin * cosd(angle+90);
+                        dyMin = rMin * sind(angle+90);
+                        lines = [c(1)-dxMaj, c(2)-dyMaj, c(1)+dxMaj, c(2)+dyMaj;
+                                 c(1)-dxMin, c(2)-dyMin, c(1)+dxMin, c(2)+dyMin];
+                        imLR(:,:,:,i) = insertShape(imLR(:,:,:,i), 'line', lines, ...
+                            'LineWidth', 2, 'Color', 'red');
+                    else
+                        centers(relFrame,:,i) = [NaN NaN];
+                        areas(relFrame,:,i) = [NaN];
+                    end
                 else
                     centers(relFrame,:,i) = [NaN NaN];
                     areas(relFrame,:,i) = [NaN];
@@ -202,26 +200,23 @@ while relFrame + frameStart <= frameStop + 1
     relFrame = relFrame + 1;
 end
 
-% Process the elevation change and plot
-for t=1:length(centers)
-    for i=1:2  % Once for each eye
-        if (t == 1)
-            elavDeltas(t, i) = 0;
-            azimDeltas(t, i) = 0;
-        else
-            elavDeltas(t, i) = centers(t, 2, i) - centers(1, 2, i);
-            azimDeltas(t, i) = centers(t, 1, i) - centers(1, 1, i);
-        end
-    end
-end
+% Process the position changes for plotting later
+% First, find the central position of the eye, given all of the data, and
+% subtract that away.
+elavCenter = nanmean(centers(:, 2, :));
+elavDeg = -((centers(:,2,:) - elavCenter) .* degPerPx);
+elavDeg = reshape(elavDeg, size(elavDeg, 1), size(elavDeg, 3));
+azimCenter = nanmean(centers(:, 1, :));
+azimDeg = -((centers(:,1,:) - azimCenter) .* degPerPx);
+azimDeg = reshape(azimDeg, size(azimDeg, 1), size(azimDeg, 3));
 
 % If trial times are available, incorporate into the graphs
 load([collageFileName(1:end-4) '.mat'], 'trialStarts');
 trialStartFrames = [trialStarts.FrameNumber] + trialStartOffset;
 trialStartFrames = trialStartFrames(trialStartFrames <= frameStop);  % Get rid of extras
 trialStartFrames = trialStartFrames(trialStartFrames >= frameStart);
-%trialStartFrames = trialStartFrames - frameStart + 1;
 
+%d = diff(
 
 %{
 % Old code for reading the actions file - inaccurate so DO NOT USE
@@ -247,22 +242,20 @@ end
 %}
 
 
-save([collageFileName(1:end-4) '_ann.mat'], 'centers', 'areas', 'elavDeltas', 'azimDeltas', 'trialStartFrames');
+save([collageFileName(1:end-4) '_ann.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames');
 
 ymin = -40;
-ymax = 60;
-
-elavDeltasDeg = elavDeltas .* degPerPix;
-azimDeltasDeg = azimDeltas .* degPerPix;
+ymax = 40;
 
 % Plot both eyes
+figure;
 if (~isempty(trialStartFrames))
     plot(cat(1, trialStartFrames, trialStartFrames), [ymin ymax], 'LineWidth', 1, 'Color', [0.8 0.8 0.8]);
 end
 hold on
-h = plot(frameStart:frameStop, elavDeltasDeg(:, 1), 'r', frameStart:frameStop, elavDeltasDeg(:, 2), 'b');
+h = plot(frameStart:frameStop, elavDeg(:, 1), 'r', frameStart:frameStop, elavDeg(:, 2), 'b');
 title([collageFileName(1:end-4) ': Pupil Elevation'], 'Interpreter', 'none');
-ylabel('elevation rel. to first frame (deg, + left, - right)');
+ylabel('elevation rel. to first frame (deg, + right, - left)');
 xlabel('frame #');
 legend(h, 'left eye', 'right eye');
 ylim([ymin ymax]);
@@ -272,9 +265,9 @@ if (~isempty(trialStartFrames))
     plot(cat(1, trialStartFrames, trialStartFrames), [ymin ymax], 'LineWidth', 1, 'Color', [0.8 0.8 0.8]);
 end
 hold on
-h = plot(frameStart:frameStop, azimDeltasDeg(:, 1), 'r', frameStart:frameStop, azimDeltasDeg(:, 2), 'b');
+h = plot(frameStart:frameStop, azimDeg(:, 1), 'r', frameStart:frameStop, azimDeg(:, 2), 'b');
 title([collageFileName(1:end-4) ': Pupil Azimuth'], 'Interpreter', 'none');
-ylabel('azimuth rel. to first frame (deg, + left, - right)');
+ylabel('azimuth rel. to first frame (deg, + right, - left)');
 xlabel('frame #');
 legend(h, 'left eye', 'right eye');
 ylim([ymin ymax]);

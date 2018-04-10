@@ -1,6 +1,4 @@
 function videoCollageToMP4(vLeftName, vRightName, vjname, numFrames, fps, vals, scale)
-% v1 is the LEFT eye's video, v2 is the RIGHT eye's video
-%
 % lowVal = 0
 % highVal = 0.25 if light not bright, 1 if many pixels saturate (current
 % config)
