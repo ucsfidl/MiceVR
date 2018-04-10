@@ -54,6 +54,8 @@ public class GameControlScript : MonoBehaviour
 
 	private int centralViewVisible;
 
+	private DateTime pauseStartTime;
+
     // Use this for initialization
     void Start()
     {
@@ -441,11 +443,31 @@ public class GameControlScript : MonoBehaviour
 			updateCorrectTurnsText ();
 			this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
         }
+			
+		// Update the time display
+		TimeSpan te = DateTime.Now.Subtract(Globals.gameStartTime);
+		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}:{2:G4}:{3}", te.Hours * 60 + te.Minutes, te.Seconds, Time.deltaTime * 1000, frameCounter++);
 
-        // NB Hack to get screen to go black before pausing for trialDelay
+		// Only proceed if elapsed time is greater than or equal to trialDelay
+		te = DateTime.Now.Subtract(pauseStartTime);
+		if (te.TotalMilliseconds >= Globals.trialDelay * 1000) {
+			float totalEarnedRewardSize = 0;
+			float totalRewardSize = 0;
+			for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++) {
+				totalEarnedRewardSize += (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[i]);
+			}
+			totalRewardSize = totalEarnedRewardSize + Globals.numberOfUnearnedRewards * Globals.rewardSize;
+			Debug.Log("Total reward so far: " + totalRewardSize + "; maxReward = " + Globals.totalRewardSize);
+			if (totalRewardSize >= Globals.totalRewardSize)
+				this.state = "GameOver";
+			else
+				this.state = "Respawn";
+		}
 
-        if (waitedOneFrame) {
-			System.Threading.Thread.Sleep (Globals.trialDelay * 1000);
+		// NB Hack to get screen to go black before pausing for trialDelay
+		/* 
+		if (waitedOneFrame) {
+			//System.Threading.Thread.Sleep (Globals.trialDelay * 1000);
 			waitedOneFrame = false;
 
             float totalEarnedRewardSize = 0;
@@ -462,16 +484,17 @@ public class GameControlScript : MonoBehaviour
 			else
 				this.state = "Respawn";
             // Append to stats file here
-            /* NB: removed as we want the mouse to run for a certain number of rewards, not trials?
-			if (this.runNumber > this.numberOfRuns)
-				this.state = "GameOver";
-			else
-				this.state = "Respawn";
-				*/
+            // NB: removed as we want the mouse to run for a certain number of rewards, not trials?
+			//if (this.runNumber > this.numberOfRuns)
+			//	this.state = "GameOver";
+			//else
+			//	this.state = "Respawn";
         }
         else {
 			waitedOneFrame = true;
 		}
+		*/
+
 	}
 
     /*
@@ -483,8 +506,7 @@ public class GameControlScript : MonoBehaviour
         this.runNumber++;
 
         //print(System.DateTime.Now.Second + ":" + System.DateTime.Now.Millisecond);
-        foreach (WaterTreeScript script in GameObject.Find("Trees").GetComponentsInChildren<WaterTreeScript>())
-        {
+        foreach (WaterTreeScript script in GameObject.Find("Trees").GetComponentsInChildren<WaterTreeScript>()) {
             script.Refill();
 		}
         //print(System.DateTime.Now.Second + ":" + System.DateTime.Now.Millisecond);
@@ -494,6 +516,8 @@ public class GameControlScript : MonoBehaviour
 		this.fadeToBlack.gameObject.SetActive(true);
 		this.fadeToBlack.color = c;
 		this.state = "Paused";
+
+		this.pauseStartTime = DateTime.Now;
 
         // Move the player now, as the screen goes to black and the app detects collisions between the new tree and the player 
         // if the player is not moved.
