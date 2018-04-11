@@ -5,7 +5,7 @@ imaqreset;
 global trialStarts;
 global lastEventTime;
 
-n = 1;
+n = 2;
 
 vid = cell(n,1);
 trialStarts = struct([]);
@@ -31,6 +31,7 @@ for i=1:n
     vw = VideoWriter(strcat(fname, '_', num2str(i), '.avi'), 'Grayscale AVI');
     vw.FrameRate = 60;
     vid{i}.DiskLogger = vw;
+    
     
     vid{i}.TriggerFcn = {'logTrialStarts'};
     
@@ -85,6 +86,8 @@ end
 x = ['Captured ' num2str(vid{1}.TriggersExecuted) ' frames!'];
 
 save(fname, 'trialStarts');
+
+imaqreset
 
 close all;
 end
