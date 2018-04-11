@@ -4,6 +4,7 @@ imaqreset;
 
 global trialStarts;
 global lastEventTime;
+global fps;
 
 n = 1;
 
@@ -30,9 +31,10 @@ for i=1:n
     
     vw = VideoWriter(strcat(fname, '_', num2str(i), '.avi'), 'Grayscale AVI');
     vw.FrameRate = 60;
+    fps = vw.FrameRate;
     vid{i}.DiskLogger = vw;
     
-    vid{i}.TriggerFcn = {'logTrialStarts'};
+    vid{i}.TriggerFcn = {'logTrialMarks'};
     
     preview(vid{i}); 
 end

@@ -55,6 +55,8 @@ public class GameControlScript : MonoBehaviour
 	private int centralViewVisible;
 
 	private DateTime pauseStartTime;
+	private bool pauseStart = false;
+	private bool pauseEnd = false;
 
     // Use this for initialization
     void Start()
@@ -97,9 +99,17 @@ public class GameControlScript : MonoBehaviour
     // Update is called once per frame
     void Update()
 	{
-		if (this.state == "Running" && Globals.numCameras > 0) {
-			this.udpSender.SendFrameTrigger ();
+		if ((this.state == "Running" || this.state == "Paused") && Globals.numCameras > 0) {
 			Globals.currFrame = Globals.currFrame + 1;
+			// To detect the occurence of a trial start or end, skip a frame trigger so that Matlab gets the signal direct through the camera,
+			// as the signal directly from unity is flaky
+			if (pauseStart) {
+				pauseStart = false;
+			} else if (pauseEnd) {
+				pauseEnd = false;
+			} else {
+				this.udpSender.SendFrameTrigger ();
+			}
 		}
 			
 		// Keep mouse from scaling walls - 
@@ -458,6 +468,7 @@ public class GameControlScript : MonoBehaviour
 			}
 			totalRewardSize = totalEarnedRewardSize + Globals.numberOfUnearnedRewards * Globals.rewardSize;
 			Debug.Log("Total reward so far: " + totalRewardSize + "; maxReward = " + Globals.totalRewardSize);
+			pauseEnd = true;
 			if (totalRewardSize >= Globals.totalRewardSize)
 				this.state = "GameOver";
 			else
@@ -518,6 +529,7 @@ public class GameControlScript : MonoBehaviour
 		this.state = "Paused";
 
 		this.pauseStartTime = DateTime.Now;
+		this.pauseStart = true;
 
         // Move the player now, as the screen goes to black and the app detects collisions between the new tree and the player 
         // if the player is not moved.

@@ -48,6 +48,10 @@ trialStartOffset = 1;  % Add this much to the recorded trial frame starts
 
 pupilPosHistLen = 40;  % Keep track of the pupil over N frames
 
+trialColor = [0.8 0.8 0.8];
+leftColor = [1 1 0.79];  % off-yellow
+rightColor = [0.81 1 0.81];  % off-green
+
 frameStart = frameLim(1);
 frameStop = frameLim(2);
 
@@ -211,12 +215,11 @@ azimDeg = -((centers(:,1,:) - azimCenter) .* degPerPx);
 azimDeg = reshape(azimDeg, size(azimDeg, 1), size(azimDeg, 3));
 
 % If trial times are available, incorporate into the graphs
-load([collageFileName(1:end-4) '.mat'], 'trialStarts');
+load([collageFileName(1:end-4) '.mat'], 'trialStarts', 'trialEnds');
 trialStartFrames = [trialStarts.FrameNumber] + trialStartOffset;
 trialStartFrames = trialStartFrames(trialStartFrames <= frameStop);  % Get rid of extras
 trialStartFrames = trialStartFrames(trialStartFrames >= frameStart);
 
-%d = diff(
 
 %{
 % Old code for reading the actions file - inaccurate so DO NOT USE
@@ -242,17 +245,16 @@ end
 %}
 
 
-save([collageFileName(1:end-4) '_ann.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames');
+save([collageFileName(1:end-4) '_ann.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', 'trialEndFrames', 'stimLocs', 'actionLocs');
 
-ymin = -40;
-ymax = 40;
+ymin = -25;
+ymax = 25;
 
 % Plot both eyes
-figure;
+figure; hold on
 if (~isempty(trialStartFrames))
-    plot(cat(1, trialStartFrames, trialStartFrames), [ymin ymax], 'LineWidth', 1, 'Color', [0.8 0.8 0.8]);
+    plot(cat(1, trialStartFrames, trialStartFrames), [ymin ymax], 'LineWidth', 1, 'Color', trialColor);
 end
-hold on
 h = plot(frameStart:frameStop, elavDeg(:, 1), 'r', frameStart:frameStop, elavDeg(:, 2), 'b');
 title([collageFileName(1:end-4) ': Pupil Elevation'], 'Interpreter', 'none');
 ylabel('elevation rel. to first frame (deg, + right, - left)');
@@ -260,11 +262,10 @@ xlabel('frame #');
 legend(h, 'left eye', 'right eye');
 ylim([ymin ymax]);
 
-figure;
+figure; hold on
 if (~isempty(trialStartFrames))
-    plot(cat(1, trialStartFrames, trialStartFrames), [ymin ymax], 'LineWidth', 1, 'Color', [0.8 0.8 0.8]);
+    plot(cat(1, trialStartFrames, trialStartFrames), [ymin ymax], 'LineWidth', 1, 'Color', trialColor);
 end
-hold on
 h = plot(frameStart:frameStop, azimDeg(:, 1), 'r', frameStart:frameStop, azimDeg(:, 2), 'b');
 title([collageFileName(1:end-4) ': Pupil Azimuth'], 'Interpreter', 'none');
 ylabel('azimuth rel. to first frame (deg, + right, - left)');
