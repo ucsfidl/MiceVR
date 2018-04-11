@@ -6,7 +6,7 @@ global trialStarts;
 global lastEventTime;
 global fps;
 
-n = 1;
+n = 2;
 
 vid = cell(n,1);
 trialStarts = struct([]);
@@ -87,6 +87,8 @@ end
 x = ['Captured ' num2str(vid{1}.TriggersExecuted) ' frames!'];
 
 save(fname, 'trialStarts');
+
+imaqreset
 
 close all;
 end
