@@ -1,4 +1,4 @@
-function trackPupils(collageFileName, frameLim, fps, otsuWeight, pupilSzRangePx, seSize, degPerPx, useGPU)
+function trackPupils(collageFileName, numStim, frameLim, fps, otsuWeight, pupilSzRangePx, seSize, degPerPx, useGPU)
 % This script will analyze a video file containing both eyes, the right eye
 % on the left side and the left eye on the right side of the video. 
 % It then saves several outputs:
@@ -44,19 +44,36 @@ sizeWt = 0.25; % Cryo 112 - 0.2 has some occasional failures
 distWt = 10;
 solWt = 1;
 distFudge = 0.001;
+
 trialStartOffset = 1;  % Add this much to the recorded trial frame starts
 trialEndOffset = 1;
 
 pupilPosHistLen = 40;  % Keep track of the pupil over N frames
 
 trialColor = [0.5 0.5 0.5];
-leftColor = [1 1 0.79];  % off-yellow
-rightColor = [0.81 1 0.81];  % off-green
+%leftColor = [1 1 0.79];  % off-yellow
+%rightColor = [0.81 1 0.81];  % off-green
 
-%leftNearColor = [1 0.87 0.71]; % off-orange
-%leftFarColor = [1 1 0.79];  % off-yellow
-%rightNearColor = [0.81 1 0.81];  % off-green
-%rightFarColor = [1 0.9 1]; % off-purple
+colorLeftNear = [1 0.87 0.71]; % dull orange
+colorLeftFar = [1 1 0.79];  % dull yellow
+colorRightNear = [0.84 0.89 0.99];  % dull blue
+colorRightFar = [0.84 0.98 0.99]; % dull cyan
+colorCenter = [1 0.9 0.99];  % dull purple
+
+if (numStim == 4)
+    allColors = [colorLeftNear; colorLeftFar; colorRightNear; colorRightFar];
+elseif (numStim == 3)
+    allColors = [colorLeftNear; colorRightNear; colorCenter];
+end
+
+% Be sure to change these if the x location of the trees changes
+stimLeftNear = 19977;
+stimLeftFar = 19978;
+stimRightNear = 20023;
+stimRightFar = 20022;
+stimLeft = 19980;
+stimRight = 20020;
+stimCenter = 20000;
 
 frameStart = frameLim(1);
 frameStop = frameLim(2);
@@ -248,16 +265,96 @@ load([collageFileName(1:end-4) '.mat'], 'trialStarts', 'trialEnds');
 trialStartFrames = [1-trialStartOffset trialStarts.FrameNumber] + trialStartOffset; % First trial start is not written
 if (exist('trialEnds', 'var'))
     trialEndFrames = [trialEnds.FrameNumber totalFrames-trialEndOffset] + trialEndOffset; % Last trial end is not written
+else
+    trialEndFrames = [trialStartFrames(2:end) totalFrames];
 end
 
+% If game ended mid-trial, don't color the final trial
+if (length(trialStartFrames) > length(stimLocs))
+    trialStartFrames = trialStartFrames(1:end-1);
+    trialEndFrames = trialEndFrames(1:end-1);
+end
+
+stimColors = zeros(1, length(stimLocs), 3);  % Stim  location colors to to use when plotting
+actionColors = zeros(1, length(actionLocs), 3);
+
+if (numStim == 4)
+    for i=1:length(stimLocs)
+        if (stimLocs(i) == stimLeftNear)
+            stimColors(1,i,:) = colorLeftNear;
+        elseif (stimLocs(i) == stimLeftFar)
+            stimColors(1,i,:) = colorLeftFar;
+        elseif (stimLocs(i) == stimRightNear)
+            stimColors(1,i,:) = colorRightNear;
+        elseif (stimLocs(i) == stimRightFar)
+            stimColors(1,i,:) = colorRightFar;            
+        end
+        
+        if (actionLocs(i) == stimLeftNear)
+            actionColors(1,i,:) = colorLeftNear;
+        elseif (actionLocs(i) == stimLeftFar)
+            actionColors(1,i,:) = colorLeftFar;
+        elseif (actionLocs(i) == stimRightNear)
+            actionColors(1,i,:) = colorRightNear;
+        elseif (actionLocs(i) == stimRightFar)
+            actionColors(1,i,:) = colorRightFar;            
+        end
+    end
+elseif (numStim == 3)
+    for i=1:length(stimLocs)
+        if (stimLocs(i) == stimLeft)
+            stimColors(1,i,:) = colorLeftNear;
+        elseif (stimLocs(i) == stimRight)
+            stimColors(1,i,:) = colorRightNear;
+        elseif (stimLocs(i) == stimCenter)
+            stimColors(1,i,:) = colorCenter;
+        end
+        
+        if (actionLocs(i) == stimLeft)
+            actionColors(1,i,:) = colorLeftNear;
+        elseif (actionLocs(i) == stimRight)
+            actionColors(1,i,:) = colorRightNear;
+        elseif (actionLocs(i) == stimCenter)
+            actionColors(1,i,:) = colorCenter;
+        end
+    end
+end
+
+% Make trial intervals into matrices that can be plotted as patches
+trimmedStarts = trialStartFrames(trialStartFrames >= frameStart);
+numTruncatedStart = length(trialStartFrames) - length(trimmedStarts); % tells me how much was deleted up front
+trimmedStarts = trimmedStarts(trimmedStarts <= frameStop);
+numTruncatedEnd = length(trialStartFrames) - length(trimmedStarts) - numTruncatedStart;
+if (trimmedStarts(1) > frameStart)
+    trimmedStarts = [frameStart trimmedStarts];
+    numTruncatedStart = numTruncatedStart - 1;
+end
+trimmedEnds = trialEndFrames(trialEndFrames <= frameStop);
+trimmedEnds = trimmedEnds(trimmedEnds >= frameStart);
+if (trimmedEnds(end) < frameStop)
+    trimmedEnds = [trimmedEnds frameStop];
+end
+xTrials = cat(1, trimmedStarts, trimmedEnds);
+xTrials = cat(1, xTrials, flipud(xTrials));
+
+yStim = [ymax; ymax; 0; 0];
+yStim = repmat(yStim, 1, size(xTrials,2));
+yAction = [0; 0; ymin; ymin];
+yAction = repmat(yAction, 1, size(xTrials,2));
+
+stimColors = stimColors(1, 1+numTruncatedStart:end-numTruncatedEnd, :);
+actionColors = actionColors(1, 1+numTruncatedStart:end-numTruncatedEnd, :);
+
+xPause = cat(1, trimmedEnds(1:end-1), trimmedStarts(2:end));
+xPause = cat(1, xPause, flipud(xPause));
+yPause = [ymax; ymax; ymin; ymin];
+yPause = repmat(yPause, 1, size(xPause,2));
+
+%{
 midline = 20000;
 leftStimTrialMask = stimLocs < midline;
 centerStimTrialMask = stimLocs == midline;
 rightStimTrialMask = stimLocs > midline;
-
-leftActionTrialMask;
-centerActionTrialMask;
-rightActionTrialMask;
 
 % With full trial start and end frame list, extract the trial boundaries
 % for each stim location
@@ -311,7 +408,6 @@ xRightStim = cat(1, xRightStim, flipud(xRightStim));
 yRightStim = [ymax; ymax; 0; 0];
 yRightStim = repmat(yRightStim, 1, size(xRightStim,2));
 
-
 % Filter out trials outside of the scope of this analysis
 trialStartFrames = trialStartFrames(trialStartFrames <= frameStop);  % Get rid of extras
 trialStartFrames = trialStartFrames(trialStartFrames >= frameStart);
@@ -319,6 +415,7 @@ if (exist('trialEnds', 'var'))
     trialEndFrames = trialEndFrames(trialEndFrames <= frameStop);  % Get rid of extras
     trialEndFrames = trialEndFrames(trialEndFrames >= frameStart);
 end
+
 
 % Make trial intervals into matrices that can be plotted with the patch
 % command.
@@ -331,20 +428,17 @@ else
     yPause = [ymax; ymin];
 end
 yPause = repmat(yPause, 1, size(xPause,2));
+%}
 
-if (exist('trialEnds', 'var'))
-    save([collageFileName(1:end-4) '_ann.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', 'trialEndFrames', 'stimLocs', 'actionLocs');
-else
-    save([collageFileName(1:end-4) '_ann.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', 'stimLocs', 'actionLocs');
-end
+save([collageFileName(1:end-4) '_ann.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', 'trialEndFrames', 'stimLocs', 'actionLocs');
 
 % Plot stimulation and actions first
 % Then plot inter-trial intervals
 % Finally plot actual eye movement data
 % ELEVATION PLOT
 figure; hold on
-p1 = patch(xLeftStim, yLeftStim, leftColor, 'EdgeColor', leftColor);
-p2 = patch(xRightStim, yRightStim, rightColor, 'EdgeColor', rightColor);
+patch(xTrials, yStim, stimColors, 'EdgeColor', 'none');
+patch(xTrials, yAction, actionColors, 'EdgeColor', 'none');
 if (~isempty(trialStartFrames))
     patch(xPause, yPause, trialColor, 'EdgeColor', trialColor);
 end
@@ -352,13 +446,20 @@ h = plot(frameStart:frameStop, elavDeg(:, 1), 'r', frameStart:frameStop, elavDeg
 title([collageFileName(1:end-4) ': Pupil Elevation'], 'Interpreter', 'none');
 ylabel('elevation rel. to first frame (deg, + right, - left)');
 xlabel('frame #');
-legend([h;p1;p2], 'left eye', 'right eye', 'left stim/action', 'right stim/action');
+for i = 1:length(allColors)
+    p(i) = patch(NaN, NaN, allColors(i,:));
+end
+if (numStim == 4)
+    legend([h;p'], 'left eye', 'right eye', 'left near', 'left far', 'right near', 'right far');
+elseif (numStim == 3)
+    legend([h;p'], 'left eye', 'right eye', 'left', 'right', 'center');    
+end
 ylim([ymin ymax]);
 
 % AZIMUTH PLOT
 figure; hold on
-p1 = patch(xLeftStim, yLeftStim, leftColor, 'EdgeColor', leftColor);
-p2 = patch(xRightStim, yRightStim, rightColor, 'EdgeColor', rightColor);
+p1 = patch(xTrials, yStim, stimColors, 'EdgeColor', 'none');
+p2 = patch(xTrials, yAction, actionColors, 'EdgeColor', 'none');
 if (~isempty(trialStartFrames))
     patch(xPause, yPause, trialColor, 'EdgeColor', trialColor);
 end
@@ -366,7 +467,14 @@ h = plot(frameStart:frameStop, azimDeg(:, 1), 'r', frameStart:frameStop, azimDeg
 title([collageFileName(1:end-4) ': Pupil Azimuth'], 'Interpreter', 'none');
 ylabel('azimuth rel. to first frame (deg, + right, - left)');
 xlabel('frame #');
-legend([h; p1; p2], 'left eye', 'right eye', 'left stim/action', 'right stim/action');
+for i = 1:length(allColors)
+    p(i) = patch(NaN, NaN, allColors(i,:));
+end
+if (numStim == 4)
+    legend([h;p'], 'left eye', 'right eye', 'left near', 'left far', 'right near', 'right far');
+elseif (numStim == 3)
+    legend([h;p'], 'left eye', 'right eye', 'left', 'right', 'center');    
+end
 ylim([ymin ymax]);
 
 close(vout);
