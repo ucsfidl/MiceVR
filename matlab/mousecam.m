@@ -3,6 +3,7 @@ function x = mousecam(fname)
 imaqreset;
 
 global trialStarts;
+global trialEnds;
 global lastEventTime;
 global fps;
 
@@ -81,12 +82,14 @@ x = input('Press ENTER to stop recording');
 log = cell(1,2);
 for i=1:n
     stop(vid{i});
-    log{i} = vid{i}.EventLog;    
+    %log{i} = vid{i}.EventLog;    
+    vid{i}.FramesAcquired
+    vid{i}.DiskLoggerFrameCount
 end
 
 x = ['Captured ' num2str(vid{1}.TriggersExecuted) ' frames!'];
 
-save(fname, 'trialStarts');
+save(fname, 'trialStarts', 'trialEnds');
 
 imaqreset
 

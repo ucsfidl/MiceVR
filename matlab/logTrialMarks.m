@@ -9,8 +9,8 @@ function logTrialMarks(vid, event)
 % values to get the true trialStarts.  As it is now, these are actually
 % trialEnd frame counts!
 
-global trialEnds;
 global trialStarts;
+global trialEnds;
 global lastEventTime;
 global fps;
 
