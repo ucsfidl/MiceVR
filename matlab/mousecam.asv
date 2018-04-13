@@ -79,18 +79,17 @@ end
 
 x = input('Press ENTER to stop recording');
 
-framesAcquiredLogged = zeros(n);
-%log = cell(1,2);
+log = cell(1,2);
 for i=1:n
     stop(vid{i});
     %log{i} = vid{i}.EventLog;
-    framesAcquiredLogged(i,1) = vid{i}.FramesAcquired;
-    framesAcquiredLogged(i,2) = vid{i}.DiskLoggerFrameCount;
+    vid{i}.FramesAcquired;
+    vid{i}.DiskLoggerFrameCount;
 end
 
 x = ['Captured ' num2str(vid{1}.TriggersExecuted) ' frames!'];
 
-save(fname, 'trialStarts', 'trialEnds', 'framesAcquiredLogged');
+save(fname, 'trialStarts', 'trialEnds');
 
 imaqreset
 
