@@ -57,7 +57,7 @@ public class GameControlScript : MonoBehaviour
 	private DateTime pauseStartTime;
 	private int pauseStart = 0;
 	private int pauseEnd = 0;
-	private int pauseTime = 1; // frames
+	private int pauseTime = 2; // frames - 1 is too few given noise in capture
 
     // Use this for initialization
     void Start()
@@ -101,7 +101,6 @@ public class GameControlScript : MonoBehaviour
     void Update()
 	{
 		if ((this.state == "Running" || this.state == "Paused") && Globals.numCameras > 0) {
-			Globals.currFrame = Globals.currFrame + 1;
 			// To detect the occurence of a trial start or end, skip a frame trigger so that Matlab gets the signal direct through the camera,
 			// as the signal directly from unity is flaky
 			if (pauseStart > 0) {
@@ -109,6 +108,7 @@ public class GameControlScript : MonoBehaviour
 			} else if (pauseEnd > 0) {
 				pauseEnd = pauseEnd-1;
 			} else {
+				Globals.currFrame = Globals.currFrame + 1;
 				this.udpSender.SendFrameTrigger ();
 			}
 		}
