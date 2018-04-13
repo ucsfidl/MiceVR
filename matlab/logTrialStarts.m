@@ -13,9 +13,8 @@ global trialStarts;
 global lastEventTime;
 
 d = event.Data;
-if (lastEventTime == 0)
-    %disp(0);
-    %disp(datestr(lastEventTime,'YYYY/mm/dd HH:MM:SS:FFF'))
+if (lastEventTime == 0) % This is the first frame, so log it as the trial start
+    trialStarts = [trialStarts d];
 elseif (etime(d.AbsTime, lastEventTime) > 1) % seconds
     %disp(etime(d.AbsTime, lastEventTime));
     trialStarts = [trialStarts d];

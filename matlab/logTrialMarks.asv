@@ -9,25 +9,21 @@ function logTrialMarks(vid, event)
 % values to get the true trialStarts.  As it is now, these are actually
 % trialEnd frame counts!
 
-    %disp(datestr(lastEventTime,'YYYY/mm/dd HH:MM:SS:FFF'))
-
 global trialStarts;
 global trialEnds;
 global lastEventTime;
-
 global fps;
 
 d = event.Data;
 if (lastEventTime == 0) % This is the first frame, so log it as the trial start
-    trialStarts = [trialStarts d];
-    % Note that this is labeled as frame #0, not frame #1
-% For unclear reasons there is a slowdown in Unity going in and out of
-% pause, so rely on this to track trial boundaries in the video.
-elseif (etime(d.AbsTime, lastEventTime) > 1/fps * 2.1) % 1.9 has false positives - Exact threshold may need to be tuned to each rig!
-    if (numel(trialStarts) == numel(trialEnds))
-        trialStarts = [trialStarts d];  % This is actually the frame after the pause start
+    trialStarts = [trialStart d];
+    %disp(0);
+    %disp(datestr(lastEventTime,'YYYY/mm/dd HH:MM:SS:FFF'))
+elseif (etime(d.AbsTime, lastEventTime) > 1/fps * 1.2) % seconds, with 20% buffer
+    if (numel(trialEnds) == numel(trialStarts))
+        trialEnds = [trialEnds d];  % This is actually the frame after the pause start
     else
-        trialEnds = [trialEnds d]; % This is actually the second(?) frame of the new trial
+        trialStarts = [trialStarts d]; % This is actually the second(?) frame of the new trial
     end
     %disp(etime(d.AbsTime, lastEventTime));
 end

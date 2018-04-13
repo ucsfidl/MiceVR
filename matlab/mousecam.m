@@ -11,6 +11,7 @@ n = 2;
 
 vid = cell(n,1);
 trialStarts = struct([]);
+trialEnds = struct([]);
 lastEventTime = 0;
 
 for i=1:n
