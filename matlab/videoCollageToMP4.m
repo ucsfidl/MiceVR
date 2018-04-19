@@ -4,6 +4,9 @@ function videoCollageToMP4(vLeftName, vRightName, vjname, numFrames, fps, vals, 
 % config)
 % fps = 60
 % scale = 0.5 (down to 200 x 150)
+
+% videoCollageToMP4('Candy_206_2.avi', 'Candy_206_1.avi', 'Candy_206.mp4', 0, 60, [0, 1], 0.5)
+
 tic
 
 vL = VideoReader(vLeftName);

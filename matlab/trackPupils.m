@@ -15,6 +15,8 @@ function trackPupils(collageFileName, frameLim, fps, otsuWeight, pupilSzRangePx,
 % This program also produces an annotated video in which the pupils are
 % outlined.
 
+% > trackPupils('Candy_206.mp4', [1 1000], 60, 0.34, [50 2000], 4, 0)
+
 % Good settings for arguments:
 % NEW - single illuminator above
 % otsuweight = 0.34      BAD = [0.5 0.47 0.44] Cryo_117
