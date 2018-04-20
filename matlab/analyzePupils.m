@@ -4,7 +4,7 @@ function analyzePupils(trackFileName, numStim, frameLim, degPerPx)
 
 tic;
 
-trialColor = [0.5 0.5 0.5];
+trialColor = [0.9 0.9 0.9];
 %leftColor = [1 1 0.79];  % off-yellow
 %rightColor = [0.81 1 0.81];  % off-green
 
@@ -32,8 +32,8 @@ stimLeft = 19980;
 stimRight = 20020;
 stimCenter = 20000;
 
-trialStartOffset = 1;  % Add this much to the recorded trial frame starts
-trialEndOffset = 1;
+trialStartOffset = 1;  % Add this much to the recorded trial frame starts - for backwards compatibility
+trialEndOffset = 0;
 
 load(trackFileName, 'centers', 'areas');
 if (isempty(strfind(trackFileName, '_part_trk.mat')))
@@ -82,9 +82,18 @@ ymax = 25;
 
 % If trial times are available, incorporate into the graphs
 load([rootFileName '.mat'], 'trialStarts', 'trialEnds');
-trialStartFrames = [1-trialStartOffset trialStarts.FrameNumber] + trialStartOffset; % First trial start is not written
+if (trialStarts(1).FrameNumber ~= 0)  % new format includes 1, but old format didn't, so permit backwards compatibility
+    trialStartFrames = [1-trialStartOffset trialStarts.FrameNumber] + trialStartOffset; % First trial start is not written
+else
+    trialStartFrames = [1 trialStarts(2:end).FrameNumber]; % First trial start is not written
+end
+
 if (exist('trialEnds', 'var'))
-    trialEndFrames = [trialEnds.FrameNumber totalFrames-trialEndOffset] + trialEndOffset; % Last trial end is not written
+    if (length(trialStarts) == length(trialEnds))
+        trialEndFrames = [trialEnds.FrameNumber] + trialEndOffset; % Last trial end was written
+    else
+        trialEndFrames = [trialEnds.FrameNumber totalFrames-trialEndOffset] + trialEndOffset; % Last trial end was not written, because game was interrupted
+    end
 else
     trialEndFrames = [trialStartFrames(2:end) totalFrames];
 end
@@ -261,9 +270,12 @@ for i=1:numStim
     d = cell2mat(resampledStimEye{i,2}(:)');
     m{i,2} = nanmean(d, 2);
     sem{i,2} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
+    % Placeholder until I make this look pretty
+    figure; plot(m{i,1}); hold on; plot(m{i,2});
 end
 
 save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', 'trialEndFrames', 'stimLocs', 'actionLocs');
+
 
 % Plot stimulation and actions first
 % Then plot inter-trial intervals
