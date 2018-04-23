@@ -9,6 +9,7 @@ global fps;
 
 numCams = 2;
 
+vid = cell(n,1);
 trialStarts = struct([]);
 trialEnds = struct([]);
 lastEventTime = 0;
@@ -27,13 +28,14 @@ spmd(numCams)
     for idx=1:numlabs % number of workers
         if idx == labindex
             imaqreset
-            % Not sure what this does exactly, except it was in sample code, so disable.
+            % Not sure what this does exactly, except it was in sample code, so
+            % disable.
             % Configure acquisition to not stop if dropped frames occur
             %imaqmex('feature', '-gigeDisablePacketResend', true);
             
             % Detect cameras
-            uin = imaqhwinfo('gentl');
-            numCamerasFound = numel(uin.DeviceIDs);
+            usbinfo = imaqhwinfo('gentl');
+            numCamerasFound = numel(usbInfo.DeviceIDs);
             fprintf('Worker %d detected %d cameras.\n', ...
                 labindex, numCamerasFound);
         end
@@ -112,34 +114,18 @@ x = input('Press ENTER to stop recording');
 
 framesAcquiredLogged = zeros(n);
 
-spmd(numCameras)
-    stop(v);
+spmd(n
+for i=1:n
+    stop(vid{i});
     framesAcquiredLogged(i,1) = vid{i}.FramesAcquired;
     framesAcquiredLogged(i,2) = vid{i}.DiskLoggerFrameCount;
-
-    % Display number of frames acquired and logged while acquiring
-    while strcmp(v.Logging, 'on')
-        disp([v.FramesAcquired , v.DiskLoggerFrameCount])
-        pause(1)
-    end
-    
-    % Wait until acquisition is complete and specify wait timeout
-    wait(v, 100);
-
-    % Wait until all frames are logged
-    while (v.FramesAcquired ~= v.DiskLoggerFrameCount) 
-        pause(1);
-    end
-    disp([v.FramesAcquired v.DiskLoggerFrameCount]);    
 end
+
+x = ['Captured ' num2str(vid{1}.TriggersExecuted) ' frames!'];
 
 save(fname, 'trialStarts', 'trialEnds', 'framesAcquiredLogged');
 
 imaqreset
-
-spmd(numCameras)
-    delete(imaqfind);
-end
 
 close all;
 end

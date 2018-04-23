@@ -9,7 +9,7 @@ function logTrialMarks(vid, event)
 % values to get the true trialStarts.  As it is now, these are actually
 % trialEnd frame counts!
 
-    %disp(datestr(lastEventTime,'YYYY/mm/dd HH:MM:SS:FFF'))
+%disp(datestr(lastEventTime,'YYYY/mm/dd HH:MM:SS:FFF'))
 
 global trialStarts;
 global trialEnds;
