@@ -1,32 +1,86 @@
-function x = mousecam(fname)
-
-imaqreset;
+function mousecam(fname)
 
 global trialStarts;
 global trialEnds;
 global lastEventTime;
 global fps;
 
-numCams = 2;
-
 trialStarts = struct([]);
 trialEnds = struct([]);
 lastEventTime = 0;
+fps = 60;
 
+numCams = 2;
+numSlaves = numCams - 1;
+
+imaqreset
 if isempty(gcp('nocreate'))
-    parpool(numCams)
+    parpool(numSlaves)
 end
 
 delete(imaqfind);
-spmd(numCams)
+spmd(numSlaves)
     delete(imaqfind);
 end
-   
-% create video objects
-spmd(numCams)
+
+% First, run in non-parellel mode to get the image previews needed for
+% making sure the eyes are in focus and lighting adujustments.  
+% Then, below, do the actual recording using 2 separate processes, 1 for each camera.
+
+% vid{1} will be used to record videos in the current thread, while vid{2}
+% will be closed and its camera recording will occur on the slave thread.
+vid = cell(numCams,1);
+
+for i=1:numCams
+    vid{i} = videoinput('gentl', i, 'Mono8');
+    src = getselectedsource(vid{i});
+    
+    vid{i}.FramesPerTrigger = 1;
+    vid{i}.LoggingMode = 'disk';
+    vid{i}.ReturnedColorspace = 'grayscale';
+    vid{i}.TriggerRepeat = Inf;
+    vid{i}.ROIPosition = [440, 362, 400, 300];
+    %vid{i}.ROIPosition = [240, 212, 800, 600];
+
+    src.ExposureTime = 14000;  %15000 might be too fast
+    src.AcquisitionFrameRateMode = 'Off';  
+    % Keep this commented OUT, else lots of dropped frames!
+    %src.AcquisitionFrameRateMode = 'Basic';  
+    %src.AcquisitionFrameRate = 60;
+    
+    vw = VideoWriter(strcat(fname, '_', num2str(i), '.avi'), 'Grayscale AVI');
+    vw.FrameRate = 60;
+    fps = vw.FrameRate;
+    vid{i}.DiskLogger = vw;
+    
+    vid{i}.TriggerFcn = {'logTrialMarks'};
+    
+    preview(vid{i}); 
+end
+
+x = input('Press ENTER to stop preview & start PARALLEL recording with hardware trigger');
+
+for i=1:numCams
+    stoppreview(vid{i});
+    if (i ~= 1)
+        delete(vid{i});
+    end
+end
+
+% Now, setup the master thread which will record 1 camera
+triggerconfig(vid{1}, 'hardware');
+src = getselectedsource(vid{1});
+src.TriggerMode = 'On';    
+src.TriggerActivation = 'RisingEdge';
+src.TriggerDelay = 0;
+src.TriggerSelector = 'FrameStart';
+src.TriggerSource = 'Line0';
+start(vid{1});
+
+% Next, setup parallel recording, 1 process per cameras after the first camera
+spmd(numSlaves)
     for idx=1:numlabs % number of workers
         if idx == labindex
-            imaqreset
             % Not sure what this does exactly, except it was in sample code, so disable.
             % Configure acquisition to not stop if dropped frames occur
             %imaqmex('feature', '-gigeDisablePacketResend', true);
@@ -40,7 +94,7 @@ spmd(numCams)
         labBarrier
     end
     cameraID = labindex;
-    v = videoinput('gentle', cameraID, 'Mono8');
+    v = videoinput('gentl', cameraID, 'Mono8');
     s = v.Source;
 
     v.FramesPerTrigger = 1;
@@ -56,66 +110,39 @@ spmd(numCams)
     %s.AcquisitionFrameRateMode = 'Basic';  
     %s.AcquisitionFrameRate = 60;
     
-    vw = VideoWriter(strcat(fname, '_', num2str(cameraID), '.avi'), 'Grayscale AVI');
-    vw.FrameRate = 60;
-    fps = vw.FrameRate;
+    vw = VideoWriter(strcat(fname, '_', num2str(cameraID+1), '.avi'), 'Grayscale AVI');
+    vw.FrameRate = fps;
     v.DiskLogger = vw;
-    
-    % Only set 1 trigger function, no need to write 2x
-    if (cameraID == 1)
-        v.TriggerFcn = {'logTrialMarks'};
-    end
-    
-    preview(v); 
-
+  
+    % preview(v);  % Does not work for parallel processing toolbox
 end
 
-x = input('Press ENTER to stop preview & start recording with hardware trigger');
 
-spmd(numCams)
-    stoppreview(v);
+spmd(numSlaves)
     triggerconfig(v, 'hardware');
-    % Uncomment if you want to test whether the display is really rendering
-    % all frames!
-%    if (i == 1)
-%        triggerconfig(v, 'hardware');
-%    else 
-%        triggerconfig(v, 'immediate');
-%    end
+
     s.TriggerMode = 'On';    
     s.TriggerActivation = 'RisingEdge';
     s.TriggerDelay = 0;
     s.TriggerSelector = 'FrameStart';
     s.TriggerSource = 'Line0';
 
-    % Setup the feedback to send a signal each time a frame is triggered,
-    % so that Unity can log the time associated with the signal to find the
-    % frames in which a new trial started for eyetracking analysis.
-    % NEED PULLUP RESISTOR!
-    %src.LineSelector = 'Line1';
-    %src.LineMode = 'Output';
-    %src.LineSource = 'FrameTriggerWait';    
-    %src.OutputDurationMode = 'On';
-    %src.OutputDurationTime = 909;
-    
     start(v);    
 end
 
-
-% Uncomment if you want to test whether the display is really rendering
-% all frames!  It was not!  So frames were not actually dropped!
-%vid{2}.FramesPerTrigger = Inf;
-%src2 = getselectedsource(vid{2});
-%src2.ExposureTime = 3500;
-
 x = input('Press ENTER to stop recording');
 
-framesAcquiredLogged = zeros(n);
+framesAcquiredLogged = zeros(1,2);
+stop(vid{1});
+framesAcquiredLogged(1,1) = vid{1}.FramesAcquired;
+framesAcquiredLogged(1,2) = vid{1}.DiskLoggerFrameCount;
 
-spmd(numCameras)
+spmd(numSlaves)
     stop(v);
-    framesAcquiredLogged(i,1) = vid{i}.FramesAcquired;
-    framesAcquiredLogged(i,2) = vid{i}.DiskLoggerFrameCount;
+    
+    framesAcqLog = zeros(1, 2);
+    framesAcqLog(1,1) = v.FramesAcquired;
+    framesAcqLog(1,2) = v.DiskLoggerFrameCount;
 
     % Display number of frames acquired and logged while acquiring
     while strcmp(v.Logging, 'on')
@@ -130,14 +157,19 @@ spmd(numCameras)
     while (v.FramesAcquired ~= v.DiskLoggerFrameCount) 
         pause(1);
     end
-    disp([v.FramesAcquired v.DiskLoggerFrameCount]);    
+    %disp([v.FramesAcquired v.DiskLoggerFrameCount]);    
+    
+    framesAcqLog = gcat(framesAcqLog, 1, 1);
 end
+
+framesAcquiredLogged = cat(1, framesAcquiredLogged, framesAcqLog{1});
+disp(framesAcquiredLogged);
 
 save(fname, 'trialStarts', 'trialEnds', 'framesAcquiredLogged');
 
 imaqreset
 
-spmd(numCameras)
+spmd(numSlaves)
     delete(imaqfind);
 end
 

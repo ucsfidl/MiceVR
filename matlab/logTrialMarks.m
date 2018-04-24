@@ -14,7 +14,6 @@ function logTrialMarks(vid, event)
 global trialStarts;
 global trialEnds;
 global lastEventTime;
-
 global fps;
 
 d = event.Data;
