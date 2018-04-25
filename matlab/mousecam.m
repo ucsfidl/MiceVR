@@ -43,7 +43,9 @@ for i=1:numCams
     %vid{i}.ROIPosition = [240, 212, 800, 600];
 
     src.ExposureTime = 14000;  %15000 might be too fast
-    src.AcquisitionFrameRateMode = 'Off';  
+    if src.DeviceVendorName ~= 'Basler'
+        src.AcquisitionFrameRateMode = 'Off';
+    end
     % Keep this commented OUT, else lots of dropped frames!
     %src.AcquisitionFrameRateMode = 'Basic';  
     %src.AcquisitionFrameRate = 60;
@@ -74,7 +76,11 @@ src.TriggerMode = 'On';
 src.TriggerActivation = 'RisingEdge';
 src.TriggerDelay = 0;
 src.TriggerSelector = 'FrameStart';
-src.TriggerSource = 'Line0';
+if src.DeviceVendorName == 'Basler'
+    src.TriggerSource = 'Line3';        
+else
+    src.TriggerSource = 'Line0';    
+end
 start(vid{1});
 
 % Next, setup parallel recording, 1 process per cameras after the first camera
@@ -105,7 +111,9 @@ spmd(numSlaves)
     %vid{i}.ROIPosition = [240, 212, 800, 600];
 
     s.ExposureTime = 14000;  %15000 might be too fast
-    s.AcquisitionFrameRateMode = 'Off';  
+    if src.DeviceVendorName ~= 'Basler'
+        s.AcquisitionFrameRateMode = 'Off';  
+    end
     % Keep this commented OUT, else lots of dropped frames!
     %s.AcquisitionFrameRateMode = 'Basic';  
     %s.AcquisitionFrameRate = 60;
@@ -125,7 +133,11 @@ spmd(numSlaves)
     s.TriggerActivation = 'RisingEdge';
     s.TriggerDelay = 0;
     s.TriggerSelector = 'FrameStart';
-    s.TriggerSource = 'Line0';
+    if s.DeviceVendorName == 'Basler'
+        s.TriggerSource = 'Line3';
+    else
+        s.TriggerSource = 'Line0';        
+    end
 
     start(v);    
 end
