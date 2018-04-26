@@ -41,13 +41,13 @@ for i=1:numCams
     vid{i}.TriggerRepeat = Inf;
     
     if (src.DeviceVendorName == 'Basler')
-        src.BinningHorizontal = 2;
-        src.BinningVertical = 2;
-        vid{i}.ROIPosition = [220, 181, 200, 150];
-    else
-        vid{i}.ROIPosition = [540, 437, 200, 150];        
+        
+        els
     end
     
+    vid{i}.ROIPosition = [440, 362, 400, 300];
+    %vid{i}.ROIPosition = [240, 212, 800, 600];
+
     src.ExposureTime = 14000;  %15000 might be too fast
     %if src.DeviceVendorName ~= 'Basler'
     %    src.AcquisitionFrameRateMode = 'Off';
@@ -56,7 +56,7 @@ for i=1:numCams
     %src.AcquisitionFrameRateMode = 'Basic';  
     %src.AcquisitionFrameRate = 60;
     
-    vw = VideoWriter(strcat(fname, '_', num2str(i), '.mp4'), 'MPEG-4');
+    vw = VideoWriter(strcat(fname, '_', num2str(i), '.avi'), 'Grayscale AVI');
     vw.FrameRate = 60;
     fps = vw.FrameRate;
     vid{i}.DiskLogger = vw;
@@ -113,13 +113,8 @@ spmd(numSlaves)
     v.LoggingMode = 'disk';
     v.ReturnedColorspace = 'grayscale';
     v.TriggerRepeat = Inf;
-    if (s.DeviceVendorName == 'Basler')
-        s.BinningHorizontal = 2;
-        s.BinningVertical = 2;
-        v.ROIPosition = [220, 181, 200, 150];
-    else
-        v.ROIPosition = [540, 437, 200, 150];        
-    end
+    v.ROIPosition = [440, 362, 400, 300];
+    %vid{i}.ROIPosition = [240, 212, 800, 600];
 
     s.ExposureTime = 14000;  %15000 might be too fast
     %if src.DeviceVendorName ~= 'Basler'
@@ -129,7 +124,7 @@ spmd(numSlaves)
     %s.AcquisitionFrameRateMode = 'Basic';  
     %s.AcquisitionFrameRate = 60;
     
-    vw = VideoWriter(strcat(fname, '_', num2str(cameraID+1), '.mp4'), 'MPEG-4');
+    vw = VideoWriter(strcat(fname, '_', num2str(cameraID+1), '.avi'), 'Grayscale AVI');
     vw.FrameRate = fps;
     v.DiskLogger = vw;
   
