@@ -40,7 +40,7 @@ for i=1:numCams
     vid{i}.ReturnedColorspace = 'grayscale';
     vid{i}.TriggerRepeat = Inf;
     
-    if (src.DeviceVendorName == 'Basler')
+    if (strcmp(src.DeviceVendorName,'Basler'))
         src.BinningHorizontal = 2;
         src.BinningVertical = 2;
         vid{i}.ROIPosition = [220, 181, 200, 150];
@@ -82,7 +82,7 @@ src.TriggerMode = 'On';
 src.TriggerActivation = 'RisingEdge';
 src.TriggerDelay = 0;
 src.TriggerSelector = 'FrameStart';
-if src.DeviceVendorName == 'Basler'
+if (strcmp(src.DeviceVendorName,'Basler'))
     src.TriggerSource = 'Line3';        
 else
     src.TriggerSource = 'Line0';    
@@ -113,7 +113,7 @@ spmd(numSlaves)
     v.LoggingMode = 'disk';
     v.ReturnedColorspace = 'grayscale';
     v.TriggerRepeat = Inf;
-    if (s.DeviceVendorName == 'Basler')
+    if (strcmp(src.DeviceVendorName,'Basler'))
         s.BinningHorizontal = 2;
         s.BinningVertical = 2;
         v.ROIPosition = [220, 181, 200, 150];
@@ -144,7 +144,7 @@ spmd(numSlaves)
     s.TriggerActivation = 'RisingEdge';
     s.TriggerDelay = 0;
     s.TriggerSelector = 'FrameStart';
-    if s.DeviceVendorName == 'Basler'
+    if (strcmp(src.DeviceVendorName,'Basler'))
         s.TriggerSource = 'Line3';
     else
         s.TriggerSource = 'Line0';        
