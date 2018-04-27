@@ -1,13 +1,21 @@
-function trackPupils(vLeftFileName, vRightFileName, frameLim, fps, otsuWeight, pupilSzRangePx, seSize, useGPU)
-% This script will find the pupil in each of 2 videos, one containing each eye.
-% It will then save these pupil locations in a file, as well as generate a
-% composite video with both eyes side-by-side, and the pupils tracked with
-% a red X.
-%
-% A helper script called analyzePupils.m will take the output of this
-% script and analyze it, producing graphs and other analysis.
+function trackPupils(collageFileName, frameLim, fps, otsuWeight, pupilSzRangePx, seSize, useGPU)
+% This script will analyze a video file containing both eyes, the right eye
+% on the left side and the left eye on the right side of the video. 
+% It then saves several outputs:
+%  - The centroids of each pupil over time
+%  - The size of each pupil over time (pixel area)
+%  - The deviation in elevation of the pupil over time
+%  - The deviation in azimuth of the pupil over time
+%  - A list of trial boundary times
+%  - A list of eye blinks over time?
+% It will also output graphs showing the deviation in azimuth over time for both eyes,
+% the deviation in elevation over time for both eyes, and the deviation in
+% both pupil sizes over time (5 traces per session).  The traces will have
+% shading to indicate different trials.
+% This program also produces an annotated video in which the pupils are
+% outlined.
 
-% > trackPupils('Candy_206_2.mp4', 'Candy_206_1.mp4', [1 1000], 60, 0.34, [50 2000], 4, 0)
+% > trackPupils('Candy_206.mp4', [1 1000], 60, 0.34, [50 2000], 4, 0)
 
 % Good settings for arguments:
 % NEW - single illuminator above
@@ -44,71 +52,17 @@ pupilPosHistLen = 40;  % Keep track of the pupil over N frames
 frameStart = frameLim(1);
 frameStop = frameLim(2);
 
-skip = zeros(1,2);
-if (~isempty(vLeftFileName))
-    v(1) = VideoReader(vLeftFileName); % v(1) is the video of the left eye
-    [folder name ext] = fileparts(vLeftFileName);
-else
-    skip(1) = true;
-end
-if (~isempty(vRightFileName))
-    % Hack but works
-    if (~exist('v'))
-        v(1) = VideoReader(vRightFileName);
-    end
-    v(2) = VideoReader(vRightFileName); % v(2) is the video of the right eye
-    [folder name ext] = fileparts(vRightFileName);
-else
-    skip(2) = true;
-end
-if (skip(1) && skip(2))
-    error('Need to specify at least 1 of 2 video filenames.');
-end
-
-if (isempty(folder))
-    folder = '.';
-end
-outRoot = [folder '\' name(1:end-2)];
-
-% Set a default video if only 1 video was recorded
-if (skip(1))
-    defVid = 2;
-else
-    defVid = 1;
-end
-
+vin = VideoReader(collageFileName);
 relFrame = 1;
 
-totalFrames = v(defVid).NumberOfFrames;
-
-% Check a bunch of things to make sure both videos match, else exit with error
-if (~skip(1) && ~skip(2))
-    if (totalFrames ~= v(2).NumberOfFrames)
-        error('The number of frames in each video does not match. Were frames dropped or is the video corrupt?');
-    end
-    if (v(1).Height ~= v(2).Height)
-        error('The height of each video does not match. It must.');
-    end
-    if (v(1).Width ~= v(2).Width)
-        error('The width of each video does not match. It must.');
-    end
-end
-
+totalFrames = vin.NumberOfFrames;
 if frameStop == 0 || frameStop > totalFrames
     frameStop = totalFrames;
 end
 
 numFrames = frameStop - frameStart + 1;
-% Reopen because Matlab is lame and has issues reading a video after
-% NumberOfFrames has been accessed.
-if (~skip(1))
-    v(1) = VideoReader(vLeftFileName); % v(1) is the video of the left eye
-    v(1).CurrentTime = frameStart * 1/fps - 1/fps;
-end
-if (~skip(2))
-    v(2) = VideoReader(vRightFileName); % v(2) is the video of the right eye
-    v(2).CurrentTime = frameStart * 1/fps - 1/fps;
-end
+vin = VideoReader(collageFileName); % Reopen because Matlab is lame
+vin.CurrentTime = frameStart * 1/fps - 1/fps;
 
 % Init storage variables
 centers = zeros(numFrames, 2, 2); % Z dimension is 1 for each eye, left eye first
@@ -116,40 +70,37 @@ areas = zeros(numFrames, 1, 2);  % Z dimension is 1 for each eye, left eye first
 
 if (seSize > 0)
     if (totalFrames == numFrames)
-        vout = VideoWriter([outRoot '_opened_ann.mp4'], 'MPEG-4');
+        vout = VideoWriter([collageFileName(1:end-4) '_opened_ann.mp4'], 'MPEG-4');
     else
-        vout = VideoWriter([outRoot '_part_opened_ann.mp4'], 'MPEG-4');        
+        vout = VideoWriter([collageFileName(1:end-4) '_part_opened_ann.mp4'], 'MPEG-4');        
     end
 else
     if (totalFrames == numFrames)
-        vout = VideoWriter([outRoot '_ann.mp4'], 'MPEG-4');    
+        vout = VideoWriter([collageFileName(1:end-4) '_ann.mp4'], 'MPEG-4');    
     else
-        vout = VideoWriter([outRoot '_part_ann.mp4'], 'MPEG-4');        
+        vout = VideoWriter([collageFileName(1:end-4) '_part_ann.mp4'], 'MPEG-4');        
     end
 end
 vout.FrameRate = fps;
 open(vout);
 
-imLR = zeros(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'uint8'); % 2 RGB images per video frame, RGB despite being grayscale because it is MP4 encoding
+imLR = zeros(vin.Height, vin.Width/2, vin.BitsPerPixel/8, 2, 'uint8'); % 2 RGB images per video frame
 
-if (skip(1))
-    startVid = 2;
-    stopVid = 2;
-elseif (skip(2))
-    startVid = 1;
-    stopVid = 1;
-else
-    startVid = 1;
-    stopVid = 2;
-end
+% The collage file has 2 videos in it: right eye on left and left eye on
+% right.  So split the image in 2 to analyze, in parallel, then stitch back
+% together with annotation for confirmation of accurate tracking.
+
+% Also, some bouncing motion needs to be accounted for with frame
+% registration.
 
 while relFrame + frameStart <= frameStop + 1
     %disp(relFrame + frameStart - 1);  %% UNCOMMENT to see status
-    for i=startVid:stopVid  % 1 is L, 2 is R
+    im = readFrame(vin);
+    for i=1:2  % 1 is L, 2 is R
         if (i == 1)
-            imLR(:,:,:,i) = readFrame(v(1));
+            imLR(:,:,:,i) = im(:, (size(im,2)/2 + 1):end, :);
         else
-            imLR(:,:,:,i) = readFrame(v(2));
+            imLR(:,:,:,i) = im(:, 1:(size(im,2)/2), :);
         end
         
         %%%%% CORE ALGORITHM FOR FINDING PUPIL %%%%%%%%%%%%
@@ -249,16 +200,16 @@ while relFrame + frameStart <= frameStop + 1
         end
     end
     
-    fusedFrame = cat(2, imLR(:,:,:,2), imLR(:,:,:,1));
-    writeVideo(vout, fusedFrame);    
+    join = cat(2, imLR(:,:,:,2), imLR(:,:,:,1));
+    writeVideo(vout, join);    
 
     relFrame = relFrame + 1;
 end
 
 if (totalFrames == numFrames)
-    save([outRoot '_trk.mat'], 'centers', 'areas');
+    save([collageFileName(1:end-4) '_trk.mat'], 'centers', 'areas');
 else  % Partial analysis, so change file name as such
-    save([outRoot '_part_trk.mat'], 'centers', 'areas');    
+    save([collageFileName(1:end-4) '_part_trk.mat'], 'centers', 'areas');    
 end
 
 close(vout);

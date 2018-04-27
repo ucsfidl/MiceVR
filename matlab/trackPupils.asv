@@ -57,7 +57,7 @@ if (~isempty(vRightFileName))
         v(1) = VideoReader(vRightFileName);
     end
     v(2) = VideoReader(vRightFileName); % v(2) is the video of the right eye
-    [folder name ext] = fileparts(vRightFileName);
+    [folder name ext] = fileparts(vLeftFileName);
 else
     skip(2) = true;
 end
@@ -65,10 +65,8 @@ if (skip(1) && skip(2))
     error('Need to specify at least 1 of 2 video filenames.');
 end
 
-if (isempty(folder))
-    folder = '.';
-end
-outRoot = [folder '\' name(1:end-2)];
+if (
+outRoot = [folder '\' vRightFileName(1:end-2)];
 
 % Set a default video if only 1 video was recorded
 if (skip(1))
