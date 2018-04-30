@@ -1,4 +1,4 @@
-function trackPupils(vLeftFileName, vRightFileName, frameLim, fps, otsuWeight, pupilSzRangePx, seSize, useGPU)
+function trackPupils(vLeftFileName, vRightFileName, frameLim, fps, otsuWeight, pupilSzRangePx, seSize, paratio, useGPU)
 % This script will find the pupil in each of 2 videos, one containing each eye.
 % It will then save these pupil locations in a file, as well as generate a
 % composite video with both eyes side-by-side, and the pupils tracked with
@@ -14,6 +14,7 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, fps, otsuWeight, p
 % otsuweight = 0.34      BAD = [0.5 0.47 0.44] Cryo_117
 %                        BAD = [0.4 0.35] Berlin_001
 %                        BAD = [0.3], GOOD [0.35] Alpha_133
+%                        BAD = 0.34, 0.4 Quasar 78, GOOD 0.38
 % maxPupilAspectRatio = 1.5   Used to detect eye blinks and to ignore
 % candidate pupil
 
@@ -30,7 +31,10 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, fps, otsuWeight, p
 
 tic
 
-maxPupilAspectRatio = 1.5;  % 1.437; 1.45 lets some through, so go smaller, but not less than 1.4; motion blur causes 1.4326
+maxPupilAspectRatio = paratio;  % 1.437; 1.45 lets some through, so go smaller, but not less than 1.4; motion blur causes 1.4326
+                            % Quasar had one eye > 2.2!  2.45 bad for Umpa.
+                            % Changed to 2.6 on 4/27/18 when analyzing
+                            % videos from rig3 from 4/25/18
 
 % Wash to extend blanks out by 1 on either side?
 
@@ -177,7 +181,7 @@ while relFrame + frameStart <= frameStop + 1
         
         cc = bwconncomp(subIm);
         % For debugging:
-        if (relFrame == 91 && i == 2)
+        if (relFrame == 74 && i == 2)
             a = 0;
         end
         if (~isempty (cc.PixelIdxList))
@@ -187,8 +191,8 @@ while relFrame + frameStart <= frameStop + 1
             if (~isempty(s))
                 cA = [s.ConvexArea];
                 solidity = [s.Solidity];
+                curPos = cat(1, s.Centroid);
                 if (relFrame > 1)
-                    curPos = cat(1, s.Centroid);
                     if (relFrame-1 > pupilPosHistLen)
                         startFr = relFrame - pupilPosHistLen;
                     else
@@ -198,11 +202,12 @@ while relFrame + frameStart <= frameStop + 1
                     c = c(~isnan(c));
                     cNoNaN = reshape(c, numel(c)/2, 2);
                     avgPrevPos = mean(cNoNaN, 1);
-                    prevPos = repmat(avgPrevPos, size(curPos, 1), 1);
-                    dist = sqrt(power(curPos(:,1) - prevPos(:,1),2) + power(curPos(:,2) - prevPos(:,2),2))';
                 else
-                    dist = ones(1,length(s));
+                    % Pupil will tend to be in the center of the screen, so initialize to there.
+                    avgPrevPos = [v(defVid).Width/2 v(defVid).Height/2];
                 end
+                prevPos = repmat(avgPrevPos, size(curPos, 1), 1);
+                dist = sqrt(power(curPos(:,1) - prevPos(:,1),2) + power(curPos(:,2) - prevPos(:,2),2))';
                 %centroids = [s.Centroid];
                 %roundy = [s.MajorAxisLength; s.MinorAxisLength]; 
                 %roundy = roundy(1,:) - roundy(2,:);
