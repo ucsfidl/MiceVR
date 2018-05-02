@@ -147,6 +147,11 @@ else
     stopVid = 2;
 end
 
+% Support different cutoffs for each eye
+if (length(otsuWeight) == 1)
+    otsuWeight = [otsuWeight; otsuWeight]
+end
+
 while relFrame + frameStart <= frameStop + 1
     %disp(relFrame + frameStart - 1);  %% UNCOMMENT to see status
     for i=startVid:stopVid  % 1 is L, 2 is R
@@ -159,7 +164,7 @@ while relFrame + frameStart <= frameStop + 1
         %%%%% CORE ALGORITHM FOR FINDING PUPIL %%%%%%%%%%%%
         % It is important to to binarize before opening to keep parts of
         % the pupil that span an eyelash together.
-        subIm = imbinarize(imLR(:,:,:,i), otsuWeight*graythresh(imLR(:,:,:,i)));
+        subIm = imbinarize(imLR(:,:,:,i), otsuWeight(i)*graythiresh(imLR(:,:,:,i)));
         
         % If you want to make this algorithm runnable in realt-time (60Hz), 
         % remove the imopen command by setting seSize arg to 0.
@@ -181,13 +186,19 @@ while relFrame + frameStart <= frameStop + 1
         
         cc = bwconncomp(subIm);
         % For debugging:
-        if (relFrame == 1 && i == 2)
+        if (relFrame == 26 && i == 1)
             a = 0;
         end
         if (~isempty (cc.PixelIdxList))
             s = regionprops(subIm, {'Centroid', 'MajorAxisLength', 'MinorAxisLength', ...
                 'Orientation', 'ConvexArea', 'Solidity'});
+            % First, remove objects that are outside of the allowable size range
             s = s([s.ConvexArea] > pupilSzRangePx(1) & [s.ConvexArea] < pupilSzRangePx(2));
+            % Second, remove objects that are outside of the allowable ellipticity range.
+            % If we do this filtering at this point, eye blinks are not
+            % longer blank data but randomly located objects about the
+            % screen.  So don't do this here - do it later (see below).
+            %s = s([s.MajorAxisLength] ./ [s.MinorAxisLength] < maxPupilAspectRatio);
             if (~isempty(s))
                 cA = [s.ConvexArea];
                 solidity = [s.Solidity];
@@ -202,12 +213,14 @@ while relFrame + frameStart <= frameStop + 1
                     c = c(~isnan(c));
                     cNoNaN = reshape(c, numel(c)/2, 2);
                     avgPrevPos = mean(cNoNaN, 1);
+                    prevPos = repmat(avgPrevPos, size(curPos, 1), 1);
+                    dist = sqrt(power(curPos(:,1) - prevPos(:,1),2) + power(curPos(:,2) - prevPos(:,2),2))';
                 else
                     % Pupil will tend to be in the center of the screen, so initialize to there.
-                    avgPrevPos = [v(defVid).Width/2 v(defVid).Height/2];
+                    % This sometimes causes problems, so remove
+                    %avgPrevPos = [v(defVid).Width/2 v(defVid).Height/2];
+                    dist = ones(1,length(s));
                 end
-                prevPos = repmat(avgPrevPos, size(curPos, 1), 1);
-                dist = sqrt(power(curPos(:,1) - prevPos(:,1),2) + power(curPos(:,2) - prevPos(:,2),2))';
                 %centroids = [s.Centroid];
                 %roundy = [s.MajorAxisLength; s.MinorAxisLength]; 
                 %roundy = roundy(1,:) - roundy(2,:);
@@ -217,29 +230,28 @@ while relFrame + frameStart <= frameStop + 1
                                solWt * solidity/max(solidity) + ...
                                distWt * min(dist) ./ (dist+distFudge) + ...
                                sizeWt * cA/max(cA));
-                if (~isempty(idx))
-                    % When the mouse blinks, the aspect ratio gets less
-                    % circular and more elliptical.  This tests for that.
-                    if (s(idx).MajorAxisLength / s(idx).MinorAxisLength < maxPupilAspectRatio)
-                        centers(relFrame,:,i) = s(idx).Centroid; % raw pixel position
-                        areas(relFrame,:,i) = s(idx).ConvexArea;  % in px - need to calibrate
-                        %%% DRAW ONTO VIDEO FOR VALIDATION %%%
-                        c = s(idx).Centroid;
-                        rMaj = s(idx).MajorAxisLength / 2;
-                        rMin = s(idx).MinorAxisLength / 2;
-                        angle = -s(idx).Orientation;
-                        dxMaj = rMaj * cosd(angle);
-                        dyMaj = rMaj * sind(angle);
-                        dxMin = rMin * cosd(angle+90);
-                        dyMin = rMin * sind(angle+90);
-                        lines = [c(1)-dxMaj, c(2)-dyMaj, c(1)+dxMaj, c(2)+dyMaj;
-                                 c(1)-dxMin, c(2)-dyMin, c(1)+dxMin, c(2)+dyMin];
-                        imLR(:,:,:,i) = insertShape(imLR(:,:,:,i), 'line', lines, ...
-                            'LineWidth', 2, 'Color', 'red');
-                    else
-                        centers(relFrame,:,i) = [NaN NaN];
-                        areas(relFrame,:,i) = [NaN];
-                    end
+                % It is important to identify a candidate and then test its ellipticity.  This handles eyeblinks as 
+                % blanks without any pupil found, because the candidate object is rejected because it is too
+                % elliptical.  This works very well when the contrast between the cornea and the pupil is high, 
+                % but if this is not the case, some jumping of the pupil location occurs due to false positive 
+                % enlargement of the pupil.
+                if (~isempty(idx) && ...
+                    s(idx).MajorAxisLength / s(idx).MinorAxisLength < maxPupilAspectRatio)
+                    centers(relFrame,:,i) = s(idx).Centroid; % raw pixel position
+                    areas(relFrame,:,i) = s(idx).ConvexArea;  % in px - need to calibrate
+                    %%% DRAW ONTO VIDEO FOR VALIDATION %%%
+                    c = s(idx).Centroid;
+                    rMaj = s(idx).MajorAxisLength / 2;
+                    rMin = s(idx).MinorAxisLength / 2;
+                    angle = -s(idx).Orientation;
+                    dxMaj = rMaj * cosd(angle);
+                    dyMaj = rMaj * sind(angle);
+                    dxMin = rMin * cosd(angle+90);
+                    dyMin = rMin * sind(angle+90);
+                    lines = [c(1)-dxMaj, c(2)-dyMaj, c(1)+dxMaj, c(2)+dyMaj;
+                             c(1)-dxMin, c(2)-dyMin, c(1)+dxMin, c(2)+dyMin];
+                    imLR(:,:,:,i) = insertShape(imLR(:,:,:,i), 'line', lines, ...
+                        'LineWidth', 2, 'Color', 'red');
                 else
                     centers(relFrame,:,i) = [NaN NaN];
                     areas(relFrame,:,i) = [NaN];

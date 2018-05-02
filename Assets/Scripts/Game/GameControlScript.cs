@@ -57,7 +57,7 @@ public class GameControlScript : MonoBehaviour
 	private DateTime pauseStartTime;
 	private int pauseStart = 0;
 	private int pauseEnd = 0;
-	private int pauseTime = 3; // frames - 1 is too few given noise in capture
+	private int pauseTime = 4; // frames - 1 is too few given noise in capture
 
     // Use this for initialization
     void Start()

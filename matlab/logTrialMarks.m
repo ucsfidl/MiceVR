@@ -22,7 +22,7 @@ if (lastEventTime == 0) % This is the first frame, so log it as the trial start
     % Note that this is labeled as frame #0, not frame #1
 % For unclear reasons there is a slowdown in Unity going in and out of
 % pause, so rely on this to track trial boundaries in the video.
-elseif (etime(d.AbsTime, lastEventTime) > 1/fps * 3.5) % 2.9 has false positives but also misses at pausetime 2, so try pauseTime 3
+elseif (etime(d.AbsTime, lastEventTime) > 1/fps * 4.5) % 3.5 has false positives and no misses, so try pauseTime 4
     if (numel(trialStarts) == numel(trialEnds))
         trialStarts = [trialStarts d];  % This is actually the second frame after the pause start
     else

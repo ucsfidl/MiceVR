@@ -300,6 +300,8 @@ elseif (numStim == 3)
     legend([h;p'], 'left eye', 'right eye', 'left stim/act', 'right stim/act', 'center stim/act');    
 end
 ylim([ymin ymax]);
+dcmObj = datacursormode(gcf);
+set(dcmObj,'UpdateFcn',@dataCursorCallback,'Enable','on');
 
 % AZIMUTH PLOT
 figure; hold on
@@ -321,6 +323,8 @@ elseif (numStim == 3)
     legend([h;p'], 'left eye', 'right eye', 'left stim/act', 'right stim/act', 'center stim/act');    
 end
 ylim([ymin ymax]);
+dcmObj = datacursormode(gcf);
+set(dcmObj,'UpdateFcn',@dataCursorCallback,'Enable','on');
 
 % Group the eye movement trials by stimulus type, and plot the averages +- SEM
 % Normalize the time interval.
