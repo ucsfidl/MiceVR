@@ -20,9 +20,11 @@ d = event.Data;
 if (lastEventTime == 0) % This is the first frame, so log it as the trial start
     trialStarts = [trialStarts d];
     % Note that this is labeled as frame #0, not frame #1
-% For unclear reasons there is a slowdown in Unity going in and out of
-% pause, so rely on this to track trial boundaries in the video.
-elseif (etime(d.AbsTime, lastEventTime) > 1/fps * 3.7) % 3.5 has false positives (1/3 of videos), pausetime 4 is the same, so try higher threshold at pausetime 3?
+% For unclear reasons there is a slowdown in Unity going in and out of pause, so rely on this to track trial boundaries in the video.
+% 3.5 has false positives (1/3 of videos), pausetime 4 is the same, so try higher threshold at pausetime 3?  2.9 had misses and false positives at pausetime 2, so not hopeful...
+% Will write script to fix this data type
+d.tsle = etime(d.AbsTime, lastEventTime);
+elseif (d.tsle > 1/fps * 3.5) 
     if (numel(trialStarts) == numel(trialEnds))
         trialStarts = [trialStarts d];  % This is actually the second frame after the pause start
     else
