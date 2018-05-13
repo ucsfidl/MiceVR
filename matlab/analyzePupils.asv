@@ -271,7 +271,7 @@ for i=1:numStim
     m{i,2} = nanmean(d, 2);
     sem{i,2} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
     % Placeholder until I make this look pretty
-    figure; plot(m{i,1}); %hold on; plot(m{i,2});
+    figure; plot(m{i,1}); hold on; plot(m{i,2});
 end
 
 save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', 'trialEndFrames', 'stimLocs', 'actionLocs');
