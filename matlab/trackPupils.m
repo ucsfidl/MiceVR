@@ -43,7 +43,7 @@ distWt = 10;
 solWt = 1;
 distFudge = 0.001;
 
-pupilPosHistLen = 100;  % Keep track of the pupil over N frames - 40 too little, as observed mouse close eye for 60 frames (Lymph_124)
+pupilPosHistLen = 800;  % Keep track of the pupil over N frames - 100 is too little, as observed mouse close eye for 400 frames (Lymph_132_6)
 
 frameStart = frameLim(1);
 frameStop = frameLim(2);

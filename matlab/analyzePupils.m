@@ -200,55 +200,62 @@ trimmedStimLocs = stimLocs(1+numTruncatedStart:end-numTruncatedEnd);
 trimmedActionLocs = actionLocs(1+numTruncatedStart:end-numTruncatedEnd);
 stimEyeMoveTrials = cell(numStim, 2);
 actionEyeMoveTrials = cell(numStim, 2);
+stimActionEyeMoveTrials = cell(numStim, numStim, 2);  % first axis is stimLoc, second is actionLoc, third is left/right eye
 for i=1:length(trimmedStimLocs)
     if (numStim == 4)
         if (trimmedStimLocs(i) == stimLeftNear)
-            idx = 1;
+            idx1 = 1;
         elseif (trimmedStimLocs(i) == stimLeftFar)
-            idx = 2;
+            idx1 = 2;
         elseif (trimmedStimLocs(i) == stimRightNear)
-            idx = 3;
+            idx1 = 3;
         elseif (trimmedStimLocs(i) == stimRightFar)
-            idx = 4;
+            idx1 = 4;
         end
     elseif (numStim == 3)
         if (trimmedStimLocs(i) == stimLeft)
-            idx = 1;
+            idx1 = 1;
         elseif (trimmedStimLocs(i) == stimRight)
-            idx = 2;
+            idx1 = 2;
         elseif (trimmedStimLocs(i) == stimCenter)
-            idx = 3;
+            idx1 = 3;
         end        
     end
     for j=1:2
-        s = stimEyeMoveTrials{idx, j};
+        s = stimEyeMoveTrials{idx1, j};
         s{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
-        stimEyeMoveTrials{idx, j} = s;
+        stimEyeMoveTrials{idx1, j} = s;
     end
 
     if (numStim == 4)
         if (trimmedActionLocs(i) == stimLeftNear)
-            idx = 1;
+            idx2 = 1;
         elseif (trimmedActionLocs(i) == stimLeftFar)
-            idx = 2;
+            idx2 = 2;
         elseif (trimmedActionLocs(i) == stimRightNear)
-            idx = 3;
+            idx2 = 3;
         elseif (trimmedActionLocs(i) == stimRightFar)
-            idx = 4;
+            idx2 = 4;
         end
     elseif (numStim == 3)
         if (trimmedActionLocs(i) == stimLeft)
-            idx = 1;
+            idx2 = 1;
         elseif (trimmedActionLocs(i) == stimRight)
-            idx = 2;
+            idx2 = 2;
         elseif (trimmedActionLocs(i) == stimCenter)
-            idx = 3;
+            idx2 = 3;
         end
     end
     for j=1:2
-        a = actionEyeMoveTrials{idx, j};
+        a = actionEyeMoveTrials{idx2, j};
         a{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
-        actionEyeMoveTrials{idx, j} = a;
+        actionEyeMoveTrials{idx2, j} = a;
+    end
+    
+    for j=1:2
+        sa = stimActionEyeMoveTrials{idx1, idx2, j};
+        sa{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
+        stimActionEyeMoveTrials{idx1, idx2, j} = sa;
     end
 end
 
@@ -258,6 +265,7 @@ minLengths = zeros(size(stimEyeMoveTrials,1), 1);
 resampledStimEye = cell(size(stimEyeMoveTrials));
 m = cell(size(stimEyeMoveTrials));
 sem = cell(size(stimEyeMoveTrials));
+% First, plot the stimulus average of the eye movements
 for i=1:numStim
     stimEyeLengths = cellfun(@(x) length(x), stimEyeMoveTrials{i,1});
     maxLengths(i) = max(stimEyeLengths);
@@ -271,8 +279,103 @@ for i=1:numStim
     m{i,2} = nanmean(d, 2);
     sem{i,2} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
     % Placeholder until I make this look pretty
-    figure; plot(m{i,1}); %hold on; plot(m{i,2});
+    figure; 
+    x = 1:length(m{i,1});
+    h = plot(x, m{i,1}, 'r', x, m{i,2}, 'b'); 
+    if (numStim == 3)
+        if (i == 1)
+            sLoc = 'Left';
+        elseif (i == 2)
+            sLoc = 'Right';
+        else
+            sLoc = 'Center';
+        end
+    else
+        if (i == 1)
+            sLoc = 'Left near';
+        elseif (i == 2)
+            sLoc = 'Left far';
+        elseif (i == 3)
+            sLoc = 'Right near';
+        else
+            sLoc = 'Right far';
+        end
+    end
+    title([rootFileName ': ' sLoc ' stim: mean'], 'Interpreter', 'none');
+    annotation('textbox', [.8 0 .2 .2], 'String', ['n=' num2str(length(stimEyeMoveTrials{i,1}))], 'FitBoxToText', 'on', 'EdgeColor', 'white');  
+    legend(h, 'left eye', 'right eye');
+    ylim([-10 10]);
 end
+
+% Second, plot the stimulus x navigation average of the eye movements
+% This helps assess whether the eyes follow the stim, or the eyes follow
+% the navigation!
+maxLengths = zeros(size(stimActionEyeMoveTrials,1), size(stimActionEyeMoveTrials,2), 1);
+minLengths = zeros(size(stimActionEyeMoveTrials,1), size(stimActionEyeMoveTrials,2), 1);
+resampledStimActionEye = cell(size(stimActionEyeMoveTrials));
+m = cell(size(stimActionEyeMoveTrials));
+sem = cell(size(stimActionEyeMoveTrials));
+for i=1:numStim
+    for j=1:numStim
+        if (~isempty(stimActionEyeMoveTrials{i,j,1}))
+            stimActionEyeLengths = cellfun(@(x) length(x), stimActionEyeMoveTrials{i,j,1});
+            maxLengths(i,j) = max(stimActionEyeLengths);
+            minLengths(i,j) = min(stimEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
+            resampledStimActionEye{i,j,1} = cellfun(@(x) resample(x, minLengths(i,j), length(x)), stimActionEyeMoveTrials{i,j,1}, 'UniformOutput', false);
+            d = cell2mat(resampledStimActionEye{i,j,1}(:)');
+            m{i,j,1} = nanmean(d, 2);
+            sem{i,j,1} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
+            resampledStimActionEye{i,j,2} = cellfun(@(x) resample(x, minLengths(i,j), length(x)), stimActionEyeMoveTrials{i,j,2}, 'UniformOutput', false);
+            d = cell2mat(resampledStimActionEye{i,j,2}(:)');
+            m{i,j,2} = nanmean(d, 2);
+            sem{i,j,2} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
+            % Placeholder until I make this look pretty
+            figure; 
+            x = 1:length(m{i,j,1});
+            h = plot(x, m{i,j,1}, 'r', x, m{i,j,2}, 'b'); 
+            if (numStim == 3)
+                if (i == 1)
+                    sLoc = 'Left';
+                elseif (i == 2)
+                    sLoc = 'Right';
+                else
+                    sLoc = 'Center';
+                end
+                if (j == 1)
+                    aLoc = 'Left';
+                elseif (j == 2)
+                    aLoc = 'Right';
+                else
+                    aLoc = 'Center';
+                end
+            else
+                if (i == 1)
+                    sLoc = 'Left near';
+                elseif (i == 2)
+                    sLoc = 'Left far';
+                elseif (i == 3)
+                    sLoc = 'Right near';
+                else
+                    sLoc = 'Right far';
+                end
+                if (j == 1)
+                    aLoc = 'Left near';
+                elseif (j == 2)
+                    aLoc = 'Left far';
+                elseif (j == 3)
+                    aLoc = 'Right near';    
+                else
+                    aLoc = 'Right far';
+                end
+            end
+            title([rootFileName ': ' sLoc ' stim / ' aLoc ' action'], 'Interpreter', 'none');
+            annotation('textbox', [.8 0 .2 .2], 'String', ['n=' num2str(length(stimActionEyeMoveTrials{i,j,1}))], 'FitBoxToText', 'on', 'EdgeColor', 'white');  
+            legend(h, 'left eye', 'right eye');
+            ylim([-10 10]);
+        end
+    end
+end
+
 
 save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', 'trialEndFrames', 'stimLocs', 'actionLocs');
 

@@ -43,7 +43,7 @@ distWt = 10;
 solWt = 1;
 distFudge = 0.001;
 
-pupilPosHistLen = 40;  % Keep track of the pupil over N frames
+pupilPosHistLen = 100;  % Keep track of the pupil over N frames - 40 too little, as observed mouse close eye for 60 frames (Lymph_124)
 
 frameStart = frameLim(1);
 frameStop = frameLim(2);
@@ -149,7 +149,7 @@ end
 
 % Support different cutoffs for each eye
 if (length(otsuWeight) == 1)
-    otsuWeight = [otsuWeight; otsuWeight]
+    otsuWeight = [otsuWeight; otsuWeight];
 end
 
 while relFrame + frameStart <= frameStop + 1
@@ -164,7 +164,7 @@ while relFrame + frameStart <= frameStop + 1
         %%%%% CORE ALGORITHM FOR FINDING PUPIL %%%%%%%%%%%%
         % It is important to to binarize before opening to keep parts of
         % the pupil that span an eyelash together.
-        subIm = imbinarize(imLR(:,:,:,i), otsuWeight(i)*graythiresh(imLR(:,:,:,i)));
+        subIm = imbinarize(imLR(:,:,:,i), otsuWeight(i)*graythresh(imLR(:,:,:,i)));
         
         % If you want to make this algorithm runnable in realt-time (60Hz), 
         % remove the imopen command by setting seSize arg to 0.
@@ -182,7 +182,7 @@ while relFrame + frameStart <= frameStop + 1
             
         % Need to complement, so that pupil is white instead of black;
         % Matlab treats white as foreground and black as background.
-        subIm = imcomplement(subIm(:,:,1));
+20        subIm = imcomplement(subIm(:,:,1));
         
         cc = bwconncomp(subIm);
         % For debugging:
