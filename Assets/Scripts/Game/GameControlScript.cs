@@ -849,7 +849,7 @@ public class GameControlScript : MonoBehaviour
         }
 
 		// NO bias correction with FOV location yet, but may need to add later
-		if (Globals.perim && gos.Length == 3 && locx != Globals.worldXCenter) {  // perimetry is enabled, so pick from the set of random windows to use
+		if (Globals.perim && ((gos.Length == 3 && locx != Globals.worldXCenter) || gos.Length == 4)) {  // perimetry is enabled, so pick from the set of random windows to use
 			int rFOV = UnityEngine.Random.Range (0, Globals.fovsForPerimScaleInclusive [Globals.perimScale]);
 			Debug.Log ("FOV: " + rFOV);
 			Globals.SetOccluders (locx, rFOV);
