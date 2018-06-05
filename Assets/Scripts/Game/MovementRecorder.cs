@@ -96,6 +96,7 @@ public class MovementRecorder : MonoBehaviour {
 			float.TryParse (s, out deg);
 		}
 		Globals.visibleNasalBoundary = deg;
+		Globals.defaultVisibleNasalBoundary = deg;
 	}
 
 	public void SetVisibleTemporalBoundary(string s)
@@ -105,6 +106,7 @@ public class MovementRecorder : MonoBehaviour {
 			float.TryParse (s, out deg);
 		}
 		Globals.visibleTemporalBoundary = deg;
+		Globals.defaultVisibleTemporalBoundary = deg;
 	}
 
 	public void SetVisibleHighBoundary(string s)
@@ -114,6 +116,7 @@ public class MovementRecorder : MonoBehaviour {
 			float.TryParse (s, out deg);
 		}
 		Globals.visibleHighBoundary = deg;
+		Globals.defaultVisibleHighBoundary = deg;
 	}
 
 	public void SetVisibleLowBoundary(string s)
@@ -123,6 +126,7 @@ public class MovementRecorder : MonoBehaviour {
 			float.TryParse (s, out deg);
 		}
 		Globals.visibleLowBoundary = deg;
+		Globals.defaultVisibleLowBoundary = deg;
 	}
 
     public void SetScenarioName(string s)

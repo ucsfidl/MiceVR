@@ -63,6 +63,8 @@ public static class Globals
 
 	public static bool biasCorrection = true;  // default to true if nothing entered in scenario file
 	public static float probeLocX = float.NaN;
+	public static bool perim = false;  // default to false, as perimetry is only running in special circumstances
+	public static int perimScale;  // 0 = full scale, 1 = 40x40 deg, 2=20x20 deg, 3 = 10x10 deg.  Note a larger number also includes the scales smaller than itself.
 
 	public static string mouseName = "";
 	public static string scenarioName = "";
@@ -82,6 +84,7 @@ public static class Globals
 	public static float occluderXScale;
 	public static float occluderYScale;
 
+	// These are initial values, but if the user provides any values, these get overwritten during runtime
 	public static float defaultVisibleNasalBoundary = 0;
 	public static float defaultVisibleTemporalBoundary = 90;
 	public static float defaultVisibleHighBoundary = 50;
@@ -99,20 +102,75 @@ public static class Globals
 	public static int numCameras = 0;
 	public static int currFrame = 1;
 
+	public struct fov {
+		public float nasalBound;
+		public float tempBound;
+		public float highBound;
+		public float lowBound;
+	}
+
+	public static fov[] fovs;  // For automatic perimetry
+	public static int[] fovsForPerimScaleInclusive = new int[] {1, 3, 9, 21};
+
+	// Initializes fovs used for automated perimetry.  There are 4 scales, and the stimuli are presented that fill (or half-fill, for the smallest) scale
+	// TODO: don't do linear calculations, but trigometric ones, which are accurate
+	public static void InitFOVs() {
+		fovs = new fov[21];
+
+		// FULL FIELD
+		int curPos = 0;
+		fovs [curPos].nasalBound = defaultVisibleNasalBoundary;
+		fovs [curPos].tempBound = defaultVisibleTemporalBoundary;
+		fovs [curPos].lowBound = defaultVisibleLowBoundary;
+		fovs [curPos].highBound = defaultVisibleHighBoundary;
+
+		// 40x40 : YELLOW in diagram, except shifted to the left 10 degrees
+		curPos = curPos + 1;
+		fovs [curPos].nasalBound = 0;
+		fovs [curPos].tempBound = fovs [curPos].nasalBound + 40;
+		fovs [curPos].lowBound = 5;
+		fovs [curPos].highBound = fovs [curPos].lowBound + 40;
+
+		// 40x40 : RED in diagram
+		curPos = curPos + 1;
+		fovs [curPos].nasalBound = 30;
+		fovs [curPos].tempBound = fovs [curPos].nasalBound + 40;
+		fovs [curPos].lowBound = 5;
+		fovs [curPos].highBound = fovs [curPos].lowBound + 40;
+
+		// 20x20 : GREEN in diagram
+		for (int i = 0; i < 6; i++) {
+			curPos = curPos + 1;
+			fovs [curPos].nasalBound = 10 + i % 3 * 20;
+			fovs [curPos].tempBound = fovs [curPos].nasalBound + 20;
+			fovs [curPos].lowBound = 5 + i / 3 * 20;
+			fovs [curPos].highBound = fovs [curPos].lowBound + 20;
+		}
+
+		// 10x10 : Shaded in diagram
+		for (int i = 0; i < 12; i++) { // Initialize the small stimulus set
+			curPos = curPos + 1;
+			if (i / 3 % 2 == 0) { // even row
+				fovs[curPos].nasalBound = 20 + i % 3  * 20;
+			} else {
+				fovs [curPos].nasalBound = 10 + i % 3 * 20;
+			}
+			fovs [curPos].tempBound = fovs [curPos].nasalBound + 10;
+			fovs [curPos].lowBound = 5 + i / 3 * 10;
+			fovs [curPos].highBound = fovs [curPos].lowBound + 10;
+		}
+	}
 
     // This function writes out all the statistics to a single file, currently when the game ends.
-    public static void InitLogFiles()
-    {
+    public static void InitLogFiles() {
         // overwrite any existing file
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", false);
         // Write file header
-        Debug.Log("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
-        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
+        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
         turnsFile.Close();
     }
 
-    public static void WriteToLogFiles()
-    {
+    public static void WriteToLogFiles() {
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", true);
         // Write out turn decisions over time - easy to import into Excel and analyze
 
@@ -123,6 +181,10 @@ public static class Globals
                     targetLoc[targetLoc.Count - 1] + "\t" +
                     targetHFreq[targetHFreq.Count - 1] + "\t" +
                     targetVFreq[targetVFreq.Count - 1] + "\t" +
+					visibleNasalBoundary + "\t" +
+					visibleTemporalBoundary + "\t" + 
+					visibleHighBoundary + "\t" +
+					visibleLowBoundary + "\t" + 
                     firstTurn[firstTurn.Count - 1] + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
@@ -135,6 +197,10 @@ public static class Globals
                     targetLoc[targetLoc.Count - 1] + "\t" +
                     targetHFreq[targetHFreq.Count - 1] + "\t" +
                     targetVFreq[targetVFreq.Count - 1] + "\t" +
+					visibleNasalBoundary + "\t" +
+					visibleTemporalBoundary + "\t" + 
+					visibleHighBoundary + "\t" +
+					visibleLowBoundary + "\t" + 
                     firstTurn[firstTurn.Count - 1] + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
@@ -339,7 +405,27 @@ public static class Globals
 	}
 	*/
 
+	// Old function, which did not pass the extra arguments
+	// Just set the values to be logged first
 	public static void SetOccluders(float locx) {
+		visibleNasalBoundary = defaultVisibleNasalBoundary;
+		visibleTemporalBoundary = defaultVisibleTemporalBoundary;
+		visibleHighBoundary = defaultVisibleHighBoundary;
+		visibleLowBoundary = defaultVisibleLowBoundary;
+		SetOccluders (locx, visibleNasalBoundary, visibleTemporalBoundary, visibleHighBoundary, visibleLowBoundary);
+	}
+
+	// For picking the occluder by index from the set above
+	public static void SetOccluders(float locx, int idx) {
+		Debug.Log ("FOV: " + fovs [idx].nasalBound + ", " + fovs [idx].tempBound + ", " + fovs [idx].highBound + ", " + fovs[idx].lowBound);
+		visibleNasalBoundary = fovs [idx].nasalBound;
+		visibleTemporalBoundary = fovs [idx].tempBound;
+		visibleHighBoundary = fovs [idx].highBound;
+		visibleLowBoundary = fovs [idx].lowBound;
+		SetOccluders (locx, visibleNasalBoundary, visibleTemporalBoundary, visibleHighBoundary, visibleLowBoundary);
+	}
+
+	public static void SetOccluders(float locx, float nasalBound, float tempBound, float highBound, float lowBound) {
 		GameObject tolt = GameObject.Find("TreeOccluderLT");
 		GameObject tolmt = GameObject.Find("TreeOccluderLMT");
 		GameObject tolmn = GameObject.Find("TreeOccluderLMN");
@@ -354,33 +440,36 @@ public static class Globals
 		GameObject torb = GameObject.Find("TreeOccluderRB");
 
 		// Local vars to store calculations to reuse
-		float ysp = monitorPositiveElevation / (monitorPositiveElevation - monitorNegativeElevation) * occluderYScale;
+		// I don't think I need these anymore, as this was when I thought the stimulus window would be centered around the horizon.  Now it can be offset, so something else needs to be done
+		float ysp = monitorPositiveElevation / (monitorPositiveElevation - monitorNegativeElevation) * occluderYScale;  // OccluderYScale is height of occluder if it will fill the full height of the screen
 		float ysn = monitorNegativeElevation / (monitorNegativeElevation - monitorPositiveElevation) * occluderYScale;
+		float totalElevation = monitorPositiveElevation - monitorNegativeElevation;
 		Vector3 newPos;
 
 		// PULL BACK CURTAINS
 		// ==================
 		// First, set the x and y scale values and positions of each occluder based on parameters found in the gameconfig file.
-		// There are 3 occluders on the left screen, 6 occluders on the center screen, and 3 occluders on the right screen.
+		// There are 4 occluders on the left screen, 4 occluders on the center screen, and 4 occluders on the right screen.
 		// Occluders are setup so that based on the user values, all one needs to do is shift the position of each occluder to create the intended visible window.
+		// Initially, the occluders are off the screen on the temporal side if nasal or temporal, and above or below if top or bottom, respectively.
 		// After sized each curtain, shift all of the curtains away so everything is visible.  Depending on the user inputs, we will shift them back to occlude trees.  
 		// If the user left all params blank at the start of the session, then trees will simply be restricted to the corresponding hemifield separated by the vertical midline.
 
 		// LEFT SCREEN FOR LEFT TREES
-		tolt.transform.localScale = new Vector3(occluderXScale, ysp, 1);
-		tolt.transform.localPosition = new Vector3 (0, occluderYScale/2 + ysp/2, 0.5F);
+		tolt.transform.localScale = new Vector3(occluderXScale, occluderYScale, 1);
+		tolt.transform.localPosition = new Vector3 (0, occluderYScale, 0.5F);
+		tolb.transform.localScale = new Vector3(occluderXScale, occluderYScale, 1);
+		tolb.transform.localPosition = new Vector3 (0, -occluderYScale, 0.5F);
 		tolmt.transform.localScale = new Vector3(occluderXScale, occluderYScale, 1);
 		tolmt.transform.localPosition = new Vector3 (-occluderXScale, 0, 0.5F);
 		tolmn.transform.localScale = tolmt.transform.localScale;
 		tolmn.transform.localPosition = tolmt.transform.localPosition;
-		tolb.transform.localScale = new Vector3(occluderXScale, ysn, 1);
-		tolb.transform.localPosition = new Vector3 (0, -(ysn/2 + occluderYScale/2), 0.5F);
 
 		// CENTER SCREEN FOR BOTH TREES
-		toct.transform.localScale = new Vector3 (occluderXScale, ysp, 1);
-		toct.transform.localPosition = new Vector3 (0, occluderYScale / 2 + ysp / 2, 0.5F);
-		tocb.transform.localScale = new Vector3 (occluderXScale, ysn, 1);
-		tocb.transform.localPosition = new Vector3 (0, -(ysn / 2 + occluderYScale / 2), 0.5F);
+		toct.transform.localScale = new Vector3 (occluderXScale, occluderYScale, 1);
+		toct.transform.localPosition = new Vector3 (0, occluderYScale, 0.5F);
+		tocb.transform.localScale = new Vector3 (occluderXScale, occluderYScale, 1);
+		tocb.transform.localPosition = new Vector3 (0, -occluderYScale, 0.5F);
 		if (locx < worldXCenter) {  // Tree is on left side, so shift center curtains to the right of center
 			tocmt.transform.localScale = new Vector3 (occluderXScale, occluderYScale, 1);
 			tocmt.transform.localPosition = new Vector3 (occluderXScale / 2, 0, 0.5F);
@@ -392,38 +481,38 @@ public static class Globals
 		tocmn.transform.localPosition = tocmt.transform.localPosition;
 
 		// RIGHT SCREEN FOR RIGHT TREES
-		tort.transform.localScale = new Vector3(occluderXScale, ysp, 1);
-		tort.transform.localPosition = new Vector3 (0, occluderYScale/2 + ysp/2, 0.5F);
+		tort.transform.localScale = new Vector3(occluderXScale, occluderYScale, 1);
+		tort.transform.localPosition = new Vector3 (0, occluderYScale, 0.5F);
+		torb.transform.localScale = new Vector3(occluderXScale, occluderYScale, 1);
+		torb.transform.localPosition = new Vector3 (0, -occluderYScale, 0.5F);	
 		tormt.transform.localScale = new Vector3(occluderXScale, occluderYScale, 1);
 		tormt.transform.localPosition = new Vector3 (occluderXScale, 0, 0.5F);
 		tormn.transform.localScale = tormt.transform.localScale;
 		tormn.transform.localPosition = tormt.transform.localPosition;
-		torb.transform.localScale = new Vector3(occluderXScale, ysn, 1);
-		torb.transform.localPosition = new Vector3 (0, -(ysn/2 + occluderYScale/2), 0.5F);	
 
 		// Now that all the occluders are setup properly, just shift their positions to get to the intended visible window
 		// First, shift the top curtains
-		if (visibleHighBoundary < monitorPositiveElevation) {
-			newPos = new Vector3(0, occluderYScale / 2 + ysp / 2 - ysp * (1 - visibleHighBoundary / monitorPositiveElevation), 0.5F);
+		if (highBound < monitorPositiveElevation) {
+			newPos = new Vector3(0, -1 * (monitorNegativeElevation - highBound) * (occluderYScale / totalElevation), 0.5F);
 			tolt.transform.localPosition = newPos;
 			toct.transform.localPosition = newPos;
 			tort.transform.localPosition = newPos;
 		}
 
 		// Second, shift the bottom curtains
-		if (visibleLowBoundary > monitorNegativeElevation) {
-			newPos = new Vector3(0, -(ysn/2 + occluderYScale/2) + ysn * (1 - visibleLowBoundary / monitorNegativeElevation), 0.5F);
+		if (lowBound > monitorNegativeElevation) {
+			newPos = new Vector3(0, -1 * (monitorPositiveElevation - lowBound) * (occluderYScale / totalElevation), 0.5F);
 			tolb.transform.localPosition = newPos;
 			tocb.transform.localPosition = newPos;
 			torb.transform.localPosition = newPos;
 		}
 	
 		// Third, shift the curtains to enforce a nasal border
-		if (visibleNasalBoundary > fovNasalAzimuth) {
-			if (visibleNasalBoundary > monitorAzimuth / 2) {
+		if (nasalBound > fovNasalAzimuth) {
+			if (nasalBound > monitorAzimuth / 2) {
 				// Move central occluder all the way temporal
 				tocmn.transform.localPosition = new Vector3 (0, 0, 0.5F);
-				float margin = visibleNasalBoundary - monitorAzimuth / 2;
+				float margin = nasalBound - monitorAzimuth / 2;
 				if (locx < worldXCenter) {
 					tolmn.transform.localPosition = new Vector3 (occluderXScale - (margin / monitorAzimuth * occluderXScale), 0, 0.5F);
 				} else {
@@ -431,43 +520,32 @@ public static class Globals
 				}
 			} else {
 				if (locx < worldXCenter) {
-					tocmn.transform.localPosition = new Vector3 ((1 - visibleNasalBoundary/(monitorAzimuth/2)) * (occluderXScale/2), 0, 0.5F);
+					tocmn.transform.localPosition = new Vector3 ((1 - nasalBound/(monitorAzimuth/2)) * (occluderXScale/2), 0, 0.5F);
 				} else {
-					tocmn.transform.localPosition = new Vector3 (-(1 - visibleNasalBoundary/(monitorAzimuth/2)) * (occluderXScale/2), 0, 0.5F);
+					tocmn.transform.localPosition = new Vector3 (-(1 - nasalBound/(monitorAzimuth/2)) * (occluderXScale/2), 0, 0.5F);
 				}
 			}
 		}
 
 		// Fourth and finally, shift the curtains to enforce a temporal border
-		if (visibleTemporalBoundary < fovTemporalAzimuth) {
-			if (visibleTemporalBoundary < fovTemporalAzimuth - monitorAzimuth) { // boundary spans more than the side monitor
+		if (tempBound < fovTemporalAzimuth) {
+			if (tempBound < fovTemporalAzimuth - monitorAzimuth) { // boundary spans more than the side monitor
 				if (locx < worldXCenter) {  // Tree is on the left
 					tolmt.transform.localPosition = new Vector3 (0, 0, 0.5F);
-					tocmt.transform.localPosition = new Vector3 (-occluderXScale + ((monitorAzimuth / 2 - visibleTemporalBoundary) / monitorAzimuth) * occluderXScale, 0, 0.5F);
+					tocmt.transform.localPosition = new Vector3 (-occluderXScale + ((monitorAzimuth / 2 - tempBound) / monitorAzimuth) * occluderXScale, 0, 0.5F);
 				} else {
 					tormt.transform.localPosition = new Vector3 (0, 0, 0.5F);
-					tocmt.transform.localPosition = new Vector3 (occluderXScale - ((monitorAzimuth / 2 - visibleTemporalBoundary) / monitorAzimuth) * occluderXScale, 0, 0.5F);
+					tocmt.transform.localPosition = new Vector3 (occluderXScale - ((monitorAzimuth / 2 - tempBound) / monitorAzimuth) * occluderXScale, 0, 0.5F);
 				}
 			} else {  // boundary is restricted to the side monitor
 				if (locx < worldXCenter) {
-					tolmt.transform.localPosition = new Vector3 (-occluderXScale + ((fovTemporalAzimuth - visibleTemporalBoundary) / monitorAzimuth) * occluderXScale, 0, 0.5F);
+					tolmt.transform.localPosition = new Vector3 (-occluderXScale + ((fovTemporalAzimuth - tempBound) / monitorAzimuth) * occluderXScale, 0, 0.5F);
 				} else {
-					tormt.transform.localPosition = new Vector3 (occluderXScale - ((fovTemporalAzimuth - visibleTemporalBoundary) / monitorAzimuth) * occluderXScale, 0, 0.5F);
+					tormt.transform.localPosition = new Vector3 (occluderXScale - ((fovTemporalAzimuth - tempBound) / monitorAzimuth) * occluderXScale, 0, 0.5F);
 				}
 			}
 		}
-
-
-
-			/*
-		Vector3 lp = treeOccluder.transform.localPosition;
-		if (treeLocX > worldXCenter)  // Target tree is on right side
-			lp.x = -Globals.centralViewVisibleShift;
-		else if (treeLocX < worldXCenter)
-			lp.x = Globals.centralViewVisibleShift;
-		treeOccluder.transform.localPosition = lp;
-		Debug.Log ("Tree at " + treeLocX);
-		*/
+	
 	}
 
 }

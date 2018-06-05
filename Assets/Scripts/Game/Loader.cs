@@ -359,7 +359,15 @@ public class Loader : MonoBehaviour {
                     }
                 }
             }
-			Globals.SetOccluders(locx);  // Will occlude tree if tree visibility is to be restricted to 1 FOV
+			// NO bias correction with FOV location yet, but may need to add later
+			if (Globals.perim && treeList.Count == 3 && locx != Globals.worldXCenter) {  // perimetry is enabled, so pick from the set of random windows to use
+				int rFOV = UnityEngine.Random.Range (0, Globals.fovsForPerimScaleInclusive [Globals.perimScale]);
+				Debug.Log ("FOV: " + rFOV);
+				Globals.SetOccluders (locx, rFOV);
+			} else {
+				Globals.SetOccluders(locx);
+				Debug.Log ("no dynamic occlusion");
+			}
 
             Globals.targetLoc.Add(locx);
             Globals.targetHFreq.Add(hfreq);
@@ -624,6 +632,18 @@ public class Loader : MonoBehaviour {
 				if (xn["probeLocX"] != null)
 				{
 					float.TryParse(xn["probeLocX"].InnerText, out Globals.probeLocX);
+				}
+				if (xn["perim"] != null)
+				{
+					string perimXML = xn["perim"].InnerText;
+					if (perimXML.Equals("true"))
+						Globals.perim = true;
+					else  // Default state is false - perimetry is not running
+						Globals.perim = false;
+				}
+				if (xn["perimScale"] != null)
+				{
+					int.TryParse(xn["perimScale"].InnerText, out Globals.perimScale);
 				}
 
             }

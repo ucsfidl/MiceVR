@@ -376,7 +376,7 @@ public class WaterTreeScript : MonoBehaviour {
     public void SetRewardSize(float r)
     {
         this.rewardDur = (int)Math.Round(r / (Globals.rewardSize / Globals.rewardDur));
-        Debug.Log("Reward duration set: " + this.rewardDur);
+        //Debug.Log("Reward duration set: " + this.rewardDur);
     }
 
 	public void SetRespawn(bool r)

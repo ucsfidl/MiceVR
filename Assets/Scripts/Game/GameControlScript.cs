@@ -95,6 +95,7 @@ public class GameControlScript : MonoBehaviour
 		*/
 
         init();
+		Globals.InitFOVs ();
     }
 
     // Update is called once per frame
@@ -245,8 +246,8 @@ public class GameControlScript : MonoBehaviour
 
 		//Globals.SetCentrallyVisible(centralViewVisible);
 
-		Debug.Log ("Init view value: " + _centralViewVisible);
-		Debug.Log ("Central view shift: " + Globals.centralViewVisibleShift);
+		//Debug.Log ("Init view value: " + _centralViewVisible);
+		//Debug.Log ("Central view shift: " + Globals.centralViewVisibleShift);
         // trying to avoid first drops of water
         this.udpSender.ForceStopSolenoid();
         this.udpSender.setAmount(Globals.rewardDur);
@@ -666,6 +667,11 @@ public class GameControlScript : MonoBehaviour
 				Debug.Log ("random: " + r + " --- range: [0, " + thresh0 + ", " + thresh1 + ", " + thresh2 + ", 1]");
 
 				treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : 3;
+
+				if (Globals.perim) {  // perimetry is enabled, so pick from the set of random windows to use
+
+				}
+
 				locx = gos[treeToActivate].transform.position.x;
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
@@ -735,7 +741,8 @@ public class GameControlScript : MonoBehaviour
 					thresh1 = thresh0 + p1;
 				}
 
-				Debug.Log ("[0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
+
+				Debug.Log ("STIMLOC: [0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
 				treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
 				SetupTreeActivation (gos, treeToActivate, 2);
 
@@ -841,8 +848,15 @@ public class GameControlScript : MonoBehaviour
             Debug.Log("[0, " + rThresh0 + ", 1] - " + rSide);
         }
 
-        //OccludeTree(locx);
-		Globals.SetOccluders(locx);
+		// NO bias correction with FOV location yet, but may need to add later
+		if (Globals.perim && gos.Length == 3 && locx != Globals.worldXCenter) {  // perimetry is enabled, so pick from the set of random windows to use
+			int rFOV = UnityEngine.Random.Range (0, Globals.fovsForPerimScaleInclusive [Globals.perimScale]);
+			Debug.Log ("FOV: " + rFOV);
+			Globals.SetOccluders (locx, rFOV);
+		} else {
+			Globals.SetOccluders(locx);
+			Debug.Log ("no dynamic occlusion");
+		}
 
         Globals.targetLoc.Add(locx);
         Globals.targetHFreq.Add(hfreq);

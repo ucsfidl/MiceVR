@@ -156,7 +156,7 @@ public class UDPSend : MonoBehaviour
         }
         catch (Exception err)
         {
-            Debug.Log(err.ToString());
+            //Debug.Log(err.ToString());
         }
     }
 
@@ -171,7 +171,7 @@ public class UDPSend : MonoBehaviour
 			this.usbWriter.Write(msg.ToString());
 			Debug.Log(msg.ToString());
 		} catch (Exception err) {
-			Debug.Log(err.ToString());
+			//Debug.Log(err.ToString());  // fills up debug log when no cameras connected
 		}
 	}
 
@@ -219,7 +219,7 @@ public class UDPSend : MonoBehaviour
         }
         catch (Exception err)
         {
-            Debug.Log(err.ToString());
+            //Debug.Log(err.ToString());  // Fills up the log when no hardware connected to testing laptop
         }
     }
 
