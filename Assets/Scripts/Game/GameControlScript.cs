@@ -267,7 +267,7 @@ public class GameControlScript : MonoBehaviour
                 Globals.numberOfUnearnedRewards++;
                 Globals.rewardAmountSoFar += Globals.rewardSize;
 				updateRewardAmountText ();
-				//this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
+				Debug.Log("gave reward = " + Globals.rewardAmountSoFar);
             } else if (Input.GetKeyUp(KeyCode.T))
             {
                 // Mouse is stuck so teleport to beginning

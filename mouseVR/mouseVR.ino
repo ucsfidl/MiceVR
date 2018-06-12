@@ -19,7 +19,7 @@ void setup() {
   pinMode(syncPin, OUTPUT);
   pinMode(wallPin, OUTPUT);
   pinMode(vPin, OUTPUT);
-  attachInterrupt(digitalPinToInterrupt(touchPin), sendTouch, RISING);
+  //attachInterrupt(digitalPinToInterrupt(touchPin), sendTouch, FALLING);
 
   pinMode(camTrigPin, OUTPUT);
   digitalWrite(camTrigPin, LOW);
