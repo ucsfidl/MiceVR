@@ -19,7 +19,8 @@ void setup() {
   pinMode(syncPin, OUTPUT);
   pinMode(wallPin, OUTPUT);
   pinMode(vPin, OUTPUT);
-  attachInterrupt(digitalPinToInterrupt(touchPin), sendTouch, RISING);
+  // Disabled at UCB, because it was being triggered by valve actuation, and eventually hung!
+  //attachInterrupt(digitalPinToInterrupt(touchPin), sendTouch, FALLING);
 
   pinMode(camTrigPin, OUTPUT);
   digitalWrite(camTrigPin, LOW);
