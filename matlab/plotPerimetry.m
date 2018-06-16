@@ -11,11 +11,12 @@ function plotPerimetry(actionFileDirectory)
 
 % First, find all the filenames to read in
 
-l = dir([actionFileDirectory '/*.txt']); % Get all mat files, and use that to construct filenames for video files
+l = dir([actionFileDirectory '/*.txt']) % Get all mat files, and use that to construct filenames for video files
 
 % Next, read in each line of each file, determine the scale, and then add
 % the trial either as correct or incorrect.
-
-
+for i=1:length(l)
+    
+end
 
 end
