@@ -275,32 +275,23 @@ public class Loader : MonoBehaviour {
             else if (Globals.gameType.Equals("discrimination"))
             {
                 // Randomize orientations on first load
-                float targetHFreq0 = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                float targetVFreq0 = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                float targetHFreq1 = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                float targetVFreq1 = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                if (r < 0.5)  // Swap orientations between trees
-                {
-                    treeList[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq1, targetVFreq1);
-                    treeList[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq0, targetVFreq0);
-                }
-                if (Globals.rewardedHFreq == treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq() &&
-                    Globals.rewardedVFreq == treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq())
-                {
-                    treeList[0].GetComponent<WaterTreeScript>().SetCorrect(true);
-                    treeList[1].GetComponent<WaterTreeScript>().SetCorrect(false);
-                    locx = treeList[0].transform.position.x;
-                    hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                    vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                }
-                else
-                {
-                    treeList[0].GetComponent<WaterTreeScript>().SetCorrect(false);
-                    treeList[1].GetComponent<WaterTreeScript>().SetCorrect(true);
-                    locx = treeList[1].transform.position.x;
-                    hfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                    vfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
-                }
+				if (r < 0.5) {  // Swap orientations between trees
+					treeList [0].GetComponent<WaterTreeScript> ().SetShader (Globals.rewardedHFreq, Globals.rewardedVFreq);
+					treeList [1].GetComponent<WaterTreeScript> ().SetShader (Globals.distractorHFreq, Globals.distractorVFreq);
+					treeList[0].GetComponent<WaterTreeScript>().SetCorrect(true);
+					treeList[1].GetComponent<WaterTreeScript>().SetCorrect(false);
+					locx = treeList[0].transform.position.x;
+					hfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
+					vfreq = treeList[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				} else {
+					treeList [0].GetComponent<WaterTreeScript> ().SetShader (Globals.distractorHFreq, Globals.distractorVFreq);
+					treeList [1].GetComponent<WaterTreeScript> ().SetShader (Globals.rewardedHFreq, Globals.rewardedVFreq);
+					treeList[0].GetComponent<WaterTreeScript>().SetCorrect(false);
+					treeList[1].GetComponent<WaterTreeScript>().SetCorrect(true);
+					locx = treeList[1].transform.position.x;
+					hfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
+					vfreq = treeList[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				}
             }
             else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))  // There are three trees - a central initial tree, and 1 on left and 1 on right
             {
@@ -608,6 +599,12 @@ public class Loader : MonoBehaviour {
                 {
                     float.TryParse(xn["rewardedVFreq"].InnerText, out Globals.rewardedVFreq);
                 }
+				if (xn ["distractorHFreq"] != null) {
+					float.TryParse(xn["distractorHFreq"].InnerText, out Globals.distractorHFreq);
+				}
+				if (xn ["distractorVFreq"] != null) {
+					float.TryParse(xn["distractorVFreq"].InnerText, out Globals.distractorVFreq);
+				}
 				if (xn["distractorIntensity1"] != null)
 				{
 					float i1;

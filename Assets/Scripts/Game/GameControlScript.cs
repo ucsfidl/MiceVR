@@ -770,7 +770,7 @@ public class GameControlScript : MonoBehaviour
             if (r < rThresh0) 
             {
                 gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, Globals.rewardedVFreq);
-                gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedVFreq, Globals.rewardedHFreq);
+                gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, Globals.distractorVFreq);
                 locx = gos[0].transform.position.x;
                 hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
                 vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
@@ -779,7 +779,7 @@ public class GameControlScript : MonoBehaviour
             }
             else
             {
-                gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedVFreq, Globals.rewardedHFreq);
+				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, Globals.distractorVFreq);
                 gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, Globals.rewardedVFreq);
                 locx = gos[1].transform.position.x;
                 hfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();

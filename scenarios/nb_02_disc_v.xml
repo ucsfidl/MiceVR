@@ -12,6 +12,8 @@
 			<gameTurnControl>yaw</gameTurnControl>
 			<rewardedHFreq>1</rewardedHFreq>
 			<rewardedVFreq>4</rewardedVFreq>
+			<distractorHFreq>4</distractorHFreq>
+			<distractorVFreq>1</distractorVFreq>			
 		</gameConfig>
 	</config>
 	<trees>
@@ -19,15 +21,11 @@
 			<w>1</w>
 			<pos>19990;0;20028</pos>
 			<d>0</d>
-			<h>4</h>
-			<v>1</v>
 		</t>
 		<t> <!-- Right tree -->
 			<w>1</w>
 			<pos>20010;0;20028</pos>
 			<d>0</d>
-			<h>1</h>
-			<v>4</v>
 		</t>
 	</trees>
 	<walls>
