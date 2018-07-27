@@ -5,7 +5,6 @@ using System.Text;
 using System.Xml;
 using UnityEngine.UI;
 using GoogleSheetsToUnity;
-using UnityEditor;
 
 public class Loader : MonoBehaviour {
     public Text errorText;
@@ -443,11 +442,13 @@ public class Loader : MonoBehaviour {
 		// Clear trees that appear onscreen before level is loaded
 		GameObject[] gos;
 		gos = GameObject.FindGameObjectsWithTag("water");
+		/* Needs UnityEditor, which does not compile
 		foreach (GameObject go2 in gos) {
 			if (PrefabUtility.GetPrefabParent (go2) != null && PrefabUtility.GetPrefabObject (go2) == null) { // Is a prefab
 				Object.Destroy (go2);
 			}
 		}
+		*/
 
         if (File.Exists(PlayerPrefs.GetString("scenarioFolder") + "/" + this.loadScenarioFile)) {
 
