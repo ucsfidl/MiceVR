@@ -1,0 +1,10 @@
+<document>
+	<stats>
+		<accuracy>100%/100/NaN/100</accuracy>
+		<numEarnedRewards>2</numEarnedRewards>
+		<numUnearnedRewards>0</numUnearnedRewards>
+		<trials>2</trials>
+		<timeElapsed>00:06</timeElapsed>
+		<totalRewardSizeReceived>4.4</trials>
+	</stats>
+</document>

@@ -133,6 +133,7 @@ public static class Globals
 		public bool respawn;
 		public Vector3 rot;
 		public Vector3 scale;
+		public int rank;
 	}
 	public static GameObject treeParent = GameObject.Find("Trees");
 
@@ -160,7 +161,7 @@ public static class Globals
 
 	public static float presoRatio;  // By default, do dynamic training, varying the reward size to break choice or motor biases
 
-	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, bool respawn, Vector3 rot, Vector3 scale) {
+	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, bool respawn, Vector3 rot, Vector3 scale, int rank) {
 		World w = GetWorld (worldNum);
 
 		Tree t = new Tree();
@@ -193,6 +194,11 @@ public static class Globals
 		t.respawn = respawn;
 		t.scale = scale;
 		t.rot = rot;
+		if (rank != NULL) { 
+			t.rank = rank;  // Used when getting trees to order them
+		} else {
+			t.rank = w.trees.Count;
+		}
 		w.trees.Add (t);
 
 		int idx = worlds.IndexOf (w);
@@ -243,17 +249,23 @@ public static class Globals
 	public static List<Tree> GetAllTrees() {
 		List<Tree> allTrees = new List<Tree> ();
 		bool stillNew = true;
-		for (int i = 0; i < worlds.Count; i++) {
-			List<Tree> newTrees = worlds [i].trees;
-			foreach (Tree tNew in newTrees) {
+		foreach (World w in worlds) {
+			List<Tree> treeCandidates = w.trees;
+			foreach (Tree tNew in treeCandidates) {
 				foreach (Tree tOld in allTrees) {
 					if (tNew.pos.x == tOld.pos.x) {
 						stillNew = false;  // Tree is already in the list, so don't add it
 						break;
 					}
 				}
-				if (stillNew) {
-					allTrees.Add (tNew);
+				if (stillNew) {  // Manage if the trees are read it out of rank order
+					while (allTrees.Count < tNew.rank) {
+						allTrees.Add (new Tree());
+					}
+					if (allTrees.Count != tNew.rank) {
+						allTrees.RemoveAt (tNew.rank);
+					}
+					allTrees.Insert (tNew.rank, tNew);
 				}
 			}
 		}
@@ -492,14 +504,14 @@ public static class Globals
     // This function writes out all the statistics to a single file, currently when the game ends.
     public static void InitLogFiles() {
         // overwrite any existing file
-        StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", false);
+        StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", false);
         // Write file header
         turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
         turnsFile.Close();
     }
 
     public static void WriteToLogFiles() {
-        StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", true);
+        StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", true);
         // Write out turn decisions over time - easy to import into Excel and analyze
 
         Debug.Log(trialStartTime[trialStartTime.Count - 1] + "\t" +
@@ -541,7 +553,7 @@ public static class Globals
 
     public static void WriteStatsFile()
     {
-        StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("replayFolder") + "/" + mRecorder.GetReplayFileName() + "_stats.txt");
+        StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_stats.txt");
         statsFile.WriteLine("<document>");
         statsFile.WriteLine("\t<stats>");
         statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + "%" + GetTreeAccuracy() + "</accuracy>");

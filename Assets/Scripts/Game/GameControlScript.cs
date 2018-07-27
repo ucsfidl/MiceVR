@@ -429,7 +429,7 @@ public class GameControlScript : MonoBehaviour
 		updateRewardAmountText ();
         if (Globals.numberOfTrials > 1) {
 			updateCorrectTurnsText ();
-			this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
+			this.lastAccuracyText.text = "Last 20 accuracy (in this world): " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
         }
 			
 		// Update the time display
@@ -805,7 +805,7 @@ public class GameControlScript : MonoBehaviour
 
         Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
 		// Update again after the pause, as the world might have changed between trials
-		this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
+		this.lastAccuracyText.text = "Last 20 accuracy (in this world): " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
         this.state = "Running";
 	}
 

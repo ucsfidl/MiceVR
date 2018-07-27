@@ -24,6 +24,7 @@
 					<h>4</h>
 					<d>0</d>
 					<r>2</r>
+					<rank>0</rank>
 				</t>
 				<t> <!-- Right back tree -->
 					<w>1</w>
@@ -34,6 +35,7 @@
 					<h>4</h>
 					<d>0</d>
 					<r>2</r>
+					<rank>1</rank>
 				</t>
 			</trees>
 			<walls>

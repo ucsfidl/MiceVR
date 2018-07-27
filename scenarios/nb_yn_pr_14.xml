@@ -25,6 +25,7 @@
 					<h>4</h>
 					<d>0</d>
 					<r>0</r>
+					<rank>0</rank>
 				</t>
 				<t> <!-- Center tree -->
 					<w>1</w>
@@ -33,6 +34,7 @@
 					<v>0</v>  <!-- Vfreq of gradient -->
 					<h>4</h>  <!-- Hfreq of gradient -->
 					<d>0</d>
+					<rank>2</rank>
 				</t>
 			</trees>
 			<walls>
@@ -108,6 +110,7 @@
 					<h>4</h>
 					<d>0</d>
 					<r>2</r>
+					<rank>1</rank>
 				</t>
 				<t> <!-- Center tree -->
 					<w>1</w>
@@ -116,6 +119,7 @@
 					<v>0</v>  <!-- Vfreq of gradient -->
 					<h>4</h>  <!-- Hfreq of gradient -->
 					<d>0</d>
+					<rank>2</rank>
 				</t>
 			</trees>
 			<walls>

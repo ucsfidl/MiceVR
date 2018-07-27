@@ -26,6 +26,7 @@
 					<h>4</h>
 					<d>0</d>
 					<r>0</r>
+					<rank>0</rank>
 				</t>
 				<t> <!-- Left back tree -->
 					<w>1</w>
@@ -36,6 +37,7 @@
 					<h>4</h>
 					<d>0</d>
 					<r>0</r>
+					<rank>2</rank>
 				</t>
 			</trees>
 			<walls>
@@ -121,7 +123,6 @@
 				</wall>
 			</walls>
 		</world>
-
 		<world>
 			<trees>  <!-- All tree X positions are different, as used as an ID -->
 				<t> <!-- Right front tree -->
@@ -133,6 +134,7 @@
 					<h>4</h>
 					<d>0</d>
 					<r>2</r>
+					<rank>1</rank>
 				</t>
 				<t> <!-- Right back tree -->
 					<w>1</w>
@@ -143,6 +145,7 @@
 					<h>4</h>
 					<d>0</d>
 					<r>2</r>
+					<rank>3</rank>
 				</t>
 			</trees>
 			<walls>

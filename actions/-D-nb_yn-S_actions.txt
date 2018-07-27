@@ -1,0 +1,3 @@
+#TrialStartTime	TrialEndTime	TrialEndFrame	TrialDur	TargetLocation	TargetHFreq	TargetVFreq	NasalBound	TemporalBound	HighBound	LowBound	TurnLocation	TurnHFreq	TurnVFreq	RewardSize(ul)
+14:40:39.2368340	14:40:39.8561507	73	00:00:00.6193167	19980	4	8	0	90	50	-30	19980	4	8	2.2	0
+14:40:41.8795021	14:40:42.9431703	430	00:00:01.0636682	20000	4	0	0	90	50	-30	20000	4	0	2.2	1

@@ -629,6 +629,7 @@ public class Loader : MonoBehaviour {
 					float hFreq = Globals.NULL;
 					float rewardSize = Globals.NULL;
 					float rewardMulti = Globals.NULL;
+					int rank = (int)Globals.NULL;
 
 					foreach (XmlNode val in treeAttributes) {
 						if (val.Name == "w") {
@@ -666,23 +667,25 @@ public class Loader : MonoBehaviour {
 						} else if (val.Name == "rot") {
 							float x, y, z;
 
-							float.TryParse(val.InnerText.Split(';')[0], out x);
-							float.TryParse(val.InnerText.Split(';')[1], out y);
-							float.TryParse(val.InnerText.Split(';')[2], out z);
+							float.TryParse (val.InnerText.Split (';') [0], out x);
+							float.TryParse (val.InnerText.Split (';') [1], out y);
+							float.TryParse (val.InnerText.Split (';') [2], out z);
 
-							treeRotation = new Vector3(x, y, z);
+							treeRotation = new Vector3 (x, y, z);
 						} else if (val.Name == "scale") {
 							float x, y, z;
 
-							float.TryParse(val.InnerText.Split(';')[0], out x);
-							float.TryParse(val.InnerText.Split(';')[1], out y);
-							float.TryParse(val.InnerText.Split(';')[2], out z);
+							float.TryParse (val.InnerText.Split (';') [0], out x);
+							float.TryParse (val.InnerText.Split (';') [1], out y);
+							float.TryParse (val.InnerText.Split (';') [2], out z);
 
-							treeScale = new Vector3(x, y, z);
+							treeScale = new Vector3 (x, y, z);
+						} else if (val.Name == "rank") {
+							int.TryParse (val.InnerText, out rank);
 						}
 					}
 
-					Globals.AddTreeToWorld (worldNum, water, v, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale);
+					Globals.AddTreeToWorld (worldNum, water, v, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank);
 				}
 
 				XmlNodeList wallList = world.GetElementsByTagName("wall"); // array of the wall nodes

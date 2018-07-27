@@ -24,6 +24,7 @@
 					<d>0</d>
 					<r>0</r>
 					<rewardMulti>2</rewardMulti>
+					<rank>0</rank>
 				</t>
 				<t> <!-- Center tree -->
 					<w>1</w>
@@ -33,6 +34,7 @@
 					<h>4</h>  <!-- Hfreq of gradient -->
 					<d>0</d>
 					<rewardMulti>1</rewardMulti>
+					<rank>2</rank>
 				</t>
 			</trees>
 			<walls>
@@ -109,6 +111,7 @@
 					<d>0</d>
 					<r>2</r>
 					<rewardMulti>2</rewardMulti>
+					<rank>1</rank>
 				</t>
 				<t> <!-- Center tree -->
 					<w>1</w>
@@ -118,6 +121,7 @@
 					<h>4</h>  <!-- Hfreq of gradient -->
 					<d>0</d>
 					<rewardMulti>1</rewardMulti>
+					<rank>2</rank>
 				</t>
 			</trees>
 			<walls>
