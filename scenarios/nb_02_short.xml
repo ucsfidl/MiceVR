@@ -12,60 +12,68 @@
 			<gameTurnControl>yaw</gameTurnControl> <!-- yaw | roll -->
 		</gameConfig>
 	</config>
-	<trees>
-		<t> <!-- Left tree -->
-			<w>1</w>
-			<pos>19990;0;20017.2</pos>
-			<d>0</d>
-			<r>0</r>
-		</t>
-		<t> <!-- Right tree -->
-			<w>1</w>
-			<pos>20010;0;20017.2</pos>
-			<d>0</d>
-			<r>2</r>
-		</t>
-	</trees>
-	<walls>
-		<wall> <!-- Left wall -->
-			<pos>19994;2;20001.1</pos>
-			<rot>0;0;0</rot>
-			<scale>2;4;10.8</scale>
-		</wall>
-		<wall> <!-- Right wall -->
-			<pos>20006;2;20001.1</pos>
-			<rot>0;0;0</rot>
-			<scale>2;4;10.8</scale>
-		</wall>
-		<wall> <!-- Front wall -->
-			<pos>20000;2;19994</pos>
-			<rot>0;90.00003;0</rot>
-			<scale>2;4;15</scale>
-		</wall>
-		<wall> <!-- Back wall -->
-			<pos>20000;2;20026.2</pos>
-			<rot>0;270;0</rot>
-			<scale>2;4;40</scale>
-		</wall>
-		<wall> <!-- Left front wall -->
-			<pos>19986;2;20008.2</pos>
-			<rot>0;270;0</rot>
-			<scale>2;4;19.1</scale>
-		</wall>
-		<wall> <!-- Right front wall -->
-			<pos>20014;2;20008.2</pos>
-			<rot>0;270;0</rot>
-			<scale>2;4;19.1</scale>
-		</wall>
-		<wall> <!-- Back left wall -->
-			<pos>19980;2;20017.8</pos>
-			<rot>0;0;0</rot>
-			<scale>2;4;20</scale>
-		</wall>
-		<wall> <!-- Back right wall -->
-			<pos>20020;2;20017.8</pos>
-			<rot>0;0;0</rot>
-			<scale>2;4;20</scale>
-		</wall>		
-	</walls>
+	<worlds>
+		<world>
+			<trees>
+				<t> <!-- Left tree -->
+					<w>1</w>
+					<pos>19990;0;20017.2</pos>
+					<d>0</d>
+					<r>0</r>
+					<h>4</h>
+					<v>4</v>
+				</t>
+				<t> <!-- Right tree -->
+					<w>1</w>
+					<pos>20010;0;20017.2</pos>
+					<d>0</d>
+					<r>2</r>
+					<h>4</h>
+					<v>4</v>
+				</t>
+			</trees>
+			<walls>
+				<wall> <!-- Left wall -->
+					<pos>19994;2;20001.1</pos>
+					<rot>0;0;0</rot>
+					<scale>2;4;10.8</scale>
+				</wall>
+				<wall> <!-- Right wall -->
+					<pos>20006;2;20001.1</pos>
+					<rot>0;0;0</rot>
+					<scale>2;4;10.8</scale>
+				</wall>
+				<wall> <!-- Front wall -->
+					<pos>20000;2;19994</pos>
+					<rot>0;90.00003;0</rot>
+					<scale>2;4;15</scale>
+				</wall>
+				<wall> <!-- Back wall -->
+					<pos>20000;2;20026.2</pos>
+					<rot>0;270;0</rot>
+					<scale>2;4;40</scale>
+				</wall>
+				<wall> <!-- Left front wall -->
+					<pos>19986;2;20008.2</pos>
+					<rot>0;270;0</rot>
+					<scale>2;4;19.1</scale>
+				</wall>
+				<wall> <!-- Right front wall -->
+					<pos>20014;2;20008.2</pos>
+					<rot>0;270;0</rot>
+					<scale>2;4;19.1</scale>
+				</wall>
+				<wall> <!-- Back left wall -->
+					<pos>19980;2;20017.8</pos>
+					<rot>0;0;0</rot>
+					<scale>2;4;20</scale>
+				</wall>
+				<wall> <!-- Back right wall -->
+					<pos>20020;2;20017.8</pos>
+					<rot>0;0;0</rot>
+					<scale>2;4;20</scale>
+				</wall>		
+			</walls>
+		</world>
+	</worlds>
 </document>

@@ -12,35 +12,39 @@
 			<gameTurnControl>yaw</gameTurnControl>
 		</gameConfig>
 	</config>
-	<trees>
-		<t>
-			<w>1</w>
-			<pos>20000;0;20040</pos>
-			<d>0</d>
-			<h>4</h>
-			<v>1</v>
-		</t>
-	</trees>
-	<walls>
-		<wall> <!-- Left wall -->
-			<pos>19994;2;20023</pos>
-			<rot>0;0;0</rot>
-			<scale>2;4;60</scale>
-		</wall>
-		<wall> <!-- Right wall -->
-			<pos>20006;2;20023</pos>
-			<rot>0;0;0</rot>
-			<scale>2;4;60</scale>
-		</wall>
-		<wall> <!-- Front wall -->
-			<pos>20000;2;19994</pos>
-			<rot>0;90.00003;0</rot>
-			<scale>2;4;15</scale>
-		</wall>
-		<wall> <!-- Back wall -->
-			<pos>20000;2;20050</pos>
-			<rot>0;270;0</rot>
-			<scale>2;4;15</scale>
-		</wall>
-	</walls>
+	<worlds>
+		<world>
+			<trees>
+				<t>
+					<w>1</w>
+					<pos>20000;0;20040</pos>
+					<d>0</d>
+					<h>4</h>
+					<v>1</v>
+				</t>
+			</trees>
+			<walls>
+				<wall> <!-- Left wall -->
+					<pos>19994;2;20023</pos>
+					<rot>0;0;0</rot>
+					<scale>2;4;60</scale>
+				</wall>
+				<wall> <!-- Right wall -->
+					<pos>20006;2;20023</pos>
+					<rot>0;0;0</rot>
+					<scale>2;4;60</scale>
+				</wall>
+				<wall> <!-- Front wall -->
+					<pos>20000;2;19994</pos>
+					<rot>0;90.00003;0</rot>
+					<scale>2;4;15</scale>
+				</wall>
+				<wall> <!-- Back wall -->
+					<pos>20000;2;20050</pos>
+					<rot>0;270;0</rot>
+					<scale>2;4;15</scale>
+				</wall>
+			</walls>
+		</world>
+	</worlds>
 </document>

@@ -32,6 +32,7 @@ public class WaterTreeScript : MonoBehaviour {
 	private float vCycPerSec;  // for animation of the each tree
 	private float hCycPerSec;  // for animation of the each tree
 
+	private float rewardMulti;
 
 	// Use this for initialization
 	void Start ()
@@ -80,8 +81,6 @@ public class WaterTreeScript : MonoBehaviour {
 			hp = this.crown.GetComponent<Renderer>().material.GetFloat("_HPhase");
 			this.crown.GetComponent<Renderer>().material.SetFloat("_HPhase", (hp + 360 * hCycPerSec * Time.deltaTime) % 360);
 		}
-		//Debug.Log (vp);
-		//Debug.Log (hp);
 	}
 
     void OnTriggerEnter(Collider c)
@@ -93,74 +92,55 @@ public class WaterTreeScript : MonoBehaviour {
 				Globals.playerInWaterTree = true;
                 if (!this.depleted) {
                     int len = Globals.firstTurn.Count;
-                    float multiplier = 1;
-                    GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+                    float biasMultiplier = 1;
+					GameObject[] gos = Globals.GetTrees();
                     // (1) COMPUTE REWARD ENLARGEMENT
                     // If the mouse has not had a reward in some time, give a proportionally large reward, up to 5x the normal reward size, if they turned the opposite direction as their turning bias
-                    if (gos.Length > 1 && len >= 20)  // The world involves some sort of choice, so there is a turning bias to calculate
-                    {
+					if (gos.Length > 1 && len >= 20 && this.rewardMulti == 0 && !Globals.biasCorrection) { // The world involves some sort of choice, and reward ratios are not fixed, so there is a turning bias to calculate
                         float recentAccuracy = Globals.GetLastAccuracy(20);  // Returns as a decimal
                         float turn0Bias = Globals.GetTurnBias(20, 0);
                         float turn1Bias = Globals.GetTurnBias(20, 1);
-                        float turn2Bias = 1 - turn0Bias - turn1Bias;
+						float turn2Bias = Globals.GetTurnBias(20, 2);
+						float turn3Bias = 1 - (turn0Bias + turn1Bias + turn2Bias);
+						float maxBias = Math.Max (Math.Max (Math.Max (turn0Bias, turn1Bias), turn2Bias), turn3Bias);
 
-                        float chance = 0.5F;
-                        int biasDir = -1;
-                        float biasAmt = -1;
+						float chance = 1F / gos.Length;
+                        int biasDir;
+                        float biasAmt;
 
-						// TODO - This is not supporting the 4 choice game!
-						if (!Globals.gameType.Equals("det_blind") || (Globals.gameType.Equals("det_blind") && gos.Length == 2))  // List 3-choice games here 
-                        {
-                            if (turn0Bias > turn1Bias)
-                            {
-                                biasDir = 0;
-                                biasAmt = turn0Bias;
-                            }
-                            else
-                            {
-                                biasDir = 1;
-                                biasAmt = turn1Bias;
+						if (maxBias == turn0Bias) {
+							biasDir = 0;
+							biasAmt = turn0Bias;
+						} else if (maxBias == turn1Bias) {
+							biasDir = 1;
+							biasAmt = turn1Bias;
+						} else if (maxBias == turn2Bias) {
+							biasDir = 2;
+							biasAmt = turn2Bias;
+						} else {
+							biasDir = 3;
+							biasAmt = turn3Bias;
+						}
+
+						if (recentAccuracy < chance) { // Mouse is performing below chance, suggesting they are biased and would benefit from a larger reward on a correct trial that goes against the bias!
+							if (biasAmt > 1.2 * chance) { // e.g. if chance is 50%,  bias must be 60% or greater to multiply the reward
+								if (!this.gameObject.transform.position.x.Equals (gos [biasDir].transform.position.x)) {
+									Debug.Log ("adding to biasMultiplyer");
+									biasMultiplier += (chance - recentAccuracy) / (chance / 4);
+								}
                             }
                         }
-                        else // 3-choice det_blind task
-                        {
-                            chance = (float)1 / 3;
-                            if (turn0Bias > turn1Bias && turn0Bias > turn2Bias)
-                            {
-                                biasDir = 0;
-                                biasAmt = turn0Bias;
-                            } 
-                            else if (turn1Bias > turn0Bias && turn1Bias > turn2Bias)
-                            {
-                                biasDir = 1;
-                                biasAmt = turn1Bias;
-                            }
-                            else
-                            {
-                                biasDir = 2;
-                                biasAmt = turn2Bias;
-                            }
-                        }
-
-                        if (recentAccuracy < chance)  // Mouse is performing below chance, suggesting they are biased and would benefit from a larger reward on a correct trial that goes against the bias!
-                        {
-                            if (biasAmt > 1.2 * chance) // e.g. if chance is 50%,  bias must be 60% or greater to multiply the reward
-                            {
-                                // Only boost reward if mouse hit the tree in the opposite direction of their bias!
-                                if (!this.gameObject.transform.position.x.Equals(gos[biasDir].transform.position.x))
-                                    multiplier += (chance - recentAccuracy) / (chance/4);
-                            }
-                        }
-                        Debug.Log("chance = " + chance + ", biasDir = " + biasDir + ", biasAmt = " + biasAmt);
+						Debug.Log("recent accuracy = " + recentAccuracy + ", chance = " + chance + ", biasDir = " + biasDir + ", biasAmt = " + biasAmt + ", biasMultiplyer = " + biasMultiplier);
                     }
 
                     int rewardDur;
-                    if (this.rewardDur == Globals.rewardDur)  // The scenario file did not specify a specific reward for this tree
-                    {
-                        rewardDur = (int)(Globals.rewardDur * multiplier);
-                    }
-                    else // The scenario file did specify a specific reward for this tree - so don't do any multiplier trickery
-                    {
+					if (this.rewardDur == Globals.rewardDur) { // The scenario file did not specify a specific reward for this tree
+						if (this.rewardMulti != 0) {  // Scenario specified a fixed multilple of the default value, for shifting biase
+							rewardDur = (int)(Globals.rewardDur * this.rewardMulti);  // Assumes linearity, but may need to do actual measurements to see what the reward ratios actually are
+						} else {
+							rewardDur = (int)(Globals.rewardDur * biasMultiplier);
+						}
+					} else { // The scenario file did specify a specific reward for this tree - so don't do any multiplier trickery
                         rewardDur = this.rewardDur;
                     }
                     // DONE COMPUTING REWARD ENLARGEMENT
@@ -201,19 +181,12 @@ public class WaterTreeScript : MonoBehaviour {
 							else
 								WitholdReward ();
 						}
-					}
-                    else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))  // There are three trees - a central initial tree, and 1 on left and 1 on right
-                    {
-                        if (!respawn)  // This is the starting central tree
-                        {
+					} else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch")) { // There are three trees - a central initial tree, and 1 on left and 1 on right
+						if (!respawn) { // This is the starting central tree
 							GiveReward(rewardDur, false, false);
-                        }
-                        else if (correctTree)
-                        {
+                        } else if (correctTree) {
 							GiveReward(rewardDur, true, true);
-                        }
-                        else
-                        {
+                        } else {
                             WitholdReward();
                         }
                     }
@@ -378,6 +351,9 @@ public class WaterTreeScript : MonoBehaviour {
         this.rewardDur = (int)Math.Round(r / (Globals.rewardSize / Globals.rewardDur));
         //Debug.Log("Reward duration set: " + this.rewardDur);
     }
+	public void SetRewardMulti(float m) {
+		this.rewardMulti = m;
+	}
 
 	public void SetRespawn(bool r)
 	{

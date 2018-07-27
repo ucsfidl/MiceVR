@@ -4,6 +4,7 @@ using System.IO;
 using System;
 using GoogleSheetsToUnity;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public static class Globals
 {
@@ -35,6 +36,7 @@ public static class Globals
     public static ArrayList firstTurn = new ArrayList(); // X coord of tree the mouse hit or would have hit is placed in this list
     public static ArrayList firstTurnHFreq = new ArrayList();  // Orientation of the tree the mouse chose
     public static ArrayList firstTurnVFreq = new ArrayList();  // Orientation of the tree the mouse chose
+	public static ArrayList trialWorld = new ArrayList();  // Which world, in a multi-world scenario, was shown on this trial
     public static int numCorrectTurns;
 	public static int trialsSinceMouseStreakEliminated = 3;
 
@@ -48,14 +50,13 @@ public static class Globals
     public static float totalRewardSize = 1000;  // total amount the mouse can be given, in ul
     public static ArrayList sizeOfRewardGiven = new ArrayList(); // in ul
 
-    public static string gameType;  // Default: detection - The type of game, as specified in the scenario file and detected by Loader
-    public static string gameTurnControl; // Default: yaw - Whether to use YAW or ROLL for game turning control on the ball
-    public static bool varyOrientation;
+    public static string gameType = "detection";  // Default: detection - The type of game, as specified in the scenario file and detected by Loader
+    public static string gameTurnControl = "yaw"; // Default: yaw - Whether to use YAW or ROLL for game turning control on the ball
+    public static bool varyOrientation = false;
 	public static float rewardedHFreq;
 	public static float rewardedVFreq;
 	public static float distractorHFreq;
 	public static float distractorVFreq;
-
 
 	public static Color distColor1;
 	public static Color distColor2;
@@ -105,6 +106,8 @@ public static class Globals
 	public static int numCameras = 0;
 	public static int currFrame = 1;
 
+	public static float NULL = 1000000;
+
 	public struct fov {
 		public float nasalBound;
 		public float tempBound;
@@ -114,6 +117,328 @@ public static class Globals
 
 	public static fov[] fovs;  // For automatic perimetry
 	public static int[] fovsForPerimScaleInclusive = new int[] {1, 3, 9, 21};
+
+	// Support for different worlds on each trial
+	public struct Tree {
+		public bool water;
+		public Vector3 pos;
+		public float deg_LS;
+		public float angle_LS;
+		public bool texture;
+		public int restrictToCamera;
+		public float vFreq;
+		public float hFreq;
+		public float rewardSize;
+		public float rewardMulti;
+		public bool respawn;
+		public Vector3 rot;
+		public Vector3 scale;
+	}
+	public static GameObject treeParent = GameObject.Find("Trees");
+
+	public struct Wall {
+		public Vector3 pos;
+		public Vector3 rot;
+		public Vector3 scale;
+	}
+	public static GameObject wallParent = GameObject.Find("Walls");
+
+	public struct World {
+		public List<Tree> trees;
+		public List<Wall> walls;
+	}
+
+	public static List<World> worlds;  // For SDT where there are different worlds per level that vary trial-by-trial
+	public static GameObject waterTreePrefab = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/WaterTree"));
+	public static GameObject dryTreePrefab = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/DryTree"));
+	public static GameObject wallPrefab = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/Wall"));
+	public static GameObject waterAngularTreePrefab = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/waterAngularTree"));
+	public static GameObject dryAngularTreePrefab = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/dryAngularTree"));
+	public static bool waterTraining;
+	public static string waterTextureFile_LS, dryTextureFile_LS;
+	public static bool waterTop_LS, waterBot_LS, dryTop_LS, dryBot_LS, waterDouble_LS, waterSpherical_LS, dryDouble_LS, drySpherical_LS;
+
+	public static float presoRatio;  // By default, do dynamic training, varying the reward size to break choice or motor biases
+
+	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, bool respawn, Vector3 rot, Vector3 scale) {
+		World w = GetWorld (worldNum);
+
+		Tree t = new Tree();
+		t.water = water;
+		t.pos = pos;
+		if (deg_LS != NULL) {
+			t.deg_LS = deg_LS;
+		}
+		if (angle_LS != NULL) {
+			t.angle_LS = angle_LS;
+		}
+		t.texture = texture;
+		if (restrictToCamera != NULL) {
+			t.restrictToCamera = restrictToCamera;
+		} else {
+			t.restrictToCamera = -1;  // -1 means unrestricted
+		}
+		if (vFreq != NULL) {
+			t.vFreq = vFreq;
+		}
+		if (hFreq != NULL) {
+			t.hFreq = hFreq;
+		}
+		if (rewardSize != NULL) {
+			t.rewardSize = rewardSize;
+		}
+		if (rewardMulti != NULL) {
+			t.rewardMulti = rewardMulti;
+		}
+		t.respawn = respawn;
+		t.scale = scale;
+		t.rot = rot;
+		w.trees.Add (t);
+
+		int idx = worlds.IndexOf (w);
+		if (idx != -1) {
+			worlds [idx] = w;
+		} else {
+			worlds.Add (w);
+		}
+	}
+
+	public static void AddWallToWorld(int worldNum, Vector3 v, Vector3 rot, Vector3 scale) {
+		World w = GetWorld (worldNum);
+
+		Wall wall;
+		wall.pos = v;
+		wall.rot = rot;
+		wall.scale = scale;
+		w.walls.Add (wall);
+
+		worlds [worldNum] = w;
+	}
+
+	private static World GetWorld(int worldNum) {
+		if (worlds == null) {
+			worlds = new List<World>();
+		}
+
+		World w;  // creates empty world
+		if (worlds.Count > worldNum) {
+			w = worlds [worldNum];  // overwrite with an existing world
+		} else {  // Init one world object
+			w.trees = new List<Tree> ();
+			w.walls = new List<Wall> ();
+		}
+
+		return w;
+	}
+
+	public static GameObject[] GetTrees() {
+		GameObject[] gos = new GameObject[treeParent.transform.childCount];
+		for (int i = 0; i < treeParent.transform.childCount; i++) {
+			gos [i] = treeParent.transform.GetChild (i).gameObject;
+		}
+		return gos;
+	}
+		
+	// Helper that gets all trees across all worlds for this level, removing duplicates (multiple trees at the exact same location)
+	public static List<Tree> GetAllTrees() {
+		List<Tree> allTrees = new List<Tree> ();
+		bool stillNew = true;
+		for (int i = 0; i < worlds.Count; i++) {
+			List<Tree> newTrees = worlds [i].trees;
+			foreach (Tree tNew in newTrees) {
+				foreach (Tree tOld in allTrees) {
+					if (tNew.pos.x == tOld.pos.x) {
+						stillNew = false;  // Tree is already in the list, so don't add it
+						break;
+					}
+				}
+				if (stillNew) {
+					allTrees.Add (tNew);
+				}
+			}
+		}
+
+		return allTrees;
+	}
+
+	public static GameObject[] GetWalls() {
+		GameObject[] gos = new GameObject[wallParent.transform.childCount];
+		for (int i = 0; i < wallParent.transform.childCount; i++) {
+			gos [i] = wallParent.transform.GetChild (i).gameObject;
+		}
+		return gos;
+	}
+
+	// Clear the world so that it can be re-rendered
+	public static void ClearWorld() {
+		for (int i = 0; i < treeParent.transform.childCount; i++) {
+			GameObject.Destroy(treeParent.transform.GetChild (i).gameObject);
+		}
+		treeParent.transform.DetachChildren();
+
+		for (int i = 0; i < wallParent.transform.childCount; i++) {
+			GameObject.Destroy(wallParent.transform.GetChild (i).gameObject);
+		}
+		wallParent.transform.DetachChildren();
+	}
+
+	// Re-render the world, which will occur on each trial
+	public static void RenderWorld(int worldNum) {
+		if (worldNum == -1) {  // choose a random world to create
+			worldNum = UnityEngine.Random.Range(0, worlds.Count);
+		}
+
+		// Record which world this trial is on
+		trialWorld.Add(worldNum);
+
+		Debug.Log ("world #" + worldNum);
+
+		// Now, actually render the new world
+		World w = worlds [worldNum];
+		GameObject go;
+		foreach (Tree t in w.trees) {
+			if (t.water) {
+				if (t.deg_LS != null) {
+					go = GameObject.Instantiate (waterTreePrefab, t.pos, Quaternion.identity);
+					go.GetComponent<WaterTreeScript> ().SetShaderRotation (t.deg_LS);
+					go.GetComponent<WaterTreeScript> ().SetForTraining (waterTraining);
+					go.transform.eulerAngles = t.rot;
+					go.transform.localScale += t.scale;
+					go.transform.parent = treeParent.transform;
+					go.isStatic = true;
+					//go.SetActive (false);
+					// Implements field restriction of a tree to just one side screen
+					if (t.restrictToCamera != -1) {
+						if (t.pos.x == 20000) {
+							Debug.Log (t.restrictToCamera);
+						}
+						if (t.restrictToCamera == 0) {
+							go.layer = LayerMask.NameToLayer ("Left Visible Only");
+							foreach (Transform tr in go.transform) {
+								tr.gameObject.layer = LayerMask.NameToLayer ("Left Visible Only");
+								tr.gameObject.AddComponent<SetRenderQueue>();
+							}
+						} else if (t.restrictToCamera == 2) {
+							go.layer = LayerMask.NameToLayer ("Right Visible Only");
+							foreach (Transform tr in go.transform) {
+								tr.gameObject.layer = LayerMask.NameToLayer ("Right Visible Only");
+								tr.gameObject.AddComponent<SetRenderQueue>();
+							}
+						}
+					}
+
+					if (t.hFreq != null && t.vFreq != null) {
+						go.GetComponent<WaterTreeScript>().SetShader(t.hFreq, t.vFreq, t.deg_LS);
+					}
+
+					if (t.rewardSize != 0) {  // 0 is the default reward value if nothing entered in scenario file; RewardSize trumps rewardMulti if both are set
+						go.GetComponent<WaterTreeScript>().SetRewardSize(t.rewardSize);
+						go.GetComponent<WaterTreeScript> ().SetRewardMulti (0);
+					} else { // If no reward size is explicitly specified in the scenario file, then check to see if a reward multiplier is specified
+						go.GetComponent<WaterTreeScript>().SetRewardSize(Globals.rewardSize);
+						go.GetComponent<WaterTreeScript> ().SetRewardMulti (t.rewardMulti);
+					}
+
+					go.GetComponent<WaterTreeScript>().SetRespawn(t.respawn);
+				} else if (t.texture) {
+					go = GameObject.Instantiate(waterTreePrefab, t.pos, Quaternion.identity);
+					go.GetComponent<WaterTreeScript>().ChangeTexture(LoadPNG(waterTextureFile_LS));
+					go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
+					go.transform.parent = treeParent.transform;
+					go.isStatic = true;
+					go.SetActive(false);
+				} else if (t.angle_LS != null) {   
+					if (waterBot_LS) {
+						go = GameObject.Instantiate(waterAngularTreePrefab, t.pos, Quaternion.identity);
+						go.GetComponent<AngularTreeScript>().ShapeShift("single");
+						go.GetComponent<AngularTreeScript>().ChangeBottomRing(t.angle_LS);
+						go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
+						go.transform.parent = treeParent.transform;
+						go.isStatic = true;
+						go.SetActive(false);
+					} else if (waterTop_LS) {
+						go = GameObject.Instantiate(waterAngularTreePrefab, t.pos, Quaternion.identity);
+						go.GetComponent<AngularTreeScript>().ShapeShift("single");
+						go.GetComponent<AngularTreeScript>().ChangeTopRing(t.angle_LS);
+						go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
+						go.transform.parent = treeParent.transform;
+						go.isStatic = true;
+						go.SetActive(false);
+					} else if (waterDouble_LS) {
+						go = GameObject.Instantiate(waterAngularTreePrefab, t.pos, Quaternion.identity);
+						go.GetComponent<AngularTreeScript>().ShapeShift("double");
+						go.GetComponent<AngularTreeScript>().ChangeBottomRing(t.angle_LS);
+						go.GetComponent<AngularTreeScript>().ChangeTopRing(t.angle_LS);
+						go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
+						go.transform.parent = treeParent.transform;
+						go.isStatic = true;
+						go.SetActive(false);
+					} else if (waterSpherical_LS) {
+						go = GameObject.Instantiate(waterAngularTreePrefab, t.pos, Quaternion.identity);
+						go.GetComponent<AngularTreeScript>().ShapeShift("spherical");
+						go.GetComponent<AngularTreeScript>().ChangeSphereAngle(SphereAngleRemap(t.angle_LS));
+						go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
+						go.transform.parent = treeParent.transform;
+						go.isStatic = true;
+						go.SetActive(false);
+					}
+				}
+			} else {
+				if (t.deg_LS != null) {
+					go = GameObject.Instantiate(dryTreePrefab, t.pos, Quaternion.identity);
+					go.GetComponent<DryTreeScript>().SetShaderRotation(t.deg_LS);
+					go.transform.parent = treeParent.transform;
+					go.isStatic = true;
+					go.SetActive(false);
+				} else if (t.texture) {
+					go = GameObject.Instantiate(dryTreePrefab, t.pos, Quaternion.identity);
+					go.GetComponent<DryTreeScript>().ChangeTexture(LoadPNG(dryTextureFile_LS));
+					go.transform.parent = treeParent.transform;
+					go.isStatic = true;
+					go.SetActive(false);
+				} else if (t.angle_LS != null) {
+					if (dryBot_LS) {
+						go = GameObject.Instantiate(dryAngularTreePrefab, t.pos, Quaternion.identity);
+						go.GetComponent<AngularTreeScript>().ShapeShift("single");
+						go.GetComponent<AngularTreeScript>().ChangeBottomRing(t.angle_LS);
+						go.transform.parent = treeParent.transform;
+						go.isStatic = true;
+						go.SetActive(false);
+					} else if (dryTop_LS) {
+						go = GameObject.Instantiate(dryAngularTreePrefab, t.pos, Quaternion.identity);
+						go.GetComponent<AngularTreeScript>().ShapeShift("single");
+						go.GetComponent<AngularTreeScript>().ChangeTopRing(t.angle_LS);
+						go.transform.parent = treeParent.transform;
+						go.isStatic = true;
+						go.SetActive(false);
+					} else if (dryDouble_LS) {
+						go = GameObject.Instantiate(dryAngularTreePrefab, t.pos, Quaternion.identity);
+						go.GetComponent<AngularTreeScript>().ShapeShift("double");
+						go.GetComponent<AngularTreeScript>().ChangeBottomRing(t.angle_LS);
+						go.GetComponent<AngularTreeScript>().ChangeTopRing(t.angle_LS);
+						go.transform.parent = treeParent.transform;
+						go.isStatic = true;
+						go.SetActive(false);
+					} else if (drySpherical_LS) {
+						go = GameObject.Instantiate(dryAngularTreePrefab, t.pos, Quaternion.identity);
+						go.GetComponent<AngularTreeScript>().ShapeShift("spherical");
+						go.GetComponent<AngularTreeScript>().ChangeSphereAngle(SphereAngleRemap(t.angle_LS));
+						go.transform.parent = treeParent.transform;
+						go.isStatic = true;
+						go.SetActive(false);
+					}
+				}
+			}
+		}
+
+		foreach (Wall wall in w.walls) {
+			go = GameObject.Instantiate(wallPrefab, wall.pos, Quaternion.identity);
+			go.transform.eulerAngles = wall.rot;
+			go.transform.localScale += wall.scale;
+			go.isStatic = true;
+			go.transform.parent = wallParent.transform;
+		}
+	}
 
 	// Initializes fovs used for automated perimetry.  There are 4 scales, and the stimuli are presented that fill (or half-fill, for the smallest) scale
 	// TODO: don't do linear calculations, but trigometric ones, which are accurate
@@ -191,7 +516,8 @@ public static class Globals
                     firstTurn[firstTurn.Count - 1] + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
-                    (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]));
+                    (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
+					trialWorld[trialWorld.Count - 1]);
 
         turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1] + "\t" +
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
@@ -207,7 +533,8 @@ public static class Globals
                     firstTurn[firstTurn.Count - 1] + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
-                    (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]));
+					(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
+					trialWorld[trialWorld.Count - 1]);
         turnsFile.Close();
         WriteStatsFile();
     }
@@ -290,13 +617,12 @@ public static class Globals
 
     public static string GetTreeAccuracy()
     {
-        GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
-        float[] locs = new float[gos.Length];
-        int[] numCorrTrials = new int[gos.Length];
-        int[] numTrials = new int[gos.Length];
-        for (int i = 0; i < gos.Length; i++)
-        {
-            locs[i] = gos[i].transform.position.x;
+		List<Tree> trees = GetAllTrees();
+		float[] locs = new float[trees.Count];
+		int[] numCorrTrials = new int[trees.Count];
+		int[] numTrials = new int[trees.Count];
+		for (int i = 0; i < trees.Count; i++) {
+			locs[i] = trees[i].pos.x;
         }
         //With all locations in hand, calculate accuracy for each one, then print it out
 
@@ -317,12 +643,48 @@ public static class Globals
         }
         return output;
     }
-
-    // Redo bias correction to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
+		
+    // This bias correction algorithm can be used to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
     // Previous attempt at streak elimination didn't really work... Saw mouse go left 100 times or so! And most mice exhibited a bias, even though they may not have before...
-    public static float GetTurnBias(int histLen, int treeIndex)
-    {
-        GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+	// If there are multiple worlds in this scenario, then only return the turnbias for that world, returning chance if this world has not been displayed yet.  histLen covers just the current world type, not all worlds.
+    public static float GetTurnBias(int histLen, int treeIndex) {
+		GameObject[] gos = GetTrees();
+		int currWorld = (int)trialWorld [trialWorld.Count - 1];
+		ArrayList validTrials = new ArrayList ();
+
+		// First, collect trials that correspond to this world, until you either run out or have collected histLen
+		for (int i = firstTurn.Count-1; i >= 0; i--) {
+			if ((int)trialWorld [i] == currWorld) {
+				validTrials.Add(i);
+			}
+			if (validTrials.Count == histLen) {
+				break;
+			}
+		}
+
+		// If no trial history found, return the uniform distribution as the prior
+		if (validTrials.Count == 0) {
+			Debug.Log ("no trial history found");
+			return (1F / gos.Length);
+		}
+
+		// Check and see if treeIndex is a valid option; if not, return 0 - gives more flexibility when calling, e.g. from WaterTreeScript OnTriggerEnter
+		if (treeIndex >= gos.Length) {
+			return 0F;
+		}
+
+		// Now, with valid trials in hand, calculate the turn bias
+		int turn0 = 0;
+		foreach (int idx in validTrials) {
+			if (firstTurn [idx].Equals (gos [treeIndex].transform.position.x)) {
+				turn0++;
+			}
+		}
+		return (float)turn0 / validTrials.Count;
+
+
+		// Old version of this function prior to multi-world scenarios
+		/*
         int len = Globals.firstTurn.Count;
         int turn0 = 0;
         int start;
@@ -355,32 +717,55 @@ public static class Globals
 		}
 
         return (float)turn0 / numTrials;
+        */
     }
 
-    public static float GetLastAccuracy(int n)
-    {
-        int len = firstTurn.Count;
+	// Modified to support multi-worlds in a single scenario
+    public static float GetLastAccuracy(int n) {
+		int currWorld = (int)trialWorld [trialWorld.Count - 1];
+		ArrayList validTrials = new ArrayList ();
+
+		// First, collect trials that correspond to this world, until you either run out or have collected n
+		for (int i = firstTurn.Count-1; i >= 0; i--) {
+			if ((int)trialWorld [i] == currWorld) {
+				validTrials.Add(i);
+			}
+			if (validTrials.Count == n) {
+				break;
+			}
+		}
+			
+		int curTrial;
+		int corr = 0;
+		for (int i = 0; i < validTrials.Count; i++) {
+			curTrial = (int)validTrials [i];
+			if (firstTurn [curTrial].Equals (targetLoc [curTrial]))
+				corr++;
+		}
+
+		return (float)corr / validTrials.Count;
+
+		/*
+		int len = firstTurn.Count;
         int start;
         int end;
         int numTrials;
-        if (len >= n)
-        {
+        if (len >= n) {
             end = len;
             start = len - n;
-        }
-        else
-        {
+        } else {
             start = 0;
             end = len;
         }
+
         numTrials = end - start;
         int corr = 0;
-        for (int i = start; i < end; i++)
-        {
+        for (int i = start; i < end; i++) {
             if (firstTurn[i].Equals(targetLoc[i]))
                 corr++;
         }
         return (float)corr / numTrials;
+        */
     }
 
 	// Calculate tree view block value: 0 is full occlusion in the central screen = 120 degrees
@@ -548,7 +933,31 @@ public static class Globals
 				}
 			}
 		}
-	
+	}
+
+	public static Texture2D LoadPNG(string filePath) {
+		Texture2D tex = null;
+		byte[] fileData;
+
+		if (File.Exists(filePath)) {
+			fileData = File.ReadAllBytes(filePath);
+			tex = new Texture2D(128, 128);
+			tex.LoadImage(fileData); //..this will auto-resize the texture dimensions.
+		}
+		return tex;
+	}
+
+	public static float SphereAngleRemap(float f) {
+		float OldMax = 45;
+		float OldMin = 0;
+		float NewMax = 10;
+		float NewMin = 0;
+		float OldValue = f;
+
+		float OldRange = (OldMax - OldMin);
+		float NewRange = (NewMax - NewMin);
+		float NewValue = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin;
+		return NewValue;
 	}
 
 }

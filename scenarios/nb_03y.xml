@@ -12,77 +12,85 @@
 			<gameTurnControl>yaw</gameTurnControl>
 		</gameConfig>
 	</config>
-	<trees>
-		<t> <!-- Left tree -->
-			<w>1</w>
-			<pos>19984;0;20035</pos>
-			<d>0</d>
-			<r>0</r>
-		</t>
-		<t> <!-- Right tree -->
-			<w>1</w>
-			<pos>20016;0;20035</pos>
-			<d>0</d>
-			<r>2</r>
-		</t>
-		<t> <!-- Center tree -->
-			<w>1</w>
-			<pos>20000;0;20046</pos>
-			<d>0</d>
-			<v>0</v>  <!-- Vfreq of gradient -->
-			<h>4</h>  <!-- Hfreq of gradient -->
-		</t>
-	</trees>
-	<walls>
-		<wall> <!-- Left wall -->
-			<pos>19994;2;20006.5</pos>
-			<rot>0;0;0</rot>
-			<scale>2;4;21.6</scale>
-		</wall>
-		<wall> <!-- Right wall -->
-			<pos>20006;2;20006.5</pos>
-			<rot>0;0;0</rot>
-			<scale>2;4;21.6</scale>
-		</wall>
-		<wall> <!-- Front wall -->
-			<pos>20000;2;19994</pos>
-			<rot>0;90;0</rot>
-			<scale>2;4;15</scale>
-		</wall>
-		<wall> <!-- Back wall -->
-			<pos>20000;2;20070</pos>
-			<rot>0;-90;0</rot>
-			<scale>2;4;40</scale>
-		</wall>
-		<wall> <!-- Left Y left wall -->
-			<pos>19985;2;20025</pos>
-			<rot>0;-45;0</rot>
-			<scale>2;4;21</scale>
-		</wall>
-		<wall> <!-- Left Y right wall -->
-			<pos>19990;2;20036</pos>
-			<rot>0;-45;0</rot>
-			<scale>2;4;10</scale>
-		</wall>
-		<wall> <!-- Straight left wall -->
-			<pos>19994;2;20036</pos>
-			<rot>0;0;0</rot>
-			<scale>2;4;10</scale>
-		</wall>
-		<wall> <!-- Straight right wall -->
-			<pos>20006;2;20036</pos>
-			<rot>0;0;0</rot>
-			<scale>2;4;10</scale>
-		</wall>
-		<wall> <!-- Right Y left wall -->
-			<pos>20010;2;20036</pos>
-			<rot>0;45;0</rot>
-			<scale>2;4;10</scale>
-		</wall>
-		<wall> <!-- Right Y right wall -->
-			<pos>20015;2;20025</pos>
-			<rot>0;45;0</rot>
-			<scale>2;4;21</scale>
-		</wall>
-	</walls>
+	<worlds>
+		<world>
+			<trees>
+				<t> <!-- Left tree -->
+					<w>1</w>
+					<pos>19984;0;20035</pos>
+					<d>0</d>
+					<r>0</r>
+					<v>4</v>  <!-- Vfreq of gradient -->
+					<h>4</h>  <!-- Hfreq of gradient -->
+				</t>
+				<t> <!-- Right tree -->
+					<w>1</w>
+					<pos>20016;0;20035</pos>
+					<d>0</d>
+					<r>2</r>
+					<v>4</v>  <!-- Vfreq of gradient -->
+					<h>4</h>  <!-- Hfreq of gradient -->
+				</t>
+				<t> <!-- Center tree -->
+					<w>1</w>
+					<pos>20000;0;20046</pos>
+					<d>0</d>
+					<v>0</v>  <!-- Vfreq of gradient -->
+					<h>4</h>  <!-- Hfreq of gradient -->
+				</t>
+			</trees>
+			<walls>
+				<wall> <!-- Left wall -->
+					<pos>19994;2;20006.5</pos>
+					<rot>0;0;0</rot>
+					<scale>2;4;21.6</scale>
+				</wall>
+				<wall> <!-- Right wall -->
+					<pos>20006;2;20006.5</pos>
+					<rot>0;0;0</rot>
+					<scale>2;4;21.6</scale>
+				</wall>
+				<wall> <!-- Front wall -->
+					<pos>20000;2;19994</pos>
+					<rot>0;90;0</rot>
+					<scale>2;4;15</scale>
+				</wall>
+				<wall> <!-- Back wall -->
+					<pos>20000;2;20070</pos>
+					<rot>0;-90;0</rot>
+					<scale>2;4;40</scale>
+				</wall>
+				<wall> <!-- Left Y left wall -->
+					<pos>19985;2;20025</pos>
+					<rot>0;-45;0</rot>
+					<scale>2;4;21</scale>
+				</wall>
+				<wall> <!-- Left Y right wall -->
+					<pos>19990;2;20036</pos>
+					<rot>0;-45;0</rot>
+					<scale>2;4;10</scale>
+				</wall>
+				<wall> <!-- Straight left wall -->
+					<pos>19994;2;20036</pos>
+					<rot>0;0;0</rot>
+					<scale>2;4;10</scale>
+				</wall>
+				<wall> <!-- Straight right wall -->
+					<pos>20006;2;20036</pos>
+					<rot>0;0;0</rot>
+					<scale>2;4;10</scale>
+				</wall>
+				<wall> <!-- Right Y left wall -->
+					<pos>20010;2;20036</pos>
+					<rot>0;45;0</rot>
+					<scale>2;4;10</scale>
+				</wall>
+				<wall> <!-- Right Y right wall -->
+					<pos>20015;2;20025</pos>
+					<rot>0;45;0</rot>
+					<scale>2;4;21</scale>
+				</wall>
+			</walls>
+		</world>
+	</worlds>
 </document>

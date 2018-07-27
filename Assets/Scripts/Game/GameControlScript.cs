@@ -276,8 +276,7 @@ public class GameControlScript : MonoBehaviour
         }
     }
 
-    private void TeleportToBeginning()
-    {
+    private void TeleportToBeginning() {
         this.player.transform.position = this.startingPos;
         this.player.transform.rotation = this.startingRot;
     }
@@ -285,11 +284,10 @@ public class GameControlScript : MonoBehaviour
     /*
      * Waits until a tree config is loaded
      * */
-    private void LoadScenario()
-    {
-        if (this.scenarioLoader.scenarioLoaded == true)
-        {
+    private void LoadScenario(){
+        if (this.scenarioLoader.scenarioLoaded == true) {
             this.menuPanel.SetActive(false);
+			Respawn ();
             this.state = "StartGame";
         }
     }
@@ -372,40 +370,20 @@ public class GameControlScript : MonoBehaviour
     private void Run()
     {
 		// send SYNC msg on first frame of every run.
-        if( this.firstFrameRun )
-        {
+        if (this.firstFrameRun) {
             this.udpSender.SendRunSync();
             this.firstFrameRun = false;
         }
 
-        if( Globals.playerInDryTree && !Globals.timeoutState )
-        {
+        if (Globals.playerInDryTree && !Globals.timeoutState) {
             this.state = "Timeout";
         }
 
-		//Debug.Log ("starting move");
         MovePlayer();
-		//Debug.Log ("move complete");
 		if (this.udpSender.CheckReward ())
 			this.movementRecorder.logReward(false, true);
-        //this.movementRecorder.logReward(this.udpSender.CheckReward());
-        //this.movementRecorder.logReward(true);
 		updateTrialsText();
 		updateRewardAmountText ();
-		/*
-        //this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
-        //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
-		this.numberOfDryTreesText.text = "Number of dry trees entered: " + Globals.numberOfDryTrees.ToString();
-		if (Globals.numberOfEarnedRewards > 0) {
-			this.numberOfCorrectTurnsText.text = "Correct turns: " + 
-				Globals.numCorrectTurns.ToString() 
-				+ " (" + 
-				Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials-1)) * 100).ToString() + "%)";
-            this.last21AccuracyText.text = "Last 10 accuracy: " + GetLastAccuracy(10) + "%";
-		}
-		//this.frameCounter++;
-		//Debug.Log ("screen updated");
-        */
 
         TimeSpan te = DateTime.Now.Subtract(Globals.gameStartTime);
 		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}:{2:G4}:{3}", te.Hours * 60 + te.Minutes, te.Seconds, Time.deltaTime * 1000, frameCounter++);
@@ -449,8 +427,6 @@ public class GameControlScript : MonoBehaviour
 	public void Pause()
 	{
 		updateRewardAmountText ();
-		//this.numberOfEarnedRewardsText.text = "Number of earned rewards: " + Globals.numberOfEarnedRewards.ToString();
-        //this.numberOfUnearnedRewardsText.text = "Number of unearned rewards: " + Globals.numberOfUnearnedRewards.ToString();
         if (Globals.numberOfTrials > 1) {
 			updateCorrectTurnsText ();
 			this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
@@ -469,45 +445,13 @@ public class GameControlScript : MonoBehaviour
 				totalEarnedRewardSize += (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[i]);
 			}
 			totalRewardSize = totalEarnedRewardSize + Globals.numberOfUnearnedRewards * Globals.rewardSize;
-			Debug.Log("Total reward so far: " + totalRewardSize + "; maxReward = " + Globals.totalRewardSize);
+			//Debug.Log("Total reward so far: " + totalRewardSize + "; maxReward = " + Globals.totalRewardSize);
 			pauseEnd = pauseTime;
 			if (totalRewardSize >= Globals.totalRewardSize)
 				this.state = "GameOver";
 			else
 				this.state = "Respawn";
 		}
-
-		// NB Hack to get screen to go black before pausing for trialDelay
-		/* 
-		if (waitedOneFrame) {
-			//System.Threading.Thread.Sleep (Globals.trialDelay * 1000);
-			waitedOneFrame = false;
-
-            float totalEarnedRewardSize = 0;
-            float totalRewardSize = 0;
-            for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++) {
-                totalEarnedRewardSize += (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[i]);
-            }
-            //			if (Globals.numberOfEarnedRewards + Globals.numberOfUnearnedRewards >= this.numberOfAllRewards)
-            // End game if mouse has gotten more than 1 ml - and send me a message to retrieve the mouse?
-            totalRewardSize = totalEarnedRewardSize + Globals.numberOfUnearnedRewards * Globals.rewardSize;
-            Debug.Log("Total reward so far: " + totalRewardSize + "; maxReward = " + Globals.totalRewardSize);
-            if (totalRewardSize >= Globals.totalRewardSize)
-				this.state = "GameOver";
-			else
-				this.state = "Respawn";
-            // Append to stats file here
-            // NB: removed as we want the mouse to run for a certain number of rewards, not trials?
-			//if (this.runNumber > this.numberOfRuns)
-			//	this.state = "GameOver";
-			//else
-			//	this.state = "Respawn";
-        }
-        else {
-			waitedOneFrame = true;
-		}
-		*/
-
 	}
 
     /*
@@ -546,38 +490,28 @@ public class GameControlScript : MonoBehaviour
 		*/
     }
 
-    private void Respawn()
-    {
-        //Debug.Log ("Respawning");
-
-        // NB edit - commented out to teleport mouse back to the beginning
-        //int x = Globals.worldXCenter - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
-        //int z = Globals.worldXCenter - Random.Range(-1 * this.respawnAmplitude, this.respawnAmplitude);
-        //float rot = Random.Range(0f, 360f);
-
-        //this.player.transform.position = new Vector3(x, this.player.transform.position.y, z);
-        //this.player.transform.Rotate(Vector3.up, rot);
-
-        // NB edit - The code below comes from starting the game - ideally make a helper function?
+    private void Respawn() {
         TeleportToBeginning();
-        //this.state = "StartGame";
 
-		// Randomly decide which of the 2 trees is visible, only if the scenario has only 2 trees.
-		GameObject[] gos = GameObject.FindGameObjectsWithTag("water");
+		Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again 
 
+		Globals.RenderWorld (-1); // -1 indicates that the world rendered should be randomly selected
+		// TODO: need to figure out how this will work with bias correction
+
+		GameObject[] gos = Globals.GetTrees ();
+		Debug.Log ("number of trials " + Globals.numberOfTrials);
+
+		// Just initial values, used only if there is 1 tree
         float locx = gos[0].transform.position.x;
         float hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
         float vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
 
         int treeToActivate = 0;
         float r = UnityEngine.Random.value;
-		if (Globals.gameType.Equals("detection") || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target"))
-        {
+		if (Globals.gameType.Equals("detection") || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target")) {
 			if (gos.Length == 1)  { // Linear track
-                if (Globals.varyOrientation)
-                {
-                    if (r > 0.5)  // Half the time, swap the orientation of the tree
-                    {
+                if (Globals.varyOrientation) {
+					if (r > 0.5) { // Half the time, swap the orientation of the tree
                         gos[0].GetComponent<WaterTreeScript>().SetShader(vfreq, hfreq);
                         hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
                         vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
@@ -585,7 +519,10 @@ public class GameControlScript : MonoBehaviour
                 }
             } else if (gos.Length == 2 || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target")) {
 				float rThresh0 = 0.5F;
-				if (Globals.biasCorrection) {
+				if (Globals.presoRatio > 0) { // Works for 2-choice only, YN and 2AFC
+					rThresh0 = (float)Globals.presoRatio / (Globals.presoRatio + 1);
+				}
+				if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
 	                rThresh0 = 1 - Globals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
 				}
                 Debug.Log("Loc: [0, " + rThresh0 + ", 1] - " + r);
@@ -644,12 +581,12 @@ public class GameControlScript : MonoBehaviour
 				float thresh1 = 0.5F;
 				float thresh2 = 0.75F;
 
-				if (Globals.biasCorrection) {
+				if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
 					// Turn on bias correction after testing that logic works!
 					// Bias correction algo #1
 					float tf0 = Globals.GetTurnBias(20, 0);
 					float tf1 = Globals.GetTurnBias(20, 1);
-					float tf2 = Globals.GetTurnBias (20, 2);
+					float tf2 = Globals.GetTurnBias(20, 2);
 					float tf3 = 1 - (tf0 + tf1 + tf2);
 
 					float t0 = 1 - tf0;
@@ -677,14 +614,12 @@ public class GameControlScript : MonoBehaviour
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
 				SetupTreeActivation (gos, treeToActivate, 4);
 			}
-        } 
-        else if (Globals.gameType.Equals("det_blind"))
-        {
+        } else if (Globals.gameType.Equals("det_blind")) {
 			if (gos.Length == 3) {
 				double thresh0 = 0.333D;
 				double thresh1 = 0.666D;
 
-				if (Globals.biasCorrection) {
+				if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
 					float tf0 = Globals.GetTurnBias (20, 0);
 					float tf1 = Globals.GetTurnBias (20, 1);
 
@@ -751,7 +686,10 @@ public class GameControlScript : MonoBehaviour
 				vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 			} else if (gos.Length == 2) { // For training lesioned animals who have not been previously trained
 				float rThresh0 = 0.5F;
-				if (Globals.biasCorrection) {
+				if (Globals.presoRatio > 0) { // Works for 2-choice only, YN and 2AFC
+					rThresh0 = (float)Globals.presoRatio / (Globals.presoRatio + 1);
+				}
+				if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
 					rThresh0 = 1 - Globals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
 				}
 				Debug.Log("Loc: [0, " + rThresh0 + ", 1] - " + r);
@@ -762,13 +700,13 @@ public class GameControlScript : MonoBehaviour
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
 			}
-        }
-        else if (Globals.gameType.Equals("discrimination"))
-        {
+        } else if (Globals.gameType.Equals("discrimination")) {
             // Randomize orientations
-            float rThresh0 = 1 - Globals.GetTurnBias(20, 0);
-            if (r < rThresh0) 
-            {
+			float rThresh0 = 0.5F;
+			if (Globals.numberOfTrials > 1) {  // Add bias correction option if needed later
+				rThresh0 = 1 - Globals.GetTurnBias (20, 0);
+			}
+            if (r < rThresh0) {
                 gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, Globals.rewardedVFreq);
                 gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, Globals.distractorVFreq);
                 locx = gos[0].transform.position.x;
@@ -776,9 +714,7 @@ public class GameControlScript : MonoBehaviour
                 vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
                 gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
                 gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
-            }
-            else
-            {
+            } else {
 				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, Globals.distractorVFreq);
                 gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, Globals.rewardedVFreq);
                 locx = gos[1].transform.position.x;
@@ -788,15 +724,12 @@ public class GameControlScript : MonoBehaviour
                 gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
             }
             Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
-        }
-        else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch"))
-        {
+        } else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch")) {
             // First, pick an orientation at random for the central tree
             float targetHFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
             float targetVFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
 
-            if (r < 0.5)  // Switch target to opposite of previous
-            {
+			if (r < 0.5)  { // Switch target to opposite of previous
                 gos[2].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
             }
             // Second, randomly pick which side the matching orientation is on
@@ -804,41 +737,35 @@ public class GameControlScript : MonoBehaviour
             targetHFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
             targetVFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
             // Try to balance location of match based on the turning bias
-            float rThresh0 = 1 - Globals.GetTurnBias(20, 0);  // recent bias to the left side
-            if (rSide < rThresh0)  // Set the left tree to be the rewarded side
-            {
+			float rThresh0 = 0.5F;
+			if (Globals.numberOfTrials > 1) {  // Add bias correction option if needed later
+				rThresh0 = 1 - Globals.GetTurnBias (20, 0);
+			}
+			if (rSide < rThresh0)  { // Set the left tree to be the rewarded side
                 gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
                 gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
                 locx = gos[0].transform.position.x;
-                if (Globals.gameType.Equals("match"))
-                {
+                if (Globals.gameType.Equals("match")) {
                     gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
                     gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
                     hfreq = targetHFreq;
                     vfreq = targetVFreq;
-                }
-                else
-                {
+                } else {
                     gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
                     gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
                     hfreq = targetVFreq;
                     vfreq = targetHFreq;
                 }
-            }
-            else // Set the right tree to match
-            {
+			} else { // Set the right tree to match
                 gos[0].GetComponent<WaterTreeScript>().SetCorrect(false);
                 gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
                 locx = gos[1].transform.position.x;
-                if (Globals.gameType.Equals("match"))
-                {
+                if (Globals.gameType.Equals("match")) {
                     gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
                     gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
                     hfreq = targetHFreq;
                     vfreq = targetVFreq;
-                }
-                else
-                {
+                } else {
                     gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
                     gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
                     hfreq = targetVFreq;
@@ -877,12 +804,14 @@ public class GameControlScript : MonoBehaviour
 		Globals.hasNotTurned = true;
 
         Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
+		// Update again after the pause, as the world might have changed between trials
+		this.lastAccuracyText.text = "Last 20 accuracy: " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
         this.state = "Running";
 	}
 
     private void SetupTreeActivation(GameObject[] gos, int treeToActivate, int maxTrees)
     {
-        for (int i = 0; i < maxTrees; i++)  // Even in the 3-tree case, never deactivate the 3rd tree
+        for (int i = 0; i < maxTrees; i++)  // In the 3-tree case, never deactivate the 3rd tree
         {
             gos[i].SetActive(true);
             if (i == treeToActivate)
