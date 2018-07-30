@@ -6,6 +6,7 @@
 /Assets/AssetStoreTools*
 config/
 replays/
+actions/
 ProjectSettings/ProjectSettings.asset
 ProjectSettings/ProjectVersion.txt
 

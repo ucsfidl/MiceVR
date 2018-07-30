@@ -603,6 +603,19 @@ public class Loader : MonoBehaviour {
 					float.TryParse (xn ["presoRatio"].InnerText, out Globals.presoRatio);
 					Debug.Log ("Found preso ratio " + Globals.presoRatio);
 				}
+
+				if (xn ["optoSide"] != null) {
+					string optoSideXML = xn ["optoSide"].InnerText;
+					if (optoSideXML.Equals ("L"))
+						Globals.optoSide = 0;
+					else if (optoSideXML.Equals ("R"))
+						Globals.optoSide = 1;
+					else if (optoSideXML.Equals ("B"))
+						Globals.optoSide = 2;
+				}
+				if (xn ["optoFraction"] != null) {
+					float.TryParse(xn["optoFraction"].InnerText, out Globals.optoFraction);
+				}
             }
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");

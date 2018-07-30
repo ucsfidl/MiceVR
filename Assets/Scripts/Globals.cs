@@ -161,6 +161,10 @@ public static class Globals
 
 	public static float presoRatio;  // By default, do dynamic training, varying the reward size to break choice or motor biases
 
+	public static int optoSide = -1;       // 0 = left, 1 = right, 2 = both
+	public static float optoFraction;  // fraction of trials in which the light will randomly be on
+	public static int optoOn = 0;
+
 	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, bool respawn, Vector3 rot, Vector3 scale, int rank) {
 		World w = GetWorld (worldNum);
 
@@ -506,7 +510,7 @@ public static class Globals
         // overwrite any existing file
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", false);
         // Write file header
-        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)");
+        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)\tWorldNum\tOptoOn");
         turnsFile.Close();
     }
 
@@ -529,7 +533,8 @@ public static class Globals
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
                     (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
-					trialWorld[trialWorld.Count - 1]);
+					trialWorld[trialWorld.Count - 1] + "\t" + 
+					optoOn);
 
         turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1] + "\t" +
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
@@ -546,7 +551,8 @@ public static class Globals
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
 					(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
-					trialWorld[trialWorld.Count - 1]);
+					trialWorld[trialWorld.Count - 1] + "\t" + 
+					optoOn);
         turnsFile.Close();
         WriteStatsFile();
     }

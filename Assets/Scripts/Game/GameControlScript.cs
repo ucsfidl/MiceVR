@@ -477,6 +477,9 @@ public class GameControlScript : MonoBehaviour
 		this.pauseStartTime = DateTime.Now;
 		this.pauseStart = pauseTime;
 
+		// Clear opto LEDs, if they were enabled, and pause duration gives some recovery
+		udpSender.GetComponent<UDPSend>().OptoTurnOffAll();
+
         // Move the player now, as the screen goes to black and the app detects collisions between the new tree and the player 
         // if the player is not moved.
         TeleportToBeginning();
@@ -494,12 +497,9 @@ public class GameControlScript : MonoBehaviour
         TeleportToBeginning();
 
 		Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again 
-
-		Globals.RenderWorld (-1); // -1 indicates that the world rendered should be randomly selected
-		// TODO: need to figure out how this will work with bias correction
+		Globals.RenderWorld (-1); // -1 indicates that the world rendered should be randomly selected, without any bias correction (i.e. worlds in which accuracy is better do not occur less than worlds in which accuracy is worse)
 
 		GameObject[] gos = Globals.GetTrees ();
-		Debug.Log ("number of trials " + Globals.numberOfTrials);
 
 		// Just initial values, used only if there is 1 tree
         float locx = gos[0].transform.position.x;
@@ -605,10 +605,6 @@ public class GameControlScript : MonoBehaviour
 
 				treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : 3;
 
-				if (Globals.perim) {  // perimetry is enabled, so pick from the set of random windows to use
-
-				}
-
 				locx = gos[treeToActivate].transform.position.x;
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
@@ -644,7 +640,7 @@ public class GameControlScript : MonoBehaviour
 					double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
 					double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
 
-					Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+					//Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
 
 					// Rebalance, pushing mouse to lowest freq direction
 					double d;
@@ -675,7 +671,6 @@ public class GameControlScript : MonoBehaviour
 					thresh0 = p0;
 					thresh1 = thresh0 + p1;
 				}
-
 
 				Debug.Log ("STIMLOC: [0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
 				treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
@@ -783,6 +778,15 @@ public class GameControlScript : MonoBehaviour
 		} else {
 			Globals.SetOccluders(locx);
 			Debug.Log ("no dynamic occlusion");
+		}
+
+		// Optogenetics
+		if (Globals.optoSide != -1) {  // A side for optogenetics was specified
+			float rOpto = UnityEngine.Random.value;
+			if (rOpto < Globals.optoFraction) {
+				udpSender.GetComponent<UDPSend>().OptoTurnOn(Globals.optoSide);
+				Globals.optoOn = 1; // Used for logging
+			}
 		}
 
         Globals.targetLoc.Add(locx);

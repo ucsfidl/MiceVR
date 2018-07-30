@@ -164,6 +164,26 @@ public class UDPSend : MonoBehaviour
 	{
 		int msg = -3;
 		//Debug.Log ("Sent cam trigger");
+		SendIntMsg(msg);
+	}
+
+	public void OptoTurnOn (int side) {
+		int msg = 0;
+		if (side == 0) // left side
+			msg = -4;
+		else if (side == 1) // right side
+			msg = -5;
+		else if (side == 2) // both sides
+			msg = -6;
+		SendIntMsg(msg);
+	}
+
+	public void OptoTurnOffAll() {
+		int msg = -7;
+		SendIntMsg (msg);
+	}
+
+	private void SendIntMsg(int msg) {
 		try {
 			if (!this.usbWriter.IsOpen)
 				this.usbWriter.Open();

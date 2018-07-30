@@ -8,6 +8,8 @@ const int touchPin = 2;
 const int camTrigPin = 5;  // For triggering the cameras pointing to each eye
 //const int camTrigPin2 = 6;
 const int camGndPin = 9;  // Out of ground pins on Arduino board
+const int optoLeftPin = 10;  // Output to turn on optogenetic LED over left cortex
+const int optoRightPin = 11;  // Output to turn on optogenetic LED over right cortex
 
 void setup() {
   Serial.begin(2000000);
@@ -28,6 +30,11 @@ void setup() {
   //digitalWrite(camTrigPin2, LOW);
   pinMode(camGndPin, OUTPUT);
   digitalWrite(camGndPin, LOW);
+
+  pinMode(optoLeftPin, OUTPUT);
+  pinMode(optoRightPin, OUTPUT);
+  digitalWrite(optoLeftPin, LOW);
+  digitalWrite(optoRightPin, LOW);
 
   digitalWrite(vPin, HIGH);  // The built-in 5V pin for some reason fluctuates during program upload, so use this instead for the valve controller
 }
@@ -53,6 +60,16 @@ void loop() {
         //Serial.println("Sent trigger");
         digitalWrite(camTrigPin, HIGH);
         digitalWrite(camTrigPin, LOW);
+      } else if (data == -4) {    // Turn on optoLeft LED
+        digitalWrite(optoLeftPin, HIGH);
+      } else if (data == -5) {    // Turn on optoRight LED
+        digitalWrite(optoRightPin, HIGH);
+      } else if (data == -6) {    // Turn on both opto LEDs
+        digitalWrite(optoLeftPin, HIGH);
+        digitalWrite(optoRightPin, HIGH);
+      } else if (data == -7) {    // Turn OFF both LEDs
+        digitalWrite(optoLeftPin, LOW);
+        digitalWrite(optoRightPin, LOW);
       } else if (data > 0) {        // Water
         digitalWrite(waterPin, HIGH);
         digitalWrite(ledPin, HIGH);
