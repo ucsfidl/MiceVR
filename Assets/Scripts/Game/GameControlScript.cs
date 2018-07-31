@@ -827,7 +827,9 @@ public class GameControlScript : MonoBehaviour
 
     private void GameOver()
     {
-        //Debug.Log ("In GameOver()");
+		// Disable opto lights, if on
+		udpSender.GetComponent<UDPSend>().OptoTurnOffAll();
+
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";
@@ -835,8 +837,8 @@ public class GameControlScript : MonoBehaviour
 			Globals.gameEndTime = DateTime.Now;
 			Debug.Log ("Set end time to now");
 		}
-        if (Input.GetKeyUp(KeyCode.Escape))
-        {
+
+		if (Input.GetKeyUp(KeyCode.Escape)) {
             StartCoroutine(CheckForQ());
 			this.state = "WaitingForQuitCmd";
         }
