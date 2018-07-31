@@ -61,13 +61,17 @@ void loop() {
         digitalWrite(camTrigPin, HIGH);
         digitalWrite(camTrigPin, LOW);
       } else if (data == -4) {    // Turn on optoLeft LED
+        //Serial.println("LeftLED!");
         digitalWrite(optoLeftPin, HIGH);
       } else if (data == -5) {    // Turn on optoRight LED
+        //Serial.println("RightLED!");
         digitalWrite(optoRightPin, HIGH);
       } else if (data == -6) {    // Turn on both opto LEDs
+        //Serial.println("BothLEDs!");
         digitalWrite(optoLeftPin, HIGH);
         digitalWrite(optoRightPin, HIGH);
       } else if (data == -7) {    // Turn OFF both LEDs
+        //Serial.println("OffLEDs!");
         digitalWrite(optoLeftPin, LOW);
         digitalWrite(optoRightPin, LOW);
       } else if (data > 0) {        // Water
