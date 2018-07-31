@@ -477,9 +477,6 @@ public class GameControlScript : MonoBehaviour
 		this.pauseStartTime = DateTime.Now;
 		this.pauseStart = pauseTime;
 
-		// Clear opto LEDs, if they were enabled, and pause duration gives some recovery
-		udpSender.GetComponent<UDPSend>().OptoTurnOffAll();
-
         // Move the player now, as the screen goes to black and the app detects collisions between the new tree and the player 
         // if the player is not moved.
         TeleportToBeginning();
@@ -785,7 +782,6 @@ public class GameControlScript : MonoBehaviour
 			float rOpto = UnityEngine.Random.value;
 			if (rOpto < Globals.optoFraction) {
 				udpSender.GetComponent<UDPSend>().OptoTurnOn(Globals.optoSide);
-				Globals.optoOn = 1; // Used for logging
 			}
 		}
 
