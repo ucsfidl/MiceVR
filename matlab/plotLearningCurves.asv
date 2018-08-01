@@ -1,0 +1,11 @@
+function plotLearningCurves()
+% Takes a Google Spreadsheet, and plots the learning curves.
+% Each tab is a mouse, and 2 plots are generated per moues:
+% (1) Overall accuracy on the session
+% (2) Accuracy per choice on each session
+% In both graphs, changes in the level will be marked with a vertical line,
+% ideally with the name of the level labeling the line (or available as a
+% tooltip on mouseOver). Also, changes in the field restriction will also 
+
+
+end
