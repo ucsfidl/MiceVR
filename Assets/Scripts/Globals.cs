@@ -68,7 +68,8 @@ public static class Globals
 	public static bool biasCorrection = true;  // default to true if nothing entered in scenario file
 	public static float probeLocX = float.NaN;
 	public static bool perim = false;  // default to false, as perimetry is only running in special circumstances
-	public static int perimScale;  // 0 = full scale, 1 = 40x40 deg, 2=20x20 deg, 3 = 10x10 deg.  Note a larger number also includes the scales smaller than itself.
+	public static int perimScale;  // 0 = full scale, 1 = 40x40 deg, 2 positions; 2=40x20 deg, 3 positions; 3=20x20 deg, 6 position; 4=10x10 deg, 12 of 24 positions.  Note a larger number also includes the scales smaller than itself.
+									// v1 perim scale: 0 = full scale, 1 = 40x40 deg, 2 positions; 2=20x20 deg, 6 position; 3=10x10 deg, 12 of 24 positions
 
 	public static string mouseName = "";
 	public static string scenarioName = "";
@@ -116,7 +117,7 @@ public static class Globals
 	}
 
 	public static fov[] fovs;  // For automatic perimetry
-	public static int[] fovsForPerimScaleInclusive = new int[] {1, 3, 9, 21};
+	public static int[] fovsForPerimScaleInclusive = new int[] {1, 3, 6, 12, 24}; // v1 {1, 3, 9, 21}
 
 	// Support for different worlds on each trial
 	public struct Tree {
@@ -459,7 +460,7 @@ public static class Globals
 	// Initializes fovs used for automated perimetry.  There are 4 scales, and the stimuli are presented that fill (or half-fill, for the smallest) scale
 	// TODO: don't do linear calculations, but trigometric ones, which are accurate
 	public static void InitFOVs() {
-		fovs = new fov[21];
+		fovs = new fov[fovsForPerimScaleInclusive[fovsForPerimScaleInclusive.Length-1]];
 
 		// FULL FIELD
 		int curPos = 0;
@@ -468,7 +469,7 @@ public static class Globals
 		fovs [curPos].lowBound = defaultVisibleLowBoundary;
 		fovs [curPos].highBound = defaultVisibleHighBoundary;
 
-		// 40x40 : YELLOW in diagram, except shifted to the left 10 degrees
+		// 40x40 : YELLOW in diagram, except shifted medially 10 degrees
 		curPos = curPos + 1;
 		fovs [curPos].nasalBound = 0;
 		fovs [curPos].tempBound = fovs [curPos].nasalBound + 40;
@@ -481,6 +482,15 @@ public static class Globals
 		fovs [curPos].tempBound = fovs [curPos].nasalBound + 40;
 		fovs [curPos].lowBound = 5;
 		fovs [curPos].highBound = fovs [curPos].lowBound + 40;
+
+		// 40x20 : black pen in diagram, added in v2 of perimetry because perim1 was doable but perim2 was difficult for many mice - this is an intermediate level
+		for (int i = 0; i < 3; i++) {
+			curPos = curPos + 1;
+			fovs [curPos].nasalBound = 10 + i % 3 * 20;
+			fovs [curPos].tempBound = fovs [curPos].nasalBound + 20;
+			fovs [curPos].lowBound = 5;
+			fovs [curPos].highBound = fovs [curPos].lowBound + 40;
+		}
 
 		// 20x20 : GREEN in diagram
 		for (int i = 0; i < 6; i++) {

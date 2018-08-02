@@ -1,4 +1,4 @@
-function drawPerimetricMap(hitMap, missMap, fov, reverseX)
+function h = drawPerimetricMap(hitMap, missMap, fovW, fovH, reverseX)
 
 hitK = keys(hitMap);
 missK = keys(missMap);
@@ -27,6 +27,6 @@ if (reverseX)
     side = 'Left';
 end
 
-title(['Perimetry: ' side ' FOV, window size = ' num2str(fov) ' deg square']);
+title(['Perimetry: ' side ' FOV, window size = ' num2str(fovW) ' x ' num2str(fovH) ' deg']);
 
 end
