@@ -98,10 +98,7 @@ end
 % Each Map data structure will get 1 figure
 % For a total of 10 maps, 5 on each side
 
-set(0,'units','pixels');
-pixSS = get(0,'screensize');
-screenWidth = pixSS(3);
-screenHeight = pixSS(4);
+[screenWidth, screenHeight] = getScreenDim();
 
 offset = -20;
 % Start with full, unrestricted stimuli; since only 1 key, can just call values.

@@ -1,4 +1,4 @@
-function sheetIDs = GetSheetIDs(DOCID, dataSheetsOnly)
+function sheetIDs = GetSheetIDs(docid, dataSheetsOnly)
 % This function will get all sheet IDs from a given google spreadsheet, as
 % specified with DOCID.  If dataSheetsOnly is set to true, then only data
 % sheet IDs will be returned.  A datasheet is one in which the title is
@@ -9,7 +9,7 @@ function sheetIDs = GetSheetIDs(DOCID, dataSheetsOnly)
 
 api = 'AIzaSyBsb9u1iSEPKhotq3LSZxeAt-vAk9SrXsI';
 loginURL = 'https://www.google.com'; 
-dataURL = ['https://sheets.googleapis.com/v4/spreadsheets/' DOCID '?&fields=sheets.properties&key=' api];
+dataURL = ['https://sheets.googleapis.com/v4/spreadsheets/' docid '?&fields=sheets.properties&key=' api];
 
 %Step 1: go to google.com to collect some cookies
 cookieManager = java.net.CookieManager([], java.net.CookiePolicy.ACCEPT_ALL);
@@ -21,20 +21,18 @@ connection.getInputStream();
 %Step 2: go to the spreadsheet export url and download the csv
 connection2 = java.net.URL([],dataURL,handler).openConnection();
 result = connection2.getInputStream();
-result = char(readstream(result));
+result = char(readstream(result));  % readstream takes inputstream and converts to string
 
-function out = readstream(inStream)
-%READSTREAM Read all bytes from stream to uint8
-%From: http://stackoverflow.com/a/1323535
+parsed = jsondecode(result);  % Data is in JSON format, so decode
 
-import com.mathworks.mlwidgets.io.InterruptibleStreamCopier;
-byteStream = java.io.ByteArrayOutputStream();
-isc = InterruptibleStreamCopier.getInterruptibleStreamCopier();
-isc.copyStream(inStream, byteStream);
-inStream.close();
-byteStream.close();
-out = typecast(byteStream.toByteArray', 'uint8'); 
+sheets = parsed.sheets;
 
+sheetIDs = [];
+
+for i = 1:length(sheets)
+    if (sheets(i).properties.title(1) ~= '_')  % underscore is used to indicate a metadata sheet, not a mouse
+        sheetIDs(end+1) = sheets(i).properties.sheetId;
+    end
 end
 
 end

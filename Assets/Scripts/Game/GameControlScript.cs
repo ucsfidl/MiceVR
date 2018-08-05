@@ -256,21 +256,20 @@ public class GameControlScript : MonoBehaviour
 
     private void CatchKeyStrokes()
     {
-		if (Input.GetKey(KeyCode.Escape) && !this.state.Equals("WaitingForQuitCmd"))
-            this.state = "GameOver";
+		if (Input.GetKeyUp(KeyCode.Escape) && !this.state.Equals ("WaitingForQuitCmd")) {
+			this.state = "GameOver";
+			// Disable opto lights, if on, right here instead of in GameOver() so it doesn't repeatedly send the signal and block the aruino communication, preventing other signals (like manual water) from getting through
+			udpSender.GetComponent<UDPSend>().OptoTurnOffAll();
+		}
         
-        if (!this.state.Equals("LoadScenario") || (this.state.Equals("LoadScenario") && EventSystem.current.currentSelectedGameObject == null))
-        {
-            if (Input.GetKeyUp(KeyCode.U))
-            {
+        if (!this.state.Equals("LoadScenario") || (this.state.Equals("LoadScenario") && EventSystem.current.currentSelectedGameObject == null)) {
+            if (Input.GetKeyUp(KeyCode.U)) {
                 this.udpSender.SendWaterReward(Globals.rewardDur);
                 Globals.numberOfUnearnedRewards++;
                 Globals.rewardAmountSoFar += Globals.rewardSize;
 				updateRewardAmountText ();
 				Debug.Log("gave reward = " + Globals.rewardAmountSoFar);
-            } else if (Input.GetKeyUp(KeyCode.T))
-            {
-                // Mouse is stuck so teleport to beginning
+            } else if (Input.GetKeyUp(KeyCode.T)) {
                 TeleportToBeginning();
             }
         }
@@ -447,10 +446,13 @@ public class GameControlScript : MonoBehaviour
 			totalRewardSize = totalEarnedRewardSize + Globals.numberOfUnearnedRewards * Globals.rewardSize;
 			//Debug.Log("Total reward so far: " + totalRewardSize + "; maxReward = " + Globals.totalRewardSize);
 			pauseEnd = pauseTime;
-			if (totalRewardSize >= Globals.totalRewardSize)
+			if (totalRewardSize >= Globals.totalRewardSize) {
 				this.state = "GameOver";
-			else
+				// Turn off opto lights here instead of in GameOver() so Unity doesn't repeatedly send the signal and block the arduino communication, preventing other signals (like manual water) from getting through
+				udpSender.GetComponent<UDPSend>().OptoTurnOffAll();
+			} else {
 				this.state = "Respawn";
+			}
 		}
 	}
 
@@ -481,13 +483,6 @@ public class GameControlScript : MonoBehaviour
         // if the player is not moved.
         TeleportToBeginning();
 
-        // check for game over
-		/*
-        if (this.runNumber > this.numberOfRuns)
-            this.state = "GameOver";
-        else
-            this.state = "Respawn";
-		*/
     }
 
     private void Respawn() {
@@ -823,9 +818,6 @@ public class GameControlScript : MonoBehaviour
 
     private void GameOver()
     {
-		// Disable opto lights, if on
-		udpSender.GetComponent<UDPSend>().OptoTurnOffAll();
-
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";
