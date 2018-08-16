@@ -1,4 +1,4 @@
-function plotPerimetry(actionFileDirectory, matchName)
+function plotPerimetry(mouseName, days)
 % This script takes in 1 or more action logs and outputs a figure and data
 % file showing the accuracy at each position, in a green-red gradient,
 % where green is 100% and red is 0%.
@@ -17,7 +17,7 @@ function plotPerimetry(actionFileDirectory, matchName)
 % Only works with 3-choice right now.
 
 % First, find all the filenames to read in
-fileList = dir([actionFileDirectory '/*.txt']); % Get all mat files, and use that to construct filenames for video files
+fileList = dir(['data/*.txt']); % Get all mat files, and use that to construct filenames for video files
 
 % Store the results in a hashtable, one for hits and one for misses
 hitMapL90x80 = containers.Map();
@@ -47,50 +47,53 @@ missMapR10x10 = containers.Map();
 % accuracy at that scale and position.
 numFilesAnalyzed = 0;
 for i=1:length(fileList)
-    if (isempty(matchName) || (~isempty(matchName) && contains(fileList(i).name, matchName)))
-        fid = fopen([fileList(i).folder '\' fileList(i).name]);
-        if (fid ~= -1)  % File was opened properly
-            numFilesAnalyzed = numFilesAnalyzed + 1;
-            tline = fgetl(fid); % Throw out the first line, as it is a column header
-            C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f'); % C is a cell array with each string separated by a space
-            % If this is not a center trial, add it to the maps
-            for j = 1:length(C{1})
-                nasal = C{8}(j);
-                temporal = C{9}(j);
-                high = C{10}(j);
-                low = C{11}(j);
-                key = [num2str(nasal, '%02d') ',' num2str(temporal, '%02d') ',' num2str(high, '%02d') ',' num2str(low, '%02d')]; 
-                prevVal = 0;
-                dtn = temporal - nasal;
-                dhl = high - low;
-                %if (dtn == 20)
-                %    disp ([num2str(j) '-' num2str(dtn)]);
-                %end
-                % If the mouse went left or right, see if it was a hit or a miss.
-                if (C{5}(j) == 19980 || C{5}(j) == 20020) % C{5} is the target location, C{12} is the turn location
-                    if (C{5}(j) == C{12}(j))
-                        if (C{5}(j) == 19980) % Write to one of the left hit maps
-                            mapName = ['hitMapL' num2str(dtn) 'x' num2str(dhl)];
-                        elseif (C{5}(j) == 20020) % Write to one of the right hit maps
-                            mapName = ['hitMapR' num2str(dtn) 'x' num2str(dhl)];
+%    if (isempty(matchName) || (~isempty(matchName) && contains(fileList(i).name, matchName)))
+    for j=1:length(days)
+        if (contains(fileList(i).name, [mouseName '-D' num2str(days(j))]))
+            fid = fopen([fileList(i).folder '\' fileList(i).name]);
+            if (fid ~= -1)  % File was opened properly
+                numFilesAnalyzed = numFilesAnalyzed + 1;
+                tline = fgetl(fid); % Throw out the first line, as it is a column header
+                C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f'); % C is a cell array with each string separated by a space
+                % If this is not a center trial, add it to the maps
+                for j = 1:length(C{1})
+                    nasal = C{8}(j);
+                    temporal = C{9}(j);
+                    high = C{10}(j);
+                    low = C{11}(j);
+                    key = [num2str(nasal, '%02d') ',' num2str(temporal, '%02d') ',' num2str(high, '%02d') ',' num2str(low, '%02d')]; 
+                    prevVal = 0;
+                    dtn = temporal - nasal;
+                    dhl = high - low;
+                    %if (dtn == 20)
+                    %    disp ([num2str(j) '-' num2str(dtn)]);
+                    %end
+                    % If the mouse went left or right, see if it was a hit or a miss.
+                    if (C{5}(j) == 19980 || C{5}(j) == 20020) % C{5} is the target location, C{12} is the turn location
+                        if (C{5}(j) == C{12}(j))
+                            if (C{5}(j) == 19980) % Write to one of the left hit maps
+                                mapName = ['hitMapL' num2str(dtn) 'x' num2str(dhl)];
+                            elseif (C{5}(j) == 20020) % Write to one of the right hit maps
+                                mapName = ['hitMapR' num2str(dtn) 'x' num2str(dhl)];
+                            end
+                        else
+                            if (C{5}(j) == 19980) % Write to one of the left miss maps
+                                mapName = ['missMapL' num2str(dtn) 'x' num2str(dhl)];
+                            elseif (C{5}(j) == 20020) % Write to one of the right miss maps
+                                mapName = ['missMapR' num2str(dtn) 'x' num2str(dhl)];
+                            end
                         end
-                    else
-                        if (C{5}(j) == 19980) % Write to one of the left miss maps
-                            mapName = ['missMapL' num2str(dtn) 'x' num2str(dhl)];
-                        elseif (C{5}(j) == 20020) % Write to one of the right miss maps
-                            mapName = ['missMapR' num2str(dtn) 'x' num2str(dhl)];
+                        map = eval([mapName ';']);
+                        if (isKey(map, key))
+                            prevVal = map(key);
                         end
+                        map(key) = prevVal + 1; %#ok<*NASGU>
+                        eval([mapName ' = map;']);  % write back to the state variables from the temp variable
                     end
-                    map = eval([mapName ';']);
-                    if (isKey(map, key))
-                        prevVal = map(key);
-                    end
-                    map(key) = prevVal + 1; %#ok<*NASGU>
-                    eval([mapName ' = map;']);  % write back to the state variables from the temp variable
                 end
             end
+            fclose(fid);
         end
-        fclose(fid);
     end
 end
 

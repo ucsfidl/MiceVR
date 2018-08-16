@@ -197,8 +197,7 @@ public class WaterTreeScript : MonoBehaviour {
 		}
     }
 
-	private void GiveReward(int rewardDur, bool addToTurns, bool trueCorrect)
-    {
+	private void GiveReward(int rewardDur, bool addToTurns, bool trueCorrect) {
         GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward(rewardDur);
         this.depleted = true;
         this.mouseObject = GameObject.FindGameObjectWithTag("MainCamera");
@@ -208,8 +207,7 @@ public class WaterTreeScript : MonoBehaviour {
         Globals.rewardAmountSoFar += Globals.rewardSize / Globals.rewardDur * rewardDur;
 
         Globals.hasNotTurned = false;
-        if (addToTurns)
-        {
+        if (addToTurns) {
 			if (trueCorrect) {
 				Globals.numCorrectTurns++;
 			}
@@ -218,8 +216,7 @@ public class WaterTreeScript : MonoBehaviour {
             Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
         }
 
-        if (respawn)
-        {
+        if (respawn) {
             Globals.numberOfTrials++;
             Globals.trialDelay = correctTurnDelay;
             GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.black);
@@ -229,15 +226,13 @@ public class WaterTreeScript : MonoBehaviour {
         }
     }
 
-    private void WitholdReward()
-    {
+    private void WitholdReward() {
         Globals.hasNotTurned = false;
         Globals.firstTurn.Add(this.gameObject.transform.position.x);
         Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
         Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
         Globals.sizeOfRewardGiven.Add(0);
-        if (respawn)
-        {
+        if (respawn) {
             Globals.numberOfTrials++;
             Globals.trialDelay = incorrectTurnDelay;
             GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.white);

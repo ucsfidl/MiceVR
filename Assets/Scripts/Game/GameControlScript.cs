@@ -102,8 +102,7 @@ public class GameControlScript : MonoBehaviour
     void Update()
 	{
 		if ((this.state == "Running" || this.state == "Paused") && Globals.numCameras > 0) {
-			// To detect the occurence of a trial start or end, skip a frame trigger so that Matlab gets the signal direct through the camera,
-			// as the signal directly from unity is flaky
+			// To detect the occurence of a trial start or end, skip a frame trigger so that Matlab gets the signal direct through the came,as the signal directly from unity is flaky
 			if (pauseStart > 0) {
 				pauseStart = pauseStart-1;
 			} else if (pauseEnd > 0) {

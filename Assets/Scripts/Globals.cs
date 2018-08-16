@@ -631,7 +631,7 @@ public static class Globals
 						{ "earned", Math.Round (totalEarnedRewardSize).ToString () },
 						{ "uball", Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString () },
 						{ "results", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + GetTreeAccuracy () },
-						{ "totalh2o", "=SUM(T" + (row + 1) + ":V" + (row + 1) + ")" }
+						{ "totalh2o", "=V" + (row + 1) + "+X" + (row + 1) }
 					}
 					);
 
