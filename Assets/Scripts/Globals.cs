@@ -109,6 +109,8 @@ public static class Globals
 
 	public static float NULL = 1000000;
 
+	public static bool treesBelowGround = false;  // New position of trees so they project down into the ground, to only present stimuli in the lower portion of the visual field (+20 to -30 degrees)
+
 	public struct fov {
 		public float nasalBound;
 		public float tempBound;
@@ -311,6 +313,10 @@ public static class Globals
 		Debug.Log ("world #" + worldNum);
 
 		// Now, actually render the new world
+		if (Globals.treesBelowGround) {
+			GameObject.FindObjectOfType<Terrain>().enabled = false; // Disable the terrain, so the trees can be seen below ground
+		}
+
 		World w = worlds [worldNum];
 		GameObject go;
 		foreach (Tree t in w.trees) {
@@ -333,13 +339,13 @@ public static class Globals
 							go.layer = LayerMask.NameToLayer ("Left Visible Only");
 							foreach (Transform tr in go.transform) {
 								tr.gameObject.layer = LayerMask.NameToLayer ("Left Visible Only");
-								tr.gameObject.AddComponent<SetRenderQueue>();
+								tr.gameObject.AddComponent<SetRenderQueue> ();
 							}
 						} else if (t.restrictToCamera == 2) {
 							go.layer = LayerMask.NameToLayer ("Right Visible Only");
 							foreach (Transform tr in go.transform) {
 								tr.gameObject.layer = LayerMask.NameToLayer ("Right Visible Only");
-								tr.gameObject.AddComponent<SetRenderQueue>();
+								tr.gameObject.AddComponent<SetRenderQueue> ();
 							}
 						}
 					}
@@ -828,6 +834,7 @@ public static class Globals
 		visibleTemporalBoundary = defaultVisibleTemporalBoundary;
 		visibleHighBoundary = defaultVisibleHighBoundary;
 		visibleLowBoundary = defaultVisibleLowBoundary;
+		Debug.Log (visibleHighBoundary);
 		SetOccluders (locx, visibleNasalBoundary, visibleTemporalBoundary, visibleHighBoundary, visibleLowBoundary);
 	}
 
@@ -842,23 +849,21 @@ public static class Globals
 	}
 
 	public static void SetOccluders(float locx, float nasalBound, float tempBound, float highBound, float lowBound) {
-		GameObject tolt = GameObject.Find("TreeOccluderLT");
-		GameObject tolmt = GameObject.Find("TreeOccluderLMT");
-		GameObject tolmn = GameObject.Find("TreeOccluderLMN");
-		GameObject tolb = GameObject.Find("TreeOccluderLB");
-		GameObject toct = GameObject.Find("TreeOccluderCT");
-		GameObject tocmt = GameObject.Find("TreeOccluderCMT");
-		GameObject tocmn = GameObject.Find("TreeOccluderCMN");
-		GameObject tocb = GameObject.Find("TreeOccluderCB");
-		GameObject tort = GameObject.Find("TreeOccluderRT");
-		GameObject tormt = GameObject.Find("TreeOccluderRMT");
-		GameObject tormn = GameObject.Find("TreeOccluderRMN");
-		GameObject torb = GameObject.Find("TreeOccluderRB");
+		GameObject tolt = GameObject.Find("TreeOccluderLT");     // Left visible only layer
+		GameObject tolmt = GameObject.Find("TreeOccluderLMT");   // Left visible only layer
+		GameObject tolmn = GameObject.Find("TreeOccluderLMN");   // Left visible only layer
+		GameObject tolb = GameObject.Find("TreeOccluderLB");     // Left visible only layer
+		GameObject toct = GameObject.Find("TreeOccluderCT");     // Center visible only layer
+		GameObject tocmt = GameObject.Find("TreeOccluderCMT");   // Center visible only layer
+		GameObject tocmn = GameObject.Find("TreeOccluderCMN");   // Center visible only layer
+		GameObject tocb = GameObject.Find("TreeOccluderCB");     // Center visible only layer
+		GameObject tort = GameObject.Find("TreeOccluderRT");     // Right visible only layer
+		GameObject tormt = GameObject.Find("TreeOccluderRMT");   // Right visible only layer
+		GameObject tormn = GameObject.Find("TreeOccluderRMN");   // Right visible only layer
+		GameObject torb = GameObject.Find("TreeOccluderRB");     // Right visible only layer
 
 		// Local vars to store calculations to reuse
 		// I don't think I need these anymore, as this was when I thought the stimulus window would be centered around the horizon.  Now it can be offset, so something else needs to be done
-		float ysp = monitorPositiveElevation / (monitorPositiveElevation - monitorNegativeElevation) * occluderYScale;  // OccluderYScale is height of occluder if it will fill the full height of the screen
-		float ysn = monitorNegativeElevation / (monitorNegativeElevation - monitorPositiveElevation) * occluderYScale;
 		float totalElevation = monitorPositiveElevation - monitorNegativeElevation;
 		Vector3 newPos;
 
