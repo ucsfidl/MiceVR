@@ -45,7 +45,7 @@ public class GameControlScript : MonoBehaviour
     private DebugControl debugControlScript;
     private bool timeoutState;
 
-	private int smoothingWindow = 1;  // Amount to smoothen the player movement
+	private int smoothingWindow = 3;  // Amount to smoothen the player movement.  1 worked fine with MX310 at UCSF, but G403 at Berkeley glitches sometimes, so try longer smoothing window to help.
 	private bool waitedOneFrame = false;  // When mouse hits tree, need to wait a few frames before it turns black, and then pause the game
 
 	private Vector3 startingPos;
@@ -57,9 +57,12 @@ public class GameControlScript : MonoBehaviour
 	private DateTime pauseStartTime;
 	private int pauseStart = 0;
 	private int pauseEnd = 0;
-	private int pauseTime = 3; // frames - 1 is too few given noise in capture
+	private int pauseTime = 3; // frames - 1 is too few given noise in capture - This pauseTime is the number of frames in between trials, for camera frame analysis to find trial starts and ends!
 
-    // Use this for initialization
+	private float visiblePauseAtTrialStart = 0.5F;  // For first 500 ms of each trial, world won't move, so mouse can see stimulus
+	private DateTime lastTrialStartDateTime;
+
+	// Use this for initialization
     void Start()
     {
 		//Application.targetFrameRate = 60;
@@ -113,7 +116,7 @@ public class GameControlScript : MonoBehaviour
 			}
 		}
 			
-		// Keep mouse from scaling walls - 
+		// Keep mouse from scaling walls
 		if (this.player.transform.position.y > this.startingPos.y + 0.1) {
 			Vector3 tempPos = this.player.transform.position;
 			tempPos.y = this.startingPos.y;
@@ -327,7 +330,8 @@ public class GameControlScript : MonoBehaviour
 
 			Globals.InitLogFiles();
             Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
-        }
+			lastTrialStartDateTime = DateTime.Now;
+		}
     }
 
     /*
@@ -377,16 +381,19 @@ public class GameControlScript : MonoBehaviour
             this.state = "Timeout";
         }
 
-        MovePlayer();
+		TimeSpan te = DateTime.Now.Subtract(lastTrialStartDateTime);
+		if (te.TotalMilliseconds >= visiblePauseAtTrialStart * 1000) {
+			MovePlayer();
+		}
+
 		if (this.udpSender.CheckReward ())
 			this.movementRecorder.logReward(false, true);
 		updateTrialsText();
 		updateRewardAmountText ();
 
-        TimeSpan te = DateTime.Now.Subtract(Globals.gameStartTime);
+        te = DateTime.Now.Subtract(Globals.gameStartTime);
 		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}:{2:G4}:{3}", te.Hours * 60 + te.Minutes, te.Seconds, Time.deltaTime * 1000, frameCounter++);
-        if (Time.time - this.runTime >= this.runDuration)
-        {
+        if (Time.time - this.runTime >= this.runDuration) {
             // fadetoblack + respawn
             this.movementRecorder.SetFileSet(false);
             this.fadeToBlack.gameObject.SetActive(true);
@@ -798,6 +805,8 @@ public class GameControlScript : MonoBehaviour
 		Globals.hasNotTurned = true;
 
         Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
+		lastTrialStartDateTime = DateTime.Now;
+
 		// Update again after the pause, as the world might have changed between trials
 		this.lastAccuracyText.text = "Last 20 accuracy (in this world): " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
         this.state = "Running";

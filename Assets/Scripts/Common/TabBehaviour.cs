@@ -10,22 +10,25 @@ public class TabBehaviour : MonoBehaviour
 {
     private EventSystem system;
 
-    private void Start()
-    {
+    private void Start() {
         system = EventSystem.current;
     }
 
-    private void Update()
-    {
+    private void Update() {
         if (system.currentSelectedGameObject == null || !(Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)))
             return;
-
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
-            GameObject.FindGameObjectWithTag("generator").GetComponent<Loader>().LoadScenario();
 
         Selectable current = system.currentSelectedGameObject.GetComponent<Selectable>();
         if (current == null)
             return;
+
+		if (Input.GetKeyDown (KeyCode.Return) || Input.GetKeyDown (KeyCode.KeypadEnter)) {
+			if (current.name.Equals ("MouseInput")) {
+				GameObject.FindGameObjectWithTag ("generator").GetComponent<Loader> ().LoadSettingsFromSheets ();
+			} else {
+				GameObject.FindGameObjectWithTag ("generator").GetComponent<Loader> ().LoadScenario ();
+			}
+		}
 
         bool up = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
         Selectable next = up ? current.FindSelectableOnUp() : current.FindSelectableOnDown();

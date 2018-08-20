@@ -834,7 +834,6 @@ public static class Globals
 		visibleTemporalBoundary = defaultVisibleTemporalBoundary;
 		visibleHighBoundary = defaultVisibleHighBoundary;
 		visibleLowBoundary = defaultVisibleLowBoundary;
-		Debug.Log (visibleHighBoundary);
 		SetOccluders (locx, visibleNasalBoundary, visibleTemporalBoundary, visibleHighBoundary, visibleLowBoundary);
 	}
 
