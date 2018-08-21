@@ -37,14 +37,19 @@
 			</trees>
 			<walls>
 				<wall> <!-- Left wall -->
-					<pos>19994;0.5;20006.5</pos>
+					<pos>19994;0.5;20005</pos>
 					<rot>0;0;0</rot>
-					<scale>2;0;21.6</scale>
+					<scale>2;0;17</scale>
+				</wall>
+				<wall> <!-- Left diagonal wall -->
+					<pos>19991;0.5;20016</pos>
+					<rot>0;-30;0</rot>
+					<scale>2;0;9</scale>
 				</wall>
 				<wall> <!-- Left front wall -->
-					<pos>19986;0.5;20019</pos>
+					<pos>19982;0.5;20019</pos>
 					<rot>0;270;0</rot>
-					<scale>2;0;19.1</scale>
+					<scale>2;0;14</scale>
 				</wall>
 				<wall> <!-- Left Closing wall -->
 					<pos>19976;0.5;20028</pos>

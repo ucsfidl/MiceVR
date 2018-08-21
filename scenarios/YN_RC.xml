@@ -82,14 +82,19 @@
 					<scale>2;0;19.1</scale>
 				</wall>
 				<wall> <!-- Right front wall -->
-					<pos>20014;0.5;20019</pos>
+					<pos>20018;0.5;20019</pos>
 					<rot>0;270;0</rot>
-					<scale>2;0;19.1</scale>
+					<scale>2;0;14</scale>
+				</wall>
+				<wall> <!-- Right diagonal wall -->
+					<pos>20009;0.5;20016</pos>
+					<rot>0;30;0</rot>
+					<scale>2;0;9</scale>
 				</wall>
 				<wall> <!-- Right wall -->
-					<pos>20006;0.5;20006.5</pos>
+					<pos>20006;0.5;20005</pos>
 					<rot>0;0;0</rot>
-					<scale>2;0;21.6</scale>
+					<scale>2;0;17</scale>
 				</wall>
 				<wall> <!-- Front wall -->
 					<pos>20000;0.5;19994</pos>
