@@ -45,7 +45,7 @@ public class GameControlScript : MonoBehaviour
     private DebugControl debugControlScript;
     private bool timeoutState;
 
-	private int smoothingWindow = 3;  // Amount to smoothen the player movement.  1 worked fine with MX310 at UCSF, but G403 at Berkeley glitches sometimes, so try longer smoothing window to help.
+	private int smoothingWindow = 6;  // Amount to smoothen the player movement.  1 worked fine with MX310 at UCSF, but G403 at Berkeley glitches sometimes, so try longer smoothing window to help.
 	private bool waitedOneFrame = false;  // When mouse hits tree, need to wait a few frames before it turns black, and then pause the game
 
 	private Vector3 startingPos;
@@ -59,7 +59,7 @@ public class GameControlScript : MonoBehaviour
 	private int pauseEnd = 0;
 	private int pauseTime = 3; // frames - 1 is too few given noise in capture - This pauseTime is the number of frames in between trials, for camera frame analysis to find trial starts and ends!
 
-	private float visiblePauseAtTrialStart = 0.5F;  // For first 500 ms of each trial, world won't move, so mouse can see stimulus
+	private float visiblePauseAtTrialStart = 1F;  // For first 1s of each trial, world won't move, so mouse can see stimulus
 	private DateTime lastTrialStartDateTime;
 
 	// Use this for initialization
