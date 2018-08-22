@@ -126,9 +126,8 @@ public class GameControlScript : MonoBehaviour
 		}
 		this.prevPos = this.player.transform.position;
 
-        switch (this.state)
-        {
-            case "LoadScenario":
+        switch (this.state) {
+			case "LoadScenario":
                 LoadScenario();
                 break;
 
@@ -160,6 +159,14 @@ public class GameControlScript : MonoBehaviour
                 Respawn();
                 break;
 
+			case "Blacken":
+				Blacken();
+				break;
+
+			case "Unblacken":
+				Unblacken ();
+				break;
+
             case "GameOver":
                 GameOver();
                 break;
@@ -170,7 +177,6 @@ public class GameControlScript : MonoBehaviour
     }
 
 	void LateUpdate() {
-		//Debug.Log ("Framerate: " + 1.0f / Time.deltaTime);
 		CatchKeyStrokes ();
 	}
 
@@ -265,15 +271,21 @@ public class GameControlScript : MonoBehaviour
 		}
         
         if (!this.state.Equals("LoadScenario") || (this.state.Equals("LoadScenario") && EventSystem.current.currentSelectedGameObject == null)) {
-            if (Input.GetKeyUp(KeyCode.U)) {
-                this.udpSender.SendWaterReward(Globals.rewardDur);
-                Globals.numberOfUnearnedRewards++;
-                Globals.rewardAmountSoFar += Globals.rewardSize;
+			if (Input.GetKeyUp (KeyCode.U)) {
+				this.udpSender.SendWaterReward (Globals.rewardDur);
+				Globals.numberOfUnearnedRewards++;
+				Globals.rewardAmountSoFar += Globals.rewardSize;
 				updateRewardAmountText ();
-				Debug.Log("gave reward = " + Globals.rewardAmountSoFar);
-            } else if (Input.GetKeyUp(KeyCode.T)) {
-                TeleportToBeginning();
-            }
+				Debug.Log ("gave reward = " + Globals.rewardAmountSoFar);
+			} else if (Input.GetKeyUp (KeyCode.T)) {
+				TeleportToBeginning ();
+			} else if (Input.GetKeyUp (KeyCode.B)) {
+				if (!this.state.Equals ("Blacken")) {
+					this.state = "Blacken";
+				} else {
+					this.state = "Unblacken";
+				}
+			}
         }
     }
 
@@ -429,8 +441,28 @@ public class GameControlScript : MonoBehaviour
         }
     }
 
-	public void Pause()
-	{
+	// Called when the user presses F to make the screen black - ball movements no longer move the mouse through the world.  Convenience to try to see if one can snap the mouse out of a period of inattention.
+	// Screen stays black until the user presses F again to unfreeze.
+	public void Blacken() {
+		TimeSpan te = DateTime.Now.Subtract(Globals.gameStartTime);
+		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}:{2:G4}:{3}", te.Hours * 60 + te.Minutes, te.Seconds, Time.deltaTime * 1000, frameCounter++);
+
+		this.fadeToBlack.gameObject.SetActive(true);
+		this.fadeToBlack.color = Color.black;
+	}
+
+	public void Unblacken() {
+		Color t = this.fadeToBlack.color;
+		t.a = 0f;
+		this.fadeToBlack.color = t;
+		this.fadeToBlackText.text = "";
+		this.fadeToBlack.gameObject.SetActive(false);
+
+		state = "Running";
+	}
+
+	// Game is paused briefly between trials
+	public void Pause() {
 		updateRewardAmountText ();
         if (Globals.numberOfTrials > 1) {
 			updateCorrectTurnsText ();
