@@ -10,6 +10,7 @@
 		<gameConfig>
 			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<rewardDur>30</rewardDur>
 		</gameConfig>
 	</config>
 	<worlds>

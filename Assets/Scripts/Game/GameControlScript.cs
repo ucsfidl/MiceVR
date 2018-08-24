@@ -210,8 +210,6 @@ public class GameControlScript : MonoBehaviour
 		string _vrGoogleSheetsName = "";
 		string _numCameras = "";
 
-		Debug.Log ("Init view value: " + _centralViewVisible);
-
         foreach (XmlNode xn in gameConfigList)
         {
 			_runDuration = xn["runDuration"].InnerText;

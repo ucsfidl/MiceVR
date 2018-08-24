@@ -10,6 +10,7 @@
 		<gameConfig>
 			<gameType>detection</gameType>
 			<gameTurnControl>yaw</gameTurnControl>
+			<rewardDur>30</rewardDur>
 		</gameConfig>
 	</config>
 	<worlds>
