@@ -38,6 +38,7 @@ public class GameControlScript : MonoBehaviour
     private long frameCounter, previousFrameCounter;
     private System.Collections.Generic.Queue<float> last5Mouse2Y, last5Mouse1Y;
     public string state;
+	public string prevState;
     private bool firstFrameRun;
     private bool playerInWaterTree, playerInDryTree;
     private Loader scenarioLoader;
@@ -281,6 +282,7 @@ public class GameControlScript : MonoBehaviour
 				TeleportToBeginning ();
 			} else if (Input.GetKeyUp (KeyCode.B)) {
 				if (!this.state.Equals ("Blacken")) {
+					this.prevState = this.state;
 					this.state = "Blacken";
 				} else {
 					this.state = "Unblacken";
@@ -458,7 +460,7 @@ public class GameControlScript : MonoBehaviour
 		this.fadeToBlackText.text = "";
 		this.fadeToBlack.gameObject.SetActive(false);
 
-		state = "Running";
+		this.state = this.prevState;
 	}
 
 	// Game is paused briefly between trials
@@ -476,13 +478,13 @@ public class GameControlScript : MonoBehaviour
 		// Only proceed if elapsed time is greater than or equal to trialDelay
 		te = DateTime.Now.Subtract(pauseStartTime);
 		if (te.TotalMilliseconds >= Globals.trialDelay * 1000) {
+			Debug.Log("moving on");
 			float totalEarnedRewardSize = 0;
 			float totalRewardSize = 0;
 			for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++) {
 				totalEarnedRewardSize += (float)System.Convert.ToDouble(Globals.sizeOfRewardGiven[i]);
 			}
 			totalRewardSize = totalEarnedRewardSize + Globals.numberOfUnearnedRewards * Globals.rewardSize;
-			//Debug.Log("Total reward so far: " + totalRewardSize + "; maxReward = " + Globals.totalRewardSize);
 			pauseEnd = pauseTime;
 			if (totalRewardSize >= Globals.totalRewardSize) {
 				this.state = "GameOver";
@@ -520,7 +522,6 @@ public class GameControlScript : MonoBehaviour
         // Move the player now, as the screen goes to black and the app detects collisions between the new tree and the player 
         // if the player is not moved.
         TeleportToBeginning();
-
     }
 
     private void Respawn() {
