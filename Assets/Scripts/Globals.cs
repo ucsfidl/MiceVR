@@ -38,7 +38,6 @@ public static class Globals
     public static ArrayList firstTurnVFreq = new ArrayList();  // Orientation of the tree the mouse chose
 	public static ArrayList trialWorld = new ArrayList();  // Which world, in a multi-world scenario, was shown on this trial
     public static int numCorrectTurns;
-	public static int trialsSinceMouseStreakEliminated = 3;
 
 	public static int trialDelay;
 	public static int numberOfTrials;
@@ -70,6 +69,7 @@ public static class Globals
 	public static bool perim = false;  // default to false, as perimetry is only running in special circumstances
 	public static int perimScale;  // 0 = full scale, 1 = 40x40 deg, 2 positions; 2=40x20 deg, 3 positions; 3=20x20 deg, 6 position; 4=10x10 deg, 12 of 24 positions.  Note a larger number also includes the scales smaller than itself.
 									// v1 perim scale: 0 = full scale, 1 = 40x40 deg, 2 positions; 2=20x20 deg, 6 position; 3=10x10 deg, 12 of 24 positions
+	public static bool perimRange = true;  // True = all sizes larger than the specified will also be presented, while false means only the size specified will be presented
 
 	public static string mouseName = "";
 	public static string scenarioName = "";

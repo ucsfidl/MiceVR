@@ -316,6 +316,13 @@ public class Loader : MonoBehaviour {
 				if (xn["perimScale"] != null) {
 					int.TryParse(xn["perimScale"].InnerText, out Globals.perimScale);
 				}
+				if (xn["perimRange"] != null) {
+					string perimRangeXML = xn["perimRange"].InnerText;
+					if (perimRangeXML.Equals("false"))
+						Globals.perimRange = false;
+					else  // Default state is true - range is on
+						Globals.perim = true;
+				}
 
 				if (xn ["presoRatio"] != null) {
 					float.TryParse (xn ["presoRatio"].InnerText, out Globals.presoRatio);

@@ -801,7 +801,18 @@ public class GameControlScript : MonoBehaviour
 
 		// NO bias correction with FOV location yet, but may need to add later
 		if (Globals.perim && (((gos.Length == 3 || gos.Length == 2) && locx != Globals.worldXCenter) || gos.Length == 4)) {  // perimetry is enabled, so pick from the set of random windows to use
-			int rFOV = UnityEngine.Random.Range (0, Globals.fovsForPerimScaleInclusive [Globals.perimScale]);
+			int start;
+			int end = Globals.fovsForPerimScaleInclusive [Globals.perimScale];
+			if (Globals.perimRange) {  // Also include larger size stim in the stim set
+				start = 0;
+			} else {  // Only include stim that are of the size specified in the scenario file
+				start = end - Globals.fovsForPerimScaleInclusive [Globals.perimScale - 1];
+				if (Globals.perimScale == 1) { // Special case
+					start = start - 1;
+				}
+			}
+			int rFOV = UnityEngine.Random.Range (start, end);
+			Debug.Log (start + " - " + end);
 			Debug.Log ("FOV: " + rFOV);
 			Globals.SetOccluders (locx, rFOV);
 		} else {

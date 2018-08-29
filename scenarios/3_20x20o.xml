@@ -10,9 +10,9 @@
 		<gameConfig>
 			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
-			<biasCorrection>false</biasCorrection>
 			<perim>true</perim>
-			<perimScale>2</perimScale>
+			<perimScale>3</perimScale>
+			<perimRange>false</perimRange>
 		</gameConfig>
 	</config>
 	<worlds>
@@ -47,14 +47,19 @@
 			</trees>
 			<walls>
 				<wall> <!-- Left wall -->
-					<pos>19994;0.5;20006.5</pos>
+					<pos>19994;0.5;20005</pos>
 					<rot>0;0;0</rot>
-					<scale>2;0;21.6</scale>
+					<scale>2;0;17</scale>
+				</wall>
+				<wall> <!-- Left diagonal wall -->
+					<pos>19991;0.5;20016</pos>
+					<rot>0;-30;0</rot>
+					<scale>2;0;9</scale>
 				</wall>
 				<wall> <!-- Left front wall -->
-					<pos>19986;0.5;20019</pos>
+					<pos>19982;0.5;20019</pos>
 					<rot>0;270;0</rot>
-					<scale>2;0;19.1</scale>
+					<scale>2;0;14</scale>
 				</wall>
 				<wall> <!-- Left Closing wall -->
 					<pos>19976;0.5;20028</pos>
@@ -92,14 +97,19 @@
 					<scale>2;0;19.1</scale>
 				</wall>
 				<wall> <!-- Right front wall -->
-					<pos>20014;0.5;20019</pos>
+					<pos>20018;0.5;20019</pos>
 					<rot>0;270;0</rot>
-					<scale>2;0;19.1</scale>
+					<scale>2;0;14</scale>
+				</wall>
+				<wall> <!-- Right diagonal wall -->
+					<pos>20009;0.5;20016</pos>
+					<rot>0;30;0</rot>
+					<scale>2;0;9</scale>
 				</wall>
 				<wall> <!-- Right wall -->
-					<pos>20006;0.5;20006.5</pos>
+					<pos>20006;0.5;20005</pos>
 					<rot>0;0;0</rot>
-					<scale>2;0;21.6</scale>
+					<scale>2;0;17</scale>
 				</wall>
 				<wall> <!-- Front wall -->
 					<pos>20000;0.5;19994</pos>
