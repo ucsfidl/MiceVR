@@ -877,8 +877,13 @@ public class GameControlScript : MonoBehaviour
         yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
 		this.udpSender.close();
-        Globals.WriteStatsFile();
-		bool wroteData = Globals.WriteStatsToGoogleSheet();
+		bool wroteData;
+		if (Globals.firstTurn.Count == 0) {
+			wroteData = true;
+		} else {
+			wroteData = Globals.WriteStatsToGoogleSheet();
+			Globals.WriteStatsFile();
+		}
 		if (wroteData) {
 			Application.Quit ();
 		} else {
