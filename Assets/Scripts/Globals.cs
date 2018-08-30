@@ -256,27 +256,28 @@ public static class Globals
 	public static List<Tree> GetAllTrees() {
 		List<Tree> allTrees = new List<Tree> ();
 		bool stillNew = true;
-		foreach (World w in worlds) {
-			List<Tree> treeCandidates = w.trees;
-			foreach (Tree tNew in treeCandidates) {
-				foreach (Tree tOld in allTrees) {
-					if (tNew.pos.x == tOld.pos.x) {
-						stillNew = false;  // Tree is already in the list, so don't add it
-						break;
+		if (worlds != null) {
+			foreach (World w in worlds) {
+				List<Tree> treeCandidates = w.trees;
+				foreach (Tree tNew in treeCandidates) {
+					foreach (Tree tOld in allTrees) {
+						if (tNew.pos.x == tOld.pos.x) {
+							stillNew = false;  // Tree is already in the list, so don't add it
+							break;
+						}
 					}
-				}
-				if (stillNew) {  // Manage if the trees are read it out of rank order
-					while (allTrees.Count < tNew.rank) {
-						allTrees.Add (new Tree());
+					if (stillNew) {  // Manage if the trees are read it out of rank order
+						while (allTrees.Count < tNew.rank) {
+							allTrees.Add (new Tree ());
+						}
+						if (allTrees.Count != tNew.rank) {
+							allTrees.RemoveAt (tNew.rank);
+						}
+						allTrees.Insert (tNew.rank, tNew);
 					}
-					if (allTrees.Count != tNew.rank) {
-						allTrees.RemoveAt (tNew.rank);
-					}
-					allTrees.Insert (tNew.rank, tNew);
 				}
 			}
 		}
-
 		return allTrees;
 	}
 

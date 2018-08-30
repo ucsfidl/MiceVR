@@ -319,7 +319,7 @@ public class GameControlScript : MonoBehaviour
         {
             this.runTime = Time.time;
             Globals.gameStartTime = DateTime.Now;
-            Debug.Log("Game started at " + Globals.gameStartTime.ToLongTimeString());
+            //Debug.Log("Game started at " + Globals.gameStartTime.ToLongTimeString());
             this.movementRecorder.SetRun(this.runNumber);
             this.movementRecorder.SetFileSet(true);
             Color t = this.fadeToBlack.color;
@@ -888,13 +888,9 @@ public class GameControlScript : MonoBehaviour
         yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
 		this.udpSender.close();
-		bool wroteData;
-		if (Globals.firstTurn.Count == 0) {
-			wroteData = true;
-		} else {
-			wroteData = Globals.WriteStatsToGoogleSheet();
-			Globals.WriteStatsFile();
-		}
+		bool wroteData = Globals.WriteStatsToGoogleSheet();
+		Globals.WriteStatsFile();
+
 		if (wroteData) {
 			Application.Quit ();
 		} else {
