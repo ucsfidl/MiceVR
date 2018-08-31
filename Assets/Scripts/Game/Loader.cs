@@ -335,7 +335,7 @@ public class Loader : MonoBehaviour {
 						Globals.optoSide = 0;
 					else if (optoSideXML.Equals ("R"))
 						Globals.optoSide = 1;
-					else if (optoSideXML.Equals ("B"))
+					else if (optoSideXML.Equals ("LR"))
 						Globals.optoSide = 2;
 				}
 				if (xn ["optoFraction"] != null) {
