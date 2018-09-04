@@ -476,7 +476,6 @@ public class GameControlScript : MonoBehaviour
 		// Only proceed if elapsed time is greater than or equal to trialDelay
 		te = DateTime.Now.Subtract(pauseStartTime);
 		if (te.TotalMilliseconds >= Globals.trialDelay * 1000) {
-			Debug.Log("moving on");
 			float totalEarnedRewardSize = 0;
 			float totalRewardSize = 0;
 			for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++) {
@@ -812,8 +811,7 @@ public class GameControlScript : MonoBehaviour
 				}
 			}
 			int rFOV = UnityEngine.Random.Range (start, end);
-			Debug.Log (start + " - " + end);
-			Debug.Log ("FOV: " + rFOV);
+			Debug.Log ("FOV range (" + start + " - " + end + "), picked " + rFOV);
 			Globals.SetOccluders (locx, rFOV);
 		} else {
 			Globals.SetOccluders(locx);
