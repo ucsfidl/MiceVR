@@ -10,8 +10,7 @@
 		<gameConfig>
 			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
-			<perim>true</perim>
-			<perimScale>2</perimScale>
+			<treesBelowGround>true</treesBelowGround>
 			<rewardDur>20</rewardDur>
 		</gameConfig>
 	</config>
@@ -20,27 +19,25 @@
 			<trees>
 				<t> <!-- Left tree -->
 					<w>1</w>
-					<pos>19980;0;20028</pos>
+					<pos>19980;-16;20028</pos>
 					<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>8</v>
 					<h>4</h>
 					<d>0</d>
-					<r>0</r>
 					<rewardMulti>1</rewardMulti>
 				</t>
 				<t> <!-- Right tree -->
 					<w>1</w>
-					<pos>20020;0;20028</pos>
+					<pos>20020;-16;20028</pos>
 					<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>8</v>
 					<h>4</h>
 					<d>0</d>
-					<r>2</r>
 					<rewardMulti>1</rewardMulti>
 				</t>
 				<t> <!-- Center tree -->
 					<w>1</w>
-					<pos>20000;0;20046</pos>
+					<pos>20000;-16;20046</pos>
 					<scale>0;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>0</v>  <!-- Vfreq of gradient -->
 					<h>4</h>  <!-- Hfreq of gradient -->

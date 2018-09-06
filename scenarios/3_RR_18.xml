@@ -10,8 +10,6 @@
 		<gameConfig>
 			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
-			<perim>true</perim>
-			<perimScale>2</perimScale>
 			<rewardDur>20</rewardDur>
 		</gameConfig>
 	</config>
