@@ -10,6 +10,9 @@ trialEnds = struct([]);
 lastEventTime = 0;
 fps = 60;
 
+vidWidth = 200;
+vidHeight = 150;
+
 numCams = 2;
 numSlaves = numCams - 1;
 
@@ -43,9 +46,9 @@ for i=1:numCams
     if (strcmp(src.DeviceVendorName,'Basler'))
         src.BinningHorizontal = 2;
         src.BinningVertical = 2;
-        vid{i}.ROIPosition = [220, 181, 200, 150];
+        vid{i}.ROIPosition = [220, 181, vidWidth, vidHeight];
     else
-        vid{i}.ROIPosition = [540, 437, 200, 150];        
+        vid{i}.ROIPosition = [540, 437, vidWidth, vidHeight];
     end
     
     src.ExposureTime = 14000;  %15000 might be too fast
@@ -64,6 +67,10 @@ for i=1:numCams
     vid{i}.TriggerFcn = {'logTrialMarks'};
     
     preview(vid{i}); 
+    if (i == 2)
+        h = gcf;
+        set(h, 'Position', [h.Position(1) h.Position(2) h.Position(3)+vidWidth*1.2 h.Position(4));
+    end
 end
 
 x = input('Press ENTER to stop preview & start PARALLEL recording with hardware trigger');
