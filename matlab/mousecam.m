@@ -68,7 +68,7 @@ for i=1:numCams
     
     h = preview(vid{i}); 
     if (i == 2)
-        movegui(h, [1720 1720]);
+        movegui(h, [1520 1720]);
         movegui(h);
         %set(h, 'Position', [h.Position(1) h.Position(2) h.Position(3)+vidWidth*1.2 h.Position(4)]);
     end
