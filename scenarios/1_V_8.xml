@@ -1,0 +1,50 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>
+			<gameTurnControl>yaw</gameTurnControl>
+		</gameConfig>
+	</config>
+	<worlds>
+		<world>
+			<trees>
+				<t>
+					<w>1</w>
+					<pos>20000;0;20040</pos>
+					<d>0</d>
+					<h>1</h>
+					<v>8</v>
+				</t>
+			</trees>
+			<walls>
+				<wall> <!-- Left wall -->
+					<pos>19994;0.5;20023</pos>
+					<rot>0;0;0</rot>
+					<scale>2;0;60</scale>
+				</wall>
+				<wall> <!-- Right wall -->
+					<pos>20006;0.5;20023</pos>
+					<rot>0;0;0</rot>
+					<scale>2;0;60</scale>
+				</wall>
+				<wall> <!-- Front wall -->
+					<pos>20000;0.5;19994</pos>
+					<rot>0;90;0</rot>
+					<scale>2;0;15</scale>
+				</wall>
+				<wall> <!-- Back wall -->
+					<pos>20000;0.5;20050</pos>
+					<rot>0;270;0</rot>
+					<scale>2;0;15</scale>
+				</wall>
+			</walls>
+		</world>
+	</worlds>
+</document>
