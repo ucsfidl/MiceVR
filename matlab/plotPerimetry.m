@@ -48,13 +48,13 @@ missMapR10x10 = containers.Map();
 numFilesAnalyzed = 0;
 for i=1:length(fileList)
 %    if (isempty(matchName) || (~isempty(matchName) && contains(fileList(i).name, matchName)))
-    for j=1:length(days)
-        if (contains(fileList(i).name, [mouseName '-D' num2str(days(j))]))
+    for k=1:length(days)
+        if (contains(fileList(i).name, [mouseName '-D' num2str(days(k))]))
             fid = fopen([fileList(i).folder '\' fileList(i).name]);
             if (fid ~= -1)  % File was opened properly
                 numFilesAnalyzed = numFilesAnalyzed + 1;
                 tline = fgetl(fid); % Throw out the first line, as it is a column header
-                C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f'); % C is a cell array with each string separated by a space
+                C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f %d %d'); % C is a cell array with each string separated by a space
                 % If this is not a center trial, add it to the maps
                 for j = 1:length(C{1})
                     nasal = C{8}(j);
