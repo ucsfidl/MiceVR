@@ -16,6 +16,9 @@ centerX = 20000;
 
 results = zeros(3,3);
 
+leftStimStraightErrorsMap = containers.Map();
+rightStimStraightErrorsMap = containers.Map();
+
 % First, find all the filenames to read in
 fileList = dir(['data/*.txt']); % Get all mat files, and use that to construct filenames for video files
 
@@ -33,11 +36,6 @@ for i=1:length(fileList)
                     stimLoc = C{5}(k);
                     actionLoc = C{12}(k);
                     
-                    nasal = C{8}(k);
-                    temporal = C{9}(k);
-                    high = C{10}(k);
-                    low = C{11}(k);
-
                     if (stimLoc == leftX)
                         col = 1;
                     elseif (stimLoc == rightX)
@@ -53,8 +51,30 @@ for i=1:length(fileList)
                     elseif (actionLoc == centerX)
                         row = 3;
                     end
-                    
                     results(row, col) = results(row, col) + 1;
+                    
+                    if (col ~= row)  % error trial
+                        nasal = C{8}(k);
+                        temporal = C{9}(k);
+                        high = C{10}(k);
+                        low = C{11}(k);
+                        key = ['N' num2str(nasal) '_T' num2str(temporal) '_H' num2str(high) '_L' num2str(low)];
+                        prevVal = 0;
+                        if (actionLoc == centerX)
+                            if (stimLoc == leftX)
+                                if (isKey(leftStimStraightErrorsMap, key))
+                                    prevVal = leftStimStraightErrorsMap(key);
+                                end
+                                leftStimStraightErrorsMap(key) = prevVal + 1; %#ok<*NASGU>
+                            elseif (stimLoc == rightX)
+                                if (isKey(rightStimStraightErrorsMap, key))
+                                    prevVal = rightStimStraightErrorsMap(key);
+                                end
+                                rightStimStraightErrorsMap(key) = prevVal + 1; %#ok<*NASGU>
+                            end
+                        end
+                    end
+                    
                 end
             end
         end
@@ -75,7 +95,15 @@ disp(['C->R = ' num2str(results(2,3) / sum(results(:, 3)) * 100, 2) '%']);
 disp(['C->C = ' num2str(results(3,3) / sum(results(:, 3)) * 100, 2) '%']);
 disp('===========')
 
-
 disp(['Analyzed ' num2str(numFilesAnalyzed) ' files.']);
+
+disp('Stim on left, but mouse goes straight:');
+disp(keys(leftStimStraightErrorsMap));
+disp(values(leftStimStraightErrorsMap));
+
+disp('Stim on right, but mouse goes straight:');
+disp(keys(rightStimStraightErrorsMap));
+disp(values(rightStimStraightErrorsMap));
+
 
 end
