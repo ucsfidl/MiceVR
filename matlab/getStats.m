@@ -32,6 +32,12 @@ for i=1:length(fileList)
                     % C{5} is the target location, C{12} is the turn location
                     stimLoc = C{5}(k);
                     actionLoc = C{12}(k);
+                    
+                    nasal = C{8}(k);
+                    temporal = C{9}(k);
+                    high = C{10}(k);
+                    low = C{11}(k);
+
                     if (stimLoc == leftX)
                         col = 1;
                     elseif (stimLoc == rightX)
