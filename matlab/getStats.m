@@ -36,17 +36,17 @@ for i=1:length(fileList)
                     stimLoc = C{5}(k);
                     actionLoc = C{12}(k);
                     
-                    if (stimLoc == leftX)
+                    if (stimLoc < centerX)
                         col = 1;
-                    elseif (stimLoc == rightX)
+                    elseif (stimLoc > centerX)
                         col = 2;
                     elseif (stimLoc == centerX)
                         col = 3;
                     end
                     
-                    if (actionLoc == leftX)
+                    if (actionLoc < centerX)
                         row = 1;
-                    elseif (actionLoc == rightX)
+                    elseif (actionLoc > centerX)
                         row = 2;
                     elseif (actionLoc == centerX)
                         row = 3;
