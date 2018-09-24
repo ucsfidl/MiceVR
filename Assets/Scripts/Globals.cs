@@ -169,6 +169,7 @@ public static class Globals
 
 	public static int optoSide = -1;       // 0 = left, 1 = right, 2 = both
 	public static float optoFraction;  // fraction of trials in which the light will randomly be on
+	public static bool optoAlternation = false;  // Used to force the light to be on on every other trial
 	public static int optoState = -1;     // 0 = left, 1 = right, 2 = both
 
 	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName) {

@@ -820,9 +820,15 @@ public class GameControlScript : MonoBehaviour
 
 		// Optogenetics
 		if (Globals.optoSide != -1) {  // A side for optogenetics was specified
-			float rOpto = UnityEngine.Random.value;
-			if (rOpto < Globals.optoFraction) {
-				udpSender.GetComponent<UDPSend>().OptoTurnOn(Globals.optoSide);
+			if (Globals.optoAlternation) {  // If it should alternate, then alternate it, with every even trial getting light on
+				if (Globals.numberOfTrials % 2 == 0) {
+					udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
+				}
+			} else {
+				float rOpto = UnityEngine.Random.value;
+				if (rOpto < Globals.optoFraction) {
+					udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
+				}
 			}
 		}
 

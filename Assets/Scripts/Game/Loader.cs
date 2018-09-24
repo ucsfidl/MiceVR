@@ -341,6 +341,13 @@ public class Loader : MonoBehaviour {
 				if (xn ["optoFraction"] != null) {
 					float.TryParse(xn["optoFraction"].InnerText, out Globals.optoFraction);
 				}
+				if (xn ["optoAlternation"] != null) {
+					string optoAltXML = xn["optoAlternation"].InnerText;
+					if (optoAltXML.Equals("true"))
+						Globals.optoAlternation = true;
+					else
+						Globals.optoAlternation = false;
+				}
 				if (xn ["treesBelowGround"] != null) {
 					string treesBelowGroundXML = xn["treesBelowGround"].InnerText;
 					if (treesBelowGroundXML.Equals("true"))
