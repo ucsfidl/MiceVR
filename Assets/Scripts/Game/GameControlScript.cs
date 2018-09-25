@@ -729,17 +729,26 @@ public class GameControlScript : MonoBehaviour
 			if (Globals.numberOfTrials > 1) {  // Add bias correction option if needed later
 				rThresh0 = 1 - Globals.GetTurnBias (20, 0);
 			}
+
+			// Randomize phase, if enabled
+			float rewardedHPhase = Globals.randomPhase && Globals.rewardedHFreq != 1 ? UnityEngine.Random.value * 360 : 0;
+			float rewardedVPhase = Globals.randomPhase && Globals.rewardedVFreq != 1 ? UnityEngine.Random.value * 360 : 0;
+			float distractorHPhase = Globals.randomPhase && Globals.distractorHFreq != 1 ? UnityEngine.Random.value * 360 : 0;
+			float distractorVPhase = Globals.randomPhase && Globals.distractorVFreq != 1 ? UnityEngine.Random.value * 360 : 0;
+
+			Debug.Log (rewardedHPhase);
+
             if (r < rThresh0) {
-                gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, Globals.rewardedVFreq);
-                gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, Globals.distractorVFreq);
+				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, 0); // later, listen to the deg argument
+				gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, 0);
                 locx = gos[0].transform.position.x;
                 hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
                 vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
                 gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
                 gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
             } else {
-				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, Globals.distractorVFreq);
-                gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, Globals.rewardedVFreq);
+				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, 0);
+				gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, 0);
                 locx = gos[1].transform.position.x;
                 hfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
                 vfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
@@ -817,6 +826,8 @@ public class GameControlScript : MonoBehaviour
 			Globals.SetOccluders(locx);
 			Debug.Log ("no dynamic occlusion");
 		}
+
+		// Phase randomization
 
 		// Optogenetics
 		if (Globals.optoSide != -1) {  // A side for optogenetics was specified

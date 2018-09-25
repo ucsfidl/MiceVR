@@ -57,6 +57,8 @@ public static class Globals
 	public static float distractorHFreq;
 	public static float distractorVFreq;
 
+	public static bool randomPhase = false;
+
 	public static Color distColor1;
 	public static Color distColor2;
 

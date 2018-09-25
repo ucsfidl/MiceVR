@@ -355,6 +355,14 @@ public class Loader : MonoBehaviour {
 					else
 						Globals.treesBelowGround = false;
 				}
+				if (xn ["randomPhase"] != null) {
+					string randomPhaseXML = xn["randomPhase"].InnerText;
+					if (randomPhaseXML.Equals ("true")) {
+						Globals.randomPhase = true;
+					} else {
+						Globals.randomPhase = false;
+					}
+				}
 
 				if (xn ["rewardDur"] != null) {  // Used by SDT task where reward size is varied, but if the stock reward size is used (60ms or 4ul), than a 2-4x multiplier is too much and the water drop falls onto the ball...
 					// Update the rewardSize, assuming linearity, which is a poor approximation
