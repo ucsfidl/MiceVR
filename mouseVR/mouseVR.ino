@@ -6,10 +6,18 @@ const int wallPin = 4;
 const int vPin = 3;  // hack to keep the valve from flickering on program load, which leaks water everywhere
 const int touchPin = 2;
 const int camTrigPin = 5;  // For triggering the cameras pointing to each eye
-//const int camTrigPin2 = 6;
 const int camGndPin = 9;  // Out of ground pins on Arduino board
 const int optoLeftPin = 10;  // Output to turn on optogenetic LED over left cortex
 const int optoRightPin = 11;  // Output to turn on optogenetic LED over right cortex
+
+// These variables are used to dim the LED off instead of abrupting turning it off
+const int LEFT_LED = 0;
+const int RIGHT_LED = 1;
+const int BOTH_LEDS = 2;
+const int dimDur = 500;  // Dim the LED over 500 ms
+int powerDownLeft = 0;
+unsigned long startDimTime;
+int whichLED;
 
 void setup() {
   Serial.begin(2000000);
@@ -39,9 +47,21 @@ void setup() {
   digitalWrite(vPin, HIGH);  // The built-in 5V pin for some reason fluctuates during program upload, so use this instead for the valve controller
 }
 
-int flag = 0;
-
 void loop() {
+  // Always check to dim LEDs if powering down slowly
+  if (powerDownLeft > 0) {
+    powerDownLeft = powerDownLeft - (millis() - startDimTime);
+    int ledVal = 255 * ((float)powerDownLeft / dimDur);
+    if (whichLED == LEFT_LED) {
+      analogWrite(optoLeftPin, ledVal);
+    } else if (whichLED == RIGHT_LED) {
+      analogWrite(optoRightPin, ledVal);
+    } else if (whichLED == BOTH_LEDS) {
+      analogWrite(optoLeftPin, ledVal);
+      analogWrite(optoRightPin, ledVal);
+    }
+  }
+  
   if (Serial.available() > 0) {
     int data = Serial.parseInt();
     //Serial.println(data);
@@ -62,18 +82,21 @@ void loop() {
         digitalWrite(camTrigPin, LOW);
       } else if (data == -4) {    // Turn on optoLeft LED
         //Serial.println("LeftLED!");
-        digitalWrite(optoLeftPin, HIGH);
+        analogWrite(optoLeftPin, 255);
+        whichLED = LEFT_LED;
       } else if (data == -5) {    // Turn on optoRight LED
         //Serial.println("RightLED!");
-        digitalWrite(optoRightPin, HIGH);
+        analogWrite(optoRightPin, 255);
+        whichLED = RIGHT_LED;
       } else if (data == -6) {    // Turn on both opto LEDs
         //Serial.println("BothLEDs!");
-        digitalWrite(optoLeftPin, HIGH);
-        digitalWrite(optoRightPin, HIGH);
+        analogWrite(optoLeftPin, 255);
+        analogWrite(optoRightPin, 255);
+        whichLED = BOTH_LEDS;
       } else if (data == -7) {    // Turn OFF both LEDs
         //Serial.println("OffLEDs!");
-        digitalWrite(optoLeftPin, LOW);
-        digitalWrite(optoRightPin, LOW);
+        powerDownLeft = dimDur;
+        startDimTime = millis();
       } else if (data > 0) {        // Water
         digitalWrite(waterPin, HIGH);
         digitalWrite(ledPin, HIGH);
