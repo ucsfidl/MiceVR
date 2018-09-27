@@ -18,6 +18,16 @@ const int dimDur = 500;  // Dim the LED over 500 ms
 int powerDownLeft = 0;
 unsigned long startDimTime;
 int whichLED;
+int ledPower = 255;  // max 255
+// powerlevels 
+// rig 1 left:
+// rig 2 right:
+// rig 2 left:
+// rig 2 right:
+// rig 3 left: 
+// rig 3 right:
+// rig 4 left:
+// rig 4 right:
 
 void setup() {
   Serial.begin(2000000);
@@ -50,10 +60,18 @@ void setup() {
 void loop() {
   // Always check to dim LEDs if powering down slowly
   if (powerDownLeft > 0) {
-    powerDownLeft = powerDownLeft - (millis() - startDimTime);
-    int ledVal = 255 * ((float)powerDownLeft / dimDur);
+    powerDownLeft = dimDur - (millis() - startDimTime);
+    //Serial.println(millis());
+    //Serial.println(startDimTime);
+    //Serial.println(powerDownLeft);
+    
+    if (powerDownLeft < 0) {
+      powerDownLeft = 0;
+    }
+    int ledVal = ledPower * ((float)powerDownLeft / dimDur);
     if (whichLED == LEFT_LED) {
       analogWrite(optoLeftPin, ledVal);
+      //Serial.println(ledVal);
     } else if (whichLED == RIGHT_LED) {
       analogWrite(optoRightPin, ledVal);
     } else if (whichLED == BOTH_LEDS) {
@@ -81,20 +99,20 @@ void loop() {
         digitalWrite(camTrigPin, HIGH);
         digitalWrite(camTrigPin, LOW);
       } else if (data == -4) {    // Turn on optoLeft LED
-        //Serial.println("LeftLED!");
-        analogWrite(optoLeftPin, 255);
+        Serial.println("LeftLED!");
+        analogWrite(optoLeftPin, ledPower);
         whichLED = LEFT_LED;
       } else if (data == -5) {    // Turn on optoRight LED
-        //Serial.println("RightLED!");
-        analogWrite(optoRightPin, 255);
+        Serial.println("RightLED!");
+        analogWrite(optoRightPin, ledPower);
         whichLED = RIGHT_LED;
       } else if (data == -6) {    // Turn on both opto LEDs
-        //Serial.println("BothLEDs!");
-        analogWrite(optoLeftPin, 255);
-        analogWrite(optoRightPin, 255);
+        Serial.println("BothLEDs!");
+        analogWrite(optoLeftPin, ledPower);
+        analogWrite(optoRightPin, ledPower);
         whichLED = BOTH_LEDS;
       } else if (data == -7) {    // Turn OFF both LEDs
-        //Serial.println("OffLEDs!");
+        Serial.println("OffLEDs!");
         powerDownLeft = dimDur;
         startDimTime = millis();
       } else if (data > 0) {        // Water
