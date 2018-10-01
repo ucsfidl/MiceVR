@@ -398,6 +398,7 @@ public class Loader : MonoBehaviour {
 					float rewardMulti = Globals.NULL;
 					int rank = (int)Globals.NULL;
 					string materialName = "gradient";
+					string type = "";
 
 					foreach (XmlNode val in treeAttributes) {
 						if (val.Name == "w") {
@@ -452,10 +453,12 @@ public class Loader : MonoBehaviour {
 							int.TryParse (val.InnerText, out rank);
 						} else if (val.Name == "materialName") {
 							materialName = val.InnerText;
+						} else if (val.Name == "type") {
+							type = val.InnerText;
 						}
 					}
 
-					Globals.AddTreeToWorld (worldNum, water, v, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName);
+					Globals.AddTreeToWorld (worldNum, water, v, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName, type);
 				}
 
 				XmlNodeList wallList = world.GetElementsByTagName("wall"); // array of the wall nodes

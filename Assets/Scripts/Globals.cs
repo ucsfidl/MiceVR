@@ -140,6 +140,7 @@ public static class Globals
 		public Vector3 scale;
 		public int rank;
 		public string materialName;
+		public string type;
 	}
 	public static GameObject treeParent = GameObject.Find("Trees");
 
@@ -159,6 +160,7 @@ public static class Globals
 	public static GameObject waterTreePrefab = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/WaterTree"));
 	public static GameObject waterTreeCricketsPrefab = (GameObject)GameObject.Instantiate (Resources.Load ("Prefabs/WaterTreeCrickets"));
 	public static GameObject waterTreeCricketsWidePrefab = (GameObject)GameObject.Instantiate (Resources.Load ("Prefabs/WaterTreeCricketsWide"));
+	public static GameObject waterTreeFlatPrefab = (GameObject)GameObject.Instantiate (Resources.Load ("Prefabs/WaterTreeFlat"));
 	public static GameObject dryTreePrefab = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/DryTree"));
 	public static GameObject wallPrefab = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/Wall"));
 	public static GameObject waterAngularTreePrefab = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/waterAngularTree"));
@@ -174,7 +176,7 @@ public static class Globals
 	public static bool optoAlternation = false;  // Used to force the light to be on on every other trial
 	public static int optoState = -1;     // 0 = left, 1 = right, 2 = both
 
-	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName) {
+	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type) {
 		World w = GetWorld (worldNum);
 
 		Tree t = new Tree();
@@ -213,6 +215,7 @@ public static class Globals
 			t.rank = w.trees.Count;
 		}
 		t.materialName = materialName;
+		t.type = type;
 
 		w.trees.Add (t);
 
@@ -335,7 +338,9 @@ public static class Globals
 						go = GameObject.Instantiate (waterTreeCricketsPrefab, t.pos, Quaternion.identity);
 					} else if (t.materialName.Equals ("cricketsWide")) {
 						go = GameObject.Instantiate (waterTreeCricketsWidePrefab, t.pos, Quaternion.identity);
-					} else {  // default is the grating
+					} else if (t.type.Equals("flat")) {
+						go = GameObject.Instantiate (waterTreeFlatPrefab, t.pos, Quaternion.identity);
+					} else {  // default is the grating on a cylinder
 						go = GameObject.Instantiate (waterTreePrefab, t.pos, Quaternion.identity);
 					}
 					go.GetComponent<WaterTreeScript> ().SetShaderRotation (t.deg_LS);
