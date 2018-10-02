@@ -74,7 +74,7 @@ public static class FreeGlobals
 
     public static FreeMovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<FreeMovementRecorder>();
     public static DateTime gameStartTime;
-	public static DateTime gameEndTime = new DateTime();
+	public static DateTime gameEndTime = default(DateTime);
 
 	// Rewards that are given for eack lickport, calibrated for each lickport to give a constant amount of reward across ports (to start)
 	public static int[] freeRewardDur = {15, 30, 30, 38, 38, 38}; // prev 15, 30x
