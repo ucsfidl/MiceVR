@@ -1,4 +1,4 @@
-function results = getStats(mouseName, days)
+function results = getStats(mouseName, days, sessions)
 % This function will analyze the relevant actions.txt log files and return
 % a set of statistics useful to analyzing blindness and blindsight.
 
@@ -25,59 +25,71 @@ numFilesAnalyzed = 0;
 for i=1:length(fileList)
     for j=1:length(days)
         if (contains(fileList(i).name, [mouseName '-D' num2str(days(j))]))
-            fid = fopen([fileList(i).folder '\' fileList(i).name]);
-            if (fid ~= -1)  % File was opened properly
-                numFilesAnalyzed = numFilesAnalyzed + 1;
-                tline = fgetl(fid); % Throw out the first line, as it is a column header
-                C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f %d %d'); % C is a cell array with each string separated by a space
-                for k = 1:length(C{1})  % For each line
-                    % C{5} is the target location, C{12} is the turn location
-                    stimLoc = C{5}(k);
-                    actionLoc = C{12}(k);
-                    optoLoc = C{17}(k);
-                    
-                    if (stimLoc < centerX)
-                        col = 1;
-                    elseif (stimLoc > centerX)
-                        col = 2;
-                    elseif (stimLoc == centerX)
-                        col = 3;
+            matchesSession = false;
+            if isempty(sessions)
+                matchesSession = true;
+            else
+                for m=1:length(sessions)
+                    if (contains(fileList(i).name, ['-S' num2str(sessions(m))]))
+                        matchesSession = true;
                     end
-                    
-                    if (actionLoc < centerX)
-                        row = 1;
-                    elseif (actionLoc > centerX)
-                        row = 2;
-                    elseif (actionLoc == centerX)
-                        row = 3;
-                    end
-                    
-                    % Put trials in correct sheet
-                    results(row, col, optoLoc + 2) = results(row, col, optoLoc + 2) + 1;
-                    
-                    if (col ~= row)  % error trial
-                        nasal = C{8}(k);
-                        temporal = C{9}(k);
-                        high = C{10}(k);
-                        low = C{11}(k);
-                        key = ['N' num2str(nasal) '_T' num2str(temporal) '_H' num2str(high) '_L' num2str(low)];
-                        prevVal = 0;
-                        if (actionLoc == centerX)
-                            if (stimLoc == leftX)
-                                if (isKey(leftStimStraightErrorsMap, key))
-                                    prevVal = leftStimStraightErrorsMap(key);
+                end
+            end
+            if (matchesSession)
+                fid = fopen([fileList(i).folder '\' fileList(i).name]);
+                if (fid ~= -1)  % File was opened properly
+                    numFilesAnalyzed = numFilesAnalyzed + 1;
+                    tline = fgetl(fid); % Throw out the first line, as it is a column header
+                    C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f %d %d'); % C is a cell array with each string separated by a space
+                    for k = 1:length(C{1})  % For each line
+                        % C{5} is the target location, C{12} is the turn location
+                        stimLoc = C{5}(k);
+                        actionLoc = C{12}(k);
+                        optoLoc = C{17}(k);
+
+                        if (stimLoc < centerX)
+                            col = 1;
+                        elseif (stimLoc > centerX)
+                            col = 2;
+                        elseif (stimLoc == centerX)
+                            col = 3;
+                        end
+
+                        if (actionLoc < centerX)
+                            row = 1;
+                        elseif (actionLoc > centerX)
+                            row = 2;
+                        elseif (actionLoc == centerX)
+                            row = 3;
+                        end
+
+                        % Put trials in correct sheet
+                        results(row, col, optoLoc + 2) = results(row, col, optoLoc + 2) + 1;
+
+                        if (col ~= row)  % error trial
+                            nasal = C{8}(k);
+                            temporal = C{9}(k);
+                            high = C{10}(k);
+                            low = C{11}(k);
+                            key = ['N' num2str(nasal) '_T' num2str(temporal) '_H' num2str(high) '_L' num2str(low)];
+                            prevVal = 0;
+                            if (actionLoc == centerX)
+                                if (stimLoc == leftX)
+                                    if (isKey(leftStimStraightErrorsMap, key))
+                                        prevVal = leftStimStraightErrorsMap(key);
+                                    end
+                                    leftStimStraightErrorsMap(key) = prevVal + 1; %#ok<*NASGU>
+                                elseif (stimLoc == rightX)
+                                    if (isKey(rightStimStraightErrorsMap, key))
+                                        prevVal = rightStimStraightErrorsMap(key);
+                                    end
+                                    rightStimStraightErrorsMap(key) = prevVal + 1; %#ok<*NASGU>
                                 end
-                                leftStimStraightErrorsMap(key) = prevVal + 1; %#ok<*NASGU>
-                            elseif (stimLoc == rightX)
-                                if (isKey(rightStimStraightErrorsMap, key))
-                                    prevVal = rightStimStraightErrorsMap(key);
-                                end
-                                rightStimStraightErrorsMap(key) = prevVal + 1; %#ok<*NASGU>
                             end
                         end
                     end
-                    
                 end
+                fclose(fid);
             end
         end
     end
