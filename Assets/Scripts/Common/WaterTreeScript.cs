@@ -204,16 +204,17 @@ public class WaterTreeScript : MonoBehaviour {
 		float r = UnityEngine.Random.value;
 		if (r < Globals.probReward) {
 			GameObject.Find ("UDPSender").GetComponent<UDPSend> ().SendWaterReward (rewardDur);
+			Globals.numberOfEarnedRewards++;
+			Globals.sizeOfRewardGiven.Add(Globals.rewardSize / Globals.rewardDur * rewardDur);
+			Globals.rewardAmountSoFar += Globals.rewardSize / Globals.rewardDur * rewardDur;
+			this.mouseObject = GameObject.FindGameObjectWithTag("MainCamera");
+			this.mouseObject.GetComponent<AudioSource>().Play();
 			Debug.Log ("gave reward, random val = " + r);
 		} else {
+			Globals.sizeOfRewardGiven.Add(0);
 			Debug.Log ("no reward, random val = " + r);
 		}
 		this.depleted = true;
-        this.mouseObject = GameObject.FindGameObjectWithTag("MainCamera");
-        this.mouseObject.GetComponent<AudioSource>().Play();
-        Globals.numberOfEarnedRewards++;
-        Globals.sizeOfRewardGiven.Add(Globals.rewardSize / Globals.rewardDur * rewardDur);
-        Globals.rewardAmountSoFar += Globals.rewardSize / Globals.rewardDur * rewardDur;
 
         Globals.hasNotTurned = false;
         if (addToTurns) {
