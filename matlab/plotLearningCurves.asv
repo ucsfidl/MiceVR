@@ -100,7 +100,7 @@ for sheetIdx=1:length(sheetIDs)
         % If all characters are digits, this is a valid number and we found the first valid line
         d = sheet{row, DAY};
         a = sheet{row, ACCURACY};
-        w = sheet{row, WEIGHT};
+        w = sheet(row, WEIGHT);
         t = sheet{row, TRIALSPERMIN};
         lev = sheet(row, SCENARIO);
         na = sheet(row, NASAL);
@@ -191,12 +191,7 @@ for sheetIdx=1:length(sheetIDs)
     for i=1:length(indivAcc)
         yEndInd = yStartInd + size(indivAcc{i}, 2) - 1;
         for j=1:size(indivAcc{i}, 1)
-            if (size(indivAcc{i}, 1) == 1)
-                c = colors(3,:);
-            else
-                c = colors(j,:);
-            end
-            plot(xAcc(yStartInd):xAcc(yEndInd), indivAcc{i}(j,:), 'LineStyle', '-', 'Color', c, 'Marker', 'o', 'LineWidth', 2, 'MarkerSize', 3);
+            plot(xAcc(yStartInd):xAcc(yEndInd), indivAcc{i}(j,:), 'LineStyle', '-', 'Color', colors(j,:), 'Marker', 'o', 'LineWidth', 2, 'MarkerSize', 3);
         end
         yStartInd = yEndInd + 1;
     end

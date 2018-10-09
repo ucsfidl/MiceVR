@@ -536,6 +536,52 @@ public class GameControlScript : MonoBehaviour
 
         int treeToActivate = 0;
         float r = UnityEngine.Random.value;
+
+		// Support pre-computing blocks of trials, at the beginning and after each block
+		// Only supports pre-computing for single-world levels to start
+		// Only works with bias-correction disabled
+		if (Globals.blockSize > 0 && !Globals.biasCorrection && (Globals.numberOfTrials == 1 || Globals.numberOfTrials == 1 + Globals.blockSize)) {
+			int numTrees = gos.Count();
+			int[] precompTrialBlock = new int[Globals.blockSize];
+
+			// Algorithm is to generate a list of stimulus locations in proportion to the appearance probabilities, 
+			// and thenremove from that List until the block is filled.
+			List<int> stimLocs = new List<int>();
+			int[] maxFreq = new int[numTrees];  // Max number of each stimulus per block
+			decimal[] prob = new decimal[numTrees];
+
+			// First, setup all the arrays
+			for (int i = 0; i < numTrees; i++) {
+				if (Globals.presoFracSpecified) {
+					prob [i] = (decimal)gos [i].GetComponent<WaterTreeScript> ().GetPresoFrac ();
+				} else {  // equal ratios
+					prob[i] = (decimal)(1F / numTrees);
+				}
+				maxFreq[i] = (int)Math.Ceiling(Globals.blockSize * prob[i]);
+				//Debug.Log (Globals.blockSize * prob [i]);
+			}
+				
+			// Now, build the bag of stim locs
+			for (int i = 0; i < maxFreq.Length; i++) {
+				//Debug.Log (maxFreq [i]);
+				for (int j = 0; j < maxFreq [i]; j++) {
+					stimLocs.Add (i);
+				}
+			}
+
+			//Debug.Log ("Num trials to select from " + stimLocs.Count());
+
+			for (int i = 0; i < Globals.blockSize; i++) {
+				int ran = UnityEngine.Random.Range (0, stimLocs.Count());
+				precompTrialBlock [i] = stimLocs [ran];
+				stimLocs.RemoveAt (ran);
+			}
+
+			Debug.Log (String.Join(",", precompTrialBlock.Select(x=>x.ToString()).ToArray()));
+
+			Globals.precompTrialBlock = precompTrialBlock;
+		}
+
 		if (Globals.gameType.Equals("detection") || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target")) {
 			if (gos.Length == 1)  { // Linear track
                 if (Globals.varyOrientation) {
@@ -559,6 +605,9 @@ public class GameControlScript : MonoBehaviour
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
 
 				if (gos.Length == 2) {
+					if (Globals.blockSize > 0) {
+						treeToActivate = Globals.precompTrialBlock [(Globals.numberOfTrials - 1) % Globals.blockSize];
+					}
 					SetupTreeActivation (gos, treeToActivate, 2);
 				} else if (Globals.gameType.Equals ("det_target")) {
 					SetupTreeActivation (gos, treeToActivate, 2);
@@ -605,33 +654,37 @@ public class GameControlScript : MonoBehaviour
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
 			} else if (gos.Length == 4) {
-				float thresh0 = 0.25F;
-				float thresh1 = 0.5F;
-				float thresh2 = 0.75F;
+				if (Globals.blockSize > 0) {
+					treeToActivate = Globals.precompTrialBlock [(Globals.numberOfTrials - 1) % Globals.blockSize];
+				} else {
+					float thresh0 = 0.25F;
+					float thresh1 = 0.5F;
+					float thresh2 = 0.75F;
 
-				if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
-					// Turn on bias correction after testing that logic works!
-					// Bias correction algo #1
-					float tf0 = Globals.GetTurnBias(20, 0);
-					float tf1 = Globals.GetTurnBias(20, 1);
-					float tf2 = Globals.GetTurnBias(20, 2);
-					float tf3 = 1 - (tf0 + tf1 + tf2);
+					if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
+						// Turn on bias correction after testing that logic works!
+						// Bias correction algo #1
+						float tf0 = Globals.GetTurnBias (20, 0);
+						float tf1 = Globals.GetTurnBias (20, 1);
+						float tf2 = Globals.GetTurnBias (20, 2);
+						float tf3 = 1 - (tf0 + tf1 + tf2);
 
-					float t0 = 1 - tf0;
-					float t1 = 1 - tf1;
-					float t2 = 1 - tf2;
-					float t3 = 1 - tf3;
+						float t0 = 1 - tf0;
+						float t1 = 1 - tf1;
+						float t2 = 1 - tf2;
+						float t3 = 1 - tf3;
 
-					Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2 + ", " + tf3);
+						Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2 + ", " + tf3);
 
-					thresh0 = t0 / (t0 + t1 + t2 + t3);
-					thresh1 = t1 / (t0 + t1 + t2 + t3) + thresh0;
-					thresh2 = t2 / (t0 + t1 + t2 + t3) + thresh1;
+						thresh0 = t0 / (t0 + t1 + t2 + t3);
+						thresh1 = t1 / (t0 + t1 + t2 + t3) + thresh0;
+						thresh2 = t2 / (t0 + t1 + t2 + t3) + thresh1;
+					}
+
+					Debug.Log ("random: " + r + " --- range: [0, " + thresh0 + ", " + thresh1 + ", " + thresh2 + ", 1]");
+
+					treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : 3;
 				}
-
-				Debug.Log ("random: " + r + " --- range: [0, " + thresh0 + ", " + thresh1 + ", " + thresh2 + ", 1]");
-
-				treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : 3;
 
 				locx = gos[treeToActivate].transform.position.x;
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
@@ -640,83 +693,104 @@ public class GameControlScript : MonoBehaviour
 			}
         } else if (Globals.gameType.Equals("det_blind")) {
 			if (gos.Length == 3) {
-				double thresh0 = 0.333D;
-				double thresh1 = 0.666D;
+				if (Globals.blockSize > 0) {
+					treeToActivate = Globals.precompTrialBlock [(Globals.numberOfTrials - 1) % Globals.blockSize];
+				} else {
+					double thresh0 = 0.333D;
+					double thresh1 = 0.666D;
 
-				if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
-					float tf0 = Globals.GetTurnBias (20, 0);
-					float tf1 = Globals.GetTurnBias (20, 1);
+					if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
+						float tf0 = Globals.GetTurnBias (20, 0);
+						float tf1 = Globals.GetTurnBias (20, 1);
 
-					// Algorithm #1 - Ninny kept refusing to go straight, so modified
-					/*
-					float t0 = 1 - tf0;
-		            float t1 = 1 - tf1;
-		            float t2 = tf0 + tf1;
+						// Algorithm #1 - Ninny kept refusing to go straight, so modified
+						/*
+						float t0 = 1 - tf0;
+			            float t1 = 1 - tf1;
+			            float t2 = tf0 + tf1;
 
-		            float thresh0 = t0 / (t0 + t1 + t2);
-		            float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
-		            */
+			            float thresh0 = t0 / (t0 + t1 + t2);
+			            float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
+			            */
 
-					// Algorithm #2: Treat as 2 line equation, solve, rebalance and normalize
+						// Algorithm #2: Treat as 2 line equation, solve, rebalance and normalize
 
-					float tf2 = 1 - (tf0 + tf1);
+						float tf2 = 1 - (tf0 + tf1);
 
-					Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
+						Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
 
-					// Solve
-					double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
-					double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
-					double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
+						// Solve
+						double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
+						double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
+						double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
 
-					//Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+						//Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
 
-					// Rebalance, pushing mouse to lowest freq direction
-					double d;
-					double max = Math.Max (tf0, Math.Max (tf1, tf2));
-					double min = Math.Min (tf0, Math.Min (tf1, tf2));
-					if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
-						double pmax = Math.Max (p0, Math.Max (p1, p2));
-						if (p0 == pmax) {
-							d = Math.Abs (p1 - p2);
-							p1 *= d;
-							p2 *= d;
-						} else if (p1 == pmax) {
-							d = Math.Abs (p0 - p2);
-							p0 *= d;
-							p2 *= d;
-						} else if (p2 == pmax) {
-							d = Math.Abs (p0 - p1);
-							p0 *= d;
-							p1 *= d;
+						// Rebalance, pushing mouse to lowest freq direction
+						double d;
+						double max = Math.Max (tf0, Math.Max (tf1, tf2));
+						double min = Math.Min (tf0, Math.Min (tf1, tf2));
+						if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
+							double pmax = Math.Max (p0, Math.Max (p1, p2));
+							if (p0 == pmax) {
+								d = Math.Abs (p1 - p2);
+								p1 *= d;
+								p2 *= d;
+							} else if (p1 == pmax) {
+								d = Math.Abs (p0 - p2);
+								p0 *= d;
+								p2 *= d;
+							} else if (p2 == pmax) {
+								d = Math.Abs (p0 - p1);
+								p0 *= d;
+								p1 *= d;
+							}
+						}
+
+						// Normalize so all add up to 1
+						p0 = p0 / (p0 + p1 + p2);
+						p1 = p1 / (p0 + p1 + p2);
+						p2 = p2 / (p0 + p1 + p2);
+
+						thresh0 = p0;
+						thresh1 = thresh0 + p1;
+					} else if (!Globals.biasCorrection) {
+						bool allTreesHavePresoFrac = true;
+						for (int i = 0; i < gos.Length; i++) {
+							if (gos [i].GetComponent<WaterTreeScript> ().GetPresoFrac () < 0) {  // Not set, so ignore all presoFracs, if others were set
+								allTreesHavePresoFrac = false;
+							}
+						}
+						if (allTreesHavePresoFrac) {
+							thresh0 = gos [0].GetComponent<WaterTreeScript> ().GetPresoFrac ();
+							thresh1 = thresh0 + gos [1].GetComponent<WaterTreeScript> ().GetPresoFrac ();
 						}
 					}
 
-					// Normalize so all add up to 1
-					p0 = p0 / (p0 + p1 + p2);
-					p1 = p1 / (p0 + p1 + p2);
-					p2 = p2 / (p0 + p1 + p2);
-
-					thresh0 = p0;
-					thresh1 = thresh0 + p1;
+					Debug.Log ("STIMLOC: [0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
+					treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
 				}
 
-				Debug.Log ("STIMLOC: [0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
-				treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
 				SetupTreeActivation (gos, treeToActivate, 2);
 
 				locx = gos [treeToActivate].transform.position.x;
 				hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 				vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 			} else if (gos.Length == 2) { // For training lesioned animals who have not been previously trained
-				float rThresh0 = 0.5F;
-				if (Globals.presoRatio > 0) { // Works for 2-choice only, YN and 2AFC
-					rThresh0 = (float)Globals.presoRatio / (Globals.presoRatio + 1);
+				if (Globals.blockSize > 0) {
+					treeToActivate = Globals.precompTrialBlock [(Globals.numberOfTrials - 1) % Globals.blockSize];
+				} else {
+					float rThresh0 = 0.5F;
+					if (Globals.presoRatio > 0) { // Works for 2-choice only, YN and 2AFC
+						rThresh0 = (float)Globals.presoRatio / (Globals.presoRatio + 1);
+					}
+					if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
+						rThresh0 = 1 - Globals.GetTurnBias (20, 0);  // varies the boundary based on history of mouse turns
+					}
+					Debug.Log ("Loc: [0, " + rThresh0 + ", 1] - " + r);
+					treeToActivate = r < rThresh0 ? 0 : 1;
 				}
-				if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
-					rThresh0 = 1 - Globals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
-				}
-				Debug.Log("Loc: [0, " + rThresh0 + ", 1] - " + r);
-				treeToActivate = r < rThresh0 ? 0 : 1;
+
 				SetupTreeActivation (gos, treeToActivate, 1);
 
 				locx = gos[treeToActivate].transform.position.x;
@@ -826,9 +900,7 @@ public class GameControlScript : MonoBehaviour
 			Globals.SetOccluders(locx);
 			Debug.Log ("no dynamic occlusion");
 		}
-
-		// Phase randomization
-
+			
 		// Optogenetics
 		if (Globals.optoSide != -1) {  // A side for optogenetics was specified
 			if (Globals.optoAlternation) {  // If it should alternate, then alternate it, with every even trial getting light on

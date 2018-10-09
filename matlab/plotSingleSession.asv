@@ -1,25 +1,25 @@
-function results = getStats(mouseName, days, sessions)
-% This function will analyze the relevant actions.txt log files and return
-% a set of statistics useful to analyzing blindness and blindsight.
+function plotSingleSession(mouseName, days, sessions)
+% This script takes an actions file, as defined with the params above, and
+% plots the actions vs. the stimulus as a single row, color-coded.  A thin
+% blue line on top shows whether optogenetics light is on or not.
 
-leftX = 19980;
-rightX = 20020;
 centerX = 20000;
-
-% first column is all Left stim trials
-% second column is all Right stim trials
-% third column is all Center stim trials
-
-% first row is all Left action trials
-% second row is all Right action trials
-% third row is all Center action trials
-
-results = zeros(3,3,4);  % First is non-opto, second is optoL, third is optoR, and fourth is optoBoth - sum to get all
-leftStimStraightErrorsMap = containers.Map();
-rightStimStraightErrorsMap = containers.Map();
 
 % First, find all the filenames to read in
 fileList = dir(['data/*.txt']); % Get all mat files, and use that to construct filenames for video files
+
+h = figure;
+hold on
+blockHeight = 1;
+blockWidth = 1;
+
+xLoc = 0;
+
+colors = [  15 157 88;  % green
+            226 50 50;  % red
+            2 87 194;   % blue
+            246 190 0; % orange
+         ] / 255;
 
 numFilesAnalyzed = 0;
 for i=1:length(fileList)
@@ -46,6 +46,19 @@ for i=1:length(fileList)
                         stimLoc = C{5}(k);
                         actionLoc = C{12}(k);
                         optoLoc = C{17}(k);
+                        
+                        % Supports 3-choice for now - support 4-choice
+                        % later.
+                        if (stimLoc < centerX)
+                            c = colors(1,:);
+                        elseif (stimLoc > centerX)
+                            c = colors(2,:);
+                        else
+                            c = colors(3,:);
+                        end
+                        
+                        
+                        
 
                         if (stimLoc < centerX)
                             col = 1;
@@ -94,39 +107,5 @@ for i=1:length(fileList)
         end
     end
 end
-
-for j = 1:size(results,3)
-    if (j == 1) 
-        disp('=====Non-Opto======')
-    elseif (j == 2)
-        disp('=====Opto Left======')        
-    elseif (j == 3)
-        disp('=====Opto Right======')        
-    elseif (j == 4)
-        disp('=====Opto Both======')        
-    end
-    disp(['L->L = ' num2str(results(1,1,j) / sum(results(:,1,j)) * 100, 2) '%']);
-    disp(['L->R = ' num2str(results(2,1,j) / sum(results(:,1,j)) * 100, 2) '%']);
-    disp(['L->C = ' num2str(results(3,1,j) / sum(results(:,1,j)) * 100, 2) '%']);
-    disp('-----------')
-    disp(['R->L = ' num2str(results(1,2,j) / sum(results(:,2,j)) * 100, 2) '%']);
-    disp(['R->R = ' num2str(results(2,2,j) / sum(results(:,2,j)) * 100, 2) '%']);
-    disp(['R->C = ' num2str(results(3,2,j) / sum(results(:,2,j)) * 100, 2) '%']);
-    disp('-----------')
-    disp(['C->L = ' num2str(results(1,3,j) / sum(results(:,3,j)) * 100, 2) '%']);
-    disp(['C->R = ' num2str(results(2,3,j) / sum(results(:,3,j)) * 100, 2) '%']);
-    disp(['C->C = ' num2str(results(3,3,j) / sum(results(:,3,j)) * 100, 2) '%']);
-    disp('===========')
-end
-
-disp(['Analyzed ' num2str(numFilesAnalyzed) ' files.']);
-
-disp('Stim on left, but mouse goes straight:');
-disp(keys(leftStimStraightErrorsMap));
-disp(values(leftStimStraightErrorsMap));
-
-disp('Stim on right, but mouse goes straight:');
-disp(keys(rightStimStraightErrorsMap));
-disp(values(rightStimStraightErrorsMap));
 
 end

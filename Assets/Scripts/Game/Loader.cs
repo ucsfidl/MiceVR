@@ -363,6 +363,22 @@ public class Loader : MonoBehaviour {
 						Globals.randomPhase = false;
 					}
 				}
+				if (xn ["blockSize"] != null) {
+					int.TryParse(xn["blockSize"].InnerText, out Globals.blockSize);
+				}
+
+				if (xn["presoFracSpecified"] != null) {
+					string presoFracSpecifiedXML = xn["presoFracSpecified"].InnerText;
+					if (presoFracSpecifiedXML.Equals("true"))
+						Globals.presoFracSpecified = true;
+					else
+						Globals.presoFracSpecified = false;
+				}
+
+				if (xn ["probReward"] != null) {  // Specifies probability of reward - normally 1, but can be less than 1 to make mice resilient to errors during blindsight
+					float.TryParse(xn["probReward"].InnerText, out Globals.probReward);
+				}
+
 
 				if (xn ["rewardDur"] != null) {  // Used by SDT task where reward size is varied, but if the stock reward size is used (60ms or 4ul), than a 2-4x multiplier is too much and the water drop falls onto the ball...
 					// Update the rewardSize, assuming linearity, which is a poor approximation
@@ -399,6 +415,7 @@ public class Loader : MonoBehaviour {
 					int rank = (int)Globals.NULL;
 					string materialName = "gradient";
 					string type = "";
+					float presoFrac = -1;
 
 					foreach (XmlNode val in treeAttributes) {
 						if (val.Name == "w") {
@@ -455,10 +472,12 @@ public class Loader : MonoBehaviour {
 							materialName = val.InnerText;
 						} else if (val.Name == "type") {
 							type = val.InnerText;
+						} else if (val.Name == "presoFrac") {
+							float.TryParse (val.InnerText, out presoFrac);
 						}
 					}
 
-					Globals.AddTreeToWorld (worldNum, water, v, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName, type);
+					Globals.AddTreeToWorld (worldNum, water, v, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName, type, presoFrac);
 				}
 
 				XmlNodeList wallList = world.GetElementsByTagName("wall"); // array of the wall nodes

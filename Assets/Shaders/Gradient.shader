@@ -3,16 +3,19 @@
 Shader "Custom/Gradient" {
     Properties {
         _Color1 ("Color1", Color) = (1,1,1,1)
-        _Color2 ("Color2", Color) = (0,0,0,0)
+        _Color2 ("Color2", Color) = (0,0,0,1)
         _VFreq ("VFreq", Range (1,1000)) = 1
 		_VPhase ("VPhase", Range (0, 359)) = 0
 		_HFreq ("HFreq", Range (1,1000)) = 1
 		_HPhase ("HPhase", Range (0, 359)) = 0
 		_Deg ("Degrees", Range (-45,45)) = 0
+		_Transparency("Transparency", Range(0.0, 1)) = 1
     }
 	SubShader {
-		Tags { "RenderType" = "Opaque"}
-		Lighting On
+		Tags { "RenderType" = "Transparent"}
+
+		Blend SrcAlpha OneMinusSrcAlpha
+
         Pass {
             CGPROGRAM
             #pragma vertex vert
@@ -27,6 +30,7 @@ Shader "Custom/Gradient" {
 			float _Deg;
 			float _VPhase;
 			float _HPhase;
+			float _Transparency;
 
             struct vertexInput {
                 float4 vertex : POSITION;
@@ -83,6 +87,7 @@ Shader "Custom/Gradient" {
 						}
 					}
 				}
+				color.a = _Transparency;
                 return color;
             }
             ENDCG

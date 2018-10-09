@@ -34,6 +34,8 @@ public class WaterTreeScript : MonoBehaviour {
 
 	private float rewardMulti;
 
+	private float presoFrac;
+
 	// Use this for initialization
 	void Start ()
     {
@@ -198,8 +200,15 @@ public class WaterTreeScript : MonoBehaviour {
     }
 
 	private void GiveReward(int rewardDur, bool addToTurns, bool trueCorrect) {
-        GameObject.Find("UDPSender").GetComponent<UDPSend>().SendWaterReward(rewardDur);
-        this.depleted = true;
+		// If probabilistic reward, give appropriately
+		float r = UnityEngine.Random.value;
+		if (r < Globals.probReward) {
+			GameObject.Find ("UDPSender").GetComponent<UDPSend> ().SendWaterReward (rewardDur);
+			Debug.Log ("gave reward, random val = " + r);
+		} else {
+			Debug.Log ("no reward, random val = " + r);
+		}
+		this.depleted = true;
         this.mouseObject = GameObject.FindGameObjectWithTag("MainCamera");
         this.mouseObject.GetComponent<AudioSource>().Play();
         Globals.numberOfEarnedRewards++;
@@ -384,6 +393,13 @@ public class WaterTreeScript : MonoBehaviour {
     {
         this.correctTree = c;
     }
+
+	public void SetPresoFrac(float p) {
+		this.presoFrac = p;
+	}
+	public float GetPresoFrac() {
+		return this.presoFrac;
+	}
 
 	public void ChangeShader(String shaderStr) {
 		Material m = new Material (Shader.Find (shaderStr));

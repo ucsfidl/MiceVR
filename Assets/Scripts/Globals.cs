@@ -113,6 +113,11 @@ public static class Globals
 
 	public static bool treesBelowGround = false;  // New position of trees so they project down into the ground, to only present stimuli in the lower portion of the visual field (+20 to -30 degrees)
 
+	public static int blockSize = -1;  // Indicates the number of trials over which the ratio of stimuli presentation is guaranteed to hit a target; -1 indicates no blockSize specified, so flip a coin on each trial
+	public static int[] precompTrialBlock;
+	public static bool presoFracSpecified = false;
+	public static float probReward = 1;
+
 	public struct fov {
 		public float nasalBound;
 		public float tempBound;
@@ -141,6 +146,7 @@ public static class Globals
 		public int rank;
 		public string materialName;
 		public string type;
+		public float presoFrac;
 	}
 	public static GameObject treeParent = GameObject.Find("Trees");
 
@@ -176,7 +182,8 @@ public static class Globals
 	public static bool optoAlternation = false;  // Used to force the light to be on on every other trial
 	public static int optoState = -1;     // 0 = left, 1 = right, 2 = both
 
-	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type) {
+	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
+		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac) {
 		World w = GetWorld (worldNum);
 
 		Tree t = new Tree();
@@ -216,6 +223,7 @@ public static class Globals
 		}
 		t.materialName = materialName;
 		t.type = type;
+		t.presoFrac = presoFrac;
 
 		w.trees.Add (t);
 
@@ -345,6 +353,7 @@ public static class Globals
 					}
 					go.GetComponent<WaterTreeScript> ().SetShaderRotation (t.deg_LS);
 					go.GetComponent<WaterTreeScript> ().SetForTraining (waterTraining);
+					go.GetComponent<WaterTreeScript> ().SetPresoFrac (t.presoFrac);
 					go.transform.eulerAngles = t.rot;
 					go.transform.localScale += t.scale;
 					go.transform.parent = treeParent.transform;
@@ -480,6 +489,13 @@ public static class Globals
 			go.transform.localScale += wall.scale;
 			go.isStatic = true;
 			go.transform.parent = wallParent.transform;
+			/*
+			Color c = go.GetComponent<MeshRenderer> ().material.color;
+			Debug.Log (c.a);
+			c.a = 0.3F;
+			go.GetComponent<MeshRenderer> ().material.color = c;
+			Debug.Log (go.GetComponent<MeshRenderer> ().material.color.a);
+			*/
 		}
 	}
 
