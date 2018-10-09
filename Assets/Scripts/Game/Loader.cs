@@ -328,6 +328,9 @@ public class Loader : MonoBehaviour {
 					float.TryParse (xn ["presoRatio"].InnerText, out Globals.presoRatio);
 					Debug.Log ("Found preso ratio " + Globals.presoRatio);
 				}
+				if (xn ["probeIdx"] != null) {
+					int.TryParse (xn ["probeIdx"].InnerText, out Globals.probeIdx);
+				}
 
 				if (xn ["optoSide"] != null) {
 					string optoSideXML = xn ["optoSide"].InnerText;

@@ -15,6 +15,7 @@
 			<optoSide>L</optoSide>
 			<optoAlternation>true</optoAlternation>
 			<presoFracSpecified>true</presoFracSpecified>
+			<probeIdx>1</probeIdx>
 		</gameConfig>
 	</config>
 	<worlds>

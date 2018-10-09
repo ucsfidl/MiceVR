@@ -540,7 +540,7 @@ public class GameControlScript : MonoBehaviour
 		// Support pre-computing blocks of trials, at the beginning and after each block
 		// Only supports pre-computing for single-world levels to start
 		// Only works with bias-correction disabled
-		if (Globals.blockSize > 0 && !Globals.biasCorrection && (Globals.numberOfTrials == 1 || Globals.numberOfTrials == 1 + Globals.blockSize)) {
+		if (Globals.blockSize > 0 && !Globals.biasCorrection && Globals.numberOfTrials % Globals.blockSize == 1) {
 			int numTrees = gos.Count();
 			int[] precompTrialBlock = new int[Globals.blockSize];
 
@@ -904,7 +904,9 @@ public class GameControlScript : MonoBehaviour
 		// Optogenetics
 		if (Globals.optoSide != -1) {  // A side for optogenetics was specified
 			if (Globals.optoAlternation) {  // If it should alternate, then alternate it, with every even trial getting light on
-				if (Globals.numberOfTrials % 2 == 0) {
+				// if the current trial is a probe trial AND this is an optogenetics experiment AND this is an even block, then enable opto light
+				if ((Globals.probeIdx == treeToActivate && Globals.numberOfTrials / Globals.blockSize % 2 == 0) ||
+					(Globals.probeIdx != treeToActivate && Globals.numberOfTrials % 2 == 0)) {
 					udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
 				}
 			} else {
