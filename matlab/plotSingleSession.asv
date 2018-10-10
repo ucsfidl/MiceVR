@@ -20,6 +20,11 @@ colors = [  15 157 88;  % green
             2 87 194;   % blue
             246 190 0; % orange
          ] / 255;
+     
+blueLightColor = [ 29 255 255 ] / 255;
+
+corrOverTime = zeros(3,1);
+totalOverTime = zeros(3,1);
 
 numFilesAnalyzed = 0;
 for i=1:length(fileList)
@@ -47,65 +52,64 @@ for i=1:length(fileList)
                         actionLoc = C{12}(k);
                         optoLoc = C{17}(k);
                         
-                        % Supports 3-choice for now - support 4-choice
-                        % later.
+                        % Supports 3-choice for now - support 4-choice later.
                         if (stimLoc < centerX)
-                            c = colors(1,:);
+                            corrIdx = 1;
                         elseif (stimLoc > centerX)
-                            c = colors(2,:);
+                            corrIdx = 2;
                         else
+                            corrIdx = 3;
+                        end
+                        
+                        c = colors(corrIdx,:);
+                        
+                        x = [xLoc xLoc+1 xLoc+1 xLoc];
+                        y = [blockHeight blockHeight blockHeight*2 blockHeight*2];
+                        patch(x,y,c, 'EdgeColor', 'none');
+                        
+                        if (actionLoc < centerX)
+                            c = colors(1,:);
+                        elseif (actionLoc > centerX)
+                            c = colors(2,:);
+                        elseif (actionLoc == centerX)
                             c = colors(3,:);
                         end
                         
+                        y = [0 0 blockHeight blockHeight];
+                        patch(x,y,c, 'EdgeColor', 'none');
                         
+                        y = [blockHeight*2 blockHeight*2 blockHeight*2.3 blockHeight*2.3];
+                        if (optoLoc > -1)
+                            patch(x,y,blueLightColor, 'EdgeColor', 'none');
+                        else
+                            patch(x,y,'k', 'EdgeColor', 'none');
+                        end
                         
-
-                        if (stimLoc < centerX)
-                            col = 1;
-                        elseif (stimLoc > centerX)
-                            col = 2;
-                        elseif (stimLoc == centerX)
-                            col = 3;
-                        end
-
-                        if (actionLoc < centerX)
-                            row = 1;
-                        elseif (actionLoc > centerX)
-                            row = 2;
-                        elseif (actionLoc == centerX)
-                            row = 3;
-                        end
-
-                        % Put trials in correct sheet
-                        results(row, col, optoLoc + 2) = results(row, col, optoLoc + 2) + 1;
-
-                        if (col ~= row)  % error trial
-                            nasal = C{8}(k);
-                            temporal = C{9}(k);
-                            high = C{10}(k);
-                            low = C{11}(k);
-                            key = ['N' num2str(nasal) '_T' num2str(temporal) '_H' num2str(high) '_L' num2str(low)];
-                            prevVal = 0;
-                            if (actionLoc == centerX)
-                                if (stimLoc < centerX)
-                                    if (isKey(leftStimStraightErrorsMap, key))
-                                        prevVal = leftStimStraightErrorsMap(key);
-                                    end
-                                    leftStimStraightErrorsMap(key) = prevVal + 1; %#ok<*NASGU>
-                                elseif (stimLoc > centerX)
-                                    if (isKey(rightStimStraightErrorsMap, key))
-                                        prevVal = rightStimStraightErrorsMap(key);
-                                    end
-                                    rightStimStraightErrorsMap(key) = prevVal + 1; %#ok<*NASGU>
-                                end
-                            end
+                        xLoc = xLoc + blockWidth;
+                        
+                        % Track accuracy, to plot at the end
+                        corrOverTime(:, end+1) = corrOverTime(:, end);
+                        totalOverTime(:, end+1) = totalOverTime(:, end);
+                        totalOverTime(corrIdx, end) = totalOverTime(corrIdx, end) + 1;
+                        if (stimLoc == actionLoc)  % Correct trial
+                            corrOverTime(corrIdx, end) = corrOverTime(corrIdx, end) + 1;
                         end
                     end
                 end
+                ylim([0, 2.3*blockHeight]);
                 fclose(fid);
             end
         end
     end
 end
+
+figure
+hold on
+for i=1:3
+    plot(1:size(totalOverTime(, 2), corrOverTime ./ totalOverTime, 'Color', color(1,:), 'Color', color(2,:), 'Color', color(3,:));
+end
+ylim([0 1.2]);
+
+disp(['Analyzed ' num2str(numFilesAnalyzed) ' files.']);
 
 end

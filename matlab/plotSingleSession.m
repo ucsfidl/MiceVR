@@ -13,6 +13,8 @@ hold on
 blockHeight = 1;
 blockWidth = 1;
 
+yMax = 1.2;
+
 xLoc = 0;
 
 colors = [  15 157 88;  % green
@@ -22,6 +24,9 @@ colors = [  15 157 88;  % green
          ] / 255;
      
 blueLightColor = [ 29 255 255 ] / 255;
+
+corrOverTime = zeros(3,1);
+totalOverTime = zeros(3,1);
 
 numFilesAnalyzed = 0;
 for i=1:length(fileList)
@@ -38,7 +43,8 @@ for i=1:length(fileList)
                 end
             end
             if (matchesSession)
-                fid = fopen([fileList(i).folder '\' fileList(i).name]);
+                filename = fileList(i).name;
+                fid = fopen([fileList(i).folder '\' filename]);
                 if (fid ~= -1)  % File was opened properly
                     numFilesAnalyzed = numFilesAnalyzed + 1;
                     tline = fgetl(fid); % Throw out the first line, as it is a column header
@@ -49,15 +55,16 @@ for i=1:length(fileList)
                         actionLoc = C{12}(k);
                         optoLoc = C{17}(k);
                         
-                        % Supports 3-choice for now - support 4-choice
-                        % later.
+                        % Supports 3-choice for now - support 4-choice later.
                         if (stimLoc < centerX)
-                            c = colors(1,:);
+                            corrIdx = 1;
                         elseif (stimLoc > centerX)
-                            c = colors(2,:);
+                            corrIdx = 2;
                         else
-                            c = colors(3,:);
+                            corrIdx = 3;
                         end
+                        
+                        c = colors(corrIdx,:);
                         
                         x = [xLoc xLoc+1 xLoc+1 xLoc];
                         y = [blockHeight blockHeight blockHeight*2 blockHeight*2];
@@ -82,6 +89,14 @@ for i=1:length(fileList)
                         end
                         
                         xLoc = xLoc + blockWidth;
+                        
+                        % Track accuracy, to plot at the end
+                        corrOverTime(:, end+1) = corrOverTime(:, end);
+                        totalOverTime(:, end+1) = totalOverTime(:, end);
+                        totalOverTime(corrIdx, end) = totalOverTime(corrIdx, end) + 1;
+                        if (stimLoc == actionLoc)  % Correct trial
+                            corrOverTime(corrIdx, end) = corrOverTime(corrIdx, end) + 1;
+                        end
                     end
                 end
                 ylim([0, 2.3*blockHeight]);
@@ -90,6 +105,14 @@ for i=1:length(fileList)
         end
     end
 end
+
+figure
+hold on
+for i=1:3
+    plot(1:size(totalOverTime(i,:), 2), corrOverTime(i,:) ./ totalOverTime(i,:), 'Color', colors(i,:), 'LineStyle', '-', 'Marker', 'o', 'LineWidth', 2, 'MarkerSize', 2);
+end
+ylim([0 yMax]);
+title(filename, 'Interpreter', 'none');
 
 disp(['Analyzed ' num2str(numFilesAnalyzed) ' files.']);
 
