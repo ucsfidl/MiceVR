@@ -183,6 +183,7 @@ public static class Globals
 	public static int optoState = -1;     // 0 = left, 1 = right, 2 = both
 
 	public static int probeIdx = -1;  // This is the tree index of the rarest tree, also considered the probe tree
+	public static bool probeLastOpto = false;  // Used to force the light on on every other probe trial
 
 	public static bool treeMarkers = false;  // Forces drawing a black circle underneath where the trees normally are
 
