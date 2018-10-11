@@ -11,9 +11,11 @@
 			<gameType>discrimination</gameType>
 			<gameTurnControl>yaw</gameTurnControl>
 			<rewardedHFreq>0</rewardedHFreq>
-			<rewardedVFreq>8</rewardedVFreq>
+			<rewardedVFreq>4</rewardedVFreq>
+			<rewardedAngle>0</rewardedAngle>
 			<distractorHFreq>4</distractorHFreq>
 			<distractorVFreq>0</distractorVFreq>
+			<distractorAngle>45</distractorAngle>
 			<randomPhase>true</randomPhase>
 		</gameConfig>
 	</config>
@@ -23,14 +25,16 @@
 				<t> <!-- Left tree -->
 					<w>1</w>
 					<pos>19980;0;20028</pos>
-					<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+					<scale>0;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<d>0</d>
+					<type>flat</type>
 				</t>
 				<t> <!-- Right tree -->
 					<w>1</w>
 					<pos>20020;0;20028</pos>
-					<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+					<scale>0;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<d>0</d>
+					<type>flat</type>
 				</t>
 			</trees>
 			<walls>

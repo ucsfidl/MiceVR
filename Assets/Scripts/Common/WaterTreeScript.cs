@@ -223,7 +223,8 @@ public class WaterTreeScript : MonoBehaviour {
 			}
 			Globals.firstTurn.Add(this.gameObject.transform.position.x);
             Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
-            Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+			Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+			Globals.firstTurnAngle.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderRotation());
         }
 
         if (respawn) {
@@ -241,6 +242,7 @@ public class WaterTreeScript : MonoBehaviour {
         Globals.firstTurn.Add(this.gameObject.transform.position.x);
         Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
         Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
+		Globals.firstTurnAngle.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderRotation());
         Globals.sizeOfRewardGiven.Add(0);
         if (respawn) {
             Globals.numberOfTrials++;

@@ -10,10 +10,10 @@
 		<gameConfig>
 			<gameType>discrimination</gameType>
 			<gameTurnControl>yaw</gameTurnControl>
-			<rewardedHFreq>8</rewardedHFreq>
-			<rewardedVFreq>1</rewardedVFreq>
-			<distractorHFreq>1</distractorHFreq>
-			<distractorVFreq>16</distractorVFreq>	
+			<rewardedHFreq>4</rewardedHFreq>
+			<rewardedVFreq>0</rewardedVFreq>
+			<distractorHFreq>0</distractorHFreq>
+			<distractorVFreq>8</distractorVFreq>	
 			<randomPhase>true</randomPhase>
 		</gameConfig>
 	</config>

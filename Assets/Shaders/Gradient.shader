@@ -4,9 +4,9 @@ Shader "Custom/Gradient" {
     Properties {
         _Color1 ("Color1", Color) = (1,1,1,1)
         _Color2 ("Color2", Color) = (0,0,0,1)
-        _VFreq ("VFreq", Range (1,1000)) = 1
+        _VFreq ("VFreq", Range (0,1000)) = 1
 		_VPhase ("VPhase", Range (0, 359)) = 0
-		_HFreq ("HFreq", Range (1,1000)) = 1
+		_HFreq ("HFreq", Range (0,1000)) = 1
 		_HPhase ("HPhase", Range (0, 359)) = 0
 		_Deg ("Degrees", Range (-45,45)) = 0
 		_Transparency("Transparency", Range(0.0, 1)) = 1
@@ -51,42 +51,24 @@ Shader "Custom/Gradient" {
 
             fixed4 frag(fragmentInput i) : SV_Target {
                 fixed4 color;
-				if( _Deg >= 0 )
-				{
-					if ( abs(fmod((i.texcoord0.x+((_Deg/45.0)*i.texcoord0.y)) * _VFreq + _VPhase/180,2.0)) < 1.0 ){
-						if ( abs(fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0)) < 1.0 )
-						{
-							color = _Color1;
-						} else {
-							color = _Color2;
-						}
+				float degRad = _Deg / 180 * 3.14;
+				float x = sin(((i.texcoord0.x-0.5)*cos(degRad) - (i.texcoord0.y-0.5)*sin(degRad)) * _VFreq*2*3.14 + _VPhase/180*3.14);
+				float y = sin(((i.texcoord0.x-0.5)*sin(degRad) + (i.texcoord0.y-0.5)*cos(degRad)) * _HFreq*2*3.14 + _HPhase/180*3.14);
+
+				if (x >= 0 ) {
+					if (y >= 0) {
+						color = _Color1;
 					} else {
-						if ( abs(fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0)) > 1.0 )
-						{
-							color = _Color1;
-						} else {
-							color = _Color2;
-						}
+						color = _Color2;
+					}
+				} else {
+					if (y >= 0) {
+						color = _Color2;
+					} else {
+						color = _Color1;
 					}
 				}
-				else
-				{
-				if ( abs(fmod(((1.0+i.texcoord0.x)+((_Deg/45.0)*i.texcoord0.y)) * _VFreq + _VPhase/180,2.0)) < 1.0 ){
-						if ( abs(fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0)) < 1.0 )
-						{
-							color = _Color1;
-						} else {
-							color = _Color2;
-						}
-					} else {
-						if ( abs(fmod(i.texcoord0.y*_HFreq + _HPhase/180,2.0)) > 1.0 )
-						{
-							color = _Color1;
-						} else {
-							color = _Color2;
-						}
-					}
-				}
+
 				color.a = _Transparency;
                 return color;
             }

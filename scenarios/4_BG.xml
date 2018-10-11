@@ -21,8 +21,8 @@
 					<pos>19977;-16;20010</pos>
 					<rot>0;-45;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>8</v>
-					<h>4</h>
+					<v>4</v>
+					<h>2</h>
 					<d>0</d>
 					<r>0</r>
 				</t>
@@ -31,8 +31,8 @@
 					<pos>20023;-16;20010</pos>
 					<rot>0;45;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>8</v>
-					<h>4</h>
+					<v>4</v>
+					<h>2</h>
 					<d>0</d>
 					<r>2</r>
 				</t>
@@ -41,8 +41,8 @@
 					<pos>19978;-16;20056</pos>
 					<rot>0;45;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>8</v>
-					<h>4</h>
+					<v>4</v>
+					<h>2</h>
 					<d>0</d>
 					<r>0</r>
 				</t>
@@ -51,8 +51,8 @@
 					<pos>20022;-16;20056</pos>
 					<rot>0;-45;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>8</v>
-					<h>4</h>
+					<v>4</v>
+					<h>2</h>
 					<d>0</d>
 					<r>2</r>
 				</t>

@@ -533,6 +533,7 @@ public class GameControlScript : MonoBehaviour
         float locx = gos[0].transform.position.x;
         float hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
         float vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+		float angle = gos[0].GetComponent<WaterTreeScript>().GetShaderRotation();
 
         int treeToActivate = 0;
         float r = UnityEngine.Random.value;
@@ -597,6 +598,7 @@ public class GameControlScript : MonoBehaviour
                         gos[0].GetComponent<WaterTreeScript>().SetShader(vfreq, hfreq);
                         hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
                         vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+						angle = gos[0].GetComponent<WaterTreeScript>().GetShaderRotation();
                     }
                 }
             } else if (gos.Length == 2 || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target")) {
@@ -611,6 +613,7 @@ public class GameControlScript : MonoBehaviour
                 treeToActivate = r < rThresh0 ? 0 : 1;
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				angle = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderRotation();
 
 				if (gos.Length == 2) {
 					if (Globals.blockSize > 0) {
@@ -619,12 +622,12 @@ public class GameControlScript : MonoBehaviour
 					SetupTreeActivation (gos, treeToActivate, 2);
 				} else if (Globals.gameType.Equals ("det_target")) {
 					SetupTreeActivation (gos, treeToActivate, 2);
-					gos [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq);
+					gos [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq, angle);
 					if (Globals.varyOrientation) {
 						float r2 = UnityEngine.Random.value;
 						if (r2 > 0.5) { // Swap orientation of target tree
-							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq);
-							gos [2].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq);
+							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
+							gos [2].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
 						}
 						Debug.Log ("Ori: [0, 0.5, 1] - " + r2);
 					}
@@ -644,10 +647,11 @@ public class GameControlScript : MonoBehaviour
 						}
 						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-						gos [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq);
+						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+						gos [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq, angle);
 
 						gos [treeToDistract].GetComponent<WaterTreeScript> ().SetColors (Globals.distColor1, Globals.distColor2);
-						gos [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq);
+						gos [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
 					} else {
 						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (4, 4);
 						if (r2 < 0.5) {
@@ -661,6 +665,7 @@ public class GameControlScript : MonoBehaviour
 				locx = gos[treeToActivate].transform.position.x;
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				angle = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderRotation();
 			} else if (gos.Length == 4) {
 				if (Globals.blockSize > 0) {
 					treeToActivate = Globals.precompTrialBlock [(Globals.numberOfTrials - 1) % Globals.blockSize];
@@ -697,6 +702,7 @@ public class GameControlScript : MonoBehaviour
 				locx = gos[treeToActivate].transform.position.x;
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				angle = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderRotation();
 				SetupTreeActivation (gos, treeToActivate, 4);
 			}
         } else if (Globals.gameType.Equals("det_blind")) {
@@ -785,6 +791,7 @@ public class GameControlScript : MonoBehaviour
 				locx = gos [treeToActivate].transform.position.x;
 				hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 				vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+				angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 			} else if (gos.Length == 2) { // For training lesioned animals who have not been previously trained
 				if (Globals.blockSize > 0) {
 					treeToActivate = Globals.precompTrialBlock [(Globals.numberOfTrials - 1) % Globals.blockSize];
@@ -806,6 +813,7 @@ public class GameControlScript : MonoBehaviour
 				locx = gos[treeToActivate].transform.position.x;
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
 				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				angle = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderRotation();
 			}
         } else if (Globals.gameType.Equals("discrimination")) {
             // Randomize orientations
@@ -820,22 +828,22 @@ public class GameControlScript : MonoBehaviour
 			float distractorHPhase = Globals.randomPhase && Globals.distractorHFreq != 1 ? UnityEngine.Random.value * 360 : 0;
 			float distractorVPhase = Globals.randomPhase && Globals.distractorVFreq != 1 ? UnityEngine.Random.value * 360 : 0;
 
-			Debug.Log (rewardedHPhase);
-
             if (r < rThresh0) {
-				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, 0); // later, listen to the deg argument
-				gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, 0);
+				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle); // later, listen to the deg argument
+				gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, Globals.distractorAngle);
                 locx = gos[0].transform.position.x;
                 hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
                 vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				angle = gos[0].GetComponent<WaterTreeScript>().GetShaderRotation();
                 gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
                 gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
             } else {
-				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, 0);
-				gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, 0);
+				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, Globals.distractorAngle);
+				gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle);
                 locx = gos[1].transform.position.x;
                 hfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                vfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				vfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
+				angle = gos[1].GetComponent<WaterTreeScript>().GetShaderRotation();
                 gos[0].GetComponent<WaterTreeScript>().SetCorrect(false);
                 gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
             }
@@ -844,14 +852,14 @@ public class GameControlScript : MonoBehaviour
             // First, pick an orientation at random for the central tree
             float targetHFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
             float targetVFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
+			float targetAngle = gos[2].GetComponent<WaterTreeScript>().GetShaderRotation();
 
 			if (r < 0.5)  { // Switch target to opposite of previous
-                gos[2].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
+				gos[2].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetAngle);
             }
             // Second, randomly pick which side the matching orientation is on
             float rSide = UnityEngine.Random.value;
-            targetHFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
-            targetVFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
+
             // Try to balance location of match based on the turning bias
 			float rThresh0 = 0.5F;
 			if (Globals.numberOfTrials > 1) {  // Add bias correction option if needed later
@@ -861,31 +869,37 @@ public class GameControlScript : MonoBehaviour
                 gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
                 gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
                 locx = gos[0].transform.position.x;
+				// TODO: Fix the angle treatment here
                 if (Globals.gameType.Equals("match")) {
-                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
-                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
+					gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetAngle);
+                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetAngle);
+					// TODO - do the right thing with angles here, LATER
                     hfreq = targetHFreq;
                     vfreq = targetVFreq;
+					angle = targetAngle;
                 } else {
-                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
-                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
+					gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetAngle);
+					gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetAngle);
                     hfreq = targetVFreq;
                     vfreq = targetHFreq;
+					angle = targetAngle;
                 }
 			} else { // Set the right tree to match
                 gos[0].GetComponent<WaterTreeScript>().SetCorrect(false);
                 gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
                 locx = gos[1].transform.position.x;
                 if (Globals.gameType.Equals("match")) {
-                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
-                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
+					gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetAngle);
+                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetAngle);
                     hfreq = targetHFreq;
                     vfreq = targetVFreq;
+					angle = targetAngle;
                 } else {
-                    gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq);
-                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq);
+					gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetAngle);
+					gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetAngle);
                     hfreq = targetVFreq;
                     vfreq = targetHFreq;
+					angle = targetAngle;
                 }
             }
             Debug.Log("[0, " + rThresh0 + ", 1] - " + rSide);
@@ -933,6 +947,7 @@ public class GameControlScript : MonoBehaviour
         Globals.targetLoc.Add(locx);
         Globals.targetHFreq.Add(hfreq);
         Globals.targetVFreq.Add(vfreq);
+		Globals.targetAngle.Add(angle);
 
         this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);

@@ -26,8 +26,8 @@
 					<w>1</w>
 					<pos>19975;-16;20028</pos>
 					<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>8</v>
-					<h>4</h>
+					<v>4</v>
+					<h>2</h>
 					<d>0</d>
 					<r>0</r>
 					<presoFrac>0.475</presoFrac>
@@ -36,8 +36,8 @@
 					<w>1</w>
 					<pos>20025;-16;20028</pos>
 					<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>8</v>
-					<h>4</h>
+					<v>4</v>
+					<h>2</h>
 					<d>0</d>
 					<r>2</r>
 					<presoFrac>0.05</presoFrac>
@@ -47,7 +47,7 @@
 					<pos>20000;-16;20046</pos>
 					<scale>0;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>0</v>  <!-- Vfreq of gradient -->
-					<h>4</h>  <!-- Hfreq of gradient -->
+					<h>2</h>  <!-- Hfreq of gradient -->
 					<d>0</d>
 					<presoFrac>0.475</presoFrac>
 				</t>
