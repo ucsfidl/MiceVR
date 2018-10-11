@@ -772,6 +772,7 @@ public class GameControlScript : MonoBehaviour
 				}
 
 				SetupTreeActivation (gos, treeToActivate, 2);
+				gos[2].GetComponent<WaterTreeScript>().Show();  // Activate center tree - only necessary with persistent shadow
 
 				locx = gos [treeToActivate].transform.position.x;
 				hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
@@ -792,6 +793,7 @@ public class GameControlScript : MonoBehaviour
 				}
 
 				SetupTreeActivation (gos, treeToActivate, 1);
+				gos[1].GetComponent<WaterTreeScript>().Show();  // Activate center tree - only necessary with persistent shadow
 
 				locx = gos[treeToActivate].transform.position.x;
 				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();

@@ -488,7 +488,16 @@ public class WaterTreeScript : MonoBehaviour {
 	public void Hide()
 	{
 		foreach (Transform t in this.gameObject.transform) {
-			t.gameObject.SetActive (false);
+			if (Globals.treeMarkers && t.name.Equals ("TopCap")) {
+				Vector3 pos = t.position;
+				pos.y = 0;
+				t.position = pos;
+				// Need to do both below to make it persistently visible regardless of angle and screen location
+				t.gameObject.layer = LayerMask.NameToLayer ("Default");
+				t.gameObject.GetComponent<Renderer> ().material.renderQueue = 2000;  // Sets RenderQueue to Geometry to make it visible on all screens
+			} else {
+				t.gameObject.SetActive (false);
+			}
 			//Debug.Log ("Inactivated = " + t.gameObject.name);
 		}
 		this.enabled = false;
@@ -499,6 +508,15 @@ public class WaterTreeScript : MonoBehaviour {
 	public void Show()
 	{
 		foreach (Transform t in this.gameObject.transform) {
+			if (Globals.treeMarkers && t.name.Equals ("TopCap")) {
+				Vector3 pos = t.position;
+				pos.y = 0;
+				t.position = pos;
+				t.gameObject.layer = LayerMask.NameToLayer ("Default");
+				t.gameObject.GetComponent<Renderer> ().material.renderQueue = 2000;  // Sets RenderQueue to Geometry to make it visible on all screens
+				//t.parent.transform.gameObject.layer = LayerMask.NameToLayer ("Default");
+			}
+			
 			t.gameObject.SetActive (true);
 			//Debug.Log ("Activated = " + t.gameObject.name);
 		}

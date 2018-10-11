@@ -184,6 +184,8 @@ public static class Globals
 
 	public static int probeIdx = -1;  // This is the tree index of the rarest tree, also considered the probe tree
 
+	public static bool treeMarkers = false;  // Forces drawing a black circle underneath where the trees normally are
+
 	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
 		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac) {
 		World w = GetWorld (worldNum);
