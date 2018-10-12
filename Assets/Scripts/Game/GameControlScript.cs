@@ -579,7 +579,7 @@ public class GameControlScript : MonoBehaviour
 					stimLocsCopy.RemoveAt (ran);
 				}
 				Debug.Log ("Stim locs copy" + String.Join(",", stimLocsCopy.Select(x=>x.ToString()).ToArray()));
-				if (precompTrialBlock.Contains (Globals.probeIdx)) {
+				if (Globals.probeIdx == -1 || precompTrialBlock.Contains (Globals.probeIdx)) {
 					break;
 				} else {
 					Debug.Log ("Did not get probe included in precompTrialBlock, so regenerate again");	
