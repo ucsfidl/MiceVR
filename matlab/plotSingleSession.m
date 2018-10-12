@@ -28,6 +28,10 @@ blueLightColor = [ 29 255 255 ] / 255;
 corrOverTime = zeros(3,1);
 totalOverTime = zeros(3,1);
 
+corrLastN = zeros(3,1);
+totalLastN = zeros(3,1);
+N = 20;
+
 numFilesAnalyzed = 0;
 for i=1:length(fileList)
     for j=1:length(days)
@@ -106,13 +110,26 @@ for i=1:length(fileList)
     end
 end
 
+dC = diff(corrOverTime, 1, 2);
+corrOverN = movsum(dC, N, 2);
+dT = diff(totalOverTime, 1, 2);
+totalOverN = movsum(dT, N, 2);
+
 figure
 hold on
 for i=1:3
     plot(1:size(totalOverTime(i,:), 2), corrOverTime(i,:) ./ totalOverTime(i,:), 'Color', colors(i,:), 'LineStyle', '-', 'Marker', 'o', 'LineWidth', 2, 'MarkerSize', 2);
 end
 ylim([0 yMax]);
-title(filename, 'Interpreter', 'none');
+title([filename ' - cumulative accuracy over time'], 'Interpreter', 'none');
+
+figure
+hold on
+for i=1:3
+    plot(1:size(totalOverN(i,:), 2), corrOverN(i,:) ./ totalOverN(i,:), 'Color', colors(i,:), 'LineStyle', '-', 'Marker', 'o', 'LineWidth', 2, 'MarkerSize', 2);
+end
+ylim([0 yMax]);
+title([filename ' - ' num2str(N) ' trial moving average'], 'Interpreter', 'none');
 
 disp(['Analyzed ' num2str(numFilesAnalyzed) ' files.']);
 
