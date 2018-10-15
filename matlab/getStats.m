@@ -40,7 +40,7 @@ for i=1:length(fileList)
                 if (fid ~= -1)  % File was opened properly
                     numFilesAnalyzed = numFilesAnalyzed + 1;
                     tline = fgetl(fid); % Throw out the first line, as it is a column header
-                    C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f %d %d'); % C is a cell array with each string separated by a space
+                    C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f %d %d %d %d'); % C is a cell array with each string separated by a space
                     for k = 1:length(C{1})  % For each line
                         % C{5} is the target location, C{12} is the turn location
                         stimLoc = C{5}(k);

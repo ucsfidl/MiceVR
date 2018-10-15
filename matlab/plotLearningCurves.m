@@ -133,13 +133,7 @@ for sheetIdx=1:length(sheetIDs)
                 if (~isempty(lo{1}))
                     lev{1} = [lev{1} '_l' lo{1}];
                 end
-                
-                if (strcmp(lastLevel, lev) == 0)  % If changed levels, record the change
-                    xLevelChange(end+1) = xAcc(end);
-                    levelChange(end+1) = lev;
-                end
-                lastLevel = lev;
-                
+                                
                 % Parse the category accuracies
                 subResultsText = strsplit(r{1}, '/');
                 subResults = [];
@@ -147,11 +141,17 @@ for sheetIdx=1:length(sheetIDs)
                     subResults(end+1) = str2num(subResultsText{m});
                 end
                                 
-                if (isempty(indivAcc) || size(indivAcc{end}, 1) ~= size(subResults', 1))
+                if (isempty(indivAcc) || strcmp(lastLevel, lev) == 0)
                     indivAcc{end+1} = subResults';
                 else
                     indivAcc{end} = cat(2, indivAcc{end}, subResults');
                 end
+                
+                if (strcmp(lastLevel, lev) == 0)  % If changed levels, record the change
+                    xLevelChange(end+1) = xAcc(end);
+                    levelChange(end+1) = lev;
+                end
+                lastLevel = lev;
             end
         end
         
@@ -194,9 +194,23 @@ for sheetIdx=1:length(sheetIDs)
             if (size(indivAcc{i}, 1) == 1)
                 c = colors(3,:);
             else
-                c = colors(j,:);
+                if (contains(levelChange(i), "LC"))
+                    if (j == 1)
+                        c = colors(1,:);
+                    else
+                        c = colors(3,:);
+                    end
+                elseif (contains(levelChange(i), "RC"))
+                    if (j == 1)
+                        c = colors(2,:);
+                    else
+                        c = colors(3,:);
+                    end                    
+                else
+                    c = colors(j,:);
+                end
             end
-            plot(xAcc(yStartInd):xAcc(yEndInd), indivAcc{i}(j,:), 'LineStyle', '-', 'Color', c, 'Marker', 'o', 'LineWidth', 2, 'MarkerSize', 3);
+            plot(xAcc(yStartInd):xAcc(yEndInd), indivAcc{i}(j,:), 'LineStyle', '-', 'Color', c, 'Marker', 'o', 'MarkerFaceColor', c, 'LineWidth', 2, 'MarkerSize', 3);
         end
         yStartInd = yEndInd + 1;
     end
