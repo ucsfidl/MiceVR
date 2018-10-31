@@ -16,7 +16,7 @@
 			<optoAlternation>true</optoAlternation>
 			<presoFracSpecified>true</presoFracSpecified>
 			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
-			<probeIdx>1</probeIdx>
+			<probeIdx>1</probeIdx> <!-- the tree id that is the probe; 0 = first tree, 1 = second tree -->
 		</gameConfig>
 	</config>
 	<worlds>
