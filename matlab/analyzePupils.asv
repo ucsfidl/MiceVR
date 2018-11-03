@@ -26,14 +26,8 @@ ymax = 25;
 optoYmin = ymin;  % Where the opto stripe will be drawn
 optoYmax = ymin+2;
 colorOpto = [0 0 0;
-             0 1 1; % left opto = blue [cyan] (Democrats are blue and are left)
-             1 0 0; % right opto = red (Republicans are red and are right)
-             0.5 0 0.5]; % both opto = purple (blue + red)
-optoNone = -1;
-optoLeft = 0;
-optoRight = 1;
-optoBoth = 2;
-         
+             0 1 1];  % opto blue [cyan]
+
 if (numStim == 4)
     allColors = [colorLeftNear; colorLeftFar; colorRightNear; colorRightFar; colorInterTrial];
 elseif (numStim == 3)
@@ -106,8 +100,6 @@ if (actionsFile ~= -1) % File found
             actionLocs = [actionLocs str2num(tokens{1}{2})];
             if (length(tokens{1}) > 2)
                 optoStates = [optoStates str2num(tokens{1}{3})];
-            else
-                optoStates = [optoStates optoNone];  % Populate with the value of no opto
             end
         else
             break;
@@ -204,7 +196,7 @@ if (numStim == 4)
             idx = 4;
         end
         
-        optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
+        if (optoStates(i)
     end
 elseif (numStim == 3)
     for i=1:numCompletedTrials
@@ -433,7 +425,7 @@ figure; hold on
 patch(xTrialsUnitsTime, yStim, stimColors, 'EdgeColor', 'none');
 patch(xTrialsUnitsTime, yAction, actionColors, 'EdgeColor', 'none');
 if(~isempty(optoStates)) % If opto experiment data, plot this as well
-    patch(xTrialsUnitsTime, yOpto, optoColors, 'EdgeColor', 'none');
+    patch(xTrialsUnitsTime, yOpto, colorOpto, 'EdgeColor', 'none');
 end
 if (~isempty(trialStartFrames))
     patch(xPauseUnitsTime, yPause, colorInterTrial, 'EdgeColor', colorInterTrial);
@@ -456,11 +448,8 @@ set(dcmObj,'UpdateFcn',@dataCursorCallback,'Enable','on');
 
 % AZIMUTH PLOT
 figure; hold on
-patch(xTrialsUnitsTime, yStim, stimColors, 'EdgeColor', 'none');
-patch(xTrialsUnitsTime, yAction, actionColors, 'EdgeColor', 'none');
-if(~isempty(optoStates)) % If opto experiment data, plot this as well
-    patch(xTrialsUnitsTime, yOpto, optoColors, 'EdgeColor', 'none');
-end
+p1 = patch(xTrialsUnitsTime, yStim, stimColors, 'EdgeColor', 'none');
+p2 = patch(xTrialsUnitsTime, yAction, actionColors, 'EdgeColor', 'none');
 if (~isempty(trialStartFrames))
     patch(xPauseUnitsTime, yPause, colorInterTrial, 'EdgeColor', colorInterTrial);
 end

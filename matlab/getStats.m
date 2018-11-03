@@ -2,8 +2,6 @@ function results = getStats(mouseName, days, sessions)
 % This function will analyze the relevant actions.txt log files and return
 % a set of statistics useful to analyzing blindness and blindsight.
 
-leftX = 19980;
-rightX = 20020;
 centerX = 20000;
 
 % first column is all Left stim trials
@@ -19,7 +17,7 @@ leftStimStraightErrorsMap = containers.Map();
 rightStimStraightErrorsMap = containers.Map();
 
 % First, find all the filenames to read in
-fileList = dir(['data/*.txt']); % Get all mat files, and use that to construct filenames for video files
+fileList = dir(['*.txt']); % Get all mat files, and use that to construct filenames for video files
 
 numFilesAnalyzed = 0;
 for i=1:length(fileList)

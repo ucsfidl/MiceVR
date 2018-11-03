@@ -12,8 +12,7 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, fps, otsuWeight, p
 
 % Good settings for arguments:
 % NEW - single illuminator above
-% INSTRUCTION: Lower this number if the program is losing the pupil,
-% increase the otsuWeight if the pupil spot is too large!
+% 
 % otsuweight = 0.34      BAD = [0.5 0.47 0.44] Cryo_117
 %                        BAD = [0.4 0.35] Berlin_001
 %                        BAD = [0.3], GOOD [0.35] Alpha_133
