@@ -13,25 +13,43 @@ tic;
 %leftColor = [1 1 0.79];  % off-yellow
 %rightColor = [0.81 1 0.81];  % off-green
 
-colorLeftNear = [1 0.87 0.71]; % dull orange
-colorLeftFar = [1 1 0.79];  % dull yellow
-colorRightNear = [0.84 0.89 0.99];  % dull blue
-colorRightFar = [0.84 0.98 0.99]; % dull cyan
-colorCenter = [1 0.9 0.99];  % dull purple
-colorInterTrial = [0.9 0.9 0.9];  % grey
+leftEyeColor = 'b'; % Must be string notation like this, not RGB!
+rightEyeColor = 'r';
+leftEyeVarianceColor = [0.74 0.87 1];  % light blue
+rightEyeVarianceColor = [1 0.77 0.84]; % light red
+varianceAlpha = 0.5;
+
+colorLeft = [2 87 194]/255;  % blue
+colorRight = [226 50 50]/255; % red
+colorCenter = [15 157 88]/255;  % green
+
+shadingColorLeft = [0.84 0.89 0.99];  % dull blue
+shadingColorLeftFar = [0.84 0.98 0.99]; % dull cyan
+shadingColorRight = [1 0.87 0.71]; % dull orange
+shadingColorRightFar = [1 1 0.79];  % dull yellow
+shadingColorCenter = [0.85 1 0.8]; % dull green
+%colorCenter = [1 0.9 0.99];  % dull purple
+shadingColorInterTrial = [0.9 0.9 0.9];  % grey
 
 ymin = -25;
 ymax = 25;
 
 optoYmin = ymin;  % Where the opto stripe will be drawn
 optoYmax = ymin+2;
-colorOpto = [0 0 0;
-             0 1 1];  % opto blue [cyan]
-
+colorOpto = [0    0    0;
+             0.13 0.78 0.78; % left opto = blue [cyan] (Democrats are blue and are left)
+             1    0    0; % right opto = red (Republicans are red and are right)
+             0.5  0    0.5]; % both opto = purple (blue + red)
+optoVarianceAlpha = 0.15;  % 0.1 is too dim, 0.25 is too dark
+optoNone = -1;
+optoLeft = 0;
+optoRight = 1;
+optoBoth = 2;
+         
 if (numStim == 4)
-    allColors = [colorLeftNear; colorLeftFar; colorRightNear; colorRightFar; colorInterTrial];
+    allColors = [shadingColorLeft; shadingColorLeftFar; shadingColorRight; shadingColorRightFar; shadingColorInterTrial];
 elseif (numStim == 3)
-    allColors = [colorLeftNear; colorRightNear; colorCenter; colorInterTrial];
+    allColors = [shadingColorLeft; shadingColorRight; shadingColorCenter; shadingColorInterTrial];
 end
 
 frameStart = frameLim(1);
@@ -100,11 +118,15 @@ if (actionsFile ~= -1) % File found
             actionLocs = [actionLocs str2num(tokens{1}{2})];
             if (length(tokens{1}) > 2)
                 optoStates = [optoStates str2num(tokens{1}{3})];
+            else
+                optoStates = [optoStates optoNone];  % Populate with the value of no opto
             end
         else
             break;
         end
     end
+else
+    error('No actions file found.  Be sure the name matches the track file name.');
 end
 
 % If trial times are available, incorporate into the graphs
@@ -169,58 +191,60 @@ optoColors = zeros(1, numCompletedTrials, 3);
 if (numStim == 4)
     for i=1:numCompletedTrials
         if (stimLocs(i) == stimLeftNear)
-            stimColors(1,i,:) = colorLeftNear;
+            stimColors(1,i,:) = shadingColorLeft;
             idx = 1;
         elseif (stimLocs(i) == stimLeftFar)
-            stimColors(1,i,:) = colorLeftFar;
+            stimColors(1,i,:) = shadingColorLeftFar;
             idx = 2;
         elseif (stimLocs(i) == stimRightNear)
-            stimColors(1,i,:) = colorRightNear;
+            stimColors(1,i,:) = shadingColorRight;
             idx = 3;
         elseif (stimLocs(i) == stimRightFar)
-            stimColors(1,i,:) = colorRightFar;            
+            stimColors(1,i,:) = shadingColorRightFar;            
             idx = 4;
         end
         
         if (actionLocs(i) == stimLeftNear)
-            actionColors(1,i,:) = colorLeftNear;
+            actionColors(1,i,:) = shadingColorLeft;
             idx = 1;
         elseif (actionLocs(i) == stimLeftFar)
-            actionColors(1,i,:) = colorLeftFar;
+            actionColors(1,i,:) = shadingColorLeftFar;
             idx = 2;
         elseif (actionLocs(i) == stimRightNear)
-            actionColors(1,i,:) = colorRightNear;
+            actionColors(1,i,:) = shadingColorRight;
             idx = 3;
         elseif (actionLocs(i) == stimRightFar)
-            actionColors(1,i,:) = colorRightFar;            
+            actionColors(1,i,:) = shadingColorRightFar;
             idx = 4;
         end
         
-        if (optoStates(i)
+        optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
     end
 elseif (numStim == 3)
     for i=1:numCompletedTrials
         if (stimLocs(i) < stimCenter)
-            stimColors(1,i,:) = colorLeftNear;
+            stimColors(1,i,:) = shadingColorLeft;
             idx = 1;
         elseif (stimLocs(i) > stimCenter)
-            stimColors(1,i,:) = colorRightNear;
+            stimColors(1,i,:) = shadingColorRight;
             idx = 2;
         elseif (stimLocs(i) == stimCenter)
-            stimColors(1,i,:) = colorCenter;
+            stimColors(1,i,:) = shadingColorCenter;
             idx = 3;
         end
         
         if (actionLocs(i) < stimCenter)
-            actionColors(1,i,:) = colorLeftNear;
+            actionColors(1,i,:) = shadingColorLeft;
             idx = 1;
         elseif (actionLocs(i) > stimCenter)
-            actionColors(1,i,:) = colorRightNear;
+            actionColors(1,i,:) = shadingColorRight;
             idx = 2;
         elseif (actionLocs(i) == stimCenter)
-            actionColors(1,i,:) = colorCenter;
+            actionColors(1,i,:) = shadingColorCenter;
             idx = 3;
         end
+        
+        optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
     end
 end
 
@@ -233,6 +257,7 @@ trimmedActionLocs = actionLocs(1+numTruncatedStart:end-numTruncatedEnd);
 stimEyeMoveTrials = cell(numStim, 2);
 actionEyeMoveTrials = cell(numStim, 2);
 stimActionEyeMoveTrials = cell(numStim, numStim, 2);  % first axis is stimLoc, second is actionLoc, third is left/right eye
+stimOptoEyeMoveTrials = cell(numStim, 4, 2); % first axis is stimLoc, second is optoState (OFF, LEFT, RIGHT, or BOTH), third is left/right eye
 for i=1:length(trimmedStimLocs)
     if (numStim == 4)
         if (trimmedStimLocs(i) == stimLeftNear)
@@ -289,60 +314,104 @@ for i=1:length(trimmedStimLocs)
         sa{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
         stimActionEyeMoveTrials{idx1, idx2, j} = sa;
     end
+    
+    for j=1:2
+        osIdx = optoStates(i) + 2;  % Shift from the read value {-1,2) to the index (1,4)
+        so = stimOptoEyeMoveTrials{idx1, osIdx, j};
+        so{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
+        stimOptoEyeMoveTrials{idx1, osIdx, j} = so;
+    end
 end
 
 % Now, normalize by resampling, and then plot the average of the resampled eye movements.
-maxLengths = zeros(size(stimEyeMoveTrials,1), 1);
-minLengths = zeros(size(stimEyeMoveTrials,1), 1);
-resampledStimEye = cell(size(stimEyeMoveTrials));
-m = cell(size(stimEyeMoveTrials));
-sem = cell(size(stimEyeMoveTrials));
+minLengths = zeros(2, 1);  % One for each eye
 % First, plot the stimulus average of the eye movements
-for i=1:numStim
-    stimEyeLengths = cellfun(@(x) length(x), stimEyeMoveTrials{i,1});
-    maxLengths(i) = max(stimEyeLengths);
-    minLengths(i) = min(stimEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
-    resampledStimEye{i,1} = cellfun(@(x) resample(x, minLengths(i), length(x)), stimEyeMoveTrials{i,1}, 'UniformOutput', false);
-    d = cell2mat(resampledStimEye{i,1}(:)');
-    m{i,1} = nanmean(d, 2);
-    sem{i,1} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
-    resampledStimEye{i,2} = cellfun(@(x) resample(x, minLengths(i), length(x)), stimEyeMoveTrials{i,2}, 'UniformOutput', false);
-    d = cell2mat(resampledStimEye{i,2}(:)');
-    m{i,2} = nanmean(d, 2);
-    sem{i,2} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
-    % Placeholder until I make this look pretty
-    figure; 
-    x = 1:length(m{i,1});
-    h = plot(x, m{i,1}, 'r', x, m{i,2}, 'b'); 
-    if (numStim == 3)
-        if (i == 1)
-            sLoc = 'Left';
-        elseif (i == 2)
-            sLoc = 'Right';
-        else
-            sLoc = 'Center';
-        end
-    else
-        if (i == 1)
-            sLoc = 'Left near';
-        elseif (i == 2)
-            sLoc = 'Left far';
-        elseif (i == 3)
-            sLoc = 'Right near';
-        else
-            sLoc = 'Right far';
-        end
+for j=1:2  % For each eye
+    resampledStimEye = cell(size(stimEyeMoveTrials));
+    m = cell(size(stimEyeMoveTrials));
+    sem = cell(size(stimEyeMoveTrials));
+    ySem = cell(size(stimEyeMoveTrials));
+    h = [];
+    n = 0;
+    stimEyeLengths = [];
+    for i=1:numStim
+        stimEyeLengths = [stimEyeLengths cellfun(@(x) length(x), stimEyeMoveTrials{i,j})];
+        n = n + length(stimEyeMoveTrials{i,j});
     end
-    title([rootFileName ': ' sLoc ' stim: mean'], 'Interpreter', 'none');
-    annotation('textbox', [.8 0 .2 .2], 'String', ['n=' num2str(length(stimEyeMoveTrials{i,1}))], 'FitBoxToText', 'on', 'EdgeColor', 'white');  
-    legend(h, 'left eye', 'right eye');
+    minLengths(j) = min(stimEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
+    
+    for i=1:numStim
+        resampledStimEye{i,j} = cellfun(@(x) resample(x, minLengths(j), length(x)), stimEyeMoveTrials{i,j}, 'UniformOutput', false);
+        d = cell2mat(resampledStimEye{i,j}(:)');
+        m{i,j} = nanmean(d, 2);
+        sem{i,j} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
+    end
+
+    for i=1:numStim
+        ySem{i,j} = [m{i,j}'-sem{i,j}', fliplr(m{i,j}'+sem{i,j}')];
+    end
+    
+    figure; hold on;
+    x = 1:length(m{1,j}); % All the lengths are the same for each stim for 1 eye, so just pull from 1
+    xSem = cat(2, x, fliplr(x));
+    for i=1:numStim
+        if (numStim == 3)
+            if (i==1)
+                curColor = colorLeft;
+                curShadingColor = shadingColorLeft;
+                sLoc = 'Left';
+            elseif (i==2)
+                curColor = colorRight;
+                curShadingColor = shadingColorRight;
+                sLoc = 'Right';
+            elseif (i==3)
+                curColor = colorCenter;
+                curShadingColor = shadingColorCenter;
+                sLoc = 'Center';
+            end
+        elseif (numStim == 4)
+            if (i==1)
+                curColor = colorLeft;
+                curShadingColor = shadingColorLeft;
+                sLoc = 'Left Near';
+            elseif (i==2)
+                curColor = colorLeftFar;
+                curShadingColor = shadingColorLeftFar;
+                sLoc = 'Left Far';
+            elseif (i==3)
+                curColor = colorRight;
+                curShadingColor = shadingColorRight;
+                sLoc = 'Right Near';
+            elseif (i==4)
+                curColor = colorRightFar;
+                curShadingColor = shadingColorRightFar;
+                sLoc = 'Right Far';
+            end
+        end
+        patch(xSem, ySem{i,j}, curShadingColor, 'EdgeColor', 'none');
+        alpha(varianceAlpha);
+        h = [h plot(x, m{i,j}, 'Color', curColor, 'LineWidth', 1.5)];
+    end
+    if (j == 1)
+        eye = 'Left';
+    else
+        eye = 'Right';
+    end
+
+    title([rootFileName ': ' eye ' eye'], 'Interpreter', 'none');
+    annotation('textbox', [.8 0 .2 .2], 'String', ['n=' num2str(n)], 'FitBoxToText', 'on', 'EdgeColor', 'white');  
+    if (numStim == 3)
+        legend(h, 'left stim', 'right stim', 'center stim');
+    elseif (numStim == 4)
+        legend(h, 'left near stim', 'left far stim', 'right near stim', 'right far stim');
+    end
     ylim([-10 10]);
+    xlabel('Frame (normalized)')
 end
 
-% Second, plot the stimulus x navigation average of the eye movements
+% Second, plot the stimulus x action average of the eye movements
 % This helps assess whether the eyes follow the stim, or the eyes follow
 % the navigation!
-maxLengths = zeros(size(stimActionEyeMoveTrials,1), size(stimActionEyeMoveTrials,2), 1);
 minLengths = zeros(size(stimActionEyeMoveTrials,1), size(stimActionEyeMoveTrials,2), 1);
 resampledStimActionEye = cell(size(stimActionEyeMoveTrials));
 m = cell(size(stimActionEyeMoveTrials));
@@ -351,8 +420,7 @@ for i=1:numStim
     for j=1:numStim
         if (~isempty(stimActionEyeMoveTrials{i,j,1}))
             stimActionEyeLengths = cellfun(@(x) length(x), stimActionEyeMoveTrials{i,j,1});
-            maxLengths(i,j) = max(stimActionEyeLengths);
-            minLengths(i,j) = min(stimEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
+            minLengths(i,j) = min(stimActionEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
             resampledStimActionEye{i,j,1} = cellfun(@(x) resample(x, minLengths(i,j), length(x)), stimActionEyeMoveTrials{i,j,1}, 'UniformOutput', false);
             d = cell2mat(resampledStimActionEye{i,j,1}(:)');
             m{i,j,1} = nanmean(d, 2);
@@ -361,10 +429,17 @@ for i=1:numStim
             d = cell2mat(resampledStimActionEye{i,j,2}(:)');
             m{i,j,2} = nanmean(d, 2);
             sem{i,j,2} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
-            % Placeholder until I make this look pretty
-            figure; 
+
+            figure; hold on;
             x = 1:length(m{i,j,1});
-            h = plot(x, m{i,j,1}, 'r', x, m{i,j,2}, 'b'); 
+            xSem = cat(2, x, fliplr(x));
+            ySem1 = [m{i,j,1}'-sem{i,j,1}', fliplr(m{i,j,1}'+sem{i,j,1}')];
+            ySem2 = [m{i,j,2}'-sem{i,j,2}', fliplr(m{i,j,2}'+sem{i,j,2}')];
+            patch(xSem, ySem1, leftEyeVarianceColor, 'EdgeColor', 'none');
+            alpha(varianceAlpha);
+            patch(xSem, ySem2, rightEyeVarianceColor, 'EdgeColor', 'none');
+            alpha(varianceAlpha);
+            h = plot(x, m{i,j,1}, leftEyeColor, x, m{i,j,2}, rightEyeColor, x, zeros(1,length(m{i,j,1})), 'k--'); 
             if (numStim == 3)
                 if (i == 1)
                     sLoc = 'Left';
@@ -402,14 +477,106 @@ for i=1:numStim
             end
             title([rootFileName ': ' sLoc ' stim / ' aLoc ' action'], 'Interpreter', 'none');
             annotation('textbox', [.8 0 .2 .2], 'String', ['n=' num2str(length(stimActionEyeMoveTrials{i,j,1}))], 'FitBoxToText', 'on', 'EdgeColor', 'white');  
-            legend(h, 'left eye', 'right eye');
+            legend(h(1:2), 'left eye', 'right eye');
             ylim([-10 10]);
+            xlabel('Frame (normalized)')
+        end
+    end
+end
+
+% Third, if there was optogenetics, plot, for each eye, the effect of optogenetics on the eye movements for a given stimulus.
+%  I expect that the opto state simple makes the contralateral stimulus
+%  invisible and the mouse's eyes will simply act as they do on the
+%  center-stimulus task.  This is what I have seen so far.
+if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, plot this as well
+    minLengths = zeros(numStim, 1);  % 1 for each stimulus location
+    for (k=1:2) % For each eye
+        resampledStimOptoEye = cell(size(stimOptoEyeMoveTrials));
+        m = cell(size(stimOptoEyeMoveTrials));
+        sem = cell(size(stimOptoEyeMoveTrials));
+        ySem = cell(size(stimOptoEyeMoveTrials));
+        stimOptoEyeLengths = [];
+        for i=1:numStim
+            n = 0;
+            leg = {};
+            h = [];
+            % Make part of label for figure
+            if (numStim == 3)
+               if (i == 1)
+                   sLoc = 'Left';
+               elseif (i == 2)
+                   sLoc = 'Right';
+               else
+                   sLoc = 'Center';
+               end
+            elseif (numStim == 4)
+               if (i == 1)
+                   sLoc = 'Left Near';
+               elseif (i == 2)
+                   sLoc = 'Left Far';
+               elseif (i == 3)
+                   sLoc = 'Right Near';
+               elseif (i == 4)
+                   sLoc = 'Right Far';
+               end
+            end
+            
+            for j=1:4  % 4 possible opto states
+                if (~isempty(stimOptoEyeMoveTrials{i,j,k}))
+                    stimOptoEyeLengths = [stimOptoEyeLengths cellfun(@(x) length(x), stimOptoEyeMoveTrials{i,j,k})];
+                    n = n + length(stimOptoEyeMoveTrials{i,j});
+                end
+            end
+            minLengths(i) = min(stimOptoEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
+
+            % Now calculate the mean and sem for each opto state for this
+            % stim, and plot it on a single graph
+            figure; hold on;
+            for j=1:4 % 4 possible opto states: OFF, LEFT, RIGHT or BOTH
+                if (~isempty(stimOptoEyeMoveTrials{i,j,k}))
+                    if (j == 1)
+                        os = 'No light';
+                    elseif (j == 2)
+                        os = 'Left cortex light';
+                    elseif (j == 3)
+                        os = 'Right cortex light';
+                    elseif (j == 4)
+                        os = 'Both cortices light';
+                    end
+                    leg = cat(1, leg, os);
+                    resampledStimOptoEye{i,j,k} = cellfun(@(x) resample(x, minLengths(i), length(x)), stimOptoEyeMoveTrials{i,j,k}, 'UniformOutput', false);
+                    d = cell2mat(resampledStimOptoEye{i,j,k}(:)');
+                    m{i,j,k} = nanmean(d, 2);
+                    sem{i,j,k} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
+
+                    x = 1:length(m{i,j,k}); % All the lengths are the same for each optostate, so just pull from 1
+                    xSem = cat(2, x, fliplr(x));
+                    ySem{i,j} = [m{i,j,k}'-sem{i,j,k}', fliplr(m{i,j,k}'+sem{i,j,k}')];
+                    curColor = optoColors(1,j,:);
+                    patch(xSem, ySem{i,j}, curColor, 'EdgeColor', 'none');
+                    alpha(optoVarianceAlpha);
+                    h = [h plot(x, m{i,j,k}, 'Color', curColor, 'LineWidth', 1.5)];
+                end
+            end
+            
+            if (k == 1)
+                eye = 'Left';
+            else
+                eye = 'Right';
+            end
+
+            title([rootFileName ': Stim ' sLoc ', ' eye ' eye movements'], 'Interpreter', 'none');
+            annotation('textbox', [.8 0 .2 .2], 'String', ['n=' num2str(n)], 'FitBoxToText', 'on', 'EdgeColor', 'white');  
+            legend(h, leg);
+            ylim([-10 10]);
+            xlabel('Frame (normalized)')
+            ylabel('elevation rel. to first frame (deg, + right, - left)');
         end
     end
 end
 
 
-save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', 'trialEndFrames', 'stimLocs', 'actionLocs');
+save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', 'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates');
 
 
 % Plot stimulation and actions first
@@ -424,13 +591,13 @@ xPauseUnitsTime = xPause/fps;
 figure; hold on
 patch(xTrialsUnitsTime, yStim, stimColors, 'EdgeColor', 'none');
 patch(xTrialsUnitsTime, yAction, actionColors, 'EdgeColor', 'none');
-if(~isempty(optoStates)) % If opto experiment data, plot this as well
-    patch(xTrialsUnitsTime, yOpto, colorOpto, 'EdgeColor', 'none');
+if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, mark optostate on the graph
+    patch(xTrialsUnitsTime, yOpto, optoColors, 'EdgeColor', 'none');
 end
 if (~isempty(trialStartFrames))
-    patch(xPauseUnitsTime, yPause, colorInterTrial, 'EdgeColor', colorInterTrial);
+    patch(xPauseUnitsTime, yPause, shadingColorInterTrial, 'EdgeColor', shadingColorInterTrial);
 end
-h = plot(xUnitsTime, elavDeg(:, 1), 'r', xUnitsTime, elavDeg(:, 2), 'b');
+h = plot(xUnitsTime, elavDeg(:, 1), leftEyeColor, xUnitsTime, elavDeg(:, 2), rightEyeColor);
 title([rootFileName ': Pupil Elevation'], 'Interpreter', 'none');
 ylabel('elevation rel. to first frame (deg, + right, - left)');
 xlabel('time (s)');
@@ -448,12 +615,15 @@ set(dcmObj,'UpdateFcn',@dataCursorCallback,'Enable','on');
 
 % AZIMUTH PLOT
 figure; hold on
-p1 = patch(xTrialsUnitsTime, yStim, stimColors, 'EdgeColor', 'none');
-p2 = patch(xTrialsUnitsTime, yAction, actionColors, 'EdgeColor', 'none');
-if (~isempty(trialStartFrames))
-    patch(xPauseUnitsTime, yPause, colorInterTrial, 'EdgeColor', colorInterTrial);
+patch(xTrialsUnitsTime, yStim, stimColors, 'EdgeColor', 'none');
+patch(xTrialsUnitsTime, yAction, actionColors, 'EdgeColor', 'none');
+if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, mark optostate on the graph
+    patch(xTrialsUnitsTime, yOpto, optoColors, 'EdgeColor', 'none');
 end
-h = plot(xUnitsTime, azimDeg(:, 1), 'r', xUnitsTime, azimDeg(:, 2), 'b');
+if (~isempty(trialStartFrames))
+    patch(xPauseUnitsTime, yPause, shadingColorInterTrial, 'EdgeColor', shadingColorInterTrial);
+end
+h = plot(xUnitsTime, azimDeg(:, 1), leftEyeColor, xUnitsTime, azimDeg(:, 2), rightEyeColor);
 title([rootFileName ': Pupil Azimuth'], 'Interpreter', 'none');
 ylabel('azimuth rel. to first frame (deg, + right, - left)');
 xlabel('time (s)');
