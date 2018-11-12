@@ -276,10 +276,12 @@ while relFrame + frameStart <= frameStop + 1
 end
 
 if (totalFrames == numFrames)
-    save([outRoot '_trk.mat'], 'centers', 'areas');
+    saveFileName = [outRoot '_trk.mat'];
 else  % Partial analysis, so change file name as such
-    save([outRoot '_part_trk.mat'], 'centers', 'areas');    
+    saveFileName = [outRoot '_part_trk.mat'];
 end
+save(saveFileName, 'centers', 'areas', 'vLeftFileName', 'vRightFileName', 'frameLim', 'fps', 'otsuWeight', ...
+    'pupilSzRangePx', 'seSize', 'paratio');
 
 close(vout);
 

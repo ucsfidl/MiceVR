@@ -110,9 +110,14 @@ if (actionsFile ~= -1) % File found
     if (cd <= sd)  % For backwards compatibility
         expr = '.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t(.*?)\t'; % The last frame of each trial is in the 3rd column in the actions file
     else
-        expr = '.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t.*?\t.*?\t(.*?)\t';
+        expr = '.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t.*?\t.*?\t([^\s]*)\t*';
     end
+    m=0;
     while(true)
+        if (m == 94)
+            %disp(m);
+        end
+        m = m+1;
         line = fgetl(actionsFile);
         if (line ~= -1) % The file is not finished
             tokens = regexp(line, expr, 'tokens');
@@ -230,7 +235,7 @@ elseif (numStim == 3)
         elseif (stimLocs(i) > stimCenter)
             stimColors(1,i,:) = shadingColorRight;
             idx = 2;
-        elseif (stimLocs(i) == stimCenter)
+        else
             stimColors(1,i,:) = shadingColorCenter;
             idx = 3;
         end
@@ -241,7 +246,7 @@ elseif (numStim == 3)
         elseif (actionLocs(i) > stimCenter)
             actionColors(1,i,:) = shadingColorRight;
             idx = 2;
-        elseif (actionLocs(i) == stimCenter)
+        else
             actionColors(1,i,:) = shadingColorCenter;
             idx = 3;
         end
@@ -567,7 +572,7 @@ if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, plot thi
                     end
                     xSem = cat(2, x, fliplr(x));
                     ySem{i,j} = [m{i,j,k}'-sem{i,j,k}', fliplr(m{i,j,k}'+sem{i,j,k}')];
-                    curColor = optoColors(1,j,:);
+                    curColor = colorOpto(j,:);
                     patch(xSem, ySem{i,j}, curColor, 'EdgeColor', 'none');
                     alpha(optoVarianceAlpha);
                     h = [h plot(x, m{i,j,k}, 'Color', curColor, 'LineWidth', lw)];
@@ -626,6 +631,7 @@ elseif (numStim == 3)
     legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'center stim/action', 'inter-trial interval');
 end
 ylim([ymin ymax]);
+xlim([0 xUnitsTime(end)]);
 dcmObj = datacursormode(gcf);
 set(dcmObj,'UpdateFcn',@dataCursorCallback,'Enable','on');
 
@@ -652,6 +658,7 @@ elseif (numStim == 3)
     legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'center stim/action', 'inter-trial interval');
 end
 ylim([ymin ymax]);
+xlim([0 xUnitsTime(end)]);
 dcmObj = datacursormode(gcf);
 set(dcmObj,'UpdateFcn',@dataCursorCallback,'Enable','on');
 

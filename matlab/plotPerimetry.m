@@ -17,7 +17,7 @@ function plotPerimetry(mouseName, days)
 % Only works with 3-choice right now.
 
 % First, find all the filenames to read in
-fileList = dir(['data/*.txt']); % Get all mat files, and use that to construct filenames for video files
+fileList = dir(['*.txt']); % Get all mat files, and use that to construct filenames for video files
 
 % Store the results in a hashtable, one for hits and one for misses
 hitMapL90x80 = containers.Map();

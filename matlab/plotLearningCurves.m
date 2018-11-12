@@ -21,11 +21,7 @@ function plotLearningCurves(docid, mouseNames, startDays, endDays)
 % If no mouseName specified, print all (e.g. for weekly 1on1)
 
 % Usage:
-% > plotLearningCurves({}];
-% > plotLearningCurves({'Andor', 'Crinkle'});
-% > plotLearningCurves({'Xylo' 'Lymph'}, [112 178]);
-% > plotLearningCurves({'Andor', 'Birdy', 'Crinkle', 'Daria', 'Eureka', 'Funicular', 'Gertie', 'Haiku', 'Ingersol', 'Jolly', 'Krazy', 'Lemur', 'Mnm', 'Quite', 'Octo', 'Palor'}, [], [])
-% > plotLearningCurves({'Xylo', 'Lymph', 'Cryo', 'Berlin', 'Alpha', 'Venom', 'Zizzle', 'Yum', 'Ollie', 'Nasty', 'Inta', 'Umpa', 'Quasar', 'Candy', 'Roxie'}, [112 178 197, 80, 212, 117, 106, 113, 145, 144, 175, 117, 143, 278, 134], [])
+% > plotLearningCurves('16RLlczw1EiOIwSSsFLb0rNxkvgFp46ygZCojvGBg084', {'Icarus'}, [], [])
 
 % IMPORTANT: names in mouseNames must be in order of the tabs found, else
 % the startDays and endDays will not correspond correctly to the correct
@@ -35,11 +31,12 @@ function plotLearningCurves(docid, mouseNames, startDays, endDays)
 screenOffsetX = 70;
 screenOffsetY = 70;
 
-colors = [  15 157 88;  % green
-            226 50 50;  % red
-            2 87 194;   % blue
-            246 190 0; % orange
-         ] / 255;
+colorLeft = [2 87 194]/255;  % blue
+colorRight = [226 50 50]/255; % red
+colorCenter = [15 157 88]/255;  % green
+
+colorLeftFar = [2 193 194]/255; % cyan
+colorRightFar = [246 190 0]/255;  % orange
 
 % Column correspondences
 DAY = 1;
@@ -109,9 +106,9 @@ for sheetIdx=1:length(sheetIDs)
         lo = sheet(row, LOW);
         r = sheet(row, RESULTS);
             
-        if (str2double(d) == 112)
-            %disp(d);
-        end
+        %if (str2double(d) == 112)
+            disp(d);
+        %end
         
         if (isstrprop(d, 'digit') & ~isempty(a) & ~isempty(w))
             if (isempty(startDays) || ...
@@ -192,23 +189,48 @@ for sheetIdx=1:length(sheetIDs)
         yEndInd = yStartInd + size(indivAcc{i}, 2) - 1;
         for j=1:size(indivAcc{i}, 1)
             if (size(indivAcc{i}, 1) == 1)
-                c = colors(3,:);
-            else
+                c = colorCenter;
+            elseif (size(indivAcc{i},1) == 2)
                 if (contains(levelChange(i), "LC"))
                     if (j == 1)
-                        c = colors(1,:);
+                        c = colorLeft;
                     else
-                        c = colors(3,:);
+                        c = colorCenter;
                     end
                 elseif (contains(levelChange(i), "RC"))
                     if (j == 1)
-                        c = colors(2,:);
+                        c = colorRight;
                     else
-                        c = colors(3,:);
-                    end                    
+                        c = colorCenter;
+                    end     
                 else
-                    c = colors(j,:);
+                    if (j == 1)
+                        c = colorLeft;
+                    else
+                        c = colorRight;
+                    end
                 end
+            elseif (size(indivAcc{i}, 1) == 3)
+                if (j == 1)
+                    c = colorLeft;
+                elseif (j == 2)
+                    c = colorRight;
+                else
+                    c = colorCenter;
+                end
+            elseif (size(indivAcc{i}, 1) == 4)
+                if (j == 1)
+                    c = colorLeft;
+                elseif (j == 2)
+                    c = colorRight;
+                elseif (j == 3)
+                    c = colorLeftFar;
+                else
+                    c = colorRightFar;
+                end
+            end
+            if (xAcc(yStartInd) == 155)
+                disp('')
             end
             plot(xAcc(yStartInd):xAcc(yEndInd), indivAcc{i}(j,:), 'LineStyle', '-', 'Color', c, 'Marker', 'o', 'MarkerFaceColor', c, 'LineWidth', 2, 'MarkerSize', 3);
         end
@@ -240,6 +262,7 @@ for sheetIdx=1:length(sheetIDs)
     % Figure labels
     title([name ': ' strain ', ' experiment]);
     ylabel('Accuracy (%)', 'Color', 'k');
+    %set(get(gca,'ylabel'),'rotation',0)
     xlabel('Training day');
     ylim([yMin yMax]);
     ax = gca;
@@ -256,7 +279,7 @@ for sheetIdx=1:length(sheetIDs)
     ym = mod(floor((sheetIdx-1) / 3), 2);    
     set(h, 'Position', [screenOffsetX+h.Position(3)*xm ...
                         screenHeight-h.Position(4)-screenOffsetY-(h.Position(4)+screenOffsetY)*ym ...
-                        h.Position(3) h.Position(4)]);
+                        900 450]);
     
     % Second, plot the per choice accuracy over training ddays
 end
