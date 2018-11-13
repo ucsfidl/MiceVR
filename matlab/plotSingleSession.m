@@ -6,7 +6,8 @@ function plotSingleSession(mouseName, days, sessions)
 centerX = 20000;
 
 % First, find all the filenames to read in
-fileList = dir(['data/*.txt']); % Get all mat files, and use that to construct filenames for video files
+fileList = dir(['*.txt']); % Get all mat files, and use that to construct filenames for video files
+filename = '';
 
 h = figure;
 hold on
