@@ -18,9 +18,9 @@ yMax = 1.2;
 
 xLoc = 0;
 
-colors = [  15 157 88;  % green
+colors = [  2 87 194;  % blue
             226 50 50;  % red
-            2 87 194;   % blue
+            15 157 88;   % green
             246 190 0; % orange
          ] / 255;
      
