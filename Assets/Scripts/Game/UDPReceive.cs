@@ -133,7 +133,7 @@ public class UDPReceive : MonoBehaviour {
 
 			return input;
 		} else if (data.Length == 12) {
-			Debug.Log (BitConverter.ToInt32 (data, 4) + " " + BitConverter.ToInt32 (data, 8));
+			//Debug.Log (BitConverter.ToInt32 (data, 4) + " " + BitConverter.ToInt32 (data, 8));
 			UDPInput input = new UDPInput (
 				                 Convert.ToChar (data [0]),
 				                 BitConverter.ToUInt16 (data, 1),
