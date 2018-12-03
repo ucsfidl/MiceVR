@@ -704,7 +704,7 @@ public static class Globals
 					return true;
 				}
 			} catch (SocketException se) {
-				Debug.Log ("Socket exception thrown in Google Sheets writing");
+				Debug.Log ("Socket exception thrown in Google Sheets writing - try to connect again!");
 			}
 		}
 		return true; // dummy line for the compiler - the code should never get here!
