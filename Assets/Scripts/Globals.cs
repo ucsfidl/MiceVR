@@ -121,6 +121,7 @@ public static class Globals
 	public static int[] precompTrialBlock;
 	public static bool presoFracSpecified = false;
 	public static float probReward = 1;
+	public static int[] precompOptoBlock;  // Indicates optogenetic state on each trial - used to limit light exposure instead of alternating each trial - used if optoAlternation is set to false in the scenario
 
 	public struct fov {
 		public float nasalBound;
@@ -185,6 +186,7 @@ public static class Globals
 	public static float optoFraction;  // fraction of trials in which the light will randomly be on
 	public static bool optoAlternation = false;  // Used to force the light to be on on every other trial
 	public static int optoState = -1;     // 0 = left, 1 = right, 2 = both
+	public const int optoOff = -1;   //  Value used elsewhere to indicate optoOff - never changed
 
 	public static int probeIdx = -1;  // This is the tree index of the rarest tree, also considered the probe tree
 	public static bool probeLastOpto = false;  // Used to force the light on on every other probe trial

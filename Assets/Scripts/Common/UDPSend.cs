@@ -170,14 +170,16 @@ public class UDPSend : MonoBehaviour
 	public void OptoTurnOn (int side) {
 		int msg = 0;
 		Globals.optoState = side;
-		if (side == 0) // left side
+		if (side == Globals.optoOff)
+			return;
+		else if (side == 0) // left side
 			msg = -4;
 		else if (side == 1) // right side
 			msg = -5;
 		else if (side == 2) // both sides
 			msg = -6;
 		SendIntMsg(msg);
-		Debug.Log ("Turned on opto " + msg);
+		Debug.Log ("Turned on opto " + side);
 	}
 
 	public void OptoTurnOffAll() {

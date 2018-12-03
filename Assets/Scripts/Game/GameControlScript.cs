@@ -546,7 +546,7 @@ public class GameControlScript : MonoBehaviour
 			int[] precompTrialBlock = new int[Globals.blockSize];
 
 			// Algorithm is to generate a list of stimulus locations in proportion to the appearance probabilities, 
-			// and thenremove from that List until the block is filled.
+			// and then remove from that List until the block is filled.
 			List<int> stimLocs = new List<int>();
 			int[] maxFreq = new int[numTrees];  // Max number of each stimulus per block
 			decimal[] prob = new decimal[numTrees];
@@ -559,12 +559,10 @@ public class GameControlScript : MonoBehaviour
 					prob[i] = (decimal)(1F / numTrees);
 				}
 				maxFreq[i] = (int)Math.Ceiling(Globals.blockSize * prob[i]);
-				//Debug.Log (Globals.blockSize * prob [i]);
 			}
 				
 			// Now, build the bag of stim locs, 
 			for (int i = 0; i < maxFreq.Length; i++) {
-				//Debug.Log (maxFreq [i]);
 				for (int j = 0; j < maxFreq [i]; j++) {
 					stimLocs.Add (i);
 				}
@@ -578,7 +576,7 @@ public class GameControlScript : MonoBehaviour
 					precompTrialBlock [i] = stimLocsCopy [ran];
 					stimLocsCopy.RemoveAt (ran);
 				}
-				Debug.Log ("Stim locs copy" + String.Join(",", stimLocsCopy.Select(x=>x.ToString()).ToArray()));
+				//Debug.Log ("Stim locs copy" + String.Join(",", stimLocsCopy.Select(x=>x.ToString()).ToArray()));
 				if (Globals.probeIdx == -1 || precompTrialBlock.Contains (Globals.probeIdx)) {
 					break;
 				} else {
@@ -589,6 +587,47 @@ public class GameControlScript : MonoBehaviour
 			Debug.Log (String.Join(",", precompTrialBlock.Select(x=>x.ToString()).ToArray()));
 
 			Globals.precompTrialBlock = precompTrialBlock;
+
+			// Next, if optoAlternation is turned off and this is an opto game, precompute the opto state for each trial
+			if (Globals.optoSide != -1  && !Globals.optoAlternation) { // an optoSide was specified and optoAlternation is turned off
+				int[] precompOptoBlock = new int[Globals.blockSize];
+
+				// First, count the number of trials at each stimloc
+				int[] numTrialsPerStimLoc = new int[numTrees];
+				for (int i = 0; i < Globals.blockSize; i++) {
+					numTrialsPerStimLoc [precompTrialBlock [i]] = numTrialsPerStimLoc [precompTrialBlock [i]] + 1;
+				}
+				int minVal = numTrialsPerStimLoc.Min ();
+				int infrequentStimLoc = Array.IndexOf (numTrialsPerStimLoc, minVal);
+
+				// Second, for each stimLoc, set its optoState ON based on the 1/2 of the frequency of the most infrequent stim location
+				int numOptoOn = minVal / 2;
+				for (int i = 0; i < numTrees; i++) {
+					List<int> optoStates = new List<int> ();
+					for (int j = 0; j < numOptoOn; j++) {
+						optoStates.Add (Globals.optoSide);
+					}
+					for (int j = 0; j < numTrialsPerStimLoc [i] - numOptoOn; j++) {
+						optoStates.Add (Globals.optoOff);
+					}
+					//Debug.Log (String.Join(",", optoStates.Select(x=>x.ToString()).ToArray()));
+					// While optoStates left, assign them randomly
+					int lastIdx = 0;
+					while (true) {
+						int currIdx = Array.IndexOf (precompTrialBlock, i, lastIdx);
+						if (currIdx == -1) {
+							break;
+						}
+						int ran = UnityEngine.Random.Range (0, optoStates.Count ());
+						//Debug.Log (currIdx);
+						precompOptoBlock [currIdx] = optoStates [ran];
+						optoStates.RemoveAt (ran);
+						lastIdx = currIdx+1;
+					}
+				}
+				Debug.Log (String.Join(",", precompOptoBlock.Select(x=>x.ToString()).ToArray()));
+				Globals.precompOptoBlock = precompOptoBlock;
+			}
 		}
 
 		if (Globals.gameType.Equals("detection") || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target")) {
@@ -925,7 +964,7 @@ public class GameControlScript : MonoBehaviour
 			Debug.Log ("no dynamic occlusion");
 		}
 			
-		// Optogenetics
+		// OPTOGENETICS!
 		if (Globals.optoSide != -1) {  // A side for optogenetics was specified
 			if (Globals.optoAlternation) {  // If it should alternate, then alternate it, with every even trial getting light on
 				if (Globals.probeIdx == treeToActivate) { 				// if the current trial is a probe trial
@@ -937,9 +976,13 @@ public class GameControlScript : MonoBehaviour
 					udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
 				}
 			} else {
-				float rOpto = UnityEngine.Random.value;
-				if (rOpto < Globals.optoFraction) {
-					udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
+				if (Globals.blockSize > 0) {
+					udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.precompOptoBlock [(Globals.numberOfTrials - 1) % Globals.blockSize]);
+				} else {
+					float rOpto = UnityEngine.Random.value;
+					if (rOpto < Globals.optoFraction) {
+						udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
+					}
 				}
 			}
 		}
