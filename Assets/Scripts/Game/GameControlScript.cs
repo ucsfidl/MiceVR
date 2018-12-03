@@ -1081,7 +1081,7 @@ public class GameControlScript : MonoBehaviour
 			} else if (Globals.numMice == 1) {  // In this case, mouse is also rotated sideways, so x and y are flipped
 				// Be sure to run MouseUDP_1_mouse.py on RPi, instead of regular MouseUDP.py
 				// The if statements deal with mice that give noisy data on some ball movements
-				if (Math.Abs (Mathf.Rad2Deg * Globals.sphereInput.mouse1Y / this.rawRotationDivider) < 2) {
+				if (Math.Abs (Mathf.Rad2Deg * Globals.sphereInput.mouse1Y / this.rawRotationDivider) < 2.5) {
 					this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1Y);
 				} else {
 					this.last5Mouse1Y.Enqueue (this.last5Mouse1Y.Average ());
