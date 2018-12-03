@@ -1091,6 +1091,9 @@ public class GameControlScript : MonoBehaviour
 				} else {
 					this.last5Mouse2Y.Enqueue (this.last5Mouse2Y.Average ());
 				}
+
+				Debug.Log (Mathf.Rad2Deg * Globals.sphereInput.mouse1Y / this.rawRotationDivider);
+				Debug.Log (Globals.sphereInput.mouse1X / this.rawSpeedDivider);
 			}
 		
 			// transform sphere data into unity movement
@@ -1106,8 +1109,6 @@ public class GameControlScript : MonoBehaviour
 			this.udpSender.SendMousePos (this.player.transform.position);
 			this.udpSender.SendMouseRot (this.player.transform.rotation.eulerAngles.y);
 
-			Debug.Log (Mathf.Rad2Deg * (this.last5Mouse1Y.Average ()) / this.rawRotationDivider);
-			Debug.Log (this.last5Mouse2Y.Average () / this.rawSpeedDivider);
 
 			// Send UDP msg out
 			//this.udpSender.SendPlayerState(this.player.transform.position, this.player.transform.rotation.eulerAngles.y, Globals.playerInWaterTree, Globals.playerInDryTree);
