@@ -1061,9 +1061,7 @@ public class GameControlScript : MonoBehaviour
 		}
     }
 
-    private void MovePlayer()
-    {
-		
+    private void MovePlayer() {
 		if (Globals.newData) {
 			Globals.newData = false;
 
@@ -1085,7 +1083,6 @@ public class GameControlScript : MonoBehaviour
 				this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1Y);
 				this.last5Mouse2Y.Enqueue (Globals.sphereInput.mouse1X);
 			}
-
 		
 			// transform sphere data into unity movement
 			//if (this.frameCounter - this.previousFrameCounter > 1)
