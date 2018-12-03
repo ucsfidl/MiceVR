@@ -1097,8 +1097,8 @@ public class GameControlScript : MonoBehaviour
 			this.udpSender.SendMousePos (this.player.transform.position);
 			this.udpSender.SendMouseRot (this.player.transform.rotation.eulerAngles.y);
 
-			//Debug.Log (this.last5Mouse2Y.Average ());
-			//Debug.Log (Time.time * 1000);
+			Debug.Log (Mathf.Rad2Deg * (this.last5Mouse1Y.Average ()) / this.rawRotationDivider);
+			Debug.Log (this.last5Mouse2Y.Average () / this.rawSpeedDivider);
 
 			// Send UDP msg out
 			//this.udpSender.SendPlayerState(this.player.transform.position, this.player.transform.rotation.eulerAngles.y, Globals.playerInWaterTree, Globals.playerInDryTree);
