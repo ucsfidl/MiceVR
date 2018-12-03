@@ -2,6 +2,7 @@
 using System.Collections;
 using System.IO;
 using System;
+using System.Net.Sockets;
 using GoogleSheetsToUnity;
 using System.Collections.Generic;
 using UnityEngine.UI;
@@ -653,52 +654,60 @@ public static class Globals
 
 	// Write the data to Google Sheets so that the experimenter does not need to memorize and type in results, which is prone to error
 	public static bool WriteStatsToGoogleSheet() {
-		SpreadSheetManager manager = new SpreadSheetManager();
-		GS2U_SpreadSheet spreadsheet = manager.LoadSpreadSheet (vrGoogleSheetsName);
-		GS2U_Worksheet worksheet = spreadsheet.LoadWorkSheet(mouseName);
-		if (worksheet == null) {
-			Debug.Log ("Data not saved to Sheets, as worksheet named '" + mouseName + "' was NOT found");
-			return false;
-		} else {
-			WorksheetData data = worksheet.LoadAllWorksheetInformation ();
+		bool tryAgain = true;
+		while (tryAgain) {
+			try {
+				SpreadSheetManager manager = new SpreadSheetManager();
+				GS2U_SpreadSheet spreadsheet = manager.LoadSpreadSheet (vrGoogleSheetsName);
+				GS2U_Worksheet worksheet = spreadsheet.LoadWorkSheet(mouseName);
+				if (worksheet == null) {
+					Debug.Log ("Data not saved to Sheets, as worksheet named '" + mouseName + "' was NOT found");
+					return false;
+				} else {
+					WorksheetData data = worksheet.LoadAllWorksheetInformation ();
 
-			// Helper vars
-			TimeSpan te = gameEndTime.Subtract (gameStartTime);
-			float numMinElapsed = te.Hours * 60 + te.Minutes + (int)Math.Round ((double)te.Seconds / 60);
-			if (numMinElapsed == 0)
-				numMinElapsed = 1;
+					// Helper vars
+					TimeSpan te = gameEndTime.Subtract (gameStartTime);
+					float numMinElapsed = te.Hours * 60 + te.Minutes + (int)Math.Round ((double)te.Seconds / 60);
+					if (numMinElapsed == 0)
+						numMinElapsed = 1;
 
-			float totalEarnedRewardSize = 0;
-			for (int i = 0; i < sizeOfRewardGiven.Count; i++) {
-				totalEarnedRewardSize += (float)System.Convert.ToDouble (sizeOfRewardGiven [i]);
-			}
-
-			// Iterate the file
-			for (int i = 0; i < data.rows.Count; i++) {
-				if (data.rows [i].cells [12].value.Equals ("") && data.rows [i].cells [13].value.Equals ("")) {
-					int row = i + 1;
-					// Add the date (L), duration, rewards, trials, earned, unearned on ball, and total stats to the Google Sheet
-					worksheet.ModifyRowData (row, new Dictionary<string, string> {
-						{ "date", DateTime.Today.ToString ("d") },
-						{ "durm", numMinElapsed.ToString() },
-						{ "rewards", numCorrectTurns.ToString () },
-						{ "rmin", string.Format ("{0:N1}", (numCorrectTurns / numMinElapsed)) },
-						{ "trials", (numberOfTrials - 1).ToString () },
-						{ "tmin", string.Format ("{0:N1}", (numberOfTrials - 1) / numMinElapsed) },
-						{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + "%" },
-						{ "earned", Math.Round (totalEarnedRewardSize).ToString () },
-						{ "uball", Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString () },
-						{ "results", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + GetTreeAccuracy () },
-						{ "totalh2o", "=V" + (row + 1) + "+X" + (row + 1) }
+					float totalEarnedRewardSize = 0;
+					for (int i = 0; i < sizeOfRewardGiven.Count; i++) {
+						totalEarnedRewardSize += (float)System.Convert.ToDouble (sizeOfRewardGiven [i]);
 					}
-					);
 
-					break;
+					// Iterate the file
+					for (int i = 0; i < data.rows.Count; i++) {
+						if (data.rows [i].cells [12].value.Equals ("") && data.rows [i].cells [13].value.Equals ("")) {
+							int row = i + 1;
+							// Add the date (L), duration, rewards, trials, earned, unearned on ball, and total stats to the Google Sheet
+							worksheet.ModifyRowData (row, new Dictionary<string, string> {
+								{ "date", DateTime.Today.ToString ("d") },
+								{ "durm", numMinElapsed.ToString() },
+								{ "rewards", numCorrectTurns.ToString () },
+								{ "rmin", string.Format ("{0:N1}", (numCorrectTurns / numMinElapsed)) },
+								{ "trials", (numberOfTrials - 1).ToString () },
+								{ "tmin", string.Format ("{0:N1}", (numberOfTrials - 1) / numMinElapsed) },
+								{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + "%" },
+								{ "earned", Math.Round (totalEarnedRewardSize).ToString () },
+								{ "uball", Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString () },
+								{ "results", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + GetTreeAccuracy () },
+								{ "totalh2o", "=V" + (row + 1) + "+X" + (row + 1) }
+							}
+							);
+
+							break;
+						}
+					}
+					Debug.Log ("wrote to worksheet " + mouseName);
+					return true;
 				}
+			} catch (SocketException se) {
+				Debug.Log ("Socket exception thrown in Google Sheets writing");
 			}
-			Debug.Log ("wrote to worksheet " + mouseName);
-			return true;
 		}
+		return true; // dummy line for the compiler - the code should never get here!
 	}
 
     public static string GetTreeAccuracy()
