@@ -127,12 +127,12 @@ public class WaterTreeScript : MonoBehaviour {
 						if (recentAccuracy < chance) { // Mouse is performing below chance, suggesting they are biased and would benefit from a larger reward on a correct trial that goes against the bias!
 							if (biasAmt > 1.2 * chance) { // e.g. if chance is 50%,  bias must be 60% or greater to multiply the reward
 								if (!this.gameObject.transform.position.x.Equals (gos [biasDir].transform.position.x)) {
-									Debug.Log ("adding to biasMultiplyer");
+									//Debug.Log ("adding to biasMultiplyer");
 									biasMultiplier += (chance - recentAccuracy) / (chance / 4);
 								}
                             }
                         }
-						Debug.Log("recent accuracy = " + recentAccuracy + ", chance = " + chance + ", biasDir = " + biasDir + ", biasAmt = " + biasAmt + ", biasMultiplyer = " + biasMultiplier);
+						//Debug.Log("recent accuracy = " + recentAccuracy + ", chance = " + chance + ", biasDir = " + biasDir + ", biasAmt = " + biasAmt + ", biasMultiplyer = " + biasMultiplier);
                     }
 
                     int rewardDur;
@@ -200,19 +200,44 @@ public class WaterTreeScript : MonoBehaviour {
     }
 
 	private void GiveReward(int rewardDur, bool addToTurns, bool trueCorrect) {
-		// If probabilistic reward, give appropriately
+		// If probabilistic reward, give appropriately, depending on history of reward! (not just simple random number compared to target as before)
 		float r = UnityEngine.Random.value;
-		if (r < Globals.probReward) {
+		int interTrialInterval;
+		Color c;
+		float xPos = this.gameObject.transform.position.x;
+		float adjRewardThreshold = Globals.probReward;
+
+		if (Globals.probReward < 1) {
+			// Get actual reward rate at the location of this tree, and modulate the reward rate in proportion to the distance from this target
+			float actualRewardRate = Globals.GetActualRewardRate(xPos);
+			if (actualRewardRate < Globals.probReward) {
+				//adjRewardThreshold = 1 - actualRewardRate / Globals.probReward + actualRewardRate;
+				adjRewardThreshold = 1;
+			} else {
+				adjRewardThreshold = (1 - (actualRewardRate - Globals.probReward) / (1 - Globals.probReward)) * Globals.probReward;
+			}
+			Debug.Log ("Target reward rate=" + Globals.probReward + ", actual reward rate=" + actualRewardRate + ", adj threshold=" + adjRewardThreshold + ", random val=" + r);
+		}
+
+		if (r <= adjRewardThreshold) {
 			GameObject.Find ("UDPSender").GetComponent<UDPSend> ().SendWaterReward (rewardDur);
 			Globals.numberOfEarnedRewards++;
 			Globals.sizeOfRewardGiven.Add(Globals.rewardSize / Globals.rewardDur * rewardDur);
 			Globals.rewardAmountSoFar += Globals.rewardSize / Globals.rewardDur * rewardDur;
 			this.mouseObject = GameObject.FindGameObjectWithTag("MainCamera");
 			this.mouseObject.GetComponent<AudioSource>().Play();
-			Debug.Log ("gave reward, random val = " + r);
+
+			interTrialInterval = correctTurnDelay;
+			c = Color.black;
+
+			Globals.IncrementRewardAtStimLoc (xPos);
+			Globals.IncrementTurnToStimLoc (xPos);
 		} else {
 			Globals.sizeOfRewardGiven.Add(0);
-			Debug.Log ("no reward, random val = " + r);
+			interTrialInterval = correctTurnDelay;
+			c = Color.black;
+
+			Globals.IncrementTurnToStimLoc (xPos);
 		}
 		this.depleted = true;
 
@@ -229,15 +254,26 @@ public class WaterTreeScript : MonoBehaviour {
 
         if (respawn) {
             Globals.numberOfTrials++;
-            Globals.trialDelay = correctTurnDelay;
-            GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.black);
+			Globals.trialDelay = interTrialInterval;
+			GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
             Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);
             Globals.WriteToLogFiles();
 			GameObject.Find("UDPSender").GetComponent<UDPSend>().OptoTurnOffAll();
         }
-    }
+	}
 
     private void WitholdReward() {
+		float xPos = this.gameObject.transform.position.x;
+		Globals.IncrementTurnToStimLoc (xPos);
+		Color c = Color.white;
+		int interTrialInterval = incorrectTurnDelay;
+
+		// If probabilistic rewards given, make the visual cue and trial delay of an error the same as a correct trial, to discourage learning during testing.
+		if (Globals.probReward < 1) {
+			c = Color.black;
+			interTrialInterval = correctTurnDelay;
+		}
+
         Globals.hasNotTurned = false;
         Globals.firstTurn.Add(this.gameObject.transform.position.x);
         Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
@@ -246,8 +282,8 @@ public class WaterTreeScript : MonoBehaviour {
         Globals.sizeOfRewardGiven.Add(0);
         if (respawn) {
             Globals.numberOfTrials++;
-            Globals.trialDelay = incorrectTurnDelay;
-            GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(Color.white);
+			Globals.trialDelay = interTrialInterval;
+            GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
             Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);
         }
 

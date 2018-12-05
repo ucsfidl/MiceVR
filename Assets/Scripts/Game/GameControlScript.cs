@@ -343,6 +343,8 @@ public class GameControlScript : MonoBehaviour
 			Globals.InitLogFiles();
             Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
 			lastTrialStartDateTime = DateTime.Now;
+
+			Globals.InitRewardAndTurnCounts ();
 		}
     }
 
@@ -961,7 +963,7 @@ public class GameControlScript : MonoBehaviour
 			Globals.SetOccluders (locx, rFOV);
 		} else {
 			Globals.SetOccluders(locx);
-			Debug.Log ("no dynamic occlusion");
+			//Debug.Log ("no dynamic occlusion");
 		}
 			
 		// OPTOGENETICS!
@@ -1048,8 +1050,8 @@ public class GameControlScript : MonoBehaviour
         yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
 		this.udpSender.close();
-		bool wroteData = Globals.WriteStatsToGoogleSheet();
-		Globals.WriteStatsFile();
+		Globals.WriteStatsFile();  // make sure before WriteStatsToGoogleSheet();
+		bool wroteData = Globals.WriteStatsToGoogleSheet();  // sometimes fails due to bad internet connection?  
 
 		if (wroteData) {
 			Application.Quit ();
@@ -1081,7 +1083,7 @@ public class GameControlScript : MonoBehaviour
 			} else if (Globals.numMice == 1) {  // In this case, mouse is also rotated sideways, so x and y are flipped
 				// Be sure to run MouseUDP_1_mouse.py on RPi, instead of regular MouseUDP.py
 				// The if statements deal with mice that give noisy data on some ball movements
-				if (Math.Abs (Mathf.Rad2Deg * Globals.sphereInput.mouse1Y / this.rawRotationDivider) < 2.5) {
+				if (Math.Abs (Mathf.Rad2Deg * Globals.sphereInput.mouse1Y / this.rawRotationDivider) < 2) {
 					this.last5Mouse1Y.Enqueue (Globals.sphereInput.mouse1Y);
 				} else {
 					this.last5Mouse1Y.Enqueue (this.last5Mouse1Y.Average ());

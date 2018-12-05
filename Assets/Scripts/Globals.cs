@@ -42,6 +42,10 @@ public static class Globals
 	public static ArrayList trialWorld = new ArrayList();  // Which world, in a multi-world scenario, was shown on this trial
     public static int numCorrectTurns;
 
+	// Keep track of actual reward rate at each stimulus location
+	public static List<int> numRewardsAtStimLoc = new List<int>();
+	public static List<int> numTurnsToStimLoc = new List<int>();
+
 	public static int trialDelay;
 	public static int numberOfTrials;
 
@@ -50,7 +54,7 @@ public static class Globals
     public static int rewardDur;  // duration in ms of a single drop
     public static float rewardSize;  // what the above duration results in in ul
     public static float totalRewardSize = 1000;  // total amount the mouse can be given, in ul
-    public static ArrayList sizeOfRewardGiven = new ArrayList(); // in ul
+	public static ArrayList sizeOfRewardGiven = new ArrayList(); // in ul
 
     public static string gameType = "detection";  // Default: detection - The type of game, as specified in the scenario file and detected by Loader
     public static string gameTurnControl = "yaw"; // Default: yaw - Whether to use YAW or ROLL for game turning control on the ball
@@ -342,7 +346,7 @@ public static class Globals
 		// Record which world this trial is on
 		trialWorld.Add(worldNum);
 
-		Debug.Log ("world #" + worldNum);
+		//Debug.Log ("world #" + worldNum);
 
 		// Now, actually render the new world
 		if (Globals.treesBelowGround) {
@@ -647,6 +651,7 @@ public static class Globals
         }
 
         statsFile.WriteLine("\t\t<totalRewardSizeReceived>" + (totalEarnedRewardSize + (float)Globals.numberOfUnearnedRewards * rewardSize).ToString() + "</trials>");
+		statsFile.WriteLine ("\t\t<rewardRates>" + PrintRewardRates () + "</rewardRates>");
         statsFile.WriteLine("\t</stats>");
         statsFile.WriteLine("</document>");
         statsFile.Close();
@@ -708,6 +713,23 @@ public static class Globals
 			}
 		}
 		return true; // dummy line for the compiler - the code should never get here!
+	}
+
+	public static string PrintRewardRates() {
+		GameObject[] gos = GetTrees ();
+		string output = "";
+
+		for (int i = 0; i < gos.Length; i++) {
+			if (i > 0) {
+				output += "/";
+			}
+			if (numTurnsToStimLoc [i] > 0) {
+				output += Math.Round ((float)numRewardsAtStimLoc [i] / (float)numTurnsToStimLoc [i], 2);
+			} else {
+				output += "NaN";
+			}
+		}
+		return output;
 	}
 
     public static string GetTreeAccuracy()
@@ -1053,4 +1075,54 @@ public static class Globals
 		return NewValue;
 	}
 
+	public static float GetActualRewardRate(float xPos) {
+		int idx = GetIdxOfStimLoc (xPos);
+		if (numTurnsToStimLoc[idx] > 0)
+			return (float)numRewardsAtStimLoc [idx] / (float)numTurnsToStimLoc [idx];
+		else
+			return 0;
+	}
+
+	public static float GetNumRewardsAtStimLoc(float xPos) {
+		int idx = GetIdxOfStimLoc (xPos);
+		return numRewardsAtStimLoc [idx];
+	}
+
+	public static float GetNumTurnsToStimLoc(float xPos) {
+		int idx = GetIdxOfStimLoc (xPos);
+		return numTurnsToStimLoc [idx];
+	}
+
+	public static void IncrementRewardAtStimLoc(float xPos) {
+		int idx = GetIdxOfStimLoc (xPos);
+		numRewardsAtStimLoc [idx] = numRewardsAtStimLoc [idx] + 1;
+	}
+
+	public static void IncrementTurnToStimLoc(float xPos) {
+		int idx = GetIdxOfStimLoc (xPos);
+		numTurnsToStimLoc [idx] = numTurnsToStimLoc [idx] + 1;
+	}
+
+	public static int GetIdxOfStimLoc(float xPos) {
+		GameObject[] gos = GetTrees ();
+		int idx = -1;
+		// Find the index for this tree
+		for (int i = 0; i < gos.Length; i++) {
+			if (gos [i].gameObject.transform.position.x == xPos) {
+				idx = i;
+				break;
+			}
+		}
+		return idx;
+	}
+
+	public static void InitRewardAndTurnCounts() {
+		// Initialize tracking of rewards at each stim location
+		GameObject[] gos = Globals.GetTrees ();
+		for (int i = 0; i < gos.Length; i++) {
+			Globals.numRewardsAtStimLoc.Add (0);
+			Globals.numTurnsToStimLoc.Add (0);
+		}
+		Debug.Log (gos.Length + " trees");
+	}
 }
