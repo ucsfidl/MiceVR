@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using System;
 using System.Net.Sockets;
+using System.Net;
 using GoogleSheetsToUnity;
 using System.Collections.Generic;
 using UnityEngine.UI;
@@ -710,6 +711,8 @@ public static class Globals
 				}
 			} catch (SocketException se) {
 				Debug.Log ("Socket exception thrown in Google Sheets writing - try to connect again!");
+			} catch (WebException we) {
+				Debug.Log ("Web exception thrown in Google Sheets writing - try to connect again!");
 			}
 		}
 		return true; // dummy line for the compiler - the code should never get here!
