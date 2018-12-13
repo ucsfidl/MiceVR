@@ -1,0 +1,3 @@
+/dev/input/mouse0
+/dev/input/mouse1
+
