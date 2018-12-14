@@ -1,0 +1,84 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>discrimination</gameType>
+			<gameTurnControl>yaw</gameTurnControl>
+			<rewardedHFreq>0</rewardedHFreq>
+			<rewardedVFreq>4</rewardedVFreq>
+			<rewardedAngle>0</rewardedAngle>
+			<distractorHFreq>4</distractorHFreq>
+			<distractorVFreq>0</distractorVFreq>
+			<distractorAngle>51</distractorAngle>
+			<randomPhase>true</randomPhase>
+		</gameConfig>
+	</config>
+	<worlds>
+		<world>
+			<trees>
+				<t> <!-- Left tree -->
+					<w>1</w>
+					<pos>19980;0;20028</pos>
+					<scale>0;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+					<d>0</d>
+					<type>flat</type>
+				</t>
+				<t> <!-- Right tree -->
+					<w>1</w>
+					<pos>20020;0;20028</pos>
+					<scale>0;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+					<d>0</d>
+					<type>flat</type>
+				</t>
+			</trees>
+			<walls>
+				<wall> <!-- Left wall -->
+					<pos>19994;0.5;20006.5</pos>
+					<rot>0;0;0</rot>
+					<scale>2;0;21.6</scale>
+				</wall>
+				<wall> <!-- Right wall -->
+					<pos>20006;0.5;20006.5</pos>
+					<rot>0;0;0</rot>
+					<scale>2;0;21.6</scale>
+				</wall>
+				<wall> <!-- Front wall -->
+					<pos>20000;0.5;19994</pos>
+					<rot>0;90.00003;0</rot>
+					<scale>2;0;15</scale>
+				</wall>
+				<wall> <!-- Back wall -->
+					<pos>20000;0.5;20037</pos>
+					<rot>0;270;0</rot>
+					<scale>2;0;40</scale>
+				</wall>
+				<wall> <!-- Left front wall -->
+					<pos>19986;0.5;20019</pos>
+					<rot>0;270;0</rot>
+					<scale>2;0;19.1</scale>
+				</wall>
+				<wall> <!-- Right front wall -->
+					<pos>20014;0.5;20019</pos>
+					<rot>0;270;0</rot>
+					<scale>2;0;19.1</scale>
+				</wall>
+				<wall> <!-- Left Closing wall -->
+					<pos>19976;0.5;20028</pos>
+					<rot>0;0;0</rot>
+					<scale>2;0;19.1</scale>
+				</wall>
+				<wall> <!-- Right Closing wall -->
+					<pos>20024;0.5;20028</pos>
+					<rot>0;0;0</rot>
+					<scale>2;0;19.1</scale>
+				</wall>
+			</walls>
+		</world>
+	</worlds>
+</document>
