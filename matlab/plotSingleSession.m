@@ -59,6 +59,7 @@ for i=1:length(fileList)
                         stimLoc = C{5}(k);
                         actionLoc = C{12}(k);
                         optoLoc = C{17}(k);
+                        recRew = C{15}(k);
                         
                         % Supports 3-choice for now - support 4-choice later.
                         if (stimLoc < centerX)
@@ -93,6 +94,17 @@ for i=1:length(fileList)
                             patch(x,y,'k', 'EdgeColor', 'none');
                         end
                         
+                        y = [0 0 -blockHeight*.15 -blockHeight*.15];
+                        if (recRew > 0)
+                            patch(x,y,'k', 'EdgeColor', 'none');
+                        else
+                            if (stimLoc == actionLoc)
+                                patch(x,y,'w', 'EdgeColor', 'none');
+                            else
+                                patch(x,y,[0.5 0.5 0.5], 'EdgeColor', 'none');
+                            end
+                        end
+                        
                         xLoc = xLoc + blockWidth;
                         
                         % Track accuracy, to plot at the end
@@ -104,7 +116,7 @@ for i=1:length(fileList)
                         end
                     end
                 end
-                ylim([0, 2.3*blockHeight]);
+                ylim([-blockHeight*.15, 2.3*blockHeight]);
                 fclose(fid);
             end
         end
