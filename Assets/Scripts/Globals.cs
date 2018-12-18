@@ -158,6 +158,7 @@ public static class Globals
 		public string materialName;
 		public string type;
 		public float presoFrac;
+		public float opacity;
 	}
 	public static GameObject treeParent = GameObject.Find("Trees");
 
@@ -200,7 +201,7 @@ public static class Globals
 	public static bool treeMarkers = false;  // Forces drawing a black circle underneath where the trees normally are
 
 	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
-		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac) {
+		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac, float opacity) {
 		World w = GetWorld (worldNum);
 
 		Tree t = new Tree();
@@ -241,6 +242,7 @@ public static class Globals
 		t.materialName = materialName;
 		t.type = type;
 		t.presoFrac = presoFrac;
+		t.opacity = opacity;
 
 		w.trees.Add (t);
 
@@ -375,6 +377,7 @@ public static class Globals
 					go.transform.localScale += t.scale;
 					go.transform.parent = treeParent.transform;
 					go.isStatic = true;
+					go.GetComponent<WaterTreeScript> ().SetOpacity (t.opacity);
 					//go.SetActive (false);
 					// Implements field restriction of a tree to just one side screen
 					if (t.restrictToCamera != -1) {

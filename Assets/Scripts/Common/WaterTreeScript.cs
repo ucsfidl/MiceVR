@@ -367,6 +367,10 @@ public class WaterTreeScript : MonoBehaviour {
 		this.enabled = true;
 	}
 
+	public void SetOpacity(float opacity) {
+		this.crown.GetComponent<Renderer>().material.SetFloat("_Transparency", opacity);
+	}
+
     public void SetShaderRotation(float deg)
     {
         this.crown.GetComponent<Renderer>().material.SetFloat("_Deg", deg);

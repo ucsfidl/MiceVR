@@ -432,6 +432,7 @@ public class Loader : MonoBehaviour {
 					string materialName = "gradient";
 					string type = "";
 					float presoFrac = -1;
+					float opacity = 1;
 
 					foreach (XmlNode val in treeAttributes) {
 						if (val.Name == "w") {
@@ -490,10 +491,12 @@ public class Loader : MonoBehaviour {
 							type = val.InnerText;
 						} else if (val.Name == "presoFrac") {
 							float.TryParse (val.InnerText, out presoFrac);
+						} else if (val.Name == "opacity") {
+							float.TryParse (val.InnerText, out opacity);
 						}
 					}
 
-					Globals.AddTreeToWorld (worldNum, water, v, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName, type, presoFrac);
+					Globals.AddTreeToWorld (worldNum, water, v, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName, type, presoFrac, opacity);
 				}
 
 				XmlNodeList wallList = world.GetElementsByTagName("wall"); // array of the wall nodes
