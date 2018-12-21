@@ -12,7 +12,7 @@ Shader "Custom/Gradient" {
 		_Transparency("Transparency", Range(0.0, 1)) = 1
     }
 	SubShader {
-		Tags { "Queue" = "Transparent+700"}
+		Tags { "Queue" = "AlphaTest+250"}
 
 		Blend SrcAlpha OneMinusSrcAlpha
 
