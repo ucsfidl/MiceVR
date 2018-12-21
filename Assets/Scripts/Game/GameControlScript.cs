@@ -1088,7 +1088,7 @@ public class GameControlScript : MonoBehaviour
 				} else {
 					this.last5Mouse1Y.Enqueue (this.last5Mouse1Y.Average ());
 				}
-				if (Math.Abs (Globals.sphereInput.mouse1X / (this.rawSpeedDivider / Globals.speedAdjustment)) < 1) {
+				if (Math.Abs (Globals.sphereInput.mouse1X / (this.rawSpeedDivider / Globals.speedAdjustment)) < (1 * Globals.speedAdjustment)) {
 					this.last5Mouse2Y.Enqueue (Globals.sphereInput.mouse1X);
 				} else {
 					this.last5Mouse2Y.Enqueue (this.last5Mouse2Y.Average ());
