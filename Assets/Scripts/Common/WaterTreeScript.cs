@@ -369,6 +369,21 @@ public class WaterTreeScript : MonoBehaviour {
 
 	public void SetOpacity(float opacity) {
 		this.crown.GetComponent<Renderer>().material.SetFloat("_Transparency", opacity);
+		Color c = this.bottomCap.GetComponent<Renderer> ().material.color;
+		c.a = 0;
+		this.bottomCap.GetComponent<Renderer> ().material.color = c;
+
+		c = this.topCap.GetComponent<Renderer> ().material.color;
+		c.a = 0;
+		this.topCap.GetComponent<Renderer> ().material.color = c;
+
+		c = this.trunk.GetComponent<Renderer> ().material.color;
+		c.a = 0;
+		this.trunk.GetComponent<Renderer> ().material.color = c;
+
+		c = this.waterBase.GetComponent<Renderer> ().material.color;
+		c.a = 0;
+		this.waterBase.GetComponent<Renderer> ().material.color = c;
 	}
 
     public void SetShaderRotation(float deg)
