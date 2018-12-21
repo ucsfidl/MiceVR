@@ -129,6 +129,8 @@ public static class Globals
 	public static float probReward = 1;
 	public static int[] precompOptoBlock;  // Indicates optogenetic state on each trial - used to limit light exposure instead of alternating each trial - used if optoAlternation is set to false in the scenario
 
+	public static float speedAdjustment = 1;  // Used to adjust speed on a per scenario basis instead of a per-rig basis, so I can have multiple speed mice running at the same time
+
 	public struct fov {
 		public float nasalBound;
 		public float tempBound;

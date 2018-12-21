@@ -393,8 +393,9 @@ public class Loader : MonoBehaviour {
 					else
 						Globals.treeMarkers = false;
 				}
-
-
+				if (xn ["speedAdjustment"] != null) {
+					float.TryParse(xn["speedAdjustment"].InnerText, out Globals.speedAdjustment);
+				}
 
 				if (xn ["rewardDur"] != null) {  // Used by SDT task where reward size is varied, but if the stock reward size is used (60ms or 4ul), than a 2-4x multiplier is too much and the water drop falls onto the ball...
 					// Update the rewardSize, assuming linearity, which is a poor approximation

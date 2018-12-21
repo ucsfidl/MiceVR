@@ -1088,14 +1088,14 @@ public class GameControlScript : MonoBehaviour
 				} else {
 					this.last5Mouse1Y.Enqueue (this.last5Mouse1Y.Average ());
 				}
-				if (Math.Abs (Globals.sphereInput.mouse1X / this.rawSpeedDivider) < 1) {
+				if (Math.Abs (Globals.sphereInput.mouse1X / (this.rawSpeedDivider / Globals.speedAdjustment)) < 1) {
 					this.last5Mouse2Y.Enqueue (Globals.sphereInput.mouse1X);
 				} else {
 					this.last5Mouse2Y.Enqueue (this.last5Mouse2Y.Average ());
 				}
 
 				Debug.Log (Mathf.Rad2Deg * Globals.sphereInput.mouse1Y / this.rawRotationDivider);
-				Debug.Log (Globals.sphereInput.mouse1X / this.rawSpeedDivider);
+				Debug.Log (Globals.sphereInput.mouse1X / (this.rawSpeedDivider / Globals.speedAdjustment));
 			}
 		
 			// transform sphere data into unity movement
@@ -1105,7 +1105,7 @@ public class GameControlScript : MonoBehaviour
 
 			this.player.transform.Rotate(Vector3.up, Mathf.Rad2Deg * (this.last5Mouse1Y.Average()) / this.rawRotationDivider);
             
-			Vector3 rel = this.player.transform.forward * (this.last5Mouse2Y.Average () / this.rawSpeedDivider);
+			Vector3 rel = this.player.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
 			//this.player.transform.position = this.player.transform.position + rel;
 			this.characterController.Move (rel);
 			this.udpSender.SendMousePos (this.player.transform.position);
