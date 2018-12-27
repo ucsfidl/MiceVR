@@ -11,6 +11,10 @@
 			<gameType>detection</gameType>
 			<gameTurnControl>yaw</gameTurnControl>
 			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>false</biasCorrection>
+			<presoFracSpecified>true</presoFracSpecified>
+			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+			<probeIdx>1</probeIdx> <!-- May need to change this for the 4-choice, but leave as is for now - I think it should work - though it is important for optogenetics -->
 		</gameConfig>
 	</config>
 	<worlds>
@@ -25,6 +29,7 @@
 					<h>2</h>
 					<d>0</d>
 					<r>0</r>
+					<presoFrac>0.45</presoFrac>
 				</t>
 				<t> <!-- Right front tree -->
 					<w>1</w>
@@ -35,6 +40,7 @@
 					<h>2</h>
 					<d>0</d>
 					<r>2</r>
+					<presoFrac>0.05</presoFrac>
 				</t>
 				<t> <!-- Left back tree -->
 					<w>1</w>
@@ -45,6 +51,7 @@
 					<h>2</h>
 					<d>0</d>
 					<r>0</r>
+					<presoFrac>0.45</presoFrac>
 				</t>
 				<t> <!-- Right back tree -->
 					<w>1</w>
@@ -55,18 +62,19 @@
 					<h>2</h>
 					<d>0</d>
 					<r>2</r>
+					<presoFrac>0.05</presoFrac>
 				</t>
 			</trees>
 			<walls>
 				<wall> <!-- Left wall -->
-					<pos>19994;0.5;20022</pos>
+					<pos>19994;0.5;20006.5</pos>
 					<rot>0;0;0</rot>
-					<scale>2;0;13</scale>
+					<scale>2;0;21.6</scale>
 				</wall>
 				<wall> <!-- Right wall -->
-					<pos>20006;0.5;20022</pos>
+					<pos>20006;0.5;20006.5</pos>
 					<rot>0;0;0</rot>
-					<scale>2;0;13</scale>
+					<scale>2;0;21.6</scale>
 				</wall>
 				<wall> <!-- Front wall -->
 					<pos>20000;0.5;19994</pos>
@@ -115,17 +123,17 @@
 				</wall>
 				<wall> <!-- Right Front Y right wall -->
 					<pos>20015;0.5;20010</pos>
-					<rot>0;45;0</rot>
-					<scale>2;0;21</scale>
+					<rot>0;135;0</rot>
+					<scale>2;0;20</scale>
 				</wall>
 				<wall> <!-- Right Front Y back wall -->
-					<pos>20008;0.5;20000</pos>
+					<pos>20022;0.5;20010</pos>
 					<rot>0;0;0</rot>
-					<scale>2;0;7</scale>
+					<scale>2;0;20</scale>
 				</wall>
 				<wall> <!-- Left Front Y left wall -->
 					<pos>19985;0.5;20010</pos>
-					<rot>0;-45;0</rot>
+					<rot>0;-135;0</rot>
 					<scale>2;0;21</scale>
 				</wall>
 				<wall> <!-- Left Front Y right wall -->
@@ -134,9 +142,9 @@
 					<scale>2;0;20</scale>
 				</wall>
 				<wall> <!-- Left Front Y back wall -->
-					<pos>19992;0.5;20000</pos>
+					<pos>19978;0.5;20010</pos>
 					<rot>0;0;0</rot>
-					<scale>2;0;7</scale>
+					<scale>2;0;20</scale>
 				</wall>
 			</walls>
 		</world>
