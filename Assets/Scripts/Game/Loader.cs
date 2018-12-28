@@ -403,6 +403,14 @@ public class Loader : MonoBehaviour {
 					Globals.rewardSize = Globals.rewardSize / Globals.rewardDur * newRewardDur;
 					Globals.rewardDur = newRewardDur;
 				}
+
+				if (xn ["probabilisticWhiteNoiseWhenNoReward"] != null) {
+					string xml = xn["probabilisticWhiteNoiseWhenNoReward"].InnerText;
+					if (xml.Equals("true"))
+						Globals.probabilisticWhiteNoiseWhenNoReward = true;
+					else
+						Globals.probabilisticWhiteNoiseWhenNoReward = false;
+				}
             }
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");

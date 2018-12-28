@@ -234,8 +234,13 @@ public class WaterTreeScript : MonoBehaviour {
 			Globals.IncrementTurnToStimLoc (xPos);
 		} else {
 			Globals.sizeOfRewardGiven.Add(0);
-			interTrialInterval = correctTurnDelay;
-			c = Color.black;
+			if (Globals.probabilisticWhiteNoiseWhenNoReward) {
+				interTrialInterval = incorrectTurnDelay;
+				c = Color.white;
+			} else {
+				interTrialInterval = correctTurnDelay;
+				c = Color.black;
+			}
 
 			Globals.IncrementTurnToStimLoc (xPos);
 		}
@@ -269,7 +274,7 @@ public class WaterTreeScript : MonoBehaviour {
 		int interTrialInterval = incorrectTurnDelay;
 
 		// If probabilistic rewards given, make the visual cue and trial delay of an error the same as a correct trial, to discourage learning during testing.
-		if (Globals.probReward < 1) {
+		if (Globals.probReward < 1 && Globals.probabilisticWhiteNoiseWhenNoReward) {
 			c = Color.black;
 			interTrialInterval = correctTurnDelay;
 		}

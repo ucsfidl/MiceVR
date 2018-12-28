@@ -201,6 +201,7 @@ public static class Globals
 	public static bool probeLastOpto = false;  // Used to force the light on on every other probe trial
 
 	public static bool treeMarkers = false;  // Forces drawing a black circle underneath where the trees normally are
+	public static bool probabilisticWhiteNoiseWhenNoReward = false;
 
 	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
 		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac, float opacity) {
