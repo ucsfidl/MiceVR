@@ -36,6 +36,7 @@ public static class Globals
     public static ArrayList targetHFreq = new ArrayList();  // Orientation of target
     public static ArrayList targetVFreq = new ArrayList();  // Orientation of target
 	public static ArrayList targetAngle = new ArrayList();  // Angle of target
+	public static ArrayList distractorAngle = new ArrayList();  // Angle of distractor
     public static ArrayList firstTurn = new ArrayList(); // X coord of tree the mouse hit or would have hit is placed in this list
     public static ArrayList firstTurnHFreq = new ArrayList();  // Orientation of the tree the mouse chose
     public static ArrayList firstTurnVFreq = new ArrayList();  // Orientation of the tree the mouse chose
@@ -65,7 +66,7 @@ public static class Globals
 	public static float rewardedAngle;
 	public static float distractorHFreq;
 	public static float distractorVFreq;
-	public static float distractorAngle;
+	public static List<float> distractorAngles = new List<float> ();
 
 	public static bool randomPhase = false;
 
@@ -585,7 +586,7 @@ public static class Globals
         // overwrite any existing file
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", false);
         // Write file header
-        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)\tWorldNum\tOptoState\tTargetAngle\tTurnAngle");
+        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)\tWorldNum\tOptoState\tTargetAngle\tTurnAngle\tDistractorAngle");
         turnsFile.Close();
     }
 
@@ -611,7 +612,8 @@ public static class Globals
 					trialWorld[trialWorld.Count - 1] + "\t" + 
 					optoState + "\t" + 
 					targetAngle[targetAngle.Count - 1] + "\t" + 
-					firstTurnAngle[firstTurnAngle.Count - 1]);
+					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
+					distractorAngle[distractorAngle.Count - 1]);
 
         turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1] + "\t" +
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
@@ -631,7 +633,8 @@ public static class Globals
 					trialWorld[trialWorld.Count - 1] + "\t" + 
 					optoState + "\t" + 
 					targetAngle[targetAngle.Count - 1] + "\t" + 
-					firstTurnAngle[firstTurnAngle.Count - 1]);
+					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
+					distractorAngle[distractorAngle.Count - 1]);
 		
         turnsFile.Close();
         WriteStatsFile();

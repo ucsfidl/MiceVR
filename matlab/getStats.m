@@ -17,7 +17,7 @@ leftStimStraightErrorsMap = containers.Map();
 rightStimStraightErrorsMap = containers.Map();
 
 % First, find all the filenames to read in
-fileList = dir(['*.txt']); % Get all mat files, and use that to construct filenames for video files
+fileList = dir(['*actions.txt']); % Get all mat files, and use that to construct filenames for video files
 
 numFilesAnalyzed = 0;
 for i=1:length(fileList)

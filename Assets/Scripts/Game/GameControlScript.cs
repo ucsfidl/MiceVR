@@ -536,6 +536,7 @@ public class GameControlScript : MonoBehaviour
         float hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
         float vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
 		float angle = gos[0].GetComponent<WaterTreeScript>().GetShaderRotation();
+		float distractorAngle = 360;  // we will use 360 as the null value
 
         int treeToActivate = 0;
         float r = UnityEngine.Random.value;
@@ -869,9 +870,14 @@ public class GameControlScript : MonoBehaviour
 			float distractorHPhase = Globals.randomPhase && Globals.distractorHFreq != 1 ? UnityEngine.Random.value * 360 : 0;
 			float distractorVPhase = Globals.randomPhase && Globals.distractorVFreq != 1 ? UnityEngine.Random.value * 360 : 0;
 
+			// Randomize distractor, if multiple
+			int rDistAng = UnityEngine.Random.Range(0, Globals.distractorAngles.Count());
+			distractorAngle = Globals.distractorAngles[rDistAng];
+			Debug.Log ("Picked distractorAngle = " + distractorAngle);
+
             if (r < rThresh0) {
 				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle); // later, listen to the deg argument
-				gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, Globals.distractorAngle);
+				gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, distractorAngle);
                 locx = gos[0].transform.position.x;
                 hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
                 vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
@@ -879,7 +885,7 @@ public class GameControlScript : MonoBehaviour
                 gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
                 gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
             } else {
-				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, Globals.distractorAngle);
+				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, distractorAngle);
 				gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle);
                 locx = gos[1].transform.position.x;
                 hfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
@@ -993,6 +999,7 @@ public class GameControlScript : MonoBehaviour
         Globals.targetHFreq.Add(hfreq);
         Globals.targetVFreq.Add(vfreq);
 		Globals.targetAngle.Add(angle);
+		Globals.distractorAngle.Add (distractorAngle);
 
         this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);

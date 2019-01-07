@@ -284,7 +284,14 @@ public class Loader : MonoBehaviour {
 					float.TryParse(xn["distractorVFreq"].InnerText, out Globals.distractorVFreq);
 				}
 				if (xn["distractorAngle"] != null) {
-					float.TryParse(xn["distractorAngle"].InnerText, out Globals.distractorAngle);
+					string[] strArr = xn ["distractorAngle"].InnerText.Split (';');
+					foreach (string str in strArr) {
+						float f;
+						float.TryParse (str, out f);
+						Globals.distractorAngles.Add (f);
+					}
+					//float.TryParse (xn["distractorAngle"].InnerText.Split (';') [0], out x);
+					//float.TryParse(xn["distractorAngle"].InnerText, out Globals.distractorAngle);
 				}
 
 				if (xn["distractorIntensity1"] != null) {
