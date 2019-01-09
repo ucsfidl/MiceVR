@@ -38,7 +38,7 @@ for i=1:length(fileList)
                 if (fid ~= -1)  % File was opened properly
                     numFilesAnalyzed = numFilesAnalyzed + 1;
                     tline = fgetl(fid); % Throw out the first line, as it is a column header
-                    C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f %d %d %d %d'); % C is a cell array with each string separated by a space
+                    C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f %d %d %d %d %d'); % C is a cell array with each string separated by a space
                     for k = 1:length(C{1})  % For each line
                         % C{5} is the target location, C{12} is the turn location
                         stimLoc = C{5}(k);
@@ -97,11 +97,11 @@ for j = 1:size(results,3)
     if (j == 1) 
         disp('=====Non-Opto======')
     elseif (j == 2)
-        disp('=====Opto Left======')        
+        disp('=====Opto Left======')
     elseif (j == 3)
-        disp('=====Opto Right======')        
+        disp('=====Opto Right======')
     elseif (j == 4)
-        disp('=====Opto Both======')        
+        disp('=====Opto Both======')
     end
     disp(['L->L = ' num2str(results(1,1,j) / sum(results(:,1,j)) * 100, 2) '%']);
     disp(['L->R = ' num2str(results(2,1,j) / sum(results(:,1,j)) * 100, 2) '%']);

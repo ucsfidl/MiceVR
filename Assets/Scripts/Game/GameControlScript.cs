@@ -860,7 +860,7 @@ public class GameControlScript : MonoBehaviour
         } else if (Globals.gameType.Equals("discrimination")) {
             // Randomize orientations
 			float rThresh0 = 0.5F;
-			if (Globals.numberOfTrials > 1) {  // Add bias correction option if needed later
+			if (Globals.numberOfTrials > 1 && Globals.biasCorrection) {  // Add bias correction option if needed later
 				rThresh0 = 1 - Globals.GetTurnBias (20, 0);
 			}
 
