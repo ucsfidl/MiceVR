@@ -138,7 +138,7 @@ end
 
 % If trial times are available, incorporate into the graphs
 load([rootFileName '.mat'], 'trialStarts', 'trialEnds');
-if (trialStarts(1).FrameNumber ~= 0)  % new format includes 1, but old format didn't, so permit backwards compatibility
+if (trialStarts(1).FrameNumber ~= 0)  % new format includes 0 as first index, but old format didn't, so permit backwards compatibility
     trialStartFrames = [1-trialStartOffset trialStarts.FrameNumber] + trialStartOffset; % First trial start is not written
 else
     trialStartFrames = [1 trialStarts(2:end).FrameNumber]; % First trial start is not written
