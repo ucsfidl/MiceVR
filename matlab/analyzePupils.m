@@ -604,9 +604,9 @@ save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg
 % Then plot inter-trial intervals
 % Finally plot actual eye movement data
 
-xUnitsTime = (frameStart:frameStop)/fps;
-xTrialsUnitsTime = xTrials/fps;
-xPauseUnitsTime = xPause/fps;
+xUnitsTime = (frameStart:frameStop); %/fps;
+xTrialsUnitsTime = xTrials; %/fps;
+xPauseUnitsTime = xPause; %/fps;
 
 % ELEVATION PLOT
 figure; hold on
