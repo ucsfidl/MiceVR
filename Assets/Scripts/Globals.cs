@@ -49,7 +49,9 @@ public static class Globals
 	public static List<int> numTurnsToStimLoc = new List<int>();
 
 	public static int trialDelay;
-	public static int numberOfTrials;
+	public static int numNonCorrectionTrials;  // Initialized in code to 1
+	public static int numCorrectionTrials = 0;  // Used to count number of correction trials, which is recorded in the stats file
+
 
 	public static float centralViewVisibleShift; // Set in gameconfig file
 
@@ -131,6 +133,10 @@ public static class Globals
 	public static int[] precompOptoBlock;  // Indicates optogenetic state on each trial - used to limit light exposure instead of alternating each trial - used if optoAlternation is set to false in the scenario
 
 	public static float speedAdjustment = 1;  // Used to adjust speed on a per scenario basis instead of a per-rig basis, so I can have multiple speed mice running at the same time
+
+	public static bool correctionTrialsEnabled = false;
+	public static int lastTrialWasIncorrect = 0;  // Indicates that the current trial will be a correction trial, if correction trials are enabled
+	public static ArrayList correctionTrialMarks = new ArrayList();  // For each trial, holds a bool which tracks whether that trial was a correction trial or not
 
 	public struct fov {
 		public float nasalBound;
@@ -345,14 +351,10 @@ public static class Globals
 	}
 
 	// Re-render the world, which will occur on each trial
-	public static void RenderWorld(int worldNum) {
+	public static int RenderWorld(int worldNum) {
 		if (worldNum == -1) {  // choose a random world to create
 			worldNum = UnityEngine.Random.Range(0, worlds.Count);
 		}
-
-		// Record which world this trial is on
-		trialWorld.Add(worldNum);
-
 		//Debug.Log ("world #" + worldNum);
 
 		// Now, actually render the new world
@@ -521,6 +523,8 @@ public static class Globals
 			Debug.Log (go.GetComponent<MeshRenderer> ().material.color.a);
 			*/
 		}
+
+		return worldNum;
 	}
 
 	// Initializes fovs used for automated perimetry.  There are 4 scales, and the stimuli are presented that fill (or half-fill, for the smallest) scale
@@ -586,7 +590,7 @@ public static class Globals
         // overwrite any existing file
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", false);
         // Write file header
-        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)\tWorldNum\tOptoState\tTargetAngle\tTurnAngle\tDistractorAngle");
+        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)\tWorldNum\tOptoState\tTargetAngle\tTurnAngle\tDistractorAngle\tCorrectionTrial");
         turnsFile.Close();
     }
 
@@ -613,7 +617,8 @@ public static class Globals
 					optoState + "\t" + 
 					targetAngle[targetAngle.Count - 1] + "\t" + 
 					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
-					distractorAngle[distractorAngle.Count - 1]);
+					distractorAngle[distractorAngle.Count - 1] + "\t" +
+					correctionTrialMarks[correctionTrialMarks.Count - 1]);
 
         turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1] + "\t" +
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
@@ -634,7 +639,8 @@ public static class Globals
 					optoState + "\t" + 
 					targetAngle[targetAngle.Count - 1] + "\t" + 
 					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
-					distractorAngle[distractorAngle.Count - 1]);
+					distractorAngle[distractorAngle.Count - 1] + "\t" +
+					correctionTrialMarks[correctionTrialMarks.Count - 1]);
 		
         turnsFile.Close();
         WriteStatsFile();
@@ -645,11 +651,13 @@ public static class Globals
         StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_stats.txt");
         statsFile.WriteLine("<document>");
         statsFile.WriteLine("\t<stats>");
-        statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + "%" + GetTreeAccuracy() + "</accuracy>");
+        statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1) * 100) + "%" + GetTreeAccuracy() + "</accuracy>  <!-- nonCorrection trials only -->");
         // TODO - Fix off by one error when mouse finishes game!
         statsFile.WriteLine("\t\t<numEarnedRewards>" + numCorrectTurns + "</numEarnedRewards>");
         statsFile.WriteLine("\t\t<numUnearnedRewards>" + numberOfUnearnedRewards + "</numUnearnedRewards>");
-        statsFile.WriteLine("\t\t<trials>" + (numberOfTrials - 1) + "</trials>");
+		statsFile.WriteLine("\t\t<numNonCorrectionTrials>" + (numNonCorrectionTrials - 1) + "</numNonCorrectionTrials>");
+		statsFile.WriteLine("\t\t<numCorrectionTrials>" + numCorrectionTrials + "</numCorrectionTrials>");
+		statsFile.WriteLine("\t\t<numAllTrials>" + (numNonCorrectionTrials - 1 + numCorrectionTrials) + "</numAllTrials>");
 
         TimeSpan te = gameEndTime.Subtract(gameStartTime);
         statsFile.WriteLine("\t\t<timeElapsed>" + string.Format("{0:D2}:{1:D2}", te.Hours * 60 + te.Minutes, te.Seconds) + "</timeElapsed>");
@@ -702,12 +710,12 @@ public static class Globals
 								{ "durm", numMinElapsed.ToString() },
 								{ "rewards", numCorrectTurns.ToString () },
 								{ "rmin", string.Format ("{0:N1}", (numCorrectTurns / numMinElapsed)) },
-								{ "trials", (numberOfTrials - 1).ToString () },
-								{ "tmin", string.Format ("{0:N1}", (numberOfTrials - 1) / numMinElapsed) },
-								{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + "%" },
+								{ "trials", (numNonCorrectionTrials - 1).ToString () },
+								{ "tmin", string.Format ("{0:N1}", (numNonCorrectionTrials - 1) / numMinElapsed) },
+								{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1) * 100) + "%" },
 								{ "earned", Math.Round (totalEarnedRewardSize).ToString () },
 								{ "uball", Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString () },
-								{ "results", Math.Round ((float)numCorrectTurns / ((float)numberOfTrials - 1) * 100) + GetTreeAccuracy () },
+								{ "results", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1) * 100) + GetTreeAccuracy () },
 								{ "totalh2o", "=V" + (row + 1) + "+X" + (row + 1) }
 							}
 							);
@@ -744,8 +752,7 @@ public static class Globals
 		return output;
 	}
 
-    public static string GetTreeAccuracy()
-    {
+    public static string GetTreeAccuracy() {
 		List<Tree> trees = GetAllTrees();
 		float[] locs = new float[trees.Count];
 		int[] numCorrTrials = new int[trees.Count];
@@ -756,18 +763,19 @@ public static class Globals
         //With all locations in hand, calculate accuracy for each one, then print it out
 
         int idx;
-        for (int i = 0; i < Globals.firstTurn.Count; i++)
-        {
+        for (int i = 0; i < Globals.firstTurn.Count; i++) {
             //Debug.Log((float)System.Convert.ToDouble(Globals.targetLoc[i]));
             idx = Array.IndexOf(locs, (float)System.Convert.ToDouble(Globals.targetLoc[i]));
-            numTrials[idx]++;
-            if (Globals.targetLoc[i].Equals(Globals.firstTurn[i]))
-                numCorrTrials[idx]++;
+			// Added support for ignoring correction trials
+			if ((int)Globals.correctionTrialMarks [i] == 0) {
+				numTrials [idx]++;
+				if (Globals.targetLoc [i].Equals (Globals.firstTurn [i]))
+					numCorrTrials [idx]++;
+			}
         }
 
         string output = "";
-        for (int i = 0; i < numTrials.Length; i++)
-        {
+        for (int i = 0; i < numTrials.Length; i++) {
             output += "/" + Math.Round((float)numCorrTrials[i] / numTrials[i] * 100)	;
         }
         return output;
@@ -775,15 +783,15 @@ public static class Globals
 		
     // This bias correction algorithm can be used to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
     // Previous attempt at streak elimination didn't really work... Saw mouse go left 100 times or so! And most mice exhibited a bias, even though they may not have before...
-	// If there are multiple worlds in this scenario, then only return the turnbias for that world, returning chance if this world has not been displayed yet.  histLen covers just the current world type, not all worlds.
+	// If there are multiple worlds in this scenario, then only return the turn bias for that world, returning chance if this world has not been displayed yet.  histLen covers just the current world type, not all worlds.
     public static float GetTurnBias(int histLen, int treeIndex) {
 		GameObject[] gos = GetTrees();
 		int currWorld = (int)trialWorld [trialWorld.Count - 1];
 		ArrayList validTrials = new ArrayList ();
 
-		// First, collect trials that correspond to this world, until you either run out or have collected histLen
+		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected histLen
 		for (int i = firstTurn.Count-1; i >= 0; i--) {
-			if ((int)trialWorld [i] == currWorld) {
+			if ((int)trialWorld [i] == currWorld && (int)correctionTrialMarks[i] == 0) {
 				validTrials.Add(i);
 			}
 			if (validTrials.Count == histLen) {
@@ -849,14 +857,21 @@ public static class Globals
         */
     }
 
+	public static bool CurrentlyCorrectionTrial() {
+		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1)
+			return true;
+		return false;
+	}
+
 	// Modified to support multi-worlds in a single scenario
     public static float GetLastAccuracy(int n) {
 		int currWorld = (int)trialWorld [trialWorld.Count - 1];
 		ArrayList validTrials = new ArrayList ();
 
-		// First, collect trials that correspond to this world, until you either run out or have collected n
+		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected n
 		for (int i = firstTurn.Count-1; i >= 0; i--) {
-			if ((int)trialWorld [i] == currWorld) {
+			//Debug.Log (correctionTrialMarks [i]);
+			if ((int)trialWorld [i] == currWorld && (int)correctionTrialMarks[i] == 0) {
 				validTrials.Add(i);
 			}
 			if (validTrials.Count == n) {
@@ -873,28 +888,6 @@ public static class Globals
 		}
 
 		return (float)corr / validTrials.Count;
-
-		/*
-		int len = firstTurn.Count;
-        int start;
-        int end;
-        int numTrials;
-        if (len >= n) {
-            end = len;
-            start = len - n;
-        } else {
-            start = 0;
-            end = len;
-        }
-
-        numTrials = end - start;
-        int corr = 0;
-        for (int i = start; i < end; i++) {
-            if (firstTurn[i].Equals(targetLoc[i]))
-                corr++;
-        }
-        return (float)corr / numTrials;
-        */
     }
 
 	// Calculate tree view block value: 0 is full occlusion in the central screen = 120 degrees
@@ -903,25 +896,7 @@ public static class Globals
 		Globals.centralViewVisibleShift = (float)(deg * 0.58/120);  // 0.45/120
 		Globals.inputDeg = deg;
 	}
-
-	/*
-	private void updateTrialsText() {
-		this.numberOfTrialsText.text = "Trial: #" + Globals.numberOfTrials.ToString ();
-	}
-
-	private void updateRewardAmountText() {
-		this.rewardAmountText.text = "Reward: " + Math.Round(Globals.rewardAmountSoFar).ToString() + " of " + Math.Round(Globals.totalRewardSize);
-	}
-
-	private void updateCorrectTurnsText() {
-		this.numberOfCorrectTurnsText.text = "Correct: " +
-			Globals.numCorrectTurns.ToString ()
-			+ " (" +
-			Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials)) * 100).ToString() + "%" 
-			+ FreeGlobals.GetTreeAccuracy() + ")";
-	}
-	*/
-
+		
 	// Old function, which did not pass the extra arguments
 	// Just set the values to be logged first
 	public static void SetOccluders(float locx) {

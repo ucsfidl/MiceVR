@@ -418,6 +418,14 @@ public class Loader : MonoBehaviour {
 					else
 						Globals.probabilisticWhiteNoiseWhenNoReward = false;
 				}
+
+				if (xn ["correctionTrials"] != null) {
+					string xml = xn["correctionTrials"].InnerText;
+					if (xml.Equals("true"))
+						Globals.correctionTrialsEnabled = true;
+					else
+						Globals.correctionTrialsEnabled = false;
+				}
             }
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");

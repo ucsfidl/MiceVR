@@ -81,7 +81,7 @@ public class GameControlScript : MonoBehaviour
         Globals.numberOfUnearnedRewards = 0;
         Globals.rewardAmountSoFar = 0;
 		Globals.numberOfDryTrees = 0;
-		Globals.numberOfTrials = 1;  // Start on first trial
+		Globals.numNonCorrectionTrials = 1;  // Start on first trial
         this.timeoutState = false;
 
 		this.startingPos = this.player.transform.position;
@@ -466,7 +466,7 @@ public class GameControlScript : MonoBehaviour
 	// Game is paused briefly between trials
 	public void Pause() {
 		updateRewardAmountText ();
-        if (Globals.numberOfTrials > 1) {
+        if (Globals.numNonCorrectionTrials > 1) {
 			updateCorrectTurnsText ();
 			this.lastAccuracyText.text = "Last 20 accuracy (in this world): " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
         }
@@ -503,14 +503,11 @@ public class GameControlScript : MonoBehaviour
         this.runTime = Time.time;
         this.runNumber++;
 
-        //print(System.DateTime.Now.Second + ":" + System.DateTime.Now.Millisecond);
         foreach (WaterTreeScript script in GameObject.Find("Trees").GetComponentsInChildren<WaterTreeScript>()) {
             script.Refill();
 		}
-        //print(System.DateTime.Now.Second + ":" + System.DateTime.Now.Millisecond);
         this.debugControlScript.enabled = false;
 
-		// NB edit (1 line)
 		this.fadeToBlack.gameObject.SetActive(true);
 		this.fadeToBlack.color = c;
 		this.state = "Paused";
@@ -524,472 +521,495 @@ public class GameControlScript : MonoBehaviour
     }
 
     private void Respawn() {
+		// Is this teleportation needed? I think not.  Remove at some point.
         TeleportToBeginning();
 
-		Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again 
-		Globals.RenderWorld (-1); // -1 indicates that the world rendered should be randomly selected, without any bias correction (i.e. worlds in which accuracy is better do not occur less than worlds in which accuracy is worse)
+		// Declare the important variables needed later for logging
+		float locx;
+		float hfreq;
+		float vfreq;
+		float angle;
+		float distractorAngle;  // we will use 360 as the null value
+		int trialWorld;
 
-		GameObject[] gos = Globals.GetTrees ();
+		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo!
+		// So if this is not a correction trial, then re-render everything per usual
+		if (Globals.CurrentlyCorrectionTrial ()) {
+			locx = (float)Globals.targetLoc [Globals.targetLoc.Count - 1];
+			hfreq = (float)Globals.targetHFreq [Globals.targetHFreq.Count - 1];
+			vfreq = (float)Globals.targetVFreq [Globals.targetVFreq.Count - 1];
+			angle = (float)Globals.targetAngle [Globals.targetAngle.Count - 1];
+			trialWorld = (int)Globals.trialWorld [Globals.trialWorld.Count - 1];
+			distractorAngle = (float)Globals.distractorAngle [Globals.distractorAngle.Count - 1];
+			udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoState);  // Just reuse the last optoState for optogenetic correction trials
+			Debug.Log("In correction trial!");
+		} else {
+			Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again 
+			trialWorld = Globals.RenderWorld (-1); // -1 indicates that the world rendered should be randomly selected, without any bias correction (i.e. worlds in which accuracy is better do not occur less than worlds in which accuracy is worse)
 
-		// Just initial values, used only if there is 1 tree
-        float locx = gos[0].transform.position.x;
-        float hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-        float vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-		float angle = gos[0].GetComponent<WaterTreeScript>().GetShaderRotation();
-		float distractorAngle = 360;  // we will use 360 as the null value
+			GameObject[] gos = Globals.GetTrees ();
 
-        int treeToActivate = 0;
-        float r = UnityEngine.Random.value;
+			// Just initial values, used only if there is 1 tree
+			locx = gos [0].transform.position.x;
+			hfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+			vfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+			angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+			distractorAngle = 360;  // we will use 360 as the null value
 
-		// Support pre-computing blocks of trials, at the beginning and after each block
-		// Only supports pre-computing for single-world levels to start
-		// Only works with bias-correction disabled
-		if (Globals.blockSize > 0 && !Globals.biasCorrection && Globals.numberOfTrials % Globals.blockSize == 1) {
-			int numTrees = gos.Count();
-			int[] precompTrialBlock = new int[Globals.blockSize];
+			int treeToActivate = 0;
+			float r = UnityEngine.Random.value;
 
-			// Algorithm is to generate a list of stimulus locations in proportion to the appearance probabilities, 
-			// and then remove from that List until the block is filled.
-			List<int> stimLocs = new List<int>();
-			int[] maxFreq = new int[numTrees];  // Max number of each stimulus per block
-			decimal[] prob = new decimal[numTrees];
+			// Support pre-computing blocks of trials, at the beginning and after each block
+			// Only supports pre-computing for single-world levels to start
+			// Only works with bias-correction disabled
+			if (Globals.blockSize > 0 && !Globals.biasCorrection && Globals.numNonCorrectionTrials % Globals.blockSize == 1) {
+				int numTrees = gos.Count ();
+				int[] precompTrialBlock = new int[Globals.blockSize];
 
-			// First, setup all the arrays
-			for (int i = 0; i < numTrees; i++) {
-				if (Globals.presoFracSpecified) {
-					prob [i] = (decimal)gos [i].GetComponent<WaterTreeScript> ().GetPresoFrac ();
-				} else {  // equal ratios
-					prob[i] = (decimal)(1F / numTrees);
-				}
-				maxFreq[i] = (int)Math.Ceiling(Globals.blockSize * prob[i]);
-			}
-				
-			// Now, build the bag of stim locs, 
-			for (int i = 0; i < maxFreq.Length; i++) {
-				for (int j = 0; j < maxFreq [i]; j++) {
-					stimLocs.Add (i);
-				}
-			}
-				
-			// Guarantee that there is a probe trial in each block, regardless of probe probability
-			while(true) {
-				List<int> stimLocsCopy = new List<int>(stimLocs);
-				for (int i = 0; i < Globals.blockSize; i++) {
-					int ran = UnityEngine.Random.Range (0, stimLocsCopy.Count ());
-					precompTrialBlock [i] = stimLocsCopy [ran];
-					stimLocsCopy.RemoveAt (ran);
-				}
-				//Debug.Log ("Stim locs copy" + String.Join(",", stimLocsCopy.Select(x=>x.ToString()).ToArray()));
-				if (Globals.probeIdx == -1 || precompTrialBlock.Contains (Globals.probeIdx)) {
-					break;
-				} else {
-					Debug.Log ("Did not get probe included in precompTrialBlock, so regenerate again");	
-				}
-			}
-			Debug.Log (String.Join(",", stimLocs.Select(x=>x.ToString()).ToArray()));
-			Debug.Log (String.Join(",", precompTrialBlock.Select(x=>x.ToString()).ToArray()));
+				// Algorithm is to generate a list of stimulus locations in proportion to the appearance probabilities, 
+				// and then remove from that List until the block is filled.
+				List<int> stimLocs = new List<int> ();
+				int[] maxFreq = new int[numTrees];  // Max number of each stimulus per block
+				decimal[] prob = new decimal[numTrees];
 
-			Globals.precompTrialBlock = precompTrialBlock;
-
-			// Next, if optoAlternation is turned off and this is an opto game, precompute the opto state for each trial
-			if (Globals.optoSide != -1  && !Globals.optoAlternation) { // an optoSide was specified and optoAlternation is turned off
-				int[] precompOptoBlock = new int[Globals.blockSize];
-
-				// First, count the number of trials at each stimloc
-				int[] numTrialsPerStimLoc = new int[numTrees];
-				for (int i = 0; i < Globals.blockSize; i++) {
-					numTrialsPerStimLoc [precompTrialBlock [i]] = numTrialsPerStimLoc [precompTrialBlock [i]] + 1;
-				}
-				int minVal = numTrialsPerStimLoc.Min ();
-				int infrequentStimLoc = Array.IndexOf (numTrialsPerStimLoc, minVal);
-
-				// Second, for each stimLoc, set its optoState ON based on the 1/2 of the frequency of the most infrequent stim location
-				int numOptoOn = minVal / 2;
+				// First, setup all the arrays
 				for (int i = 0; i < numTrees; i++) {
-					List<int> optoStates = new List<int> ();
-					for (int j = 0; j < numOptoOn; j++) {
-						optoStates.Add (Globals.optoSide);
+					if (Globals.presoFracSpecified) {
+						prob [i] = (decimal)gos [i].GetComponent<WaterTreeScript> ().GetPresoFrac ();
+					} else {  // equal ratios
+						prob [i] = (decimal)(1F / numTrees);
 					}
-					for (int j = 0; j < numTrialsPerStimLoc [i] - numOptoOn; j++) {
-						optoStates.Add (Globals.optoOff);
-					}
-					//Debug.Log (String.Join(",", optoStates.Select(x=>x.ToString()).ToArray()));
-					// While optoStates left, assign them randomly
-					int lastIdx = 0;
-					while (true) {
-						int currIdx = Array.IndexOf (precompTrialBlock, i, lastIdx);
-						if (currIdx == -1) {
-							break;
-						}
-						int ran = UnityEngine.Random.Range (0, optoStates.Count ());
-						//Debug.Log (currIdx);
-						precompOptoBlock [currIdx] = optoStates [ran];
-						optoStates.RemoveAt (ran);
-						lastIdx = currIdx+1;
+					maxFreq [i] = (int)Math.Ceiling (Globals.blockSize * prob [i]);
+				}
+					
+				// Now, build the bag of stim locs, 
+				for (int i = 0; i < maxFreq.Length; i++) {
+					for (int j = 0; j < maxFreq [i]; j++) {
+						stimLocs.Add (i);
 					}
 				}
-				Debug.Log (String.Join(",", precompOptoBlock.Select(x=>x.ToString()).ToArray()));
-				Globals.precompOptoBlock = precompOptoBlock;
-			}
-		}
-
-		if (Globals.gameType.Equals("detection") || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target")) {
-			if (gos.Length == 1)  { // Linear track
-                if (Globals.varyOrientation) {
-					if (r > 0.5) { // Half the time, swap the orientation of the tree
-                        gos[0].GetComponent<WaterTreeScript>().SetShader(vfreq, hfreq);
-                        hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                        vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-						angle = gos[0].GetComponent<WaterTreeScript>().GetShaderRotation();
-                    }
-                }
-            } else if (gos.Length == 2 || Globals.gameType.Equals("det_target") || Globals.gameType.Equals("disc_target")) {
-				float rThresh0 = 0.5F;
-				if (Globals.presoRatio > 0) { // Works for 2-choice only, YN and 2AFC
-					rThresh0 = (float)Globals.presoRatio / (Globals.presoRatio + 1);
-				}
-				if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
-	                rThresh0 = 1 - Globals.GetTurnBias(20, 0);  // varies the boundary based on history of mouse turns
-				}
-                Debug.Log("Loc: [0, " + rThresh0 + ", 1] - " + r);
-                treeToActivate = r < rThresh0 ? 0 : 1;
-				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
-				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
-				angle = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderRotation();
-
-				if (gos.Length == 2) {
-					if (Globals.blockSize > 0) {
-						treeToActivate = Globals.precompTrialBlock [(Globals.numberOfTrials - 1) % Globals.blockSize];
+					
+				// Guarantee that there is a probe trial in each block, regardless of probe probability
+				while (true) {
+					List<int> stimLocsCopy = new List<int> (stimLocs);
+					for (int i = 0; i < Globals.blockSize; i++) {
+						int ran = UnityEngine.Random.Range (0, stimLocsCopy.Count ());
+						precompTrialBlock [i] = stimLocsCopy [ran];
+						stimLocsCopy.RemoveAt (ran);
 					}
-					SetupTreeActivation (gos, treeToActivate, 2);
-				} else if (Globals.gameType.Equals ("det_target")) {
-					SetupTreeActivation (gos, treeToActivate, 2);
-					gos [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq, angle);
-					if (Globals.varyOrientation) {
-						float r2 = UnityEngine.Random.value;
-						if (r2 > 0.5) { // Swap orientation of target tree
-							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
-							gos [2].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
-						}
-						Debug.Log ("Ori: [0, 0.5, 1] - " + r2);
-					}
-				} else if (Globals.gameType.Equals ("disc_target")) {
-					float r2 = UnityEngine.Random.value;
-					int treeToDistract = treeToActivate==1 ? 0 : 1;
-
-					gos[treeToActivate].GetComponent<WaterTreeScript>().SetCorrect(true);
-					gos[treeToDistract].GetComponent<WaterTreeScript>().SetCorrect(false);
-
-					if (Globals.varyOrientation) {
-						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors(new Color(1, 1, 1), new Color(0, 0, 0));
-						if (r2 < 0.5) {
-							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (4, 1);
-						} else {
-							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (1, 4);
-						}
-						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
-						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
-						gos [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq, angle);
-
-						gos [treeToDistract].GetComponent<WaterTreeScript> ().SetColors (Globals.distColor1, Globals.distColor2);
-						gos [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
+					//Debug.Log ("Stim locs copy" + String.Join(",", stimLocsCopy.Select(x=>x.ToString()).ToArray()));
+					if (Globals.probeIdx == -1 || precompTrialBlock.Contains (Globals.probeIdx)) {
+						break;
 					} else {
-						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (4, 4);
-						if (r2 < 0.5) {
-							gos [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (4, 1);
-						} else {
-							gos [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (1, 4);
+						Debug.Log ("Did not get probe included in precompTrialBlock, so regenerate again");	
+					}
+				}
+				Debug.Log (String.Join (",", stimLocs.Select (x => x.ToString ()).ToArray ()));
+				Debug.Log (String.Join (",", precompTrialBlock.Select (x => x.ToString ()).ToArray ()));
+
+				Globals.precompTrialBlock = precompTrialBlock;
+
+				// Next, if optoAlternation is turned off and this is an opto game, precompute the opto state for each trial
+				if (Globals.optoSide != -1 && !Globals.optoAlternation) { // an optoSide was specified and optoAlternation is turned off
+					int[] precompOptoBlock = new int[Globals.blockSize];
+
+					// First, count the number of trials at each stimloc
+					int[] numTrialsPerStimLoc = new int[numTrees];
+					for (int i = 0; i < Globals.blockSize; i++) {
+						numTrialsPerStimLoc [precompTrialBlock [i]] = numTrialsPerStimLoc [precompTrialBlock [i]] + 1;
+					}
+					int minVal = numTrialsPerStimLoc.Min ();
+					int infrequentStimLoc = Array.IndexOf (numTrialsPerStimLoc, minVal);
+
+					// Second, for each stimLoc, set its optoState ON based on the 1/2 of the frequency of the most infrequent stim location
+					int numOptoOn = minVal / 2;
+					for (int i = 0; i < numTrees; i++) {
+						List<int> optoStates = new List<int> ();
+						for (int j = 0; j < numOptoOn; j++) {
+							optoStates.Add (Globals.optoSide);
+						}
+						for (int j = 0; j < numTrialsPerStimLoc [i] - numOptoOn; j++) {
+							optoStates.Add (Globals.optoOff);
+						}
+						//Debug.Log (String.Join(",", optoStates.Select(x=>x.ToString()).ToArray()));
+						// While optoStates left, assign them randomly
+						int lastIdx = 0;
+						while (true) {
+							int currIdx = Array.IndexOf (precompTrialBlock, i, lastIdx);
+							if (currIdx == -1) {
+								break;
+							}
+							int ran = UnityEngine.Random.Range (0, optoStates.Count ());
+							//Debug.Log (currIdx);
+							precompOptoBlock [currIdx] = optoStates [ran];
+							optoStates.RemoveAt (ran);
+							lastIdx = currIdx + 1;
 						}
 					}
-					Debug.Log("Ori: [0, 0.5, 1] - " + r2);
+					Debug.Log (String.Join (",", precompOptoBlock.Select (x => x.ToString ()).ToArray ()));
+					Globals.precompOptoBlock = precompOptoBlock;
 				}
-				locx = gos[treeToActivate].transform.position.x;
-				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
-				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
-				angle = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderRotation();
-			} else if (gos.Length == 4) {
-				if (Globals.blockSize > 0) {
-					treeToActivate = Globals.precompTrialBlock [(Globals.numberOfTrials - 1) % Globals.blockSize];
-				} else {
-					float thresh0 = 0.25F;
-					float thresh1 = 0.5F;
-					float thresh2 = 0.75F;
-
-					if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
-						// Turn on bias correction after testing that logic works!
-						// Bias correction algo #1
-						float tf0 = Globals.GetTurnBias (20, 0);
-						float tf1 = Globals.GetTurnBias (20, 1);
-						float tf2 = Globals.GetTurnBias (20, 2);
-						float tf3 = 1 - (tf0 + tf1 + tf2);
-
-						float t0 = 1 - tf0;
-						float t1 = 1 - tf1;
-						float t2 = 1 - tf2;
-						float t3 = 1 - tf3;
-
-						Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2 + ", " + tf3);
-
-						thresh0 = t0 / (t0 + t1 + t2 + t3);
-						thresh1 = t1 / (t0 + t1 + t2 + t3) + thresh0;
-						thresh2 = t2 / (t0 + t1 + t2 + t3) + thresh1;
-					}
-
-					Debug.Log ("random: " + r + " --- range: [0, " + thresh0 + ", " + thresh1 + ", " + thresh2 + ", 1]");
-
-					treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : 3;
-				}
-
-				locx = gos[treeToActivate].transform.position.x;
-				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
-				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
-				angle = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderRotation();
-				SetupTreeActivation (gos, treeToActivate, 4);
 			}
-        } else if (Globals.gameType.Equals("det_blind")) {
-			if (gos.Length == 3) {
-				if (Globals.blockSize > 0) {
-					treeToActivate = Globals.precompTrialBlock [(Globals.numberOfTrials - 1) % Globals.blockSize];
-				} else {
-					double thresh0 = 0.333D;
-					double thresh1 = 0.666D;
 
-					if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
-						float tf0 = Globals.GetTurnBias (20, 0);
-						float tf1 = Globals.GetTurnBias (20, 1);
-
-						// Algorithm #1 - Ninny kept refusing to go straight, so modified
-						/*
-						float t0 = 1 - tf0;
-			            float t1 = 1 - tf1;
-			            float t2 = tf0 + tf1;
-
-			            float thresh0 = t0 / (t0 + t1 + t2);
-			            float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
-			            */
-
-						// Algorithm #2: Treat as 2 line equation, solve, rebalance and normalize
-
-						float tf2 = 1 - (tf0 + tf1);
-
-						Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
-
-						// Solve
-						double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
-						double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
-						double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
-
-						//Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
-
-						// Rebalance, pushing mouse to lowest freq direction
-						double d;
-						double max = Math.Max (tf0, Math.Max (tf1, tf2));
-						double min = Math.Min (tf0, Math.Min (tf1, tf2));
-						if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
-							double pmax = Math.Max (p0, Math.Max (p1, p2));
-							if (p0 == pmax) {
-								d = Math.Abs (p1 - p2);
-								p1 *= d;
-								p2 *= d;
-							} else if (p1 == pmax) {
-								d = Math.Abs (p0 - p2);
-								p0 *= d;
-								p2 *= d;
-							} else if (p2 == pmax) {
-								d = Math.Abs (p0 - p1);
-								p0 *= d;
-								p1 *= d;
-							}
-						}
-
-						// Normalize so all add up to 1
-						p0 = p0 / (p0 + p1 + p2);
-						p1 = p1 / (p0 + p1 + p2);
-						p2 = p2 / (p0 + p1 + p2);
-
-						thresh0 = p0;
-						thresh1 = thresh0 + p1;
-					} else if (!Globals.biasCorrection) {
-						bool allTreesHavePresoFrac = true;
-						for (int i = 0; i < gos.Length; i++) {
-							if (gos [i].GetComponent<WaterTreeScript> ().GetPresoFrac () < 0) {  // Not set, so ignore all presoFracs, if others were set
-								allTreesHavePresoFrac = false;
-							}
-						}
-						if (allTreesHavePresoFrac) {
-							thresh0 = gos [0].GetComponent<WaterTreeScript> ().GetPresoFrac ();
-							thresh1 = thresh0 + gos [1].GetComponent<WaterTreeScript> ().GetPresoFrac ();
+			if (Globals.gameType.Equals ("detection") || Globals.gameType.Equals ("det_target") || Globals.gameType.Equals ("disc_target")) {
+				if (gos.Length == 1) { // Linear track
+					if (Globals.varyOrientation) {
+						if (r > 0.5) { // Half the time, swap the orientation of the tree
+							gos [0].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq);
+							hfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+							vfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+							angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 						}
 					}
-
-					Debug.Log ("STIMLOC: [0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
-					treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
-				}
-
-				SetupTreeActivation (gos, treeToActivate, 2);
-				gos[2].GetComponent<WaterTreeScript>().Show();  // Activate center tree - only necessary with persistent shadow
-
-				locx = gos [treeToActivate].transform.position.x;
-				hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
-				vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-				angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
-			} else if (gos.Length == 2) { // For training lesioned animals who have not been previously trained
-				if (Globals.blockSize > 0) {
-					treeToActivate = Globals.precompTrialBlock [(Globals.numberOfTrials - 1) % Globals.blockSize];
-				} else {
+				} else if (gos.Length == 2 || Globals.gameType.Equals ("det_target") || Globals.gameType.Equals ("disc_target")) {
 					float rThresh0 = 0.5F;
 					if (Globals.presoRatio > 0) { // Works for 2-choice only, YN and 2AFC
 						rThresh0 = (float)Globals.presoRatio / (Globals.presoRatio + 1);
 					}
-					if (Globals.biasCorrection && Globals.numberOfTrials > 1) {
+					if (Globals.biasCorrection && Globals.numNonCorrectionTrials > 1) {
 						rThresh0 = 1 - Globals.GetTurnBias (20, 0);  // varies the boundary based on history of mouse turns
 					}
 					Debug.Log ("Loc: [0, " + rThresh0 + ", 1] - " + r);
 					treeToActivate = r < rThresh0 ? 0 : 1;
+					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+
+					if (gos.Length == 2) {
+						if (Globals.blockSize > 0) {
+							treeToActivate = Globals.precompTrialBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
+						}
+						SetupTreeActivation (gos, treeToActivate, 2);
+					} else if (Globals.gameType.Equals ("det_target")) {
+						SetupTreeActivation (gos, treeToActivate, 2);
+						gos [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq, angle);
+						if (Globals.varyOrientation) {
+							float r2 = UnityEngine.Random.value;
+							if (r2 > 0.5) { // Swap orientation of target tree
+								gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
+								gos [2].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
+							}
+							Debug.Log ("Ori: [0, 0.5, 1] - " + r2);
+						}
+					} else if (Globals.gameType.Equals ("disc_target")) {
+						float r2 = UnityEngine.Random.value;
+						int treeToDistract = treeToActivate == 1 ? 0 : 1;
+
+						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetCorrect (true);
+						gos [treeToDistract].GetComponent<WaterTreeScript> ().SetCorrect (false);
+
+						if (Globals.varyOrientation) {
+							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetColors (new Color (1, 1, 1), new Color (0, 0, 0));
+							if (r2 < 0.5) {
+								gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (4, 1);
+							} else {
+								gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (1, 4);
+							}
+							hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+							vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+							angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+							gos [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq, angle);
+
+							gos [treeToDistract].GetComponent<WaterTreeScript> ().SetColors (Globals.distColor1, Globals.distColor2);
+							gos [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
+						} else {
+							gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (4, 4);
+							if (r2 < 0.5) {
+								gos [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (4, 1);
+							} else {
+								gos [treeToDistract].GetComponent<WaterTreeScript> ().SetShader (1, 4);
+							}
+						}
+						Debug.Log ("Ori: [0, 0.5, 1] - " + r2);
+					}
+					locx = gos [treeToActivate].transform.position.x;
+					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+				} else if (gos.Length == 4) {
+					if (Globals.blockSize > 0) {
+						treeToActivate = Globals.precompTrialBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
+					} else {
+						float thresh0 = 0.25F;
+						float thresh1 = 0.5F;
+						float thresh2 = 0.75F;
+
+						if (Globals.biasCorrection && Globals.numNonCorrectionTrials > 1) {
+							// Turn on bias correction after testing that logic works!
+							// Bias correction algo #1
+							float tf0 = Globals.GetTurnBias (20, 0);
+							float tf1 = Globals.GetTurnBias (20, 1);
+							float tf2 = Globals.GetTurnBias (20, 2);
+							float tf3 = 1 - (tf0 + tf1 + tf2);
+
+							float t0 = 1 - tf0;
+							float t1 = 1 - tf1;
+							float t2 = 1 - tf2;
+							float t3 = 1 - tf3;
+
+							Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2 + ", " + tf3);
+
+							thresh0 = t0 / (t0 + t1 + t2 + t3);
+							thresh1 = t1 / (t0 + t1 + t2 + t3) + thresh0;
+							thresh2 = t2 / (t0 + t1 + t2 + t3) + thresh1;
+						}
+
+						Debug.Log ("random: " + r + " --- range: [0, " + thresh0 + ", " + thresh1 + ", " + thresh2 + ", 1]");
+
+						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : 3;
+					}
+
+					locx = gos [treeToActivate].transform.position.x;
+					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					SetupTreeActivation (gos, treeToActivate, 4);
+				}
+			} else if (Globals.gameType.Equals ("det_blind")) {
+				if (gos.Length == 3) {
+					if (Globals.blockSize > 0) {
+						treeToActivate = Globals.precompTrialBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
+					} else {
+						double thresh0 = 0.333D;
+						double thresh1 = 0.666D;
+
+						if (Globals.biasCorrection && Globals.numNonCorrectionTrials > 1) {
+							float tf0 = Globals.GetTurnBias (20, 0);
+							float tf1 = Globals.GetTurnBias (20, 1);
+
+							// Algorithm #1 - Ninny kept refusing to go straight, so modified
+							/*
+							float t0 = 1 - tf0;
+				            float t1 = 1 - tf1;
+				            float t2 = tf0 + tf1;
+
+				            float thresh0 = t0 / (t0 + t1 + t2);
+				            float thresh1 = t1 / (t0 + t1 + t2) + thresh0;
+				            */
+
+							// Algorithm #2: Treat as 2 line equation, solve, rebalance and normalize
+
+							float tf2 = 1 - (tf0 + tf1);
+
+							Debug.Log ("turning biases: " + tf0 + ", " + tf1 + ", " + tf2);
+
+							// Solve
+							double p0 = tf0 < 1 / 3 ? -2 * tf0 + 1 : -tf0 / 2 + 0.5;
+							double p1 = tf1 < 1 / 3 ? -2 * tf1 + 1 : -tf1 / 2 + 0.5;
+							double p2 = tf2 < 1 / 3 ? -2 * tf2 + 1 : -tf2 / 2 + 0.5;
+
+							//Debug.Log ("raw trial prob: " + p0 + ", " + p1 + ", " + p2);
+
+							// Rebalance, pushing mouse to lowest freq direction
+							double d;
+							double max = Math.Max (tf0, Math.Max (tf1, tf2));
+							double min = Math.Min (tf0, Math.Min (tf1, tf2));
+							if (max - min > 0.21) { // Only rebalance if there is a big difference between the choices
+								double pmax = Math.Max (p0, Math.Max (p1, p2));
+								if (p0 == pmax) {
+									d = Math.Abs (p1 - p2);
+									p1 *= d;
+									p2 *= d;
+								} else if (p1 == pmax) {
+									d = Math.Abs (p0 - p2);
+									p0 *= d;
+									p2 *= d;
+								} else if (p2 == pmax) {
+									d = Math.Abs (p0 - p1);
+									p0 *= d;
+									p1 *= d;
+								}
+							}
+
+							// Normalize so all add up to 1
+							p0 = p0 / (p0 + p1 + p2);
+							p1 = p1 / (p0 + p1 + p2);
+							p2 = p2 / (p0 + p1 + p2);
+
+							thresh0 = p0;
+							thresh1 = thresh0 + p1;
+						} else if (!Globals.biasCorrection) {
+							bool allTreesHavePresoFrac = true;
+							for (int i = 0; i < gos.Length; i++) {
+								if (gos [i].GetComponent<WaterTreeScript> ().GetPresoFrac () < 0) {  // Not set, so ignore all presoFracs, if others were set
+									allTreesHavePresoFrac = false;
+								}
+							}
+							if (allTreesHavePresoFrac) {
+								thresh0 = gos [0].GetComponent<WaterTreeScript> ().GetPresoFrac ();
+								thresh1 = thresh0 + gos [1].GetComponent<WaterTreeScript> ().GetPresoFrac ();
+							}
+						}
+
+						Debug.Log ("STIMLOC: [0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
+						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
+					}
+
+					SetupTreeActivation (gos, treeToActivate, 2);
+					gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree - only necessary with persistent shadow
+
+					locx = gos [treeToActivate].transform.position.x;
+					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+				} else if (gos.Length == 2) { // For training lesioned animals who have not been previously trained
+					if (Globals.blockSize > 0) {
+						treeToActivate = Globals.precompTrialBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
+					} else {
+						float rThresh0 = 0.5F;
+						if (Globals.presoRatio > 0) { // Works for 2-choice only, YN and 2AFC
+							rThresh0 = (float)Globals.presoRatio / (Globals.presoRatio + 1);
+						}
+						if (Globals.biasCorrection && Globals.numNonCorrectionTrials > 1) {
+							rThresh0 = 1 - Globals.GetTurnBias (20, 0);  // varies the boundary based on history of mouse turns
+						}
+						Debug.Log ("Loc: [0, " + rThresh0 + ", 1] - " + r);
+						treeToActivate = r < rThresh0 ? 0 : 1;
+					}
+
+					SetupTreeActivation (gos, treeToActivate, 1);
+					gos [1].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree - only necessary with persistent shadow
+
+					locx = gos [treeToActivate].transform.position.x;
+					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+				}
+			} else if (Globals.gameType.Equals ("discrimination")) {
+				// Randomize orientations
+				float rThresh0 = 0.5F;
+				if (Globals.numNonCorrectionTrials > 1 && Globals.biasCorrection) {  // Add bias correction option if needed later
+					rThresh0 = 1 - Globals.GetTurnBias (20, 0);
 				}
 
-				SetupTreeActivation (gos, treeToActivate, 1);
-				gos[1].GetComponent<WaterTreeScript>().Show();  // Activate center tree - only necessary with persistent shadow
+				// Randomize phase, if enabled
+				float rewardedHPhase = Globals.randomPhase && Globals.rewardedHFreq != 1 ? UnityEngine.Random.value * 360 : 0;
+				float rewardedVPhase = Globals.randomPhase && Globals.rewardedVFreq != 1 ? UnityEngine.Random.value * 360 : 0;
+				float distractorHPhase = Globals.randomPhase && Globals.distractorHFreq != 1 ? UnityEngine.Random.value * 360 : 0;
+				float distractorVPhase = Globals.randomPhase && Globals.distractorVFreq != 1 ? UnityEngine.Random.value * 360 : 0;
 
-				locx = gos[treeToActivate].transform.position.x;
-				hfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderHFreq();
-				vfreq = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderVFreq();
-				angle = gos[treeToActivate].GetComponent<WaterTreeScript>().GetShaderRotation();
-			}
-        } else if (Globals.gameType.Equals("discrimination")) {
-            // Randomize orientations
-			float rThresh0 = 0.5F;
-			if (Globals.numberOfTrials > 1 && Globals.biasCorrection) {  // Add bias correction option if needed later
-				rThresh0 = 1 - Globals.GetTurnBias (20, 0);
-			}
+				// Randomize distractor, if multiple
+				int rDistAng = UnityEngine.Random.Range (0, Globals.distractorAngles.Count ());
+				distractorAngle = Globals.distractorAngles [rDistAng];
+				Debug.Log ("Picked distractorAngle = " + distractorAngle);
 
-			// Randomize phase, if enabled
-			float rewardedHPhase = Globals.randomPhase && Globals.rewardedHFreq != 1 ? UnityEngine.Random.value * 360 : 0;
-			float rewardedVPhase = Globals.randomPhase && Globals.rewardedVFreq != 1 ? UnityEngine.Random.value * 360 : 0;
-			float distractorHPhase = Globals.randomPhase && Globals.distractorHFreq != 1 ? UnityEngine.Random.value * 360 : 0;
-			float distractorVPhase = Globals.randomPhase && Globals.distractorVFreq != 1 ? UnityEngine.Random.value * 360 : 0;
-
-			// Randomize distractor, if multiple
-			int rDistAng = UnityEngine.Random.Range(0, Globals.distractorAngles.Count());
-			distractorAngle = Globals.distractorAngles[rDistAng];
-			Debug.Log ("Picked distractorAngle = " + distractorAngle);
-
-            if (r < rThresh0) {
-				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle); // later, listen to the deg argument
-				gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, distractorAngle);
-                locx = gos[0].transform.position.x;
-                hfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderHFreq();
-                vfreq = gos[0].GetComponent<WaterTreeScript>().GetShaderVFreq();
-				angle = gos[0].GetComponent<WaterTreeScript>().GetShaderRotation();
-                gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
-                gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
-            } else {
-				gos[0].GetComponent<WaterTreeScript>().SetShader(Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, distractorAngle);
-				gos[1].GetComponent<WaterTreeScript>().SetShader(Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle);
-                locx = gos[1].transform.position.x;
-                hfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderHFreq();
-				vfreq = gos[1].GetComponent<WaterTreeScript>().GetShaderVFreq();
-				angle = gos[1].GetComponent<WaterTreeScript>().GetShaderRotation();
-                gos[0].GetComponent<WaterTreeScript>().SetCorrect(false);
-                gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
-            }
-            Debug.Log("[0, " + rThresh0 + ", 1] - " + r);
-        } else if (Globals.gameType.Equals("match") || Globals.gameType.Equals("nonmatch")) {
-            // First, pick an orientation at random for the central tree
-            float targetHFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderHFreq();
-            float targetVFreq = gos[2].GetComponent<WaterTreeScript>().GetShaderVFreq();
-			float targetAngle = gos[2].GetComponent<WaterTreeScript>().GetShaderRotation();
-
-			if (r < 0.5)  { // Switch target to opposite of previous
-				gos[2].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetAngle);
-            }
-            // Second, randomly pick which side the matching orientation is on
-            float rSide = UnityEngine.Random.value;
-
-            // Try to balance location of match based on the turning bias
-			float rThresh0 = 0.5F;
-			if (Globals.numberOfTrials > 1) {  // Add bias correction option if needed later
-				rThresh0 = 1 - Globals.GetTurnBias (20, 0);
-			}
-			if (rSide < rThresh0)  { // Set the left tree to be the rewarded side
-                gos[0].GetComponent<WaterTreeScript>().SetCorrect(true);
-                gos[1].GetComponent<WaterTreeScript>().SetCorrect(false);
-                locx = gos[0].transform.position.x;
-				// TODO: Fix the angle treatment here
-                if (Globals.gameType.Equals("match")) {
-					gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetAngle);
-                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetAngle);
-					// TODO - do the right thing with angles here, LATER
-                    hfreq = targetHFreq;
-                    vfreq = targetVFreq;
-					angle = targetAngle;
-                } else {
-					gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetAngle);
-					gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetAngle);
-                    hfreq = targetVFreq;
-                    vfreq = targetHFreq;
-					angle = targetAngle;
-                }
-			} else { // Set the right tree to match
-                gos[0].GetComponent<WaterTreeScript>().SetCorrect(false);
-                gos[1].GetComponent<WaterTreeScript>().SetCorrect(true);
-                locx = gos[1].transform.position.x;
-                if (Globals.gameType.Equals("match")) {
-					gos[0].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetAngle);
-                    gos[1].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetAngle);
-                    hfreq = targetHFreq;
-                    vfreq = targetVFreq;
-					angle = targetAngle;
-                } else {
-					gos[0].GetComponent<WaterTreeScript>().SetShader(targetHFreq, targetVFreq, targetAngle);
-					gos[1].GetComponent<WaterTreeScript>().SetShader(targetVFreq, targetHFreq, targetAngle);
-                    hfreq = targetVFreq;
-                    vfreq = targetHFreq;
-					angle = targetAngle;
-                }
-            }
-            Debug.Log("[0, " + rThresh0 + ", 1] - " + rSide);
-        }
-
-		// NO bias correction with FOV location yet, but may need to add later
-		if (Globals.perim && (((gos.Length == 3 || gos.Length == 2) && locx != Globals.worldXCenter) || gos.Length == 4)) {  // perimetry is enabled, so pick from the set of random windows to use
-			int start;
-			int end = Globals.fovsForPerimScaleInclusive [Globals.perimScale];
-			if (Globals.perimRange) {  // Also include larger size stim in the stim set
-				start = 0;
-			} else {  // Only include stim that are of the size specified in the scenario file
-				start = end - Globals.fovsForPerimScaleInclusive [Globals.perimScale - 1];
-				if (Globals.perimScale == 1) { // Special case
-					start = start - 1;
+				if (r < rThresh0) {
+					gos [0].GetComponent<WaterTreeScript> ().SetShader (Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle); // later, listen to the deg argument
+					gos [1].GetComponent<WaterTreeScript> ().SetShader (Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, distractorAngle);
+					locx = gos [0].transform.position.x;
+					hfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+					vfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+					angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (true);
+					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (false);
+				} else {
+					gos [0].GetComponent<WaterTreeScript> ().SetShader (Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, distractorAngle);
+					gos [1].GetComponent<WaterTreeScript> ().SetShader (Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle);
+					locx = gos [1].transform.position.x;
+					hfreq = gos [1].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+					vfreq = gos [1].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+					angle = gos [1].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (false);
+					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (true);
 				}
+				Debug.Log ("[0, " + rThresh0 + ", 1] - " + r);
+			} else if (Globals.gameType.Equals ("match") || Globals.gameType.Equals ("nonmatch")) {
+				// First, pick an orientation at random for the central tree
+				float targetHFreq = gos [2].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+				float targetVFreq = gos [2].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+				float targetAngle = gos [2].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+
+				if (r < 0.5) { // Switch target to opposite of previous
+					gos [2].GetComponent<WaterTreeScript> ().SetShader (targetVFreq, targetHFreq, targetAngle);
+				}
+				// Second, randomly pick which side the matching orientation is on
+				float rSide = UnityEngine.Random.value;
+
+				// Try to balance location of match based on the turning bias
+				float rThresh0 = 0.5F;
+				if (Globals.numNonCorrectionTrials > 1) {  // Add bias correction option if needed later
+					rThresh0 = 1 - Globals.GetTurnBias (20, 0);
+				}
+				if (rSide < rThresh0) { // Set the left tree to be the rewarded side
+					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (true);
+					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (false);
+					locx = gos [0].transform.position.x;
+					// TODO: Fix the angle treatment here
+					if (Globals.gameType.Equals ("match")) {
+						gos [0].GetComponent<WaterTreeScript> ().SetShader (targetHFreq, targetVFreq, targetAngle);
+						gos [1].GetComponent<WaterTreeScript> ().SetShader (targetVFreq, targetHFreq, targetAngle);
+						// TODO - do the right thing with angles here, LATER
+						hfreq = targetHFreq;
+						vfreq = targetVFreq;
+						angle = targetAngle;
+					} else {
+						gos [0].GetComponent<WaterTreeScript> ().SetShader (targetVFreq, targetHFreq, targetAngle);
+						gos [1].GetComponent<WaterTreeScript> ().SetShader (targetHFreq, targetVFreq, targetAngle);
+						hfreq = targetVFreq;
+						vfreq = targetHFreq;
+						angle = targetAngle;
+					}
+				} else { // Set the right tree to match
+					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (false);
+					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (true);
+					locx = gos [1].transform.position.x;
+					if (Globals.gameType.Equals ("match")) {
+						gos [0].GetComponent<WaterTreeScript> ().SetShader (targetVFreq, targetHFreq, targetAngle);
+						gos [1].GetComponent<WaterTreeScript> ().SetShader (targetHFreq, targetVFreq, targetAngle);
+						hfreq = targetHFreq;
+						vfreq = targetVFreq;
+						angle = targetAngle;
+					} else {
+						gos [0].GetComponent<WaterTreeScript> ().SetShader (targetHFreq, targetVFreq, targetAngle);
+						gos [1].GetComponent<WaterTreeScript> ().SetShader (targetVFreq, targetHFreq, targetAngle);
+						hfreq = targetVFreq;
+						vfreq = targetHFreq;
+						angle = targetAngle;
+					}
+				}
+				Debug.Log ("[0, " + rThresh0 + ", 1] - " + rSide);
 			}
-			int rFOV = UnityEngine.Random.Range (start, end);
-			Debug.Log ("FOV range (" + start + " - " + end + "), picked " + rFOV);
-			Globals.SetOccluders (locx, rFOV);
-		} else {
-			Globals.SetOccluders(locx);
-			//Debug.Log ("no dynamic occlusion");
-		}
-			
-		// OPTOGENETICS!
-		if (Globals.optoSide != -1) {  // A side for optogenetics was specified
-			if (Globals.optoAlternation) {  // If it should alternate, then alternate it, with every even trial getting light on
-				if (Globals.probeIdx == treeToActivate) { 				// if the current trial is a probe trial
-					if (Globals.probeLastOpto == false) {  // if the last trial was light OFF, turn light on this time
+
+			// On correction trials, the occluders will already be set, so only need to do the below calculation on new trials
+			// NO bias correction with FOV location yet, but may need to add later
+			if (Globals.perim && (((gos.Length == 3 || gos.Length == 2) && locx != Globals.worldXCenter) || gos.Length == 4)) {  // perimetry is enabled, so pick from the set of random windows to use
+				int start;
+				int end = Globals.fovsForPerimScaleInclusive [Globals.perimScale];
+				if (Globals.perimRange) {  // Also include larger size stim in the stim set
+					start = 0;
+				} else {  // Only include stim that are of the size specified in the scenario file
+					start = end - Globals.fovsForPerimScaleInclusive [Globals.perimScale - 1];
+					if (Globals.perimScale == 1) { // Special case
+						start = start - 1;
+					}
+				}
+				int rFOV = UnityEngine.Random.Range (start, end);
+				Debug.Log ("FOV range (" + start + " - " + end + "), picked " + rFOV);
+				Globals.SetOccluders (locx, rFOV);
+			} else {
+				Globals.SetOccluders (locx);
+				//Debug.Log ("no dynamic occlusion");
+			}
+
+			// OPTOGENETICS!
+			if (Globals.optoSide != -1) {  // A side for optogenetics was specified
+				if (Globals.optoAlternation) {  // If it should alternate, then alternate it, with every even trial getting light on
+					if (Globals.probeIdx == treeToActivate) { 				// if the current trial is a probe trial
+						if (Globals.probeLastOpto == false) {  // if the last trial was light OFF, turn light on this time
+							udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
+						}
+						Globals.probeLastOpto = !Globals.probeLastOpto;  // regardless of whether last probe was light on or off, alternate
+					} else if (Globals.probeIdx != treeToActivate && Globals.numNonCorrectionTrials % 2 == 0) {
 						udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
 					}
-					Globals.probeLastOpto = !Globals.probeLastOpto;  // regardless of whether last probe was light on or off, alternate
-				} else if (Globals.probeIdx != treeToActivate && Globals.numberOfTrials % 2 == 0) {
-					udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
-				}
-			} else {
-				if (Globals.blockSize > 0) {
-					udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.precompOptoBlock [(Globals.numberOfTrials - 1) % Globals.blockSize]);
 				} else {
-					float rOpto = UnityEngine.Random.value;
-					if (rOpto < Globals.optoFraction) {
-						udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
+					if (Globals.blockSize > 0) {
+						udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.precompOptoBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize]);
+					} else {
+						float rOpto = UnityEngine.Random.value;
+						if (rOpto < Globals.optoFraction) {
+							udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
+						}
 					}
 				}
 			}
@@ -1000,6 +1020,8 @@ public class GameControlScript : MonoBehaviour
         Globals.targetVFreq.Add(vfreq);
 		Globals.targetAngle.Add(angle);
 		Globals.distractorAngle.Add (distractorAngle);
+		Globals.trialWorld.Add(trialWorld);  		// Record which world this trial is on
+		Globals.correctionTrialMarks.Add (Globals.lastTrialWasIncorrect);
 
         this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);
@@ -1132,7 +1154,7 @@ public class GameControlScript : MonoBehaviour
     }
 
 	private void updateTrialsText() {
-		this.numberOfTrialsText.text = "Trial: #" + Globals.numberOfTrials.ToString ();
+		this.numberOfTrialsText.text = "Trial: #" + Globals.numNonCorrectionTrials.ToString ();
 	}
 
 	private void updateRewardAmountText() {
@@ -1140,10 +1162,14 @@ public class GameControlScript : MonoBehaviour
 	}
 
 	private void updateCorrectTurnsText() {
+		float numNonCorrectionTrials = (float)Globals.numNonCorrectionTrials - 1;
+		if (Globals.CurrentlyCorrectionTrial ()) {
+			numNonCorrectionTrials = numNonCorrectionTrials + 1;
+		}
 		this.numberOfCorrectTurnsText.text = "Correct: " +
 			Globals.numCorrectTurns.ToString ()
 			+ " (" +
-			Mathf.Round(((float)Globals.numCorrectTurns / ((float)Globals.numberOfTrials -1)) * 100).ToString() + "%" 
+			Mathf.Round((float)Globals.numCorrectTurns / numNonCorrectionTrials * 100).ToString() + "%" 
 			+ Globals.GetTreeAccuracy() + ")";
 	}
 

@@ -85,12 +85,9 @@ public class WaterTreeScript : MonoBehaviour {
 		}
 	}
 
-    void OnTriggerEnter(Collider c)
-    {
-		//Debug.Log ("WaterTree at " + this.gameObject.transform.position.x + " triggered by " + c.tag);
+    void OnTriggerEnter(Collider c) {
 		if (c.tag == "Player") {
 			if (this.enabled) {
-				//Debug.Log ("Dispensing water");
 				Globals.playerInWaterTree = true;
                 if (!this.depleted) {
                     int len = Globals.firstTurn.Count;
@@ -132,7 +129,6 @@ public class WaterTreeScript : MonoBehaviour {
 								}
                             }
                         }
-						//Debug.Log("recent accuracy = " + recentAccuracy + ", chance = " + chance + ", biasDir = " + biasDir + ", biasAmt = " + biasAmt + ", biasMultiplyer = " + biasMultiplier);
                     }
 
                     int rewardDur;
@@ -230,8 +226,10 @@ public class WaterTreeScript : MonoBehaviour {
 			interTrialInterval = correctTurnDelay;
 			c = Color.black;
 
-			Globals.IncrementRewardAtStimLoc (xPos);
-			Globals.IncrementTurnToStimLoc (xPos);
+			// If correction trials are enabled and probabilistic reward is enabled, correction trials DO NOT count toward probabilistic reward counts
+			if (!Globals.CurrentlyCorrectionTrial()) {  // Current trial is NOT a correction trial
+				Globals.IncrementRewardAtStimLoc (xPos);
+			}
 		} else {
 			Globals.sizeOfRewardGiven.Add(0);
 			if (Globals.probabilisticWhiteNoiseWhenNoReward) {
@@ -241,24 +239,36 @@ public class WaterTreeScript : MonoBehaviour {
 				interTrialInterval = correctTurnDelay;
 				c = Color.black;
 			}
-
+		}
+		// If correction trials are enabled and probabilistic reward is enabled, correction trials DO NOT count toward probabilistic reward counts
+		if (!Globals.CurrentlyCorrectionTrial()) {  // Current trial is NOT a correction trial
 			Globals.IncrementTurnToStimLoc (xPos);
 		}
-		this.depleted = true;
 
+		this.depleted = true;
         Globals.hasNotTurned = false;
-        if (addToTurns) {
+
+		if (addToTurns) {
 			if (trueCorrect) {
-				Globals.numCorrectTurns++;
+				if (!Globals.CurrentlyCorrectionTrial()) { // Not correction trial
+					Globals.numCorrectTurns++;
+				}
 			}
-			Globals.firstTurn.Add(this.gameObject.transform.position.x);
-            Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
-			Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
-			Globals.firstTurnAngle.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderRotation());
-        }
+			Globals.firstTurn.Add (this.gameObject.transform.position.x);
+			Globals.firstTurnHFreq.Add (this.gameObject.GetComponent<WaterTreeScript> ().GetShaderHFreq ());
+			Globals.firstTurnVFreq.Add (this.gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
+			Globals.firstTurnAngle.Add (this.gameObject.GetComponent<WaterTreeScript> ().GetShaderRotation ());
+	        }
+
+		// Must come after in-memory log is updated above
+		Globals.lastTrialWasIncorrect = 0;
 
         if (respawn) {
-            Globals.numberOfTrials++;
+			if (!Globals.CurrentlyCorrectionTrial ()) {
+				Globals.numNonCorrectionTrials++;
+			} else {  // Might be off by 1 bug here, as nonCorrectionTrials is the current trial #, but numCorrectionTrials is the total number of correction trials
+				Globals.numCorrectionTrials++;
+			}
 			Globals.trialDelay = interTrialInterval;
 			GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
             Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);
@@ -267,6 +277,7 @@ public class WaterTreeScript : MonoBehaviour {
         }
 	}
 
+	// WithholdReward() is called only on incorrect trials, not correct trials where reward was witheld
     private void WitholdReward() {
 		float xPos = this.gameObject.transform.position.x;
 		Globals.IncrementTurnToStimLoc (xPos);
@@ -279,6 +290,7 @@ public class WaterTreeScript : MonoBehaviour {
 			interTrialInterval = correctTurnDelay;
 		}
 
+		Globals.lastTrialWasIncorrect = 1;
         Globals.hasNotTurned = false;
         Globals.firstTurn.Add(this.gameObject.transform.position.x);
         Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
@@ -286,7 +298,11 @@ public class WaterTreeScript : MonoBehaviour {
 		Globals.firstTurnAngle.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderRotation());
         Globals.sizeOfRewardGiven.Add(0);
         if (respawn) {
-            Globals.numberOfTrials++;
+			if (!Globals.CurrentlyCorrectionTrial ()) {
+				Globals.numNonCorrectionTrials++;
+			} else {  // Might be off by 1 bug here, as nonCorrectionTrials is the current trial #, but numCorrectionTrials is the total number of correction trials
+				Globals.numCorrectionTrials++;
+			}
 			Globals.trialDelay = interTrialInterval;
             GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
             Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);
