@@ -767,7 +767,8 @@ public static class Globals
             //Debug.Log((float)System.Convert.ToDouble(Globals.targetLoc[i]));
             idx = Array.IndexOf(locs, (float)System.Convert.ToDouble(Globals.targetLoc[i]));
 			// Added support for ignoring correction trials
-			if (!CurrentlyCorrectionTrial() || (int)Globals.correctionTrialMarks [i] == 0) {
+			//Debug.Log (correctionTrialMarks [i]);
+			if (!correctionTrialsEnabled || (correctionTrialsEnabled && (int)correctionTrialMarks[i] == 0)) {
 				numTrials [idx]++;
 				if (Globals.targetLoc [i].Equals (Globals.firstTurn [i]))
 					numCorrTrials [idx]++;
@@ -791,7 +792,7 @@ public static class Globals
 
 		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected histLen
 		for (int i = firstTurn.Count-1; i >= 0; i--) {
-			if ((int)trialWorld [i] == currWorld && (!CurrentlyCorrectionTrial() || (int)correctionTrialMarks[i] == 0)) {
+			if ((int)trialWorld [i] == currWorld && (!correctionTrialsEnabled || (correctionTrialsEnabled && (int)correctionTrialMarks[i] == 0))) {
 				validTrials.Add(i);
 			}
 			if (validTrials.Count == histLen) {
@@ -871,7 +872,7 @@ public static class Globals
 		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected n
 		for (int i = firstTurn.Count-1; i >= 0; i--) {
 			//Debug.Log (correctionTrialMarks [i]);
-			if ((int)trialWorld [i] == currWorld && (!CurrentlyCorrectionTrial() || (int)correctionTrialMarks[i] == 0)) {
+			if ((int)trialWorld [i] == currWorld && (!correctionTrialsEnabled || (correctionTrialsEnabled && (int)correctionTrialMarks[i] == 0))) {
 				validTrials.Add(i);
 			}
 			if (validTrials.Count == n) {
