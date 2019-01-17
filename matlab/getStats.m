@@ -1,4 +1,4 @@
-function results = getStats(mouseName, days, sessions)
+function results = getStats(mouseName, days, sessions, includeCorrectionTrials)
 % This function will analyze the relevant actions.txt log files and return
 % a set of statistics useful to analyzing blindness and blindsight.
 
@@ -38,12 +38,17 @@ for i=1:length(fileList)
                 if (fid ~= -1)  % File was opened properly
                     numFilesAnalyzed = numFilesAnalyzed + 1;
                     tline = fgetl(fid); % Throw out the first line, as it is a column header
-                    C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f %d %d %d %d %d'); % C is a cell array with each string separated by a space
+                    C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f %d %d %d %d %d %d'); % C is a cell array with each string separated by a space
                     for k = 1:length(C{1})  % For each line
                         % C{5} is the target location, C{12} is the turn location
                         stimLoc = C{5}(k);
                         actionLoc = C{12}(k);
                         optoLoc = C{17}(k);
+                        
+                        isCorrectionTrial = C{21}(k);
+                        if (isCorrectionTrial && ~includeCorrectionTrials)
+                            continue;
+                        end
 
                         if (stimLoc < centerX)
                             col = 1;
@@ -103,6 +108,9 @@ for j = 1:size(results,3)
     elseif (j == 4)
         disp('=====Opto Both======')
     end
+    numCorrect = results(1,1,j)+results(2,2,j)+results(3,3,j);
+    numTrials = sum(sum(results(:,:,j)));
+    disp(['ACCURACY = ' num2str(numCorrect/numTrials * 100, 2) '%']);
     disp(['L->L = ' num2str(results(1,1,j) / sum(results(:,1,j)) * 100, 2) '%']);
     disp(['L->R = ' num2str(results(2,1,j) / sum(results(:,1,j)) * 100, 2) '%']);
     disp(['L->C = ' num2str(results(3,1,j) / sum(results(:,1,j)) * 100, 2) '%']);

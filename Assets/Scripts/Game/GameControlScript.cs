@@ -1021,7 +1021,11 @@ public class GameControlScript : MonoBehaviour
 		Globals.targetAngle.Add(angle);
 		Globals.distractorAngle.Add (distractorAngle);
 		Globals.trialWorld.Add(trialWorld);  		// Record which world this trial is on
-		Globals.correctionTrialMarks.Add (Globals.lastTrialWasIncorrect);
+		if (Globals.correctionTrialsEnabled) {
+			Globals.correctionTrialMarks.Add (Globals.lastTrialWasIncorrect);
+		} else {
+			Globals.correctionTrialMarks.Add (0);
+		}
 
         this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);
