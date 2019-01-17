@@ -11,6 +11,7 @@
 			<gameType>detection</gameType>
 			<gameTurnControl>yaw</gameTurnControl>
 			<treesBelowGround>true</treesBelowGround>
+			<correctionTrials>true</correctionTrials>  <!-- correction trials are NOT counted in bias correction calculation -->
 		</gameConfig>
 	</config>
 	<worlds>
