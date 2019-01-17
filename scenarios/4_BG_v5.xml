@@ -59,19 +59,14 @@
 			</trees>
 			<walls>
 				<wall> <!-- Left island right wall -->
-					<pos>19994;0.5;20012.5</pos>
+					<pos>19994;0.5;20016.5</pos>
 					<rot>0;0;0</rot>
-					<scale>2;0;9</scale> <!-- 1 is added to z scale, and 2 is added to X scale -->
-				</wall>
-				<wall> <!-- Left island bottom wall -->
-					<pos>19990;0.5;20010.5</pos>
-					<rot>0;-45;0</rot>
-					<scale>2;0;9</scale> <!-- 1 is added to z scale, and 2 is added to X scale -->
+					<scale>2;0;5</scale> <!-- 1 is added to z scale, and 2 is added to X scale -->
 				</wall>
 				<wall> <!-- Left island left wall -->
-					<pos>19990;0.5;20015</pos>
+					<pos>19992;0.5;20017</pos>
 					<rot>0;-135;0</rot>
-					<scale>2;0;9</scale>
+					<scale>2;0;5</scale>
 				</wall>
 				<wall> <!-- Left Front Y left wall (pre-island) -->
 					<pos>19986;0.5;20000</pos>
@@ -79,19 +74,14 @@
 					<scale>2;0;14</scale>
 				</wall>
 				<wall> <!-- Right island left wall -->
-					<pos>20006;0.5;20012.5</pos>
+					<pos>20006;0.5;20016.5</pos>
 					<rot>0;0;0</rot>
-					<scale>2;0;9</scale>
-				</wall>
-				<wall> <!-- Right island bottom wall -->
-					<pos>20010;0.5;20010.5</pos>
-					<rot>0;45;0</rot>
-					<scale>2;0;9</scale>
+					<scale>2;0;5</scale>
 				</wall>
 				<wall> <!-- Right island right wall -->
-					<pos>20010;0.5;20015</pos>
+					<pos>20008;0.5;20017</pos>
 					<rot>0;135;0</rot>
-					<scale>2;0;9</scale>
+					<scale>2;0;5</scale>
 				</wall>
 				<wall> <!-- Right Front Y right wall (pre-island) -->
 					<pos>20014;0.5;20000</pos>
