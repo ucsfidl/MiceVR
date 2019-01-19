@@ -8,13 +8,14 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
 			<treesBelowGround>true</treesBelowGround>
+			<alternateWorlds>true</alternateWorlds>
 		</gameConfig>
 	</config>
 	<worlds>
 		<world> <!-- 3-choice -->
+			<gameType>det_blind</gameType>
 			<trees>
 				<t> <!-- Left tree -->
 					<w>1</w>
@@ -117,6 +118,7 @@
 			</walls>
 		</world>
 		<world> <!-- 4-choice -->
+			<gameType>detection</gameType>
 			<trees>  <!-- All tree X positions are different, as used as an ID -->
 				<t> <!-- Left front tree -->
 					<w>1</w>
@@ -140,8 +142,8 @@
 				</t>
 				<t> <!-- Left back tree -->
 					<w>1</w>
-					<pos>19978;-16;20056</pos>
-					<rot>0;45;0</rot>
+					<pos>19972;-16;20050</pos>
+					<rot>0;0;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>4</v>
 					<h>2</h>
@@ -150,8 +152,8 @@
 				</t>
 				<t> <!-- Right back tree -->
 					<w>1</w>
-					<pos>20022;-16;20056</pos>
-					<rot>0;-45;0</rot>
+					<pos>20028;-16;20050</pos>
+					<rot>0;0;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>4</v>
 					<h>2</h>
