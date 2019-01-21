@@ -426,11 +426,28 @@ public class Loader : MonoBehaviour {
 					else
 						Globals.correctionTrialsEnabled = false;
 				}
-            }
+
+				if (xn ["alternateWorlds"] != null) {
+					string xml = xn["alternateWorlds"].InnerText;
+					if (xml.Equals("true"))
+						Globals.alternateWorlds = true;
+					else
+						Globals.alternateWorlds = false;
+				}
+			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");
 			int worldNum = 0;
 			foreach (XmlElement world in worldList) {
+				string gameTypeStr = Globals.gameType;  // For backward compatibility with old scenarios which did not specify the gameType on each world
+
+				XmlNodeList gameTypeNodes = world.GetElementsByTagName ("gameType");
+				if (gameTypeNodes.Count == 1) {
+					gameTypeStr = gameTypeNodes.Item(0).InnerText;
+					Debug.Log (gameTypeStr);
+				}
+ 				Globals.AddGameTypeToWorld (worldNum, gameTypeStr);
+					
 				XmlNodeList treeList = world.GetElementsByTagName("t"); // array of the tree nodes
 				foreach (XmlNode node in treeList) {
 					bool water = false;

@@ -28,30 +28,22 @@ public static class Globals
     public static int numberOfUnearnedRewards;
     public static float rewardAmountSoFar;
 
-	// NB edit: globals to keep track of successful turns in the T maze
 	public static bool hasNotTurned;
-    public static ArrayList trialStartTime = new ArrayList(); // Holds DateTime object of starttime
-    public static ArrayList trialEndTime = new ArrayList(); // Holds DateTime object of endtime
-	public static ArrayList targetLoc = new ArrayList(); // X coord of tree placed in this list
-    public static ArrayList targetHFreq = new ArrayList();  // Orientation of target
-    public static ArrayList targetVFreq = new ArrayList();  // Orientation of target
-	public static ArrayList targetAngle = new ArrayList();  // Angle of target
-	public static ArrayList distractorAngle = new ArrayList();  // Angle of distractor
-    public static ArrayList firstTurn = new ArrayList(); // X coord of tree the mouse hit or would have hit is placed in this list
-    public static ArrayList firstTurnHFreq = new ArrayList();  // Orientation of the tree the mouse chose
-    public static ArrayList firstTurnVFreq = new ArrayList();  // Orientation of the tree the mouse chose
-	public static ArrayList firstTurnAngle = new ArrayList();  // Angle of target
-	public static ArrayList trialWorld = new ArrayList();  // Which world, in a multi-world scenario, was shown on this trial
+	public static List<TimeSpan> trialStartTime = new List<TimeSpan>(); // Holds DateTime object of starttime
+	public static List<TimeSpan> trialEndTime = new List<TimeSpan>(); // Holds DateTime object of endtime
+	public static List<float> targetLoc = new List<float>(); // X coord of tree placed in this list
+	public static List<float> targetHFreq = new List<float>();  // Orientation of target
+	public static List<float> targetVFreq = new List<float>();  // Orientation of target
+	public static List<float> targetAngle = new List<float>();  // Angle of target
+	public static List<float> distractorAngle = new List<float>();  // Angle of distractor
+	public static List<float> firstTurn = new List<float>(); // X coord of tree the mouse hit or would have hit is placed in this list
+	public static List<float> firstTurnHFreq = new List<float>();  // Orientation of the tree the mouse chose
+	public static List<float> firstTurnVFreq = new List<float>();  // Orientation of the tree the mouse chose
+	public static List<float> firstTurnAngle = new List<float>();  // Angle of target
+	public static List<int> worldID = new List<int>();  // Which world, in a multi-world scenario, was shown on this trial
     public static int numCorrectTurns;
 
-	// Keep track of actual reward rate at each stimulus location
-	public static List<int> numRewardsAtStimLoc = new List<int>();
-	public static List<int> numTurnsToStimLoc = new List<int>();
-
 	public static int trialDelay;
-	public static int numNonCorrectionTrials;  // Initialized in code to 1
-	public static int numCorrectionTrials = 0;  // Used to count number of correction trials, which is recorded in the stats file
-
 
 	public static float centralViewVisibleShift; // Set in gameconfig file
 
@@ -134,9 +126,12 @@ public static class Globals
 
 	public static float speedAdjustment = 1;  // Used to adjust speed on a per scenario basis instead of a per-rig basis, so I can have multiple speed mice running at the same time
 
-	public static bool correctionTrialsEnabled = false;
+	public static bool correctionTrialsEnabled = true;  // As of 1/19/19, correction trials are on by default, just like bias correction
 	public static int lastTrialWasIncorrect = 0;  // Indicates that the current trial will be a correction trial, if correction trials are enabled
-	public static ArrayList correctionTrialMarks = new ArrayList();  // For each trial, holds a bool which tracks whether that trial was a correction trial or not
+	public static List<int> correctionTrialMarks = new List<int>();  // For each trial, holds a bool which tracks whether that trial was a correction trial or not
+
+	public static int numNonCorrectionTrials;  // Initialized in code to 1
+	public static int numCorrectionTrials = 0;  // Used to count number of correction trials, which is recorded in the stats file
 
 	public struct fov {
 		public float nasalBound;
@@ -181,9 +176,16 @@ public static class Globals
 	public struct World {
 		public List<Tree> trees;
 		public List<Wall> walls;
+		public string gameType;
+
+		// Keep track of actual reward rate at each stimulus location
+		public List<int> numRewardsAtStimLoc;
+		public List<int> numTurnsToStimLoc;
 	}
 
 	public static List<World> worlds;  // For SDT where there are different worlds per level that vary trial-by-trial
+	public static bool alternateWorlds = false;  // if set, worlds are presented in a fixed sequence (as found in the file) - if unset, worlds are presented at random
+
 	public static GameObject waterTreePrefab = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/WaterTree"));
 	public static GameObject waterTreeCricketsPrefab = (GameObject)GameObject.Instantiate (Resources.Load ("Prefabs/WaterTreeCrickets"));
 	public static GameObject waterTreeCricketsWidePrefab = (GameObject)GameObject.Instantiate (Resources.Load ("Prefabs/WaterTreeCricketsWide"));
@@ -256,6 +258,13 @@ public static class Globals
 
 		w.trees.Add (t);
 
+		w.numRewardsAtStimLoc.Add (0);
+		w.numTurnsToStimLoc.Add (0);
+
+		AddWorldToWorldList (w);
+	}
+
+	public static void AddWorldToWorldList(World w) {
 		int idx = worlds.IndexOf (w);
 		if (idx != -1) {
 			worlds [idx] = w;
@@ -273,7 +282,18 @@ public static class Globals
 		wall.scale = scale;
 		w.walls.Add (wall);
 
-		worlds [worldNum] = w;
+		AddWorldToWorldList (w);
+	}
+
+	public static void AddGameTypeToWorld(int worldNum, string gameType) {
+		World w = GetWorld (worldNum);
+		w.gameType = gameType;
+		AddWorldToWorldList (w);
+	}
+
+	public static string GetGameType(int worldNum) {
+		World w = GetWorld (worldNum);
+		return w.gameType;
 	}
 
 	private static World GetWorld(int worldNum) {
@@ -281,15 +301,21 @@ public static class Globals
 			worlds = new List<World>();
 		}
 
-		World w;  // creates empty world
+		World w = new World();  // creates empty world
 		if (worlds.Count > worldNum) {
 			w = worlds [worldNum];  // overwrite with an existing world
 		} else {  // Init one world object
 			w.trees = new List<Tree> ();
 			w.walls = new List<Wall> ();
+			w.numRewardsAtStimLoc = new List<int> ();
+			w.numTurnsToStimLoc = new List<int> ();
 		}
 
 		return w;
+	}
+
+	public static World GetCurrentWorld() {
+		return GetWorld (worldID [worldID.Count - 1]);
 	}
 
 	public static GameObject[] GetTrees() {
@@ -300,7 +326,11 @@ public static class Globals
 		return gos;
 	}
 		
+
+
 	// Helper that gets all trees across all worlds for this level, removing duplicates (multiple trees at the exact same location)
+	// New design is that each world has its own accuracy stats, which is displayed when that world is rendered onscreen
+	// So this function is DEPRECATED and no longer used.  Keeping it around in case I need it later for some reason.
 	public static List<Tree> GetAllTrees() {
 		List<Tree> allTrees = new List<Tree> ();
 		bool stillNew = true;
@@ -601,7 +631,7 @@ public static class Globals
         Debug.Log(trialStartTime[trialStartTime.Count - 1] + "\t" +
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
 					currFrame + "\t" + 
-                    ((TimeSpan)trialEndTime[trialEndTime.Count - 1]).Subtract((TimeSpan)trialStartTime[trialStartTime.Count - 1]) + "\t" +
+                    (trialEndTime[trialEndTime.Count - 1]).Subtract(trialStartTime[trialStartTime.Count - 1]) + "\t" +
                     targetLoc[targetLoc.Count - 1] + "\t" +
                     targetHFreq[targetHFreq.Count - 1] + "\t" +
                     targetVFreq[targetVFreq.Count - 1] + "\t" +
@@ -613,7 +643,7 @@ public static class Globals
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
                     (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
-					trialWorld[trialWorld.Count - 1] + "\t" + 
+					worldID[worldID.Count - 1] + "\t" + 
 					optoState + "\t" + 
 					targetAngle[targetAngle.Count - 1] + "\t" + 
 					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
@@ -623,7 +653,7 @@ public static class Globals
         turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1] + "\t" +
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
 					currFrame + "\t" + 
-                    ((TimeSpan)trialEndTime[trialEndTime.Count - 1]).Subtract((TimeSpan)trialStartTime[trialStartTime.Count - 1]) + "\t" +
+                    (trialEndTime[trialEndTime.Count - 1]).Subtract(trialStartTime[trialStartTime.Count - 1]) + "\t" +
                     targetLoc[targetLoc.Count - 1] + "\t" +
                     targetHFreq[targetHFreq.Count - 1] + "\t" +
                     targetVFreq[targetVFreq.Count - 1] + "\t" +
@@ -635,7 +665,7 @@ public static class Globals
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
 					(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
-					trialWorld[trialWorld.Count - 1] + "\t" + 
+					worldID[worldID.Count - 1] + "\t" + 
 					optoState + "\t" + 
 					targetAngle[targetAngle.Count - 1] + "\t" + 
 					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
@@ -651,7 +681,7 @@ public static class Globals
         StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_stats.txt");
         statsFile.WriteLine("<document>");
         statsFile.WriteLine("\t<stats>");
-        statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1) * 100) + "%" + GetTreeAccuracy() + "</accuracy>  <!-- nonCorrection trials only -->");
+		statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1) * 100) + "%" + GetTreeAccuracy(false) + "</accuracy>  <!-- nonCorrection trials only -->");
         // TODO - Fix off by one error when mouse finishes game!
         statsFile.WriteLine("\t\t<numEarnedRewards>" + numCorrectTurns + "</numEarnedRewards>");
         statsFile.WriteLine("\t\t<numUnearnedRewards>" + numberOfUnearnedRewards + "</numUnearnedRewards>");
@@ -659,8 +689,12 @@ public static class Globals
 		statsFile.WriteLine("\t\t<numCorrectionTrials>" + numCorrectionTrials + "</numCorrectionTrials>");
 		statsFile.WriteLine("\t\t<numAllTrials>" + (numNonCorrectionTrials - 1 + numCorrectionTrials) + "</numAllTrials>");
 
-        TimeSpan te = gameEndTime.Subtract(gameStartTime);
-        statsFile.WriteLine("\t\t<timeElapsed>" + string.Format("{0:D2}:{1:D2}", te.Hours * 60 + te.Minutes, te.Seconds) + "</timeElapsed>");
+		TimeSpan te;
+		if (gameEndTime == DateTime.MinValue) // Game is not over
+			te = DateTime.Now.Subtract (gameStartTime);
+		else
+			te = gameEndTime.Subtract(gameStartTime);
+		statsFile.WriteLine("\t\t<timeElapsed>" + string.Format("{0:D2}:{1:D2}", te.Hours * 60 + te.Minutes, te.Seconds) + "</timeElapsed>");
 
         float totalEarnedRewardSize = 0;
         for (int i = 0; i < sizeOfRewardGiven.Count; i++)
@@ -715,7 +749,7 @@ public static class Globals
 								{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1) * 100) + "%" },
 								{ "earned", Math.Round (totalEarnedRewardSize).ToString () },
 								{ "uball", Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString () },
-								{ "results", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1) * 100) + GetTreeAccuracy () },
+								{ "results", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1) * 100) + GetTreeAccuracy (false) },
 								{ "totalh2o", "=V" + (row + 1) + "+X" + (row + 1) }
 							}
 							);
@@ -735,51 +769,71 @@ public static class Globals
 		return true; // dummy line for the compiler - the code should never get here!
 	}
 
+	// Now supports multiple worlds
 	public static string PrintRewardRates() {
-		GameObject[] gos = GetTrees ();
 		string output = "";
 
-		for (int i = 0; i < gos.Length; i++) {
-			if (i > 0) {
-				output += "/";
+		// Iterate through each world, get the tree positions for each world (the x pos functions as its ID), and then get the relevant stats
+		foreach (World w in worlds) {
+			for (int i = 0; i < w.trees.Count; i++) {
+				if (i > 0) {
+					output += "/";
+				}
+				if (w.numTurnsToStimLoc [i] > 0) {
+					output += Math.Round ((float)w.numRewardsAtStimLoc [i] / (float)w.numTurnsToStimLoc [i], 2);
+				} else {
+					output += "NaN";
+				}
 			}
-			if (numTurnsToStimLoc [i] > 0) {
-				output += Math.Round ((float)numRewardsAtStimLoc [i] / (float)numTurnsToStimLoc [i], 2);
-			} else {
-				output += "NaN";
-			}
+			output += "//";
 		}
+
 		return output;
 	}
 
-    public static string GetTreeAccuracy() {
-		List<Tree> trees = GetAllTrees();
-		float[] locs = new float[trees.Count];
-		int[] numCorrTrials = new int[trees.Count];
-		int[] numTrials = new int[trees.Count];
-		for (int i = 0; i < trees.Count; i++) {
-			locs[i] = trees[i].pos.x;
-        }
-        //With all locations in hand, calculate accuracy for each one, then print it out
+	// Now supports treeAccuracy per world or for all worlds
+	public static string GetTreeAccuracy(bool currWorldOnly) {
+		string output = "";
 
-        int idx;
-        for (int i = 0; i < Globals.firstTurn.Count; i++) {
-            //Debug.Log((float)System.Convert.ToDouble(Globals.targetLoc[i]));
-            idx = Array.IndexOf(locs, (float)System.Convert.ToDouble(Globals.targetLoc[i]));
-			// Added support for ignoring correction trials
-			//Debug.Log (correctionTrialMarks [i]);
-			if (!correctionTrialsEnabled || (correctionTrialsEnabled && (int)correctionTrialMarks[i] == 0)) {
-				numTrials [idx]++;
-				if (Globals.targetLoc [i].Equals (Globals.firstTurn [i]))
-					numCorrTrials [idx]++;
+		for (int i = 0; i < worlds.Count; i++) {
+			if (currWorldOnly && worldID [worldID.Count - 1] != i) {
+				continue;
 			}
-        }
+			World w = worlds [i];
+			int tCount = w.trees.Count;
+			float[] locs = new float[tCount];
+			int[] numCorrTrials = new int[tCount]; 
+			int[] numTrials = new int[tCount]; 
+			for (int j = 0; j < tCount; j++) {
+				locs [j] = w.trees[j].pos.x;
+			}
 
-        string output = "";
-        for (int i = 0; i < numTrials.Length; i++) {
-            output += "/" + Math.Round((float)numCorrTrials[i] / numTrials[i] * 100)	;
-        }
-        return output;
+
+			// With all locations in hand, calculate accuracy for each one, then print it out
+			int idx;
+			for (int j = 0; j < Globals.firstTurn.Count; j++) {
+				//Debug.Log(j);
+				idx = Array.IndexOf(locs, Globals.targetLoc[j]);
+				// Added support for ignoring correction trials
+				// Check for world-matching again here, as results from different worlds will be intermingled in the in-memory logs
+				if (i == worldID[j] && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[j] == 0))) {
+					numTrials [idx]++;
+					//Debug.Log("this-world trial");
+					if (Globals.targetLoc [j] == Globals.firstTurn [j]) {
+						numCorrTrials [idx]++;
+						//Debug.Log ("correct trial");
+					}
+				}
+			}
+
+			for (int j = 0; j < numTrials.Length; j++) {
+				output += "/" + Math.Round((float)numCorrTrials[j] / numTrials[j] * 100);
+			}
+			
+			output += " // ";
+		}
+
+		return output;
     }
 		
     // This bias correction algorithm can be used to match Harvey et al publication, where probability continuously varies based on mouse history on last 20 trials
@@ -787,12 +841,12 @@ public static class Globals
 	// If there are multiple worlds in this scenario, then only return the turn bias for that world, returning chance if this world has not been displayed yet.  histLen covers just the current world type, not all worlds.
     public static float GetTurnBias(int histLen, int treeIndex) {
 		GameObject[] gos = GetTrees();
-		int currWorld = (int)trialWorld [trialWorld.Count - 1];
-		ArrayList validTrials = new ArrayList ();
+		int currWorldID = worldID [worldID.Count - 1];
+		List<int> validTrials = new List<int> ();
 
 		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected histLen
-		for (int i = firstTurn.Count-1; i >= 0; i--) {
-			if ((int)trialWorld [i] == currWorld && (!correctionTrialsEnabled || (correctionTrialsEnabled && (int)correctionTrialMarks[i] == 0))) {
+		for (int i = worldID.Count-1; i >= 0; i--) {
+			if (worldID [i] == currWorldID && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
 				validTrials.Add(i);
 			}
 			if (validTrials.Count == histLen) {
@@ -814,49 +868,24 @@ public static class Globals
 		// Now, with valid trials in hand, calculate the turn bias
 		int turn0 = 0;
 		foreach (int idx in validTrials) {
-			if (firstTurn [idx].Equals (gos [treeIndex].transform.position.x)) {
+			if (firstTurn [idx] == gos [treeIndex].transform.position.x) {
 				turn0++;
 			}
 		}
 		return (float)turn0 / validTrials.Count;
+    }
 
-
-		// Old version of this function prior to multi-world scenarios
-		/*
-        int len = Globals.firstTurn.Count;
-        int turn0 = 0;
-        int start;
-        int end;
-        int numTrials;
-        if (len >= histLen) {
-            end = len;
-            start = len - histLen;
-        } else {
-            start = 0;
-            end = len;
-        }
-        numTrials = end - start;
-		// TODO: Do I even need this if set?
-		if (gos.Length == 2) {
-			for (int i = start; i < end; i++) {
-				if (Globals.firstTurn [i].Equals (gos [treeIndex].transform.position.x))
-					turn0++;
-			}
-		} else if (gos.Length == 3) {
-			for (int i = start; i < end; i++) {
-				if (Globals.firstTurn [i].Equals (gos [treeIndex].transform.position.x))
-					turn0++;
-			}
-		} else if (gos.Length == 4) {
-			for (int i = start; i < end; i++) {
-				if (Globals.firstTurn [i].Equals (gos [treeIndex].transform.position.x))
-					turn0++;
+	public static bool CurrentWorldHasAlreadyAppeared() {
+		int currWorldID = worldID [worldID.Count - 1];
+		bool worldSeen = false;
+		for (int i = 0; i < worldID.Count; i++) {
+			if (worldID [i] == currWorldID) {
+				worldSeen = true;
+				break;
 			}
 		}
-
-        return (float)turn0 / numTrials;
-        */
-    }
+		return worldSeen;
+	}
 
 	public static bool CurrentlyCorrectionTrial() {
 		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1)
@@ -866,13 +895,13 @@ public static class Globals
 
 	// Modified to support multi-worlds in a single scenario
     public static float GetLastAccuracy(int n) {
-		int currWorld = (int)trialWorld [trialWorld.Count - 1];
-		ArrayList validTrials = new ArrayList ();
+		int currWorld = worldID [worldID.Count - 1];
+		List<int> validTrials = new List<int> ();
 
 		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected n
 		for (int i = firstTurn.Count-1; i >= 0; i--) {
 			//Debug.Log (correctionTrialMarks [i]);
-			if ((int)trialWorld [i] == currWorld && (!correctionTrialsEnabled || (correctionTrialsEnabled && (int)correctionTrialMarks[i] == 0))) {
+			if (worldID [i] == currWorld && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
 				validTrials.Add(i);
 			}
 			if (validTrials.Count == n) {
@@ -884,7 +913,7 @@ public static class Globals
 		int corr = 0;
 		for (int i = 0; i < validTrials.Count; i++) {
 			curTrial = (int)validTrials [i];
-			if (firstTurn [curTrial].Equals (targetLoc [curTrial]))
+			if (firstTurn [curTrial] == targetLoc [curTrial])
 				corr++;
 		}
 
@@ -1063,32 +1092,43 @@ public static class Globals
 		return NewValue;
 	}
 
+	// Assumes get info for current world - add param if need more control
 	public static float GetActualRewardRate(float xPos) {
 		int idx = GetIdxOfStimLoc (xPos);
-		if (numTurnsToStimLoc[idx] > 0)
-			return (float)numRewardsAtStimLoc [idx] / (float)numTurnsToStimLoc [idx];
+		World w = GetWorld (worldID [worldID.Count - 1]);
+
+		if (w.numTurnsToStimLoc[idx] > 0)
+			return (float)w.numRewardsAtStimLoc [idx] / (float)w.numTurnsToStimLoc [idx];
 		else
 			return 0;
 	}
-
+		
 	public static float GetNumRewardsAtStimLoc(float xPos) {
 		int idx = GetIdxOfStimLoc (xPos);
-		return numRewardsAtStimLoc [idx];
+		World w = GetCurrentWorld ();
+
+		return w.numRewardsAtStimLoc [idx];
 	}
 
 	public static float GetNumTurnsToStimLoc(float xPos) {
 		int idx = GetIdxOfStimLoc (xPos);
-		return numTurnsToStimLoc [idx];
+		World w = GetCurrentWorld ();
+
+		return w.numTurnsToStimLoc [idx];
 	}
 
 	public static void IncrementRewardAtStimLoc(float xPos) {
 		int idx = GetIdxOfStimLoc (xPos);
-		numRewardsAtStimLoc [idx] = numRewardsAtStimLoc [idx] + 1;
+		World w = GetCurrentWorld ();
+
+		w.numRewardsAtStimLoc [idx] = w.numRewardsAtStimLoc [idx] + 1;
 	}
 
 	public static void IncrementTurnToStimLoc(float xPos) {
 		int idx = GetIdxOfStimLoc (xPos);
-		numTurnsToStimLoc [idx] = numTurnsToStimLoc [idx] + 1;
+		World w = GetCurrentWorld ();
+
+		w.numTurnsToStimLoc [idx] = w.numTurnsToStimLoc [idx] + 1;
 	}
 
 	public static int GetIdxOfStimLoc(float xPos) {
@@ -1104,13 +1144,4 @@ public static class Globals
 		return idx;
 	}
 
-	public static void InitRewardAndTurnCounts() {
-		// Initialize tracking of rewards at each stim location
-		GameObject[] gos = Globals.GetTrees ();
-		for (int i = 0; i < gos.Length; i++) {
-			Globals.numRewardsAtStimLoc.Add (0);
-			Globals.numTurnsToStimLoc.Add (0);
-		}
-		Debug.Log (gos.Length + " trees");
-	}
 }

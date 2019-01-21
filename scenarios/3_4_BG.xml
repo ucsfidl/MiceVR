@@ -10,6 +10,7 @@
 		<gameConfig>
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
 			<treesBelowGround>true</treesBelowGround>
+			<correctionTrials>true</correctionTrials>  <!-- correction trials are NOT counted in bias correction calculation -->
 			<alternateWorlds>true</alternateWorlds>
 		</gameConfig>
 	</config>

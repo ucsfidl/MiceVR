@@ -343,8 +343,6 @@ public class GameControlScript : MonoBehaviour
 			Globals.InitLogFiles();
             Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
 			lastTrialStartDateTime = DateTime.Now;
-
-			Globals.InitRewardAndTurnCounts ();
 		}
     }
 
@@ -530,22 +528,33 @@ public class GameControlScript : MonoBehaviour
 		float vfreq;
 		float angle;
 		float distractorAngle;  // we will use 360 as the null value
-		int trialWorld;
+		int worldID;
 
 		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo!
 		// So if this is not a correction trial, then re-render everything per usual
 		if (Globals.CurrentlyCorrectionTrial ()) {
-			locx = (float)Globals.targetLoc [Globals.targetLoc.Count - 1];
-			hfreq = (float)Globals.targetHFreq [Globals.targetHFreq.Count - 1];
-			vfreq = (float)Globals.targetVFreq [Globals.targetVFreq.Count - 1];
-			angle = (float)Globals.targetAngle [Globals.targetAngle.Count - 1];
-			trialWorld = (int)Globals.trialWorld [Globals.trialWorld.Count - 1];
-			distractorAngle = (float)Globals.distractorAngle [Globals.distractorAngle.Count - 1];
+			locx = Globals.targetLoc [Globals.targetLoc.Count - 1];
+			hfreq = Globals.targetHFreq [Globals.targetHFreq.Count - 1];
+			vfreq = Globals.targetVFreq [Globals.targetVFreq.Count - 1];
+			angle = Globals.targetAngle [Globals.targetAngle.Count - 1];
+			worldID = Globals.worldID [Globals.worldID.Count - 1];
+			distractorAngle = Globals.distractorAngle [Globals.distractorAngle.Count - 1];
 			udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoState);  // Just reuse the last optoState for optogenetic correction trials
 			Debug.Log("In correction trial!");
 		} else {
-			Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again 
-			trialWorld = Globals.RenderWorld (-1); // -1 indicates that the world rendered should be randomly selected, without any bias correction (i.e. worlds in which accuracy is better do not occur less than worlds in which accuracy is worse)
+			Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again
+
+			if (Globals.alternateWorlds) {
+				int nextWorldID;
+				if (Globals.worldID.Count < 1) {
+					nextWorldID = 0;
+				} else {
+					nextWorldID = ((int)Globals.worldID [Globals.worldID.Count - 1] + 1) % Globals.worlds.Count;
+				}
+				worldID = Globals.RenderWorld (nextWorldID);
+			} else {
+				worldID = Globals.RenderWorld (-1); // -1 indicates that the world rendered should be randomly selected, without any bias correction (i.e. worlds in which accuracy is better do not occur less than worlds in which accuracy is worse)
+			}
 
 			GameObject[] gos = Globals.GetTrees ();
 
@@ -559,6 +568,7 @@ public class GameControlScript : MonoBehaviour
 			int treeToActivate = 0;
 			float r = UnityEngine.Random.value;
 
+			// PRECOMPUTE TRIAL ORDER if BLOCKS ENABLED
 			// Support pre-computing blocks of trials, at the beginning and after each block
 			// Only supports pre-computing for single-world levels to start
 			// Only works with bias-correction disabled
@@ -650,8 +660,12 @@ public class GameControlScript : MonoBehaviour
 					Globals.precompOptoBlock = precompOptoBlock;
 				}
 			}
+			// END PRECOMPUTE TRIAL ORDERS FOR BLOCKS
 
-			if (Globals.gameType.Equals ("detection") || Globals.gameType.Equals ("det_target") || Globals.gameType.Equals ("disc_target")) {
+			string gameType = Globals.GetGameType (worldID);
+			Debug.Log ("World #: " + worldID);
+
+			if (gameType.Equals ("detection") || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
 				if (gos.Length == 1) { // Linear track
 					if (Globals.varyOrientation) {
 						if (r > 0.5) { // Half the time, swap the orientation of the tree
@@ -661,7 +675,7 @@ public class GameControlScript : MonoBehaviour
 							angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 						}
 					}
-				} else if (gos.Length == 2 || Globals.gameType.Equals ("det_target") || Globals.gameType.Equals ("disc_target")) {
+				} else if (gos.Length == 2 || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
 					float rThresh0 = 0.5F;
 					if (Globals.presoRatio > 0) { // Works for 2-choice only, YN and 2AFC
 						rThresh0 = (float)Globals.presoRatio / (Globals.presoRatio + 1);
@@ -680,7 +694,7 @@ public class GameControlScript : MonoBehaviour
 							treeToActivate = Globals.precompTrialBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
 						}
 						SetupTreeActivation (gos, treeToActivate, 2);
-					} else if (Globals.gameType.Equals ("det_target")) {
+					} else if (gameType.Equals ("det_target")) {
 						SetupTreeActivation (gos, treeToActivate, 2);
 						gos [2].GetComponent<WaterTreeScript> ().SetShader (hfreq, vfreq, angle);
 						if (Globals.varyOrientation) {
@@ -691,7 +705,7 @@ public class GameControlScript : MonoBehaviour
 							}
 							Debug.Log ("Ori: [0, 0.5, 1] - " + r2);
 						}
-					} else if (Globals.gameType.Equals ("disc_target")) {
+					} else if (gameType.Equals ("disc_target")) {
 						float r2 = UnityEngine.Random.value;
 						int treeToDistract = treeToActivate == 1 ? 0 : 1;
 
@@ -734,7 +748,7 @@ public class GameControlScript : MonoBehaviour
 						float thresh1 = 0.5F;
 						float thresh2 = 0.75F;
 
-						if (Globals.biasCorrection && Globals.numNonCorrectionTrials > 1) {
+						if (Globals.biasCorrection && Globals.CurrentWorldHasAlreadyAppeared()) {
 							// Turn on bias correction after testing that logic works!
 							// Bias correction algo #1
 							float tf0 = Globals.GetTurnBias (20, 0);
@@ -765,7 +779,7 @@ public class GameControlScript : MonoBehaviour
 					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					SetupTreeActivation (gos, treeToActivate, 4);
 				}
-			} else if (Globals.gameType.Equals ("det_blind")) {
+			} else if (gameType.Equals ("det_blind")) {
 				if (gos.Length == 3) {
 					if (Globals.blockSize > 0) {
 						treeToActivate = Globals.precompTrialBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
@@ -875,7 +889,7 @@ public class GameControlScript : MonoBehaviour
 					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 				}
-			} else if (Globals.gameType.Equals ("discrimination")) {
+			} else if (gameType.Equals ("discrimination")) {
 				// Randomize orientations
 				float rThresh0 = 0.5F;
 				if (Globals.numNonCorrectionTrials > 1 && Globals.biasCorrection) {  // Add bias correction option if needed later
@@ -913,7 +927,7 @@ public class GameControlScript : MonoBehaviour
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (true);
 				}
 				Debug.Log ("[0, " + rThresh0 + ", 1] - " + r);
-			} else if (Globals.gameType.Equals ("match") || Globals.gameType.Equals ("nonmatch")) {
+			} else if (gameType.Equals ("match") || gameType.Equals ("nonmatch")) {
 				// First, pick an orientation at random for the central tree
 				float targetHFreq = gos [2].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 				float targetVFreq = gos [2].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
@@ -935,7 +949,7 @@ public class GameControlScript : MonoBehaviour
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (false);
 					locx = gos [0].transform.position.x;
 					// TODO: Fix the angle treatment here
-					if (Globals.gameType.Equals ("match")) {
+					if (gameType.Equals ("match")) {
 						gos [0].GetComponent<WaterTreeScript> ().SetShader (targetHFreq, targetVFreq, targetAngle);
 						gos [1].GetComponent<WaterTreeScript> ().SetShader (targetVFreq, targetHFreq, targetAngle);
 						// TODO - do the right thing with angles here, LATER
@@ -953,7 +967,7 @@ public class GameControlScript : MonoBehaviour
 					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (false);
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (true);
 					locx = gos [1].transform.position.x;
-					if (Globals.gameType.Equals ("match")) {
+					if (gameType.Equals ("match")) {
 						gos [0].GetComponent<WaterTreeScript> ().SetShader (targetVFreq, targetHFreq, targetAngle);
 						gos [1].GetComponent<WaterTreeScript> ().SetShader (targetHFreq, targetVFreq, targetAngle);
 						hfreq = targetHFreq;
@@ -1020,13 +1034,13 @@ public class GameControlScript : MonoBehaviour
         Globals.targetVFreq.Add(vfreq);
 		Globals.targetAngle.Add(angle);
 		Globals.distractorAngle.Add (distractorAngle);
-		Globals.trialWorld.Add(trialWorld);  		// Record which world this trial is on
+		Globals.worldID.Add(worldID);  		// Record which world this trial is on
 		if (Globals.correctionTrialsEnabled) {
 			Globals.correctionTrialMarks.Add (Globals.lastTrialWasIncorrect);
 		} else {
 			Globals.correctionTrialMarks.Add (0);
 		}
-
+			
         this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);
 		this.movementRecorder.SetFileSet(true);
@@ -1045,6 +1059,7 @@ public class GameControlScript : MonoBehaviour
 		lastTrialStartDateTime = DateTime.Now;
 
 		// Update again after the pause, as the world might have changed between trials
+		updateCorrectTurnsText();
 		this.lastAccuracyText.text = "Last 20 accuracy (in this world): " + Math.Round(Globals.GetLastAccuracy(20) * 100) + "%";
         this.state = "Running";
 	}
@@ -1174,7 +1189,7 @@ public class GameControlScript : MonoBehaviour
 			Globals.numCorrectTurns.ToString ()
 			+ " (" +
 			Mathf.Round((float)Globals.numCorrectTurns / numNonCorrectionTrials * 100).ToString() + "%" 
-			+ Globals.GetTreeAccuracy() + ")";
+			+ Globals.GetTreeAccuracy(false) + ")";
 	}
 
 }

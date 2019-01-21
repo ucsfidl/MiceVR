@@ -14,7 +14,7 @@
 		</gameConfig>
 	</config>
 	<worlds>
-		<world>
+		<world> <!-- 4-choice -->
 			<trees>  <!-- All tree X positions are different, as used as an ID -->
 				<t> <!-- Left front tree -->
 					<w>1</w>
