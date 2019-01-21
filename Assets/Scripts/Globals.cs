@@ -845,7 +845,7 @@ public static class Globals
 		List<int> validTrials = new List<int> ();
 
 		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected histLen
-		for (int i = worldID.Count-1; i >= 0; i--) {
+		for (int i = firstTurn.Count-1; i >= 0; i--) {  // must be firstTurn.Count!
 			if (worldID [i] == currWorldID && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
 				validTrials.Add(i);
 			}
