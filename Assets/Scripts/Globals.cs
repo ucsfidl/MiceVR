@@ -876,12 +876,14 @@ public static class Globals
     }
 
 	public static bool CurrentWorldHasAlreadyAppeared() {
-		int currWorldID = worldID [worldID.Count - 1];
 		bool worldSeen = false;
-		for (int i = 0; i < worldID.Count; i++) {
-			if (worldID [i] == currWorldID) {
-				worldSeen = true;
-				break;
+		if (worldID.Count > 0) {
+			int currWorldID = worldID [worldID.Count - 1];
+			for (int i = 0; i < worldID.Count; i++) {
+				if (worldID [i] == currWorldID) {
+					worldSeen = true;
+					break;
+				}
 			}
 		}
 		return worldSeen;
