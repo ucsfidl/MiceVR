@@ -555,6 +555,7 @@ public class GameControlScript : MonoBehaviour
 			} else {
 				worldID = Globals.RenderWorld (-1); // -1 indicates that the world rendered should be randomly selected, without any bias correction (i.e. worlds in which accuracy is better do not occur less than worlds in which accuracy is worse)
 			}
+			Globals.worldID.Add(worldID);  		// Record which world this trial is on - must happen before below
 
 			GameObject[] gos = Globals.GetTrees ();
 
@@ -1034,7 +1035,6 @@ public class GameControlScript : MonoBehaviour
         Globals.targetVFreq.Add(vfreq);
 		Globals.targetAngle.Add(angle);
 		Globals.distractorAngle.Add (distractorAngle);
-		Globals.worldID.Add(worldID);  		// Record which world this trial is on
 		if (Globals.correctionTrialsEnabled) {
 			Globals.correctionTrialMarks.Add (Globals.lastTrialWasIncorrect);
 		} else {
