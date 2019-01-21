@@ -126,7 +126,6 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
-					<r>0</r>
 				</t>
 				<t> <!-- Right front tree -->
 					<w>1</w>
@@ -136,7 +135,6 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
-					<r>2</r>
 				</t>
 				<t> <!-- Left back tree -->
 					<w>1</w>
@@ -146,7 +144,6 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
-					<r>0</r>
 				</t>
 				<t> <!-- Right back tree -->
 					<w>1</w>
@@ -156,7 +153,6 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
-					<r>2</r>
 				</t>
 			</trees>
 			<walls> <!-- Walls listed in clockwise order -->
