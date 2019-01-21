@@ -812,7 +812,6 @@ public static class Globals
 			// With all locations in hand, calculate accuracy for each one, then print it out
 			int idx;
 			for (int j = 0; j < Globals.firstTurn.Count; j++) {
-				//Debug.Log(j);
 				idx = Array.IndexOf(locs, Globals.targetLoc[j]);
 				// Added support for ignoring correction trials
 				// Check for world-matching again here, as results from different worlds will be intermingled in the in-memory logs

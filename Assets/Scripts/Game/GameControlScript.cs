@@ -540,6 +540,7 @@ public class GameControlScript : MonoBehaviour
 			worldID = Globals.worldID [Globals.worldID.Count - 1];
 			distractorAngle = Globals.distractorAngle [Globals.distractorAngle.Count - 1];
 			udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoState);  // Just reuse the last optoState for optogenetic correction trials
+			Globals.worldID.Add(worldID);  		// Record which world this trial is on - must happen before below
 			Debug.Log("In correction trial!");
 		} else {
 			Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again
