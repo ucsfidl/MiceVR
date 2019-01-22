@@ -117,6 +117,7 @@
 			</walls>
 		</world>
 		<world> <!-- 4-choice -->
+			<gameType>detection</gameType>
 			<trees>  <!-- All tree X positions are different, as used as an ID -->
 				<t> <!-- Left front tree -->
 					<w>1</w>

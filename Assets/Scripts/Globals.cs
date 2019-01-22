@@ -793,7 +793,7 @@ public static class Globals
 
 	// Now supports treeAccuracy per world or for all worlds
 	public static string GetTreeAccuracy(bool currWorldOnly) {
-		string output = "";
+		string output = " // ";
 
 		for (int i = 0; i < worlds.Count; i++) {
 			if (currWorldOnly && worldID [worldID.Count - 1] != i) {
@@ -826,10 +826,13 @@ public static class Globals
 			}
 
 			for (int j = 0; j < numTrials.Length; j++) {
-				output += "/" + Math.Round((float)numCorrTrials[j] / numTrials[j] * 100);
+				output += Math.Round((float)numCorrTrials[j] / numTrials[j] * 100);
+				if (j < numTrials.Length - 1)
+					output += "/";
 			}
-			
-			output += " // ";
+
+			if (i < worlds.Count -1)
+				output += " // ";
 		}
 
 		return output;
