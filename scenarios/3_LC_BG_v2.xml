@@ -34,8 +34,8 @@
 				</t>
 			</trees>
 			<walls>
-				<wall> <!-- Left wall -->
-					<pos>19994;0.5;20005</pos>
+				<wall> <!-- Front Left wall -->
+					<pos>19993;0.5;20004</pos>
 					<rot>0;0;0</rot>
 					<scale>2;0;17</scale>
 				</wall>
@@ -104,8 +104,8 @@
 					<rot>0;30;0</rot>
 					<scale>2;0;9</scale>
 				</wall>
-				<wall> <!-- Right wall -->
-					<pos>20006;0.5;20005</pos>
+				<wall> <!-- Front Right wall -->
+					<pos>20007;0.5;20004</pos>
 					<rot>0;0;0</rot>
 					<scale>2;0;17</scale>
 				</wall>
