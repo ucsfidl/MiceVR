@@ -434,6 +434,10 @@ public class Loader : MonoBehaviour {
 					else
 						Globals.alternateWorlds = false;
 				}
+
+				if (xn ["optoTrialsPerBlock"] != null) {
+					int.TryParse(xn["optoTrialsPerBlock"].InnerText, out Globals.optoTrialsPerBlock);
+				}
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");

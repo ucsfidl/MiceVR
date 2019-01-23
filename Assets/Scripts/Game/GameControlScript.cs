@@ -634,7 +634,11 @@ public class GameControlScript : MonoBehaviour
 					int infrequentStimLoc = Array.IndexOf (numTrialsPerStimLoc, minVal);
 
 					// Second, for each stimLoc, set its optoState ON based on the 1/2 of the frequency of the most infrequent stim location
+					// Or, if optoTrialsPerBlock set, use that value.
 					int numOptoOn = minVal / 2;
+					if (Globals.optoTrialsPerBlock != -1) {
+						numOptoOn = Globals.optoTrialsPerBlock;
+					}
 					for (int i = 0; i < numTrees; i++) {
 						List<int> optoStates = new List<int> ();
 						for (int j = 0; j < numOptoOn; j++) {

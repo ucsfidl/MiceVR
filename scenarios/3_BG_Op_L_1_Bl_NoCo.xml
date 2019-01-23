@@ -11,7 +11,14 @@
 			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
 			<treesBelowGround>true</treesBelowGround>
-			<biasCorrection>true</biasCorrection>
+			<biasCorrection>false</biasCorrection>
+			<optoSide>L</optoSide>
+			<optoAlternation>false</optoAlternation>  <!-- if false, only shine light at the presoFrac -->
+			<optoTrialsPerBlock>1</optoTrialsPerBlock>
+			<presoFracSpecified>true</presoFracSpecified>
+			<blockSize>24</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+			<probeIdx>1</probeIdx>
+			<correctionTrials>false</correctionTrials>  <!-- correction trials are NOT counted in any statistical calculations -->
 		</gameConfig>
 	</config>
 	<worlds>
@@ -25,7 +32,8 @@
 					<h>2</h>
 					<d>0</d>
 					<r>0</r>
-					<opacity>0.25</opacity>
+					<presoFrac>0.33</presoFrac>
+					<opacity>1</opacity>
 				</t>
 				<t> <!-- Right tree -->
 					<w>1</w>
@@ -35,7 +43,8 @@
 					<h>2</h>
 					<d>0</d>
 					<r>2</r>
-					<opacity>0.25</opacity>
+					<presoFrac>0.33</presoFrac>
+					<opacity>1</opacity>
 				</t>
 				<t> <!-- Center tree -->
 					<w>1</w>
@@ -44,7 +53,8 @@
 					<v>0</v>  <!-- Vfreq of gradient -->
 					<h>2</h>  <!-- Hfreq of gradient -->
 					<d>0</d>
-					<opacity>0.25</opacity>
+					<presoFrac>0.33</presoFrac>
+					<opacity>1</opacity>
 				</t>
 			</trees>
 			<walls>

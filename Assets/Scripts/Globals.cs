@@ -205,6 +205,8 @@ public static class Globals
 	public static bool optoAlternation = false;  // Used to force the light to be on on every other trial
 	public static int optoState = -1;     // 0 = left, 1 = right, 2 = both
 	public const int optoOff = -1;   //  Value used elsewhere to indicate optoOff - never changed
+	public static int optoTrialsPerBlock = -1;  // Init to -1, then changed by param in scenario file
+
 
 	public static int probeIdx = -1;  // This is the tree index of the rarest tree, also considered the probe tree
 	public static bool probeLastOpto = false;  // Used to force the light on on every other probe trial

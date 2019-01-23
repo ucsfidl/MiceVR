@@ -8,10 +8,15 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
-			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
-			<treesBelowGround>true</treesBelowGround>
-			<biasCorrection>true</biasCorrection>
+			<gameType>discrimination</gameType>
+			<gameTurnControl>yaw</gameTurnControl>
+			<rewardedHFreq>4</rewardedHFreq>
+			<rewardedVFreq>0</rewardedVFreq>
+			<rewardedAngle>0</rewardedAngle>
+			<distractorHFreq>4</distractorHFreq>
+			<distractorVFreq>0</distractorVFreq>	
+			<distractorAngle>-28</distractorAngle>
+			<randomPhase>true</randomPhase>
 		</gameConfig>
 	</config>
 	<worlds>
@@ -19,32 +24,17 @@
 			<trees>
 				<t> <!-- Left tree -->
 					<w>1</w>
-					<pos>19975;-16;20028</pos>
-					<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>4</v>
-					<h>2</h>
+					<pos>19980;0;20028</pos>
+					<scale>0;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<d>0</d>
-					<r>0</r>
-					<opacity>0.25</opacity>
+					<type>flat</type>
 				</t>
 				<t> <!-- Right tree -->
 					<w>1</w>
-					<pos>20025;-16;20028</pos>
-					<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>4</v>
-					<h>2</h>
-					<d>0</d>
-					<r>2</r>
-					<opacity>0.25</opacity>
-				</t>
-				<t> <!-- Center tree -->
-					<w>1</w>
-					<pos>20000;-16;20046</pos>
+					<pos>20020;0;20028</pos>
 					<scale>0;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>0</v>  <!-- Vfreq of gradient -->
-					<h>2</h>  <!-- Hfreq of gradient -->
 					<d>0</d>
-					<opacity>0.25</opacity>
+					<type>flat</type>
 				</t>
 			</trees>
 			<walls>
@@ -68,40 +58,10 @@
 					<rot>0;0;0</rot>
 					<scale>2;0;19.1</scale>
 				</wall>
-				<wall> <!-- Left Back wall -->
-					<pos>19980;0.5;20037</pos>
-					<rot>0;270;0</rot>
-					<scale>2;0;19.1</scale>
-				</wall>
-				<wall> <!-- Straight left diagonal wall -->
-					<pos>19991;0.5;20040</pos>
-					<rot>0;30;0</rot>
-					<scale>2;0;9</scale>
-				</wall>
-				<wall> <!-- Straight left receding wall -->
-					<pos>19994;0.5;20054</pos>
-					<rot>0;0;0</rot>
-					<scale>2;0;20</scale>
-				</wall>
 				<wall> <!-- Back wall -->
-					<pos>20000;0.5;20050.5</pos>
+					<pos>20000;0.5;20037</pos>
 					<rot>0;270;0</rot>
-					<scale>2;0;20</scale>
-				</wall>
-				<wall> <!-- Straight right receding wall -->
-					<pos>20006;0.5;20054</pos>
-					<rot>0;0;0</rot>
-					<scale>2;0;20</scale>
-				</wall>
-				<wall> <!-- Straight right diagonal wall -->
-					<pos>20009;0.5;20040</pos>
-					<rot>0;-30;0</rot>
-					<scale>2;0;9</scale>
-				</wall>
-				<wall> <!-- Right Back wall -->
-					<pos>20020;0.5;20037</pos>
-					<rot>0;270;0</rot>
-					<scale>2;0;19.1</scale>
+					<scale>2;0;40</scale>
 				</wall>
 				<wall> <!-- Right Closing wall -->
 					<pos>20024;0.5;20028</pos>
