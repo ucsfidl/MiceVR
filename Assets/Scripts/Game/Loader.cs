@@ -438,6 +438,29 @@ public class Loader : MonoBehaviour {
 				if (xn ["optoTrialsPerBlock"] != null) {
 					int.TryParse(xn["optoTrialsPerBlock"].InnerText, out Globals.optoTrialsPerBlock);
 				}
+
+				if (xn ["adaptPos"] != null) {
+					string xml = xn["adaptPos"].InnerText;
+					if (xml.Equals("true"))
+						Globals.adaptPos = true;
+					else
+						Globals.adaptPos = false;
+				}
+				if (xn ["adaptProCritTrialsPerMin"] != null) {
+					float.TryParse(xn["adaptProCritTrialsPerMin"].InnerText, out Globals.adaptProCritTrialsPerMin);
+				}
+				if (xn ["adaptDemCritTrialsPerMin"] != null) {
+					float.TryParse(xn["adaptDemCritTrialsPerMin"].InnerText, out Globals.adaptDemCritTrialsPerMin);
+				}
+				if (xn ["adaptCritDur"] != null) {
+					float.TryParse(xn["adaptCritDur"].InnerText, out Globals.adaptCritDur);
+				}
+				if (xn ["adaptPosStartIdx"] != null) {
+					int.TryParse(xn["adaptPosStartIdx"].InnerText, out Globals.adaptPosStartIdx);
+				}
+				if (xn ["adaptPosEndIdx"] != null) {
+					int.TryParse(xn["adaptPosEndIdx"].InnerText, out Globals.adaptPosEndIdx);
+				}
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");
@@ -455,7 +478,7 @@ public class Loader : MonoBehaviour {
 				XmlNodeList treeList = world.GetElementsByTagName("t"); // array of the tree nodes
 				foreach (XmlNode node in treeList) {
 					bool water = false;
-					Vector3 v = Vector3.zero;
+					List<Vector3> posList = new List<Vector3>();
 					Vector3 treeRotation = Vector3.zero;
 					Vector3 treeScale = Vector3.zero;
 					XmlNodeList treeAttributes = node.ChildNodes;
@@ -484,10 +507,16 @@ public class Loader : MonoBehaviour {
 							water = (val.InnerText == "1") ? true : false;
 						} else if (val.Name == "pos") {
 							float x, y, z;
-							float.TryParse (val.InnerText.Split (';') [0], out x);
-							float.TryParse (val.InnerText.Split (';') [1], out y);
-							float.TryParse (val.InnerText.Split (';') [2], out z);
-							v = new Vector3 (Mathf.RoundToInt (x), Mathf.RoundToInt (y), Mathf.RoundToInt (z));
+							string[] lines = val.InnerText.Split ('\n');
+							foreach (string l in lines) {
+								if (l.Split (';').Length == 3) {
+									float.TryParse (l.Split (';') [0], out x);
+									float.TryParse (l.Split (';') [1], out y);
+									float.TryParse (l.Split (';') [2], out z);
+									Vector3 pos = new Vector3 (Mathf.RoundToInt (x), Mathf.RoundToInt (y), Mathf.RoundToInt (z));
+									posList.Add (pos);
+								}
+							}
 						} else if (val.Name == "d") {
 							float.TryParse (val.InnerText, out deg_LS);
 							gradient = true;
@@ -541,7 +570,7 @@ public class Loader : MonoBehaviour {
 						}
 					}
 
-					Globals.AddTreeToWorld (worldNum, water, v, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName, type, presoFrac, opacity);
+					Globals.AddTreeToWorld (worldNum, water, posList, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName, type, presoFrac, opacity);
 				}
 
 				XmlNodeList wallList = world.GetElementsByTagName("wall"); // array of the wall nodes

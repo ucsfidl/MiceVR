@@ -300,7 +300,6 @@ public class GameControlScript : MonoBehaviour
     private void LoadScenario(){
         if (this.scenarioLoader.scenarioLoaded == true) {
             this.menuPanel.SetActive(false);
-			Respawn ();
             this.state = "StartGame";
         }
     }
@@ -343,6 +342,7 @@ public class GameControlScript : MonoBehaviour
 			Globals.InitLogFiles();
             Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
 			lastTrialStartDateTime = DateTime.Now;
+			Respawn ();
 		}
     }
 
@@ -523,7 +523,7 @@ public class GameControlScript : MonoBehaviour
         TeleportToBeginning();
 
 		// Declare the important variables needed later for logging
-		float locx;
+		Vector3 loc;
 		float hfreq;
 		float vfreq;
 		float angle;
@@ -533,7 +533,7 @@ public class GameControlScript : MonoBehaviour
 		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo!
 		// So if this is not a correction trial, then re-render everything per usual
 		if (Globals.CurrentlyCorrectionTrial ()) {
-			locx = Globals.targetLoc [Globals.targetLoc.Count - 1];
+			loc = Globals.targetLoc [Globals.targetLoc.Count - 1];
 			hfreq = Globals.targetHFreq [Globals.targetHFreq.Count - 1];
 			vfreq = Globals.targetVFreq [Globals.targetVFreq.Count - 1];
 			angle = Globals.targetAngle [Globals.targetAngle.Count - 1];
@@ -561,7 +561,7 @@ public class GameControlScript : MonoBehaviour
 			GameObject[] gos = Globals.GetTrees ();
 
 			// Just initial values, used only if there is 1 tree
-			locx = gos [0].transform.position.x;
+			loc = gos [0].transform.position;
 			hfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 			vfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 			angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
@@ -669,7 +669,7 @@ public class GameControlScript : MonoBehaviour
 			// END PRECOMPUTE TRIAL ORDERS FOR BLOCKS
 
 			string gameType = Globals.GetGameType (worldID);
-			Debug.Log ("World #: " + worldID);
+			//Debug.Log ("World #: " + worldID);
 
 			if (gameType.Equals ("detection") || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
 				if (gos.Length == 1) { // Linear track
@@ -742,7 +742,7 @@ public class GameControlScript : MonoBehaviour
 						}
 						Debug.Log ("Ori: [0, 0.5, 1] - " + r2);
 					}
-					locx = gos [treeToActivate].transform.position.x;
+					loc = gos [treeToActivate].transform.position;
 					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
@@ -779,7 +779,7 @@ public class GameControlScript : MonoBehaviour
 						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : 3;
 					}
 
-					locx = gos [treeToActivate].transform.position.x;
+					loc = gos [treeToActivate].transform.position;
 					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
@@ -868,7 +868,7 @@ public class GameControlScript : MonoBehaviour
 					SetupTreeActivation (gos, treeToActivate, 2);
 					gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree - only necessary with persistent shadow
 
-					locx = gos [treeToActivate].transform.position.x;
+					loc = gos [treeToActivate].transform.position;
 					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
@@ -890,7 +890,7 @@ public class GameControlScript : MonoBehaviour
 					SetupTreeActivation (gos, treeToActivate, 1);
 					gos [1].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree - only necessary with persistent shadow
 
-					locx = gos [treeToActivate].transform.position.x;
+					loc = gos [treeToActivate].transform.position;
 					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
@@ -916,7 +916,7 @@ public class GameControlScript : MonoBehaviour
 				if (r < rThresh0) {
 					gos [0].GetComponent<WaterTreeScript> ().SetShader (Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle); // later, listen to the deg argument
 					gos [1].GetComponent<WaterTreeScript> ().SetShader (Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, distractorAngle);
-					locx = gos [0].transform.position.x;
+					loc = gos [0].transform.position;
 					hfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 					vfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 					angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
@@ -925,7 +925,7 @@ public class GameControlScript : MonoBehaviour
 				} else {
 					gos [0].GetComponent<WaterTreeScript> ().SetShader (Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, distractorAngle);
 					gos [1].GetComponent<WaterTreeScript> ().SetShader (Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle);
-					locx = gos [1].transform.position.x;
+					loc = gos [1].transform.position;
 					hfreq = gos [1].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 					vfreq = gos [1].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 					angle = gos [1].GetComponent<WaterTreeScript> ().GetShaderRotation ();
@@ -953,7 +953,7 @@ public class GameControlScript : MonoBehaviour
 				if (rSide < rThresh0) { // Set the left tree to be the rewarded side
 					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (true);
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (false);
-					locx = gos [0].transform.position.x;
+					loc = gos [0].transform.position;
 					// TODO: Fix the angle treatment here
 					if (gameType.Equals ("match")) {
 						gos [0].GetComponent<WaterTreeScript> ().SetShader (targetHFreq, targetVFreq, targetAngle);
@@ -972,7 +972,7 @@ public class GameControlScript : MonoBehaviour
 				} else { // Set the right tree to match
 					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (false);
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (true);
-					locx = gos [1].transform.position.x;
+					loc = gos [1].transform.position;
 					if (gameType.Equals ("match")) {
 						gos [0].GetComponent<WaterTreeScript> ().SetShader (targetVFreq, targetHFreq, targetAngle);
 						gos [1].GetComponent<WaterTreeScript> ().SetShader (targetHFreq, targetVFreq, targetAngle);
@@ -992,7 +992,7 @@ public class GameControlScript : MonoBehaviour
 
 			// On correction trials, the occluders will already be set, so only need to do the below calculation on new trials
 			// NO bias correction with FOV location yet, but may need to add later
-			if (Globals.perim && (((gos.Length == 3 || gos.Length == 2) && locx != Globals.worldXCenter) || gos.Length == 4)) {  // perimetry is enabled, so pick from the set of random windows to use
+			if (Globals.perim && (((gos.Length == 3 || gos.Length == 2) && loc.x != Globals.worldXCenter) || gos.Length == 4)) {  // perimetry is enabled, so pick from the set of random windows to use
 				int start;
 				int end = Globals.fovsForPerimScaleInclusive [Globals.perimScale];
 				if (Globals.perimRange) {  // Also include larger size stim in the stim set
@@ -1005,9 +1005,9 @@ public class GameControlScript : MonoBehaviour
 				}
 				int rFOV = UnityEngine.Random.Range (start, end);
 				Debug.Log ("FOV range (" + start + " - " + end + "), picked " + rFOV);
-				Globals.SetOccluders (locx, rFOV);
+				Globals.SetOccluders (loc.x, rFOV);
 			} else {
-				Globals.SetOccluders (locx);
+				Globals.SetOccluders (loc.x);
 				//Debug.Log ("no dynamic occlusion");
 			}
 
@@ -1035,7 +1035,7 @@ public class GameControlScript : MonoBehaviour
 			}
 		}
 
-        Globals.targetLoc.Add(locx);
+        Globals.targetLoc.Add(loc);
         Globals.targetHFreq.Add(hfreq);
         Globals.targetVFreq.Add(vfreq);
 		Globals.targetAngle.Add(angle);

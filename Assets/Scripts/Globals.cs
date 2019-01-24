@@ -31,12 +31,12 @@ public static class Globals
 	public static bool hasNotTurned;
 	public static List<TimeSpan> trialStartTime = new List<TimeSpan>(); // Holds DateTime object of starttime
 	public static List<TimeSpan> trialEndTime = new List<TimeSpan>(); // Holds DateTime object of endtime
-	public static List<float> targetLoc = new List<float>(); // X coord of tree placed in this list
+	public static List<Vector3> targetLoc = new List<Vector3>(); // Full vector coord of tree placed in this list
 	public static List<float> targetHFreq = new List<float>();  // Orientation of target
 	public static List<float> targetVFreq = new List<float>();  // Orientation of target
 	public static List<float> targetAngle = new List<float>();  // Angle of target
 	public static List<float> distractorAngle = new List<float>();  // Angle of distractor
-	public static List<float> firstTurn = new List<float>(); // X coord of tree the mouse hit or would have hit is placed in this list
+	public static List<Vector3> firstTurnLoc = new List<Vector3>(); // Full vector coord of tree the mouse hit or would have hit is placed in this list
 	public static List<float> firstTurnHFreq = new List<float>();  // Orientation of the tree the mouse chose
 	public static List<float> firstTurnVFreq = new List<float>();  // Orientation of the tree the mouse chose
 	public static List<float> firstTurnAngle = new List<float>();  // Angle of target
@@ -146,7 +146,7 @@ public static class Globals
 	// Support for different worlds on each trial
 	public struct Tree {
 		public bool water;
-		public Vector3 pos;
+		public List<Vector3> posList;
 		public float deg_LS;
 		public float angle_LS;
 		public bool texture;
@@ -207,20 +207,28 @@ public static class Globals
 	public const int optoOff = -1;   //  Value used elsewhere to indicate optoOff - never changed
 	public static int optoTrialsPerBlock = -1;  // Init to -1, then changed by param in scenario file
 
-
 	public static int probeIdx = -1;  // This is the tree index of the rarest tree, also considered the probe tree
 	public static bool probeLastOpto = false;  // Used to force the light on on every other probe trial
 
 	public static bool treeMarkers = false;  // Forces drawing a black circle underneath where the trees normally are
 	public static bool probabilisticWhiteNoiseWhenNoReward = false;
 
-	public static void AddTreeToWorld(int worldNum, bool water, Vector3 pos, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
+	// Support for adaptive levels where things can change based on aspects of the mouse's performance
+	public static bool adaptPos = false;  // Used by the first level, which starts the tree in closer and pushes it out as the mouse runs better
+	public static float adaptProCritTrialsPerMin = -1;
+	public static float adaptDemCritTrialsPerMin = -1;
+	public static float adaptCritDur = -1;
+	public static int adaptPosStartIdx = 0;  // Start at the first position, unless otherwise specified
+	public static int adaptPosEndIdx = -1;  // End at this position, unless otherwise specified
+	public static List<int> adaptPosIdx = new List<int>();
+
+	public static void AddTreeToWorld(int worldNum, bool water, List<Vector3> posList, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
 		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac, float opacity) {
 		World w = GetWorld (worldNum);
 
 		Tree t = new Tree();
 		t.water = water;
-		t.pos = pos;
+		t.posList = posList;
 		if (deg_LS != NULL) {
 			t.deg_LS = deg_LS;
 		}
@@ -341,7 +349,7 @@ public static class Globals
 				List<Tree> treeCandidates = w.trees;
 				foreach (Tree tNew in treeCandidates) {
 					foreach (Tree tOld in allTrees) {
-						if (tNew.pos.x == tOld.pos.x) {
+						if (tNew.posList[0].x == tOld.posList[0].x) {
 							stillNew = false;  // Tree is already in the list, so don't add it
 							break;
 						}
@@ -387,11 +395,66 @@ public static class Globals
 		if (worldNum == -1) {  // choose a random world to create
 			worldNum = UnityEngine.Random.Range(0, worlds.Count);
 		}
-		//Debug.Log ("world #" + worldNum);
 
-		// Now, actually render the new world
+		// Disable the terrain if targets project below ground
 		if (Globals.treesBelowGround) {
-			GameObject.FindObjectOfType<Terrain>().enabled = false; // Disable the terrain, so the trees can be seen below ground
+			GameObject.FindObjectOfType<Terrain>().enabled = false; 
+		}
+
+		// If adaptive tree positioning is enabled, adapt it!
+		int tPosIdx = 0;
+		if (Globals.adaptPos) {
+			DateTime now = DateTime.Now;
+			// If the minimum analyzable duration has not occurred, use the startPos
+			Debug.Log(Globals.gameStartTime);
+			Debug.Log(now);
+
+			if (Globals.adaptPosIdx.Count == 0) {
+				tPosIdx = Globals.adaptPosStartIdx;
+			} else {  // Analyze the history, as enough time has passed at least
+				int lastPosIdx = Globals.adaptPosIdx[adaptPosIdx.Count - 1];
+				int numTrials = 0;
+				TimeSpan earliestTrialEnd;
+
+				tPosIdx = lastPosIdx;
+				Debug.Log ("lastPosIdx=" + lastPosIdx);
+
+				// Count trials over the past adaptCritDur number of minutes
+				for (int i = adaptPosIdx.Count - 1; i >= 0; i--) {
+					if (Globals.adaptPosIdx [i] != lastPosIdx) { // Only analyze a continuous sequence of positions
+						break; 
+					}
+					//Debug.Log (now);
+					//Debug.Log (Globals.trialStartTime [i]);
+					//Debug.Log (now.Subtract (Globals.trialStartTime [i]));
+					if (Globals.adaptPosIdx [i] == lastPosIdx) {
+						earliestTrialEnd = Globals.trialEndTime [i];
+						if (now.Subtract (Globals.trialEndTime [i]).Minute < Globals.adaptCritDur) {
+							numTrials++;
+							//Debug.Log ("num trials = " + numTrials);
+						}
+					}
+				}
+
+				float trialRate = (float)numTrials / Globals.adaptCritDur;
+				Debug.Log ("trialRate = " + trialRate);
+				if (trialRate >= Globals.adaptProCritTrialsPerMin || now.Subtract (earliestTrialEnd).Minute >= Globals.adaptCritDur) {
+					if (trialRate >= Globals.adaptProCritTrialsPerMin) {
+						tPosIdx++;
+						Debug.Log ("incremented tPosIdx");
+						if (tPosIdx > Globals.adaptPosEndIdx) {
+							tPosIdx = Globals.adaptPosEndIdx;
+						}
+					} else if (trialRate <= Globals.adaptDemCritTrialsPerMin) {
+						tPosIdx--;
+						if (tPosIdx < 0) {
+							tPosIdx = 0;
+						}
+					} 
+				}
+			}
+			Debug.Log ("tPosIdx = " + tPosIdx);
+			Globals.adaptPosIdx.Add (tPosIdx);
 		}
 
 		World w = worlds [worldNum];
@@ -400,13 +463,13 @@ public static class Globals
 			if (t.water) {
 				if (t.deg_LS != null) {
 					if (t.materialName.Equals ("crickets")) {
-						go = GameObject.Instantiate (waterTreeCricketsPrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate (waterTreeCricketsPrefab, t.posList[tPosIdx], Quaternion.identity);
 					} else if (t.materialName.Equals ("cricketsWide")) {
-						go = GameObject.Instantiate (waterTreeCricketsWidePrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate (waterTreeCricketsWidePrefab, t.posList[tPosIdx], Quaternion.identity);
 					} else if (t.type.Equals("flat")) {
-						go = GameObject.Instantiate (waterTreeFlatPrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate (waterTreeFlatPrefab, t.posList[tPosIdx], Quaternion.identity);
 					} else {  // default is the grating on a cylinder
-						go = GameObject.Instantiate (waterTreePrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate (waterTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 					}
 					go.GetComponent<WaterTreeScript> ().SetShaderRotation (t.deg_LS);
 					go.GetComponent<WaterTreeScript> ().SetForTraining (waterTraining);
@@ -419,7 +482,7 @@ public static class Globals
 					//go.SetActive (false);
 					// Implements field restriction of a tree to just one side screen
 					if (t.restrictToCamera != -1) {
-						if (t.pos.x == 20000) {
+						if (t.posList[tPosIdx].x == 20000) {
 							Debug.Log (t.restrictToCamera);
 						}
 						if (t.restrictToCamera == 0) {
@@ -451,7 +514,7 @@ public static class Globals
 
 					go.GetComponent<WaterTreeScript>().SetRespawn(t.respawn);
 				} else if (t.texture) {
-					go = GameObject.Instantiate(waterTreePrefab, t.pos, Quaternion.identity);
+					go = GameObject.Instantiate(waterTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 					go.GetComponent<WaterTreeScript>().ChangeTexture(LoadPNG(waterTextureFile_LS));
 					go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
 					go.transform.parent = treeParent.transform;
@@ -459,7 +522,7 @@ public static class Globals
 					go.SetActive(false);
 				} else if (t.angle_LS != null) {   
 					if (waterBot_LS) {
-						go = GameObject.Instantiate(waterAngularTreePrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate(waterAngularTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 						go.GetComponent<AngularTreeScript>().ShapeShift("single");
 						go.GetComponent<AngularTreeScript>().ChangeBottomRing(t.angle_LS);
 						go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
@@ -467,7 +530,7 @@ public static class Globals
 						go.isStatic = true;
 						go.SetActive(false);
 					} else if (waterTop_LS) {
-						go = GameObject.Instantiate(waterAngularTreePrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate(waterAngularTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 						go.GetComponent<AngularTreeScript>().ShapeShift("single");
 						go.GetComponent<AngularTreeScript>().ChangeTopRing(t.angle_LS);
 						go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
@@ -475,7 +538,7 @@ public static class Globals
 						go.isStatic = true;
 						go.SetActive(false);
 					} else if (waterDouble_LS) {
-						go = GameObject.Instantiate(waterAngularTreePrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate(waterAngularTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 						go.GetComponent<AngularTreeScript>().ShapeShift("double");
 						go.GetComponent<AngularTreeScript>().ChangeBottomRing(t.angle_LS);
 						go.GetComponent<AngularTreeScript>().ChangeTopRing(t.angle_LS);
@@ -484,7 +547,7 @@ public static class Globals
 						go.isStatic = true;
 						go.SetActive(false);
 					} else if (waterSpherical_LS) {
-						go = GameObject.Instantiate(waterAngularTreePrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate(waterAngularTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 						go.GetComponent<AngularTreeScript>().ShapeShift("spherical");
 						go.GetComponent<AngularTreeScript>().ChangeSphereAngle(SphereAngleRemap(t.angle_LS));
 						go.GetComponent<WaterTreeScript>().SetForTraining(waterTraining);
@@ -495,34 +558,34 @@ public static class Globals
 				}
 			} else {
 				if (t.deg_LS != null) {
-					go = GameObject.Instantiate(dryTreePrefab, t.pos, Quaternion.identity);
+					go = GameObject.Instantiate(dryTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 					go.GetComponent<DryTreeScript>().SetShaderRotation(t.deg_LS);
 					go.transform.parent = treeParent.transform;
 					go.isStatic = true;
 					go.SetActive(false);
 				} else if (t.texture) {
-					go = GameObject.Instantiate(dryTreePrefab, t.pos, Quaternion.identity);
+					go = GameObject.Instantiate(dryTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 					go.GetComponent<DryTreeScript>().ChangeTexture(LoadPNG(dryTextureFile_LS));
 					go.transform.parent = treeParent.transform;
 					go.isStatic = true;
 					go.SetActive(false);
 				} else if (t.angle_LS != null) {
 					if (dryBot_LS) {
-						go = GameObject.Instantiate(dryAngularTreePrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate(dryAngularTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 						go.GetComponent<AngularTreeScript>().ShapeShift("single");
 						go.GetComponent<AngularTreeScript>().ChangeBottomRing(t.angle_LS);
 						go.transform.parent = treeParent.transform;
 						go.isStatic = true;
 						go.SetActive(false);
 					} else if (dryTop_LS) {
-						go = GameObject.Instantiate(dryAngularTreePrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate(dryAngularTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 						go.GetComponent<AngularTreeScript>().ShapeShift("single");
 						go.GetComponent<AngularTreeScript>().ChangeTopRing(t.angle_LS);
 						go.transform.parent = treeParent.transform;
 						go.isStatic = true;
 						go.SetActive(false);
 					} else if (dryDouble_LS) {
-						go = GameObject.Instantiate(dryAngularTreePrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate(dryAngularTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 						go.GetComponent<AngularTreeScript>().ShapeShift("double");
 						go.GetComponent<AngularTreeScript>().ChangeBottomRing(t.angle_LS);
 						go.GetComponent<AngularTreeScript>().ChangeTopRing(t.angle_LS);
@@ -530,7 +593,7 @@ public static class Globals
 						go.isStatic = true;
 						go.SetActive(false);
 					} else if (drySpherical_LS) {
-						go = GameObject.Instantiate(dryAngularTreePrefab, t.pos, Quaternion.identity);
+						go = GameObject.Instantiate(dryAngularTreePrefab, t.posList[tPosIdx], Quaternion.identity);
 						go.GetComponent<AngularTreeScript>().ShapeShift("spherical");
 						go.GetComponent<AngularTreeScript>().ChangeSphereAngle(SphereAngleRemap(t.angle_LS));
 						go.transform.parent = treeParent.transform;
@@ -622,7 +685,7 @@ public static class Globals
         // overwrite any existing file
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", false);
         // Write file header
-        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLocation\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)\tWorldNum\tOptoState\tTargetAngle\tTurnAngle\tDistractorAngle\tCorrectionTrial");
+        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLoc\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)\tWorldNum\tOptoState\tTargetAngle\tTurnAngle\tDistractorAngle\tCorrectionTrial");
         turnsFile.Close();
     }
 
@@ -634,14 +697,14 @@ public static class Globals
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
 					currFrame + "\t" + 
                     (trialEndTime[trialEndTime.Count - 1]).Subtract(trialStartTime[trialStartTime.Count - 1]) + "\t" +
-                    targetLoc[targetLoc.Count - 1] + "\t" +
+					targetLoc[targetLoc.Count - 1].x + ";" + targetLoc[targetLoc.Count - 1].y + ";" + targetLoc[targetLoc.Count - 1].z + "\t" +
                     targetHFreq[targetHFreq.Count - 1] + "\t" +
                     targetVFreq[targetVFreq.Count - 1] + "\t" +
 					visibleNasalBoundary + "\t" +
 					visibleTemporalBoundary + "\t" + 
 					visibleHighBoundary + "\t" +
 					visibleLowBoundary + "\t" + 
-                    firstTurn[firstTurn.Count - 1] + "\t" +
+					firstTurnLoc[firstTurnLoc.Count - 1].x + ";" + firstTurnLoc[firstTurnLoc.Count - 1].y + ";" + firstTurnLoc[firstTurnLoc.Count - 1].z + ";" + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
                     (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
@@ -656,14 +719,14 @@ public static class Globals
                     trialEndTime[trialEndTime.Count - 1] + "\t" +
 					currFrame + "\t" + 
                     (trialEndTime[trialEndTime.Count - 1]).Subtract(trialStartTime[trialStartTime.Count - 1]) + "\t" +
-                    targetLoc[targetLoc.Count - 1] + "\t" +
+					targetLoc[targetLoc.Count - 1].x + ";" + targetLoc[targetLoc.Count - 1].y + ";" + targetLoc[targetLoc.Count - 1].z + "\t" +
                     targetHFreq[targetHFreq.Count - 1] + "\t" +
                     targetVFreq[targetVFreq.Count - 1] + "\t" +
 					visibleNasalBoundary + "\t" +
 					visibleTemporalBoundary + "\t" + 
 					visibleHighBoundary + "\t" +
 					visibleLowBoundary + "\t" + 
-                    firstTurn[firstTurn.Count - 1] + "\t" +
+					firstTurnLoc[firstTurnLoc.Count - 1].x + ";" + firstTurnLoc[firstTurnLoc.Count - 1].y + ";" + firstTurnLoc[firstTurnLoc.Count - 1].z + ";" + "\t" +
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
 					(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
@@ -807,20 +870,20 @@ public static class Globals
 			int[] numCorrTrials = new int[tCount]; 
 			int[] numTrials = new int[tCount]; 
 			for (int j = 0; j < tCount; j++) {
-				locs [j] = w.trees[j].pos.x;
+				locs [j] = w.trees[j].posList[0].x;
 			}
 
 
 			// With all locations in hand, calculate accuracy for each one, then print it out
 			int idx;
-			for (int j = 0; j < Globals.firstTurn.Count; j++) {
-				idx = Array.IndexOf(locs, Globals.targetLoc[j]);
+			for (int j = 0; j < Globals.firstTurnLoc.Count; j++) {
+				idx = Array.IndexOf(locs, Globals.targetLoc[j].x);
 				// Added support for ignoring correction trials
 				// Check for world-matching again here, as results from different worlds will be intermingled in the in-memory logs
 				if (i == worldID[j] && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[j] == 0))) {
 					numTrials [idx]++;
 					//Debug.Log("this-world trial");
-					if (Globals.targetLoc [j] == Globals.firstTurn [j]) {
+					if (Globals.targetLoc [j].x == Globals.firstTurnLoc [j].x) {
 						numCorrTrials [idx]++;
 						//Debug.Log ("correct trial");
 					}
@@ -851,7 +914,7 @@ public static class Globals
 		Debug.Log ("currworld=" + currWorldID);
 
 		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected histLen
-		for (int i = firstTurn.Count-1; i >= 0; i--) {  // must be firstTurn.Count!
+		for (int i = firstTurnLoc.Count-1; i >= 0; i--) {  // must be firstTurnLoc.Count!
 			if (worldID [i] == currWorldID && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
 				validTrials.Add(i);
 			}
@@ -874,8 +937,8 @@ public static class Globals
 		// Now, with valid trials in hand, calculate the turn bias
 		int turn0 = 0;
 		foreach (int idx in validTrials) {
-			Debug.Log (firstTurn [idx]);
-			if (firstTurn [idx] == gos [treeIndex].transform.position.x) {
+			Debug.Log (firstTurnLoc [idx].x);
+			if (firstTurnLoc [idx].x == gos [treeIndex].transform.position.x) {
 				turn0++;
 			}
 		}
@@ -910,7 +973,7 @@ public static class Globals
 		List<int> validTrials = new List<int> ();
 
 		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected n
-		for (int i = firstTurn.Count-1; i >= 0; i--) {
+		for (int i = firstTurnLoc.Count-1; i >= 0; i--) {
 			//Debug.Log (correctionTrialMarks [i]);
 			if (worldID [i] == currWorld && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
 				validTrials.Add(i);
@@ -924,7 +987,7 @@ public static class Globals
 		int corr = 0;
 		for (int i = 0; i < validTrials.Count; i++) {
 			curTrial = (int)validTrials [i];
-			if (firstTurn [curTrial] == targetLoc [curTrial])
+			if (firstTurnLoc [curTrial].x == targetLoc [curTrial].x)
 				corr++;
 		}
 
