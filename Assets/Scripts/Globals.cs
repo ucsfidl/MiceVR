@@ -414,7 +414,7 @@ public static class Globals
 			} else {  // Analyze the history, as enough time has passed at least
 				int lastPosIdx = Globals.adaptPosIdx[adaptPosIdx.Count - 1];
 				int numTrials = 0;
-				TimeSpan earliestTrialEnd;
+				TimeSpan earliestTrialEnd = new TimeSpan();
 
 				tPosIdx = lastPosIdx;
 				Debug.Log ("lastPosIdx=" + lastPosIdx);
