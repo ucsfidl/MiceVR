@@ -53,12 +53,15 @@ for i=1:length(fileList)
                 if (fid ~= -1)  % File was opened properly
                     numFilesAnalyzed = numFilesAnalyzed + 1;
                     tline = fgetl(fid); % Throw out the first line, as it is a column header
-                    C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f %d %d %d %d %d'); % C is a cell array with each string separated by a space
+                    C = textscan(fid, '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d'); % C is a cell array with each string separated by a space
                     for k = 1:length(C{1})  % For each line
                         % C{5} is the target location, C{12} is the turn location
-                        stimLoc = C{5}(k);
-                        actionLoc = C{12}(k);
+                        tmp = strsplit(C{5}{k}, ';');
+                        stimLoc = str2double(tmp{1});
+                        tmp = strsplit(C{12}{k}, ';');
+                        actionLoc = str2double(tmp{1});
                         optoLoc = C{17}(k);
+                        
                         recRew = C{15}(k);
                         
                         % Supports 3-choice for now - support 4-choice later.
