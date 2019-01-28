@@ -911,7 +911,7 @@ public static class Globals
 		int currWorldID = worldID [worldID.Count - 1];
 		List<int> validTrials = new List<int> ();
 
-		Debug.Log ("currworld=" + currWorldID);
+		//Debug.Log ("currworld=" + currWorldID);
 
 		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected histLen
 		for (int i = firstTurnLoc.Count-1; i >= 0; i--) {  // must be firstTurnLoc.Count!
@@ -937,13 +937,13 @@ public static class Globals
 		// Now, with valid trials in hand, calculate the turn bias
 		int turn0 = 0;
 		foreach (int idx in validTrials) {
-			Debug.Log (firstTurnLoc [idx].x);
+			//Debug.Log (firstTurnLoc [idx].x);
 			if (firstTurnLoc [idx].x == gos [treeIndex].transform.position.x) {
 				turn0++;
 			}
 		}
-		Debug.Log (turn0);
-		Debug.Log (validTrials.Count);
+		//Debug.Log (turn0);
+		//Debug.Log (validTrials.Count);
 		return (float)turn0 / validTrials.Count;
     }
 
