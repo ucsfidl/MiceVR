@@ -36,8 +36,8 @@
 				</t>
 			</trees>
 			<walls>
-				<wall> <!-- Left wall -->
-					<pos>19994;0.5;20005</pos>
+				<wall> <!-- Front Left wall -->
+					<pos>19993;0.5;20004</pos>
 					<rot>0;0;0</rot>
 					<scale>2;0;17</scale>
 				</wall>
@@ -57,12 +57,17 @@
 					<scale>2;0;19.1</scale>
 				</wall>
 				<wall> <!-- Left Back wall -->
-					<pos>19986;0.5;20037</pos>
+					<pos>19980;0.5;20037</pos>
 					<rot>0;270;0</rot>
 					<scale>2;0;19.1</scale>
 				</wall>
-				<wall> <!-- Left back receding wall -->
-					<pos>19994;0.5;20047</pos>
+				<wall> <!-- Straight left diagonal wall -->
+					<pos>19991;0.5;20040</pos>
+					<rot>0;30;0</rot>
+					<scale>2;0;9</scale>
+				</wall>
+				<wall> <!-- Straight left receding wall -->
+					<pos>19994;0.5;20054</pos>
 					<rot>0;0;0</rot>
 					<scale>2;0;20</scale>
 				</wall>
@@ -71,13 +76,18 @@
 					<rot>0;270;0</rot>
 					<scale>2;0;20</scale>
 				</wall>
-				<wall> <!-- Right back receding wall -->
-					<pos>20006;0.5;20047</pos>
+				<wall> <!-- Straight right receding wall -->
+					<pos>20006;0.5;20054</pos>
 					<rot>0;0;0</rot>
 					<scale>2;0;20</scale>
 				</wall>
+				<wall> <!-- Straight right diagonal wall -->
+					<pos>20009;0.5;20040</pos>
+					<rot>0;-30;0</rot>
+					<scale>2;0;9</scale>
+				</wall>
 				<wall> <!-- Right Back wall -->
-					<pos>20014;0.5;20037</pos>
+					<pos>20020;0.5;20037</pos>
 					<rot>0;270;0</rot>
 					<scale>2;0;19.1</scale>
 				</wall>
@@ -96,8 +106,8 @@
 					<rot>0;30;0</rot>
 					<scale>2;0;9</scale>
 				</wall>
-				<wall> <!-- Right wall -->
-					<pos>20006;0.5;20005</pos>
+				<wall> <!-- Front Right wall -->
+					<pos>20007;0.5;20004</pos>
 					<rot>0;0;0</rot>
 					<scale>2;0;17</scale>
 				</wall>
