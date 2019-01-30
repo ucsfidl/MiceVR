@@ -14,7 +14,7 @@
 			<adaptProCritTrialsPerMin>4</adaptProCritTrialsPerMin>  <!-- Minimum number of trials per minute before promoting location -->
 			<adaptDemCritTrialsPerMin>3</adaptDemCritTrialsPerMin> 	<!-- If number of trials per minute is less than this, demote location -->
 			<adaptCritDur>1</adaptCritDur> 					<!-- Window of time over which the above criterion must hold true to promote -->
-			<adaptPosStartIdx>0</adaptPosStartIdx>						<!-- Index of positions to start at - will vary as mouse progresses from day to day -->
+			<adaptPosStartIdx>7</adaptPosStartIdx>						<!-- Index of positions to start at - will vary as mouse progresses from day to day -->
 			<adaptPosEndIdx>10</adaptPosEndIdx>						<!-- Index of positions to end at -->
 		</gameConfig>
 	</config>
@@ -37,8 +37,8 @@
 						20000;-10;20040
 					</pos>
 					<d>0</d>
-					<h>2</h>
-					<v>2</v>
+					<h>4</h>
+					<v>0</v>
 				</t>
 			</trees>
 			<walls>

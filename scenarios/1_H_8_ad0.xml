@@ -15,7 +15,7 @@
 			<adaptDemCritTrialsPerMin>3</adaptDemCritTrialsPerMin> 	<!-- If number of trials per minute is less than this, demote location -->
 			<adaptCritDur>1</adaptCritDur> 					<!-- Window of time over which the above criterion must hold true to promote -->
 			<adaptPosStartIdx>0</adaptPosStartIdx>						<!-- Index of positions to start at - will vary as mouse progresses from day to day -->
-			<adaptPosEndIdx>7</adaptPosEndIdx>						<!-- Index of positions to end at -->
+			<adaptPosEndIdx>10</adaptPosEndIdx>						<!-- Index of positions to end at -->
 		</gameConfig>
 	</config>
 	<worlds>
