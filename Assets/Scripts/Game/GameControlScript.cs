@@ -64,8 +64,7 @@ public class GameControlScript : MonoBehaviour
 	private DateTime lastTrialStartDateTime;
 
 	// Use this for initialization
-    void Start()
-    {
+    void Start() {
 		//Application.targetFrameRate = 60;
         this.frameCounter = this.previousFrameCounter = 0;
         this.runNumber = 1;
@@ -103,8 +102,7 @@ public class GameControlScript : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
-	{
+    void Update() {
 		if ((this.state == "Running" || this.state == "Paused") && Globals.numCameras > 0) {
 			// To detect the occurence of a trial start or end, skip a frame trigger so that Matlab gets the signal direct through the camera,as the signal directly from unity is flaky
 			if (pauseStart > 0) {
@@ -181,8 +179,7 @@ public class GameControlScript : MonoBehaviour
 		CatchKeyStrokes ();
 	}
 
-    public void init()
-    {
+    public void init() {
         if (!Directory.Exists(PlayerPrefs.GetString("configFolder")))
             Debug.Log("No config file");
 
@@ -261,8 +258,7 @@ public class GameControlScript : MonoBehaviour
         this.udpSender.CheckReward();
     }
 
-    private void CatchKeyStrokes()
-    {
+    private void CatchKeyStrokes() {
 		if (Input.GetKeyUp(KeyCode.Escape) && !this.state.Equals ("WaitingForQuitCmd")) {
 			this.state = "GameOver";
 			// Disable opto lights, if on, right here instead of in GameOver() so it doesn't repeatedly send the signal and block the aruino communication, preventing other signals (like manual water) from getting through
@@ -297,7 +293,7 @@ public class GameControlScript : MonoBehaviour
     /*
      * Waits until a tree config is loaded
      * */
-    private void LoadScenario(){
+    private void LoadScenario() {
         if (this.scenarioLoader.scenarioLoaded == true) {
             this.menuPanel.SetActive(false);
             this.state = "StartGame";
@@ -307,8 +303,7 @@ public class GameControlScript : MonoBehaviour
     /*
      * Waits for user input to start the game
      * */
-    private void StartGame()
-    {
+    private void StartGame() {
         //Debug.Log ("In StartGame()");
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
@@ -349,8 +344,7 @@ public class GameControlScript : MonoBehaviour
     /*
      * dry trees timeout state
      * */
-    private void Timeout()
-    {
+    private void Timeout() {
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
 
@@ -361,8 +355,7 @@ public class GameControlScript : MonoBehaviour
         }
     }
 
-    IEnumerator Wait()
-    {
+    IEnumerator Wait() {
         // Maria: This is where we change seconds
         yield return new WaitForSeconds(15);
 
@@ -381,8 +374,7 @@ public class GameControlScript : MonoBehaviour
      * Get UDP msgs and move the player
      * Send UDP msgs out with (pos, rot, inTree)
      */
-    private void Run()
-    {
+    private void Run() {
 		// send SYNC msg on first frame of every run.
         if (this.firstFrameRun) {
             this.udpSender.SendRunSync();
@@ -413,8 +405,7 @@ public class GameControlScript : MonoBehaviour
         }
 	}
 
-    public void OccludeTree(float treeLocX)
-    {
+    public void OccludeTree(float treeLocX) {
         GameObject treeOccluder = GameObject.Find("TreeOccluder");
         Vector3 lp = treeOccluder.transform.localPosition;
 		if (treeLocX > Globals.worldXCenter)  // Target tree is on right side
@@ -429,8 +420,7 @@ public class GameControlScript : MonoBehaviour
     /*
      * Fade to Black
      * */
-    private void Fade()
-    {
+    private void Fade() {
         Color t = this.fadeToBlack.color;
         t.a += Time.deltaTime;
         this.fadeToBlack.color = t;
@@ -496,8 +486,7 @@ public class GameControlScript : MonoBehaviour
     /*
      * Reset all trees
      * */
-	public void ResetScenario(Color c)
-    {
+	public void ResetScenario(Color c) {
         this.runTime = Time.time;
         this.runNumber++;
 
@@ -1038,7 +1027,7 @@ public class GameControlScript : MonoBehaviour
 			// OPTOGENETICS!
 			if (Globals.optoSide != -1) {  // A side for optogenetics was specified
 				if (Globals.optoAlternation) {  // If it should alternate, then alternate it, with every even trial getting light on  NOTE: this feature does not support LorR
-					if (Globals.probeIdx[0] == treeToActivate) { 				// if the current trial is a probe trial
+					if (Globals.probeIdx.Contains(treeToActivate)) { 				// if the current trial is a probe trial
 						if (Globals.probeLastOpto == false) {  // if the last trial was light OFF, turn light on this time
 							int opto = -1;
 							if (Globals.optoSide == Globals.optoLorR) {
@@ -1049,7 +1038,7 @@ public class GameControlScript : MonoBehaviour
 							udpSender.GetComponent<UDPSend> ().OptoTurnOn (opto);
 						}
 						Globals.probeLastOpto = !Globals.probeLastOpto;  // regardless of whether last probe was light on or off, alternate
-					} else if (Globals.probeIdx[0] != treeToActivate && Globals.numNonCorrectionTrials % 2 == 0) {
+					} else if (!Globals.probeIdx.Contains(treeToActivate) && Globals.numNonCorrectionTrials % 2 == 0) {
 						int opto = -1;
 						if (Globals.optoSide == Globals.optoLorR) {
 							opto = Globals.optoL;
@@ -1111,8 +1100,7 @@ public class GameControlScript : MonoBehaviour
         this.state = "Running";
 	}
 
-    private void SetupTreeActivation(GameObject[] gos, int treeToActivate, int maxTrees)
-    {
+    private void SetupTreeActivation(GameObject[] gos, int treeToActivate, int maxTrees) {
         for (int i = 0; i < maxTrees; i++)  // In the 3-tree case, never deactivate the 3rd tree
         {
             gos[i].SetActive(true);
@@ -1123,8 +1111,7 @@ public class GameControlScript : MonoBehaviour
         }
     }
 
-    private void GameOver()
-    {
+    private void GameOver() {
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";
@@ -1139,8 +1126,7 @@ public class GameControlScript : MonoBehaviour
         }
     }
 
-    private IEnumerator CheckForQ()
-    {
+    private IEnumerator CheckForQ() {
         Debug.Log("Waiting for Q");
         yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
@@ -1214,8 +1200,7 @@ public class GameControlScript : MonoBehaviour
 		}
     }
 
-    public void FlushWater()
-    {
+    public void FlushWater() {
         this.udpSender.FlushWater();
     }
 
