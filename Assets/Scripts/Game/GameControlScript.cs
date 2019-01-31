@@ -609,8 +609,19 @@ public class GameControlScript : MonoBehaviour
 						precompTrialBlock [i] = stimLocsCopy [ran];
 						stimLocsCopy.RemoveAt (ran);
 					}
-					//Debug.Log ("Stim locs copy" + String.Join(",", stimLocsCopy.Select(x=>x.ToString()).ToArray()));
-					if (Globals.probeIdx == -1 || precompTrialBlock.Contains (Globals.probeIdx)) {
+					if (Globals.probeIdx.Count == 0) {
+						break;
+					}
+					bool allProbesFound = false;
+					foreach (int pid in Globals.probeIdx) {
+						if (precompTrialBlock.Contains (pid)) {
+							allProbesFound = true;
+						} else {
+							allProbesFound = false;
+							break;
+						}
+					}
+					if (allProbesFound) {
 						break;
 					} else {
 						Debug.Log ("Did not get probe included in precompTrialBlock, so regenerate again");	
@@ -641,8 +652,21 @@ public class GameControlScript : MonoBehaviour
 					}
 					for (int i = 0; i < numTrees; i++) {
 						List<int> optoStates = new List<int> ();
+						int lCnt = 0;
+						int rCnt = 0;
 						for (int j = 0; j < numOptoOn; j++) {
-							optoStates.Add (Globals.optoSide);
+							if (Globals.optoSide == Globals.optoLorR) {
+								if (lCnt <= rCnt) {
+									optoStates.Add (Globals.optoL);
+									lCnt++;
+									j--;
+								} else {
+									optoStates.Add (Globals.optoR);
+									rCnt++;
+								}
+							} else {
+								optoStates.Add (Globals.optoSide);
+							}
 						}
 						for (int j = 0; j < numTrialsPerStimLoc [i] - numOptoOn; j++) {
 							optoStates.Add (Globals.optoOff);
@@ -1013,22 +1037,40 @@ public class GameControlScript : MonoBehaviour
 
 			// OPTOGENETICS!
 			if (Globals.optoSide != -1) {  // A side for optogenetics was specified
-				if (Globals.optoAlternation) {  // If it should alternate, then alternate it, with every even trial getting light on
-					if (Globals.probeIdx == treeToActivate) { 				// if the current trial is a probe trial
+				if (Globals.optoAlternation) {  // If it should alternate, then alternate it, with every even trial getting light on  NOTE: this feature does not support LorR
+					if (Globals.probeIdx[0] == treeToActivate) { 				// if the current trial is a probe trial
 						if (Globals.probeLastOpto == false) {  // if the last trial was light OFF, turn light on this time
-							udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
+							int opto = -1;
+							if (Globals.optoSide == Globals.optoLorR) {
+								opto = Globals.optoL;
+							} else {
+								opto = Globals.optoSide;
+							}
+							udpSender.GetComponent<UDPSend> ().OptoTurnOn (opto);
 						}
 						Globals.probeLastOpto = !Globals.probeLastOpto;  // regardless of whether last probe was light on or off, alternate
-					} else if (Globals.probeIdx != treeToActivate && Globals.numNonCorrectionTrials % 2 == 0) {
-						udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
+					} else if (Globals.probeIdx[0] != treeToActivate && Globals.numNonCorrectionTrials % 2 == 0) {
+						int opto = -1;
+						if (Globals.optoSide == Globals.optoLorR) {
+							opto = Globals.optoL;
+						} else {
+							opto = Globals.optoSide;
+						}
+						udpSender.GetComponent<UDPSend> ().OptoTurnOn (opto);
 					}
 				} else {
 					if (Globals.blockSize > 0) {
 						udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.precompOptoBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize]);
 					} else {
 						float rOpto = UnityEngine.Random.value;
-						if (rOpto < Globals.optoFraction) {
-							udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);
+						if (rOpto < Globals.optoFraction) {  // also does not support optoLorR
+							int opto = -1;
+							if (Globals.optoSide == Globals.optoLorR) {
+								opto = Globals.optoL;
+							} else {
+								opto = Globals.optoSide;
+							}
+							udpSender.GetComponent<UDPSend> ().OptoTurnOn (opto);
 						}
 					}
 				}

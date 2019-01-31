@@ -341,17 +341,24 @@ public class Loader : MonoBehaviour {
 					Debug.Log ("Found preso ratio " + Globals.presoRatio);
 				}
 				if (xn ["probeIdx"] != null) {
-					int.TryParse (xn ["probeIdx"].InnerText, out Globals.probeIdx);
+					string[] probeIdx = xn ["probeIdx"].InnerText.Split(';');
+					for (int i = 0; i < probeIdx.Length; i++) {
+						int tmp;
+						int.TryParse (probeIdx [i], out tmp);
+						Globals.probeIdx.Add(tmp);
+					}
 				}
 
 				if (xn ["optoSide"] != null) {
 					string optoSideXML = xn ["optoSide"].InnerText;
 					if (optoSideXML.Equals ("L"))
-						Globals.optoSide = 0;
+						Globals.optoSide = Globals.optoL;
 					else if (optoSideXML.Equals ("R"))
-						Globals.optoSide = 1;
-					else if (optoSideXML.Equals ("LR"))
-						Globals.optoSide = 2;
+						Globals.optoSide = Globals.optoR;
+					else if (optoSideXML.Equals ("LR") || optoSideXML.Equals("LandR"))
+						Globals.optoSide = Globals.optoLandR;
+					else if (optoSideXML.Equals ("LorR"))
+						Globals.optoSide = Globals.optoLorR;
 				}
 				if (xn ["optoFraction"] != null) {
 					float.TryParse(xn["optoFraction"].InnerText, out Globals.optoFraction);
