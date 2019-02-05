@@ -41,10 +41,18 @@ for i=1:length(fileList)
                     C = textscan(fid, '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d'); % C is a cell array with each string separated by a space
                     for k = 1:length(C{1})  % For each line
                         % C{5} is the target location, C{12} is the turn location
-                        tmp = strsplit(C{5}{k}, ';');
-                        stimLoc = str2double(tmp{1});
-                        tmp = strsplit(C{12}{k}, ';');
-                        actionLoc = str2double(tmp{1});
+                        if (iscell(C{5}(k)))
+                            tmp = strsplit(C{5}{k}, ';');
+                            stimLoc = str2double(tmp{1});
+                        else
+                            stimLoc = str2double(C{5}(k));
+                        end
+                        if (iscell(C{12}(k)))
+                            tmp = strsplit(C{12}{k}, ';');
+                            actionLoc = str2double(tmp{1});
+                        else 
+                            actionLoc = str2double(C{12}(k));
+                        end
                         optoLoc = C{17}(k);
                         
                         isCorrectionTrial = C{21}(k);

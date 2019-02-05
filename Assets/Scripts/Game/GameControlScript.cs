@@ -60,7 +60,7 @@ public class GameControlScript : MonoBehaviour
 	private int pauseEnd = 0;
 	private int pauseTime = 3; // frames - 1 is too few given noise in capture - This pauseTime is the number of frames in between trials, for camera frame analysis to find trial starts and ends!
 
-	private float visiblePauseAtTrialStart = 1F;  // For first 1s of each trial, world won't move, so mouse can see stimulus
+	private float visiblePauseAtTrialStart = 2F;  // For first 2s of each trial, world won't move, so mouse can see stimulus - 1s seems too little time for my mice
 	private DateTime lastTrialStartDateTime;
 
 	// Use this for initialization
