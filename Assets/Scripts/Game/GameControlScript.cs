@@ -638,20 +638,19 @@ public class GameControlScript : MonoBehaviour
 					int numOptoOn = minVal / 2;
 					if (Globals.optoTrialsPerBlock != -1) {
 						numOptoOn = Globals.optoTrialsPerBlock;
+						if (Globals.optoSide == Globals.optoLorR)
+							numOptoOn *= 2;
 					}
 					for (int i = 0; i < numTrees; i++) {
 						List<int> optoStates = new List<int> ();
-						int lCnt = 0;
-						int rCnt = 0;
+						int flag = 0;
 						for (int j = 0; j < numOptoOn; j++) {
 							if (Globals.optoSide == Globals.optoLorR) {
-								if (lCnt <= rCnt) {
+								if (flag == 0) {
 									optoStates.Add (Globals.optoL);
-									lCnt++;
-									j--;
+									flag = 1;
 								} else {
 									optoStates.Add (Globals.optoR);
-									rCnt++;
 								}
 							} else {
 								optoStates.Add (Globals.optoSide);
@@ -660,7 +659,7 @@ public class GameControlScript : MonoBehaviour
 						for (int j = 0; j < numTrialsPerStimLoc [i] - numOptoOn; j++) {
 							optoStates.Add (Globals.optoOff);
 						}
-						//Debug.Log (String.Join(",", optoStates.Select(x=>x.ToString()).ToArray()));
+						Debug.Log (String.Join(",", optoStates.Select(x=>x.ToString()).ToArray()));
 						// While optoStates left, assign them randomly
 						int lastIdx = 0;
 						while (true) {
