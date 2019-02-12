@@ -965,8 +965,9 @@ public static class Globals
 		return worldSeen;
 	}
 
+	// Only enter a correction trial if correction is enabled and last trial was incorrect AND last trial was not the location of the probes - this is to help retain the rule for 3-choice testing in pre-lesion animals
 	public static bool CurrentlyCorrectionTrial() {
-		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1)
+		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 && !probeIdx.Contains(GetIdxOfStimLoc(targetLoc[firstTurnLoc.Count-1].x)))  // Must be firstTurnLoc, as additional targets may have been added for the current trial
 			return true;
 		return false;
 	}

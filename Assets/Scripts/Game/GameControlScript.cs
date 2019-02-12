@@ -530,7 +530,6 @@ public class GameControlScript : MonoBehaviour
 			distractorAngle = Globals.distractorAngle [Globals.distractorAngle.Count - 1];
 			udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoState);  // Just reuse the last optoState for optogenetic correction trials
 			Globals.worldID.Add(worldID);  		// Record which world this trial is on - must happen before below
-			Debug.Log("In correction trial!");
 		} else {
 			Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again
 
@@ -1070,8 +1069,9 @@ public class GameControlScript : MonoBehaviour
         Globals.targetVFreq.Add(vfreq);
 		Globals.targetAngle.Add(angle);
 		Globals.distractorAngle.Add (distractorAngle);
-		if (Globals.correctionTrialsEnabled) {
-			Globals.correctionTrialMarks.Add (Globals.lastTrialWasIncorrect);
+
+		if (Globals.CurrentlyCorrectionTrial()) {
+			Globals.correctionTrialMarks.Add (1);
 		} else {
 			Globals.correctionTrialMarks.Add (0);
 		}
@@ -1205,6 +1205,8 @@ public class GameControlScript : MonoBehaviour
 
 	private void updateTrialsText() {
 		this.numberOfTrialsText.text = "Trial: #" + Globals.numNonCorrectionTrials.ToString ();
+		if (Globals.CurrentlyCorrectionTrial ())
+			this.numberOfTrialsText.text += " (CORRECTION)";
 	}
 
 	private void updateRewardAmountText() {

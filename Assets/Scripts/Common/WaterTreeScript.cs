@@ -216,7 +216,7 @@ public class WaterTreeScript : MonoBehaviour {
 			Debug.Log ("Target reward rate=" + Globals.probReward + ", actual reward rate=" + actualRewardRate + ", adj threshold=" + adjRewardThreshold + ", random val=" + r);
 		}
 
-		if (r <= adjRewardThreshold) {
+		if (r <= adjRewardThreshold || Globals.CurrentlyCorrectionTrial()) {  // If a correction trial with probabilistic reward, give reward regardless of probability
 			GameObject.Find ("UDPSender").GetComponent<UDPSend> ().SendWaterReward (rewardDur);
 			Globals.numberOfEarnedRewards++;
 			Globals.sizeOfRewardGiven.Add(Globals.rewardSize / Globals.rewardDur * rewardDur);
@@ -253,6 +253,7 @@ public class WaterTreeScript : MonoBehaviour {
 			if (trueCorrect) {
 				if (!Globals.CurrentlyCorrectionTrial()) { // Not correction trial
 					Globals.numCorrectTurns++;
+					Debug.Log ("Added to numCorrectTurns");
 				}
 			}
 			Globals.firstTurnLoc.Add (this.gameObject.transform.position);
@@ -267,8 +268,10 @@ public class WaterTreeScript : MonoBehaviour {
         if (respawn) {
 			if (!Globals.CurrentlyCorrectionTrial ()) {
 				Globals.numNonCorrectionTrials++;
+				Debug.Log ("next trial is non-correction trial");
 			} else {  // Might be off by 1 bug here, as nonCorrectionTrials is the current trial #, but numCorrectionTrials is the total number of correction trials
 				Globals.numCorrectionTrials++;
+				Debug.Log ("next trial is Correction trial");
 			}
 			Globals.trialDelay = interTrialInterval;
 			GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
@@ -301,8 +304,10 @@ public class WaterTreeScript : MonoBehaviour {
         if (respawn) {
 			if (!Globals.CurrentlyCorrectionTrial ()) {
 				Globals.numNonCorrectionTrials++;
+				Debug.Log ("next trial is non-correction trial");
 			} else {  // Might be off by 1 bug here, as nonCorrectionTrials is the current trial #, but numCorrectionTrials is the total number of correction trials
 				Globals.numCorrectionTrials++;
+				Debug.Log ("next trial is Correction trial");
 			}
 			Globals.trialDelay = interTrialInterval;
             GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
