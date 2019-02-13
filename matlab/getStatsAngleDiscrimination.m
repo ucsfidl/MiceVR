@@ -1,4 +1,4 @@
-function results = getStatsAngleDiscrimination(mouseName, days, sessions, distractorAngles)
+function results = getStatsAngleDiscrimination(mouseName, days, sessions, distractorAngles, includeCorrectionTrials)
 % This function will analyze the relevant actions.txt log files and return
 % a set of statistics useful to analyzing blindness and blindsight.
 
@@ -28,12 +28,23 @@ for i=1:length(fileList)
                 if (fid ~= -1)  % File was opened properly
                     numFilesAnalyzed = numFilesAnalyzed + 1;
                     tline = fgetl(fid); % Throw out the first line, as it is a column header
-                    C = textscan(fid, '%s %s %d %s %d %d %d %d %d %d %d %d %d %d %f %d %d %d %d %d %d'); % C is a cell array with each string separated by a space
+                    C = textscan(fid, '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d'); % C is a cell array with each string separated by a space
                     for k = 1:length(C{1})  % For each line
                         targetAngle = C{18}(k);
                         turnAngle = C{19}(k);
                         distractorAngle = C{20}(k);
-                        stimLoc = C{5}(k);
+                        % C{5} is the target location, C{12} is the turn location
+                        if (iscell(C{5}(k)))
+                            tmp = strsplit(C{5}{k}, ';');
+                            stimLoc = str2double(tmp{1});
+                        else
+                            stimLoc = str2double(C{5}(k));
+                        end
+
+                        isCorrectionTrial = C{21}(k);
+                        if (isCorrectionTrial && ~includeCorrectionTrials)
+                            continue;
+                        end
                         
                         for m = 1:length(distractorAngles)
                             if (distractorAngles(m) == distractorAngle)
