@@ -301,6 +301,7 @@ public class WaterTreeScript : MonoBehaviour {
         Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
 		Globals.firstTurnAngle.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderRotation());
         Globals.sizeOfRewardGiven.Add(0);
+
         if (respawn) {
 			if (!Globals.CurrentlyCorrectionTrial ()) {
 				Globals.numNonCorrectionTrials++;

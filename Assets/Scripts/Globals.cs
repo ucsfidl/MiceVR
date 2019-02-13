@@ -41,6 +41,7 @@ public static class Globals
 	public static List<float> firstTurnVFreq = new List<float>();  // Orientation of the tree the mouse chose
 	public static List<float> firstTurnAngle = new List<float>();  // Angle of target
 	public static List<int> worldID = new List<int>();  // Which world, in a multi-world scenario, was shown on this trial
+	public static List<int> optoStates = new List<int>();  // What the state of optogenetics light was for that trial
     public static int numCorrectTurns;
 
 	public static int trialDelay;
@@ -200,15 +201,16 @@ public static class Globals
 
 	public static float presoRatio;  // By default, do dynamic training, varying the reward size to break choice or motor biases
 
-	public static int optoSide = -1;       // 0 = left, 1 = right, 2 = both
+	public static int optoSide = optoOff;       // State of the game - overwritten by the scenario file
 	public static float optoFraction;  // fraction of trials in which the light will randomly be on
 	public static bool optoAlternation = false;  // Used to force the light to be on on every other trial
-	public static int optoState = -1;     // 0 = left, 1 = right, 2 = both
+
 	public const int optoOff = -1;   //  Value used elsewhere to indicate optoOff - never changed
 	public const int optoL = 0;
 	public const int optoR = 1;
 	public const int optoLandR = 2;
 	public const int optoLorR = 3;
+
 	public static int optoTrialsPerBlock = -1;  // Init to -1, then changed by param in scenario file
 
 	public static List<int> probeIdx = new List<int>();  // This is the tree index of the rarest tree, also considered the probe tree
@@ -713,7 +715,7 @@ public static class Globals
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
                     (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
 					worldID[worldID.Count - 1] + "\t" + 
-					optoState + "\t" + 
+					optoStates[optoStates.Count-1] + "\t" + 
 					targetAngle[targetAngle.Count - 1] + "\t" + 
 					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
 					distractorAngle[distractorAngle.Count - 1] + "\t" +
@@ -735,7 +737,7 @@ public static class Globals
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
 					(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
 					worldID[worldID.Count - 1] + "\t" + 
-					optoState + "\t" + 
+					optoStates[optoStates.Count-1] + "\t" + 
 					targetAngle[targetAngle.Count - 1] + "\t" + 
 					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
 					distractorAngle[distractorAngle.Count - 1] + "\t" +
@@ -967,9 +969,13 @@ public static class Globals
 
 	// Only enter a correction trial if correction is enabled and last trial was incorrect AND last trial was not the location of the probes - this is to help retain the rule for 3-choice testing in pre-lesion animals
 	public static bool CurrentlyCorrectionTrial() {
-		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 && !probeIdx.Contains(GetIdxOfStimLoc(targetLoc[firstTurnLoc.Count-1].x)))  // Must be firstTurnLoc, as additional targets may have been added for the current trial
+		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 && 
+			(optoSide == optoOff && !probeIdx.Contains (GetIdxOfStimLoc (targetLoc [firstTurnLoc.Count - 1].x)) || 
+			(optoSide != optoOff && optoStates[firstTurnLoc.Count - 1] == optoOff))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial
 			return true;
-		return false;
+		} else { 
+			return false;
+		}
 	}
 
 	// Modified to support multi-worlds in a single scenario

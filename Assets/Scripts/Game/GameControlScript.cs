@@ -518,17 +518,26 @@ public class GameControlScript : MonoBehaviour
 		float angle;
 		float distractorAngle;  // we will use 360 as the null value
 		int worldID;
+		int optoState = Globals.optoOff;
+
+		// Do this tally early, before optostate might change, which will affect this in the current implementation where the optostate history is not tracked in memory
+		if (Globals.CurrentlyCorrectionTrial()) {
+			Globals.correctionTrialMarks.Add (1);
+		} else {
+			Globals.correctionTrialMarks.Add (0);
+		}
 
 		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo!
 		// So if this is not a correction trial, then re-render everything per usual
 		if (Globals.CurrentlyCorrectionTrial ()) {
+			Debug.Log ("in correction trial");
 			loc = Globals.targetLoc [Globals.targetLoc.Count - 1];
 			hfreq = Globals.targetHFreq [Globals.targetHFreq.Count - 1];
 			vfreq = Globals.targetVFreq [Globals.targetVFreq.Count - 1];
 			angle = Globals.targetAngle [Globals.targetAngle.Count - 1];
 			worldID = Globals.worldID [Globals.worldID.Count - 1];
 			distractorAngle = Globals.distractorAngle [Globals.distractorAngle.Count - 1];
-			udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoState);  // Just reuse the last optoState for optogenetic correction trials
+			optoState = Globals.optoStates [Globals.optoStates.Count - 1];
 			Globals.worldID.Add(worldID);  		// Record which world this trial is on - must happen before below
 		} else {
 			Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again
@@ -554,6 +563,7 @@ public class GameControlScript : MonoBehaviour
 			vfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 			angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 			distractorAngle = 360;  // we will use 360 as the null value
+
 
 			int treeToActivate = 0;
 			float r = UnityEngine.Random.value;
@@ -1025,57 +1035,47 @@ public class GameControlScript : MonoBehaviour
 			// OPTOGENETICS!
 			if (Globals.optoSide != -1) {  // A side for optogenetics was specified
 				if (Globals.optoAlternation) {  // If it should alternate, then alternate it, with every even trial getting light on  NOTE: this feature does not support LorR
-					if (Globals.probeIdx.Contains(treeToActivate)) { 				// if the current trial is a probe trial
+					if (Globals.probeIdx.Contains (treeToActivate)) { 				// if the current trial is a probe trial
 						if (Globals.probeLastOpto == false) {  // if the last trial was light OFF, turn light on this time
-							int opto = -1;
 							if (Globals.optoSide == Globals.optoLorR) {
-								opto = Globals.optoL;
+								optoState = Globals.optoL;
 							} else {
-								opto = Globals.optoSide;
+								optoState = Globals.optoSide;
 							}
-							udpSender.GetComponent<UDPSend> ().OptoTurnOn (opto);
 						}
 						Globals.probeLastOpto = !Globals.probeLastOpto;  // regardless of whether last probe was light on or off, alternate
-					} else if (!Globals.probeIdx.Contains(treeToActivate) && Globals.numNonCorrectionTrials % 2 == 0) {
-						int opto = -1;
+					} else if (!Globals.probeIdx.Contains (treeToActivate) && Globals.numNonCorrectionTrials % 2 == 0) {
 						if (Globals.optoSide == Globals.optoLorR) {
-							opto = Globals.optoL;
+							optoState = Globals.optoL;
 						} else {
-							opto = Globals.optoSide;
+							optoState = Globals.optoSide;
 						}
-						udpSender.GetComponent<UDPSend> ().OptoTurnOn (opto);
 					}
 				} else {
 					if (Globals.blockSize > 0) {
-						udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.precompOptoBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize]);
+						optoState = Globals.precompOptoBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
 					} else {
 						float rOpto = UnityEngine.Random.value;
 						if (rOpto < Globals.optoFraction) {  // also does not support optoLorR
-							int opto = -1;
 							if (Globals.optoSide == Globals.optoLorR) {
-								opto = Globals.optoL;
+								optoState = Globals.optoL;
 							} else {
-								opto = Globals.optoSide;
+								optoState = Globals.optoSide;
 							}
-							udpSender.GetComponent<UDPSend> ().OptoTurnOn (opto);
 						}
 					}
 				}
 			}
-		}
+		} 
 
         Globals.targetLoc.Add(loc);
         Globals.targetHFreq.Add(hfreq);
         Globals.targetVFreq.Add(vfreq);
 		Globals.targetAngle.Add(angle);
 		Globals.distractorAngle.Add (distractorAngle);
-
-		if (Globals.CurrentlyCorrectionTrial()) {
-			Globals.correctionTrialMarks.Add (1);
-		} else {
-			Globals.correctionTrialMarks.Add (0);
-		}
-			
+		udpSender.GetComponent<UDPSend> ().OptoTurnOn (optoState);  // Just reuse the last optoState for optogenetic correction trials
+		Globals.optoStates.Add (optoState);
+					
         this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);
 		this.movementRecorder.SetFileSet(true);
