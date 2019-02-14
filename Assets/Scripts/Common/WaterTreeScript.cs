@@ -305,10 +305,10 @@ public class WaterTreeScript : MonoBehaviour {
         if (respawn) {
 			if (!Globals.CurrentlyCorrectionTrial ()) {
 				Globals.numNonCorrectionTrials++;
-				Debug.Log ("next trial is non-correction trial");
+				//Debug.Log ("next trial is non-correction trial");
 			} else {  // Might be off by 1 bug here, as nonCorrectionTrials is the current trial #, but numCorrectionTrials is the total number of correction trials
 				Globals.numCorrectionTrials++;
-				Debug.Log ("next trial is Correction trial");
+				//Debug.Log ("next trial is Correction trial");
 			}
 			Globals.trialDelay = interTrialInterval;
             GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
