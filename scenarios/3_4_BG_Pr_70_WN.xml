@@ -13,6 +13,8 @@
 			<alternateWorlds>true</alternateWorlds>
 			<biasCorrection>true</biasCorrection>
 			<correctionTrials>true</correctionTrials>
+			<probReward>0.70</probReward>
+			<probabilisticWhiteNoiseWhenNoReward>true</probabilisticWhiteNoiseWhenNoReward>  <!-- also includes timeout -->
 		</gameConfig>
 	</config>
 	<worlds>
@@ -26,6 +28,7 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
+					<r>0</r>
 				</t>
 				<t> <!-- Right tree -->
 					<w>1</w>
@@ -34,6 +37,7 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
+					<r>2</r>
 				</t>
 				<t> <!-- Center tree -->
 					<w>1</w>
@@ -128,7 +132,7 @@
 			</walls>
 		</world>
 		<world> <!-- 4-choice -->
-			<gameType>detection</gameType>
+			<gameType>detection</gameType>          <!-- Options: match, nonmatch -->
 			<trees>  <!-- All tree X positions are different, as used as an ID -->
 				<t> <!-- Left front tree -->
 					<w>1</w>
@@ -138,6 +142,7 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
+					<r>0</r>
 				</t>
 				<t> <!-- Right front tree -->
 					<w>1</w>
@@ -147,6 +152,7 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
+					<r>2</r>
 				</t>
 				<t> <!-- Left back tree -->
 					<w>1</w>
@@ -156,6 +162,7 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
+					<r>0</r>
 				</t>
 				<t> <!-- Right back tree -->
 					<w>1</w>
@@ -165,6 +172,7 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
+					<r>2</r>
 				</t>
 			</trees>
 			<walls> <!-- Walls listed in clockwise order -->

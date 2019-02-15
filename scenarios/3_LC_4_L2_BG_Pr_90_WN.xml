@@ -11,8 +11,10 @@
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
 			<treesBelowGround>true</treesBelowGround>
 			<alternateWorlds>true</alternateWorlds>
-			<biasCorrection>true</biasCorrection>
 			<correctionTrials>true</correctionTrials>
+			<biasCorrection>true</biasCorrection>
+			<probReward>0.90</probReward>
+			<probabilisticWhiteNoiseWhenNoReward>true</probabilisticWhiteNoiseWhenNoReward>  <!-- also includes timeout -->
 		</gameConfig>
 	</config>
 	<worlds>
@@ -26,22 +28,14 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
-				</t>
-				<t> <!-- Right tree -->
-					<w>1</w>
-					<pos>20025;-16;20026</pos>
-					<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>4</v>
-					<h>2</h>
-					<d>0</d>
+					<r>0</r>
 				</t>
 				<t> <!-- Center tree -->
 					<w>1</w>
 					<pos>20000;-16;20046</pos>
-					<scale>0;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+					<d>0</d>
 					<v>0</v>  <!-- Vfreq of gradient -->
 					<h>2</h>  <!-- Hfreq of gradient -->
-					<d>0</d>
 				</t>
 			</trees>
 			<walls>
@@ -128,7 +122,7 @@
 			</walls>
 		</world>
 		<world> <!-- 4-choice -->
-			<gameType>detection</gameType>
+			<gameType>detection</gameType>          <!-- Options: match, nonmatch -->
 			<trees>  <!-- All tree X positions are different, as used as an ID -->
 				<t> <!-- Left front tree -->
 					<w>1</w>
@@ -138,15 +132,7 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
-				</t>
-				<t> <!-- Right front tree -->
-					<w>1</w>
-					<pos>20027;-16;20006</pos>
-					<rot>0;45;0</rot>
-					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>4</v>
-					<h>2</h>
-					<d>0</d>
+					<r>0</r>
 				</t>
 				<t> <!-- Left back tree -->
 					<w>1</w>
@@ -156,15 +142,7 @@
 					<v>4</v>
 					<h>2</h>
 					<d>0</d>
-				</t>
-				<t> <!-- Right back tree -->
-					<w>1</w>
-					<pos>20028;-16;20050</pos>
-					<rot>0;0;0</rot>
-					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>4</v>
-					<h>2</h>
-					<d>0</d>
+					<r>0</r>
 				</t>
 			</trees>
 			<walls> <!-- Walls listed in clockwise order -->
