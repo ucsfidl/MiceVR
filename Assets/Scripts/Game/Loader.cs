@@ -481,7 +481,21 @@ public class Loader : MonoBehaviour {
 					Debug.Log (gameTypeStr);
 				}
  				Globals.AddGameTypeToWorld (worldNum, gameTypeStr);
-					
+
+				XmlNodeList probeIdxNodes = world.GetElementsByTagName ("probeIdx");
+				if (probeIdxNodes.Count == 1) {
+					string[] probeIdx = probeIdxNodes.Item (0).InnerText.Split (';');
+					for (int i = 0; i < probeIdx.Length; i++) {
+						int tmp;
+						int.TryParse (probeIdx [i], out tmp);
+						Globals.AddProbeIdxToWorld (worldNum, tmp);
+					}
+				} else { // For backward compatibility with old scenarios which did not specify the probeIdx at the world level
+					foreach (int i in Globals.probeIdx) {
+						Globals.AddProbeIdxToWorld (worldNum, i);
+					}
+				}
+
 				XmlNodeList treeList = world.GetElementsByTagName("t"); // array of the tree nodes
 				foreach (XmlNode node in treeList) {
 					bool water = false;

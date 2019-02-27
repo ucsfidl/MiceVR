@@ -570,9 +570,10 @@ public class GameControlScript : MonoBehaviour
 
 			// PRECOMPUTE TRIAL ORDER if BLOCKS ENABLED
 			// Support pre-computing blocks of trials, at the beginning and after each block
-			// Only supports pre-computing for single-world levels to start
+			// Added support for multi-world blocks
 			// Only works with bias-correction disabled
-			if (Globals.blockSize > 0 && !Globals.biasCorrection && Globals.numNonCorrectionTrials % Globals.blockSize == 1) {
+			//Debug.Log(Math.Ceiling((double)Globals.numNonCorrectionTrials / Globals.worlds.Count) % Globals.blockSize);
+			if (Globals.blockSize > 0 && !Globals.biasCorrection && Math.Ceiling((double)Globals.numNonCorrectionTrials / Globals.worlds.Count) % Globals.blockSize == 1) {
 				int numTrees = gos.Count ();
 				int[] precompTrialBlock = new int[Globals.blockSize];
 
@@ -628,7 +629,7 @@ public class GameControlScript : MonoBehaviour
 				Debug.Log (String.Join (",", stimLocs.Select (x => x.ToString ()).ToArray ()));
 				Debug.Log (String.Join (",", precompTrialBlock.Select (x => x.ToString ()).ToArray ()));
 
-				Globals.precompTrialBlock = precompTrialBlock;
+				Globals.SetCurrentWorldPrecompTrialBlock(precompTrialBlock);
 
 				// Next, if optoAlternation is turned off and this is an opto game, precompute the opto state for each trial
 				if (Globals.optoSide != -1 && !Globals.optoAlternation) { // an optoSide was specified and optoAlternation is turned off
@@ -718,7 +719,7 @@ public class GameControlScript : MonoBehaviour
 
 					if (gos.Length == 2) {
 						if (Globals.blockSize > 0) {
-							treeToActivate = Globals.precompTrialBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
+							treeToActivate = Globals.GetTreeToActivateFromBlock ();
 						}
 						SetupTreeActivation (gos, treeToActivate, 2);
 					} else if (gameType.Equals ("det_target")) {
@@ -769,7 +770,7 @@ public class GameControlScript : MonoBehaviour
 					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 				} else if (gos.Length == 4) {
 					if (Globals.blockSize > 0) {
-						treeToActivate = Globals.precompTrialBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
+						treeToActivate = Globals.GetTreeToActivateFromBlock();
 					} else {
 						float thresh0 = 0.25F;
 						float thresh1 = 0.5F;
@@ -809,7 +810,7 @@ public class GameControlScript : MonoBehaviour
 			} else if (gameType.Equals ("det_blind")) {
 				if (gos.Length == 3) {
 					if (Globals.blockSize > 0) {
-						treeToActivate = Globals.precompTrialBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
+						treeToActivate = Globals.GetTreeToActivateFromBlock();
 					} else {
 						double thresh0 = 0.333D;
 						double thresh1 = 0.666D;
@@ -895,7 +896,7 @@ public class GameControlScript : MonoBehaviour
 					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 				} else if (gos.Length == 2) { // For training lesioned animals who have not been previously trained
 					if (Globals.blockSize > 0) {
-						treeToActivate = Globals.precompTrialBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
+						treeToActivate = Globals.GetTreeToActivateFromBlock();
 					} else {
 						float rThresh0 = 0.5F;
 						if (Globals.presoRatio > 0) { // Works for 2-choice only, YN and 2AFC
