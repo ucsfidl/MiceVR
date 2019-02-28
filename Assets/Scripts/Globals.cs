@@ -122,7 +122,6 @@ public static class Globals
 	public static int blockSize = -1;  // Indicates the number of trials over which the ratio of stimuli presentation is guaranteed to hit a target; -1 indicates no blockSize specified, so flip a coin on each trial
 	public static bool presoFracSpecified = false;
 	public static float probReward = 1;
-	public static int[] precompOptoBlock;  // Indicates optogenetic state on each trial - used to limit light exposure instead of alternating each trial - used if optoAlternation is set to false in the scenario
 
 	public static float speedAdjustment = 1;  // Used to adjust speed on a per scenario basis instead of a per-rig basis, so I can have multiple speed mice running at the same time
 
@@ -183,6 +182,7 @@ public static class Globals
 		public List<int> numTurnsToStimLoc;
 
 		public int[] precompTrialBlock;
+		public int[] precompOptoBlock;  // Indicates optogenetic state on each trial - used to limit light exposure instead of alternating each trial - used if optoAlternation is set to false in the scenario
 		public List<int> probeIdx;  // This is the tree index of the rarest tree, also considered the probe tree - correction trials, if enabled, will not be performed for this tree
 	}
 
@@ -306,6 +306,7 @@ public static class Globals
 	public static void AddProbeIdxToWorld(int worldNum, int probeIdx) {
 		World w = GetWorld (worldNum);
 		w.probeIdx.Add (probeIdx);
+		//Debug.Log ("Added probe " + probeIdx);
 		AddWorldToWorldList (w);
 	}
 
@@ -346,6 +347,12 @@ public static class Globals
 	public static void SetCurrentWorldPrecompTrialBlock(int[] precompTrialBlock) {
 		World w = worlds [worldID [worldID.Count - 1]];
 		w.precompTrialBlock = precompTrialBlock;
+		worlds [worldID [worldID.Count - 1]] = w;
+	}
+
+	public static void SetCurrentWorldPrecompOptoBlock(int[] precompOptoBlock) {
+		World w = worlds [worldID [worldID.Count - 1]];
+		w.precompOptoBlock = precompOptoBlock;
 		worlds [worldID [worldID.Count - 1]] = w;
 	}
 
@@ -984,6 +991,7 @@ public static class Globals
 
 	// Only enter a correction trial if correction is enabled and last trial was incorrect AND last trial was not the location of the probes - this is to help retain the rule for 3-choice testing in pre-lesion animals
 	public static bool CurrentlyCorrectionTrial() {
+		//Debug.Log (GetCurrentWorld ().probeIdx.ToString ());
 		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 && 
 			(optoSide == optoOff && !GetCurrentWorld().probeIdx.Contains (GetIdxOfStimLoc (targetLoc [firstTurnLoc.Count - 1].x)) || 
 			(optoSide != optoOff && optoStates[firstTurnLoc.Count - 1] == optoOff))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial

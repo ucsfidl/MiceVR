@@ -684,8 +684,8 @@ public class GameControlScript : MonoBehaviour
 							lastIdx = currIdx + 1;
 						}
 					}
-						Debug.Log (String.Join (",", precompOptoBlock.Select (x => x.ToString ()).ToArray ()));
-					Globals.precompOptoBlock = precompOptoBlock;
+					Debug.Log (String.Join (",", precompOptoBlock.Select (x => x.ToString ()).ToArray ()));
+					Globals.SetCurrentWorldPrecompOptoBlock(precompOptoBlock);
 				}
 			}
 			// END PRECOMPUTE TRIAL ORDERS FOR BLOCKS
@@ -1057,7 +1057,7 @@ public class GameControlScript : MonoBehaviour
 					}
 				} else {
 					if (Globals.blockSize > 0) {
-						optoState = Globals.precompOptoBlock [(Globals.numNonCorrectionTrials - 1) % Globals.blockSize];
+						optoState = Globals.GetCurrentWorld().precompOptoBlock [(int)Math.Ceiling((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize];
 					} else {
 						float rOpto = UnityEngine.Random.value;
 						if (rOpto < Globals.optoFraction) {  // also does not support optoLorR
