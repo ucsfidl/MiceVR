@@ -684,7 +684,7 @@ public class GameControlScript : MonoBehaviour
 							lastIdx = currIdx + 1;
 						}
 					}
-					Debug.Log (String.Join (",", precompOptoBlock.Select (x => x.ToString ()).ToArray ()));
+						Debug.Log (String.Join (",", precompOptoBlock.Select (x => x.ToString ()).ToArray ()));
 					Globals.precompOptoBlock = precompOptoBlock;
 				}
 			}
@@ -720,6 +720,9 @@ public class GameControlScript : MonoBehaviour
 					if (gos.Length == 2) {
 						if (Globals.blockSize > 0) {
 							treeToActivate = Globals.GetTreeToActivateFromBlock ();
+							hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+							vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+							angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 						}
 						SetupTreeActivation (gos, treeToActivate, 2);
 					} else if (gameType.Equals ("det_target")) {
