@@ -669,7 +669,7 @@ public class GameControlScript : MonoBehaviour
 						for (int j = 0; j < numTrialsPerStimLoc [i] - numOptoOn; j++) {
 							optoStates.Add (Globals.optoOff);
 						}
-						Debug.Log (String.Join(",", optoStates.Select(x=>x.ToString()).ToArray()));
+						//Debug.Log (String.Join(",", optoStates.Select(x=>x.ToString()).ToArray()));
 						// While optoStates left, assign them randomly
 						int lastIdx = 0;
 						while (true) {
