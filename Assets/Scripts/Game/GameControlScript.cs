@@ -1209,7 +1209,7 @@ public class GameControlScript : MonoBehaviour
 
 	private void updateTrialsText() {
 		this.numberOfTrialsText.text = "Trial: #" + Globals.numNonCorrectionTrials.ToString ();
-		if (Globals.CurrentlyCorrectionTrial ())
+		if (Globals.CurrentlyCorrectionTrial () && Globals.worldID[Globals.worldID.Count - 1] == Globals.worldID[Globals.worldID.Count - 2])  // Need to make sure current world is same as prev to keep this label up
 			this.numberOfTrialsText.text += " (CORRECTION)";
 	}
 
