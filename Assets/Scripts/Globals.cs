@@ -132,6 +132,8 @@ public static class Globals
 	public static int numNonCorrectionTrials;  // Initialized in code to 1
 	public static int numCorrectionTrials = 0;  // Used to count number of correction trials, which is recorded in the stats file
 
+	public static bool lightOnDuringITI = false;
+
 	public struct fov {
 		public float nasalBound;
 		public float tempBound;

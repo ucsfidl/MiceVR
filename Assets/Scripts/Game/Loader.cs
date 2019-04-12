@@ -434,6 +434,14 @@ public class Loader : MonoBehaviour {
 						Globals.correctionTrialsEnabled = false;
 				}
 
+				if (xn ["lightOnDuringITI"] != null) {
+					string xml = xn["lightOnDuringITI"].InnerText;
+					if (xml.Equals("true"))
+						Globals.lightOnDuringITI = true;
+					else
+						Globals.lightOnDuringITI = false;
+				}
+
 				if (xn ["alternateWorlds"] != null) {
 					string xml = xn["alternateWorlds"].InnerText;
 					if (xml.Equals("true"))
@@ -468,6 +476,7 @@ public class Loader : MonoBehaviour {
 				if (xn ["adaptPosEndIdx"] != null) {
 					int.TryParse(xn["adaptPosEndIdx"].InnerText, out Globals.adaptPosEndIdx);
 				}
+
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");
