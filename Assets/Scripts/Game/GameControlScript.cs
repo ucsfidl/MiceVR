@@ -661,6 +661,7 @@ public class GameControlScript : MonoBehaviour
 									flag = 1;
 								} else {
 									optoStates.Add (Globals.optoR);
+									flag = 0;
 								}
 							} else {
 								optoStates.Add (Globals.optoSide);
