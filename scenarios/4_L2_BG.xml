@@ -15,6 +15,7 @@
 			<biasCorrection>true</biasCorrection>
 		</gameConfig>
 	</config>
+	<worlds>
 		<world> <!-- 4-choice -->
 			<gameType>detection</gameType>          <!-- Options: match, nonmatch -->
 			<trees>  <!-- All tree X positions are different, as used as an ID -->
