@@ -11,7 +11,7 @@
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
 			<treesBelowGround>true</treesBelowGround>
 			<alternateWorlds>true</alternateWorlds>
-			<biasCorrection>true</biasCorrection>
+			<biasCorrection>false</biasCorrection>
 			<correctionTrials>true</correctionTrials>
 			<probReward>0.70</probReward>
 			<probabilisticWhiteNoiseWhenNoReward>true</probabilisticWhiteNoiseWhenNoReward>  <!-- also includes timeout -->
