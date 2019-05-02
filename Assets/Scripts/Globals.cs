@@ -996,7 +996,7 @@ public static class Globals
 		//Debug.Log (GetCurrentWorld ().probeIdx.ToString ());
 		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 && 
 			(optoSide == optoOff && !GetCurrentWorld().probeIdx.Contains (GetIdxOfStimLoc (targetLoc [firstTurnLoc.Count - 1].x)) || 
-			(optoSide != optoOff && optoStates[firstTurnLoc.Count - 1] == optoOff))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial
+				(optoSide != optoOff && (optoStates[firstTurnLoc.Count - 1] == optoOff || (GetCurrentWorld().probeIdx.Count > 0 && !GetCurrentWorld().probeIdx.Contains (GetIdxOfStimLoc (targetLoc [firstTurnLoc.Count - 1].x))))))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial
 			return true;
 		} else { 
 			return false;
