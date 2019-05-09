@@ -51,7 +51,7 @@
 					<v>0</v>  <!-- Vfreq of gradient -->
 					<h>2</h>  <!-- Hfreq of gradient -->
 					<d>0</d>
-					<presoFrac>0.35/presoFrac>					
+					<presoFrac>0.35</presoFrac>					
 				</t>
 			</trees>
 			<walls>
