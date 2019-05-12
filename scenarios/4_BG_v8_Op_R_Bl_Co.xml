@@ -15,7 +15,7 @@
 			<optoSide>R</optoSide>
 			<optoAlternation>false</optoAlternation>
 			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
-			<probeIdx>1;3</probeIdx>
+			<probeIdx>0;2</probeIdx>
 			<correctionTrials>true</correctionTrials>  <!-- correction trials are NOT counted in any statistical calculations -->
 		</gameConfig>
 	</config>
