@@ -19,6 +19,7 @@
 			<presoFracSpecified>true</presoFracSpecified>
 			<correctionTrials>true</correctionTrials>  <!-- correction trials are NOT counted in any statistical calculations; correction trials will only occur on non-opto trials -->
 			<lightOnDuringITI>true</lightOnDuringITI>
+			<probeIdx>1</probeIdx>
 		</gameConfig>
 	</config>
 	<worlds>
