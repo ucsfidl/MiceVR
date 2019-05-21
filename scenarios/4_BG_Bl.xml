@@ -20,7 +20,7 @@
 			<trees>  <!-- All tree X positions are different, as used as an ID -->
 				<t> <!-- Left front tree -->
 					<w>1</w>
-					<pos>19977;-16;20010</pos>
+					<pos>19973;-16;20006</pos>
 					<rot>0;-45;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>4</v>
@@ -30,7 +30,7 @@
 				</t>
 				<t> <!-- Right front tree -->
 					<w>1</w>
-					<pos>20023;-16;20010</pos>
+					<pos>20027;-16;20006</pos>
 					<rot>0;45;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>4</v>
@@ -40,8 +40,8 @@
 				</t>
 				<t> <!-- Left back tree -->
 					<w>1</w>
-					<pos>19978;-16;20056</pos>
-					<rot>0;45;0</rot>
+					<pos>19972;-16;20050</pos>
+					<rot>0;0;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>4</v>
 					<h>2</h>
@@ -50,8 +50,8 @@
 				</t>
 				<t> <!-- Right back tree -->
 					<w>1</w>
-					<pos>20022;-16;20056</pos>
-					<rot>0;-45;0</rot>
+					<pos>20028;-16;20050</pos>
+					<rot>0;0;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>4</v>
 					<h>2</h>
