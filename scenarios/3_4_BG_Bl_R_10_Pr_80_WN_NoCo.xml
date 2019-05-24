@@ -164,7 +164,7 @@
 				</t>
 				<t> <!-- Left back tree -->
 					<w>1</w>
-					<pos>19972;-16;20050</pos>
+					<pos>19972;-16;20045</pos>
 					<rot>0;0;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>4</v>
@@ -175,7 +175,7 @@
 				</t>
 				<t> <!-- Right back tree -->
 					<w>1</w>
-					<pos>20028;-16;20050</pos>
+					<pos>20028;-16;20045</pos>
 					<rot>0;0;0</rot>
 					<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 					<v>4</v>
