@@ -77,6 +77,9 @@ for j = 1:size(results,1)
     disp(['Overall = ' num2str((results(j,1) + results(j,3)) / (results(j,2)+results(j,4)) * 100, 2) '%']);
     disp(['Left = ' num2str(results(j,1) / results(j,2) * 100, 2) '%']);
     disp(['Right = ' num2str(results(j,3) / results(j,4) * 100, 2) '%']);
+    disp(['hit rate = '  num2str(round(results(j,1) / results(j,2), 2)*100) '%']);
+    disp(['false alarm rate = ' num2str(round((results(j,4)-results(j,3)) / results(j,4), 2)*100) '%']);
+    disp(['d'' = ' num2str(round(1/sqrt(2) * (norminv(results(j,1) /results(j,2)) - norminv((results(j,4)-results(j,3)) / results(j,4))), 2))]);
     disp('-----------')
 end
 

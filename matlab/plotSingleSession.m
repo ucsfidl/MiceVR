@@ -1,4 +1,4 @@
-function plotSingleSession(mouseName, days, sessions)
+function plotSingleSession(mouseName, days, sessions, includeCorrectionTrials)
 % This script takes an actions file, as defined with the params above, and
 % plots the actions vs. the stimulus as a single row, color-coded.  A thin
 % blue line on top shows whether optogenetics light is on or not.
@@ -71,6 +71,11 @@ for i=1:length(fileList)
                         optoLoc = C{17}(k);
                         
                         recRew = C{15}(k);
+
+                        isCorrectionTrial = C{21}(k);
+                        if (isCorrectionTrial && ~includeCorrectionTrials)
+                            continue;
+                        end                        
                         
                         % Supports 3-choice for now - support 4-choice later.
                         if (stimLoc < centerX)
