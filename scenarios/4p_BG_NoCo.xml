@@ -12,6 +12,7 @@
 			<gameTurnControl>yaw</gameTurnControl>
 			<treesBelowGround>true</treesBelowGround>
 			<correctionTrials>false</correctionTrials>
+			<biasCorrection>true</biasCorrection>
 		</gameConfig>
 	</config>
 	<worlds>
