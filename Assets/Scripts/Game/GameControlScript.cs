@@ -603,16 +603,18 @@ public class GameControlScript : MonoBehaviour
 				// Guarantee that there is a probe trial in each block, regardless of probe probability
 				while (true) {
 					List<int> stimLocsCopy = new List<int> (stimLocs);
+					int ran, currStim;
 					for (int i = 0; i < Globals.blockSize; i++) {
-						int ran = UnityEngine.Random.Range (0, stimLocsCopy.Count ());
+						ran = UnityEngine.Random.Range (0, stimLocsCopy.Count ());
+						currStim = stimLocsCopy [ran];
 						precompTrialBlock [i] = stimLocsCopy [ran];
 						stimLocsCopy.RemoveAt (ran);
 					}
-					if (Globals.probeIdx.Count == 0) {
+					if (Globals.GetCurrentWorld().probeIdx.Count == 0) {
 						break;
 					}
 					bool allProbesFound = false;
-					foreach (int pid in Globals.probeIdx) {
+					foreach (int pid in Globals.GetCurrentWorld().probeIdx) {
 						if (precompTrialBlock.Contains (pid)) {
 							allProbesFound = true;
 						} else {
@@ -620,10 +622,28 @@ public class GameControlScript : MonoBehaviour
 							break;
 						}
 					}
-					if (allProbesFound) {
+					// Ensure never 2 identical probes in a row, and that first trial in each block is not a probe, for when lesion or light always on
+					bool noRepeatProbes = true;
+					if (Globals.optoSide == Globals.optoOff || (Globals.optoSide != Globals.optoOff && Globals.optoTrialsPerBlock == Globals.blockSize)) {
+						if (Globals.GetCurrentWorld().probeIdx.Contains (precompTrialBlock [0])) {
+							noRepeatProbes = false;
+						} else {
+							int lastId = precompTrialBlock [0];
+							foreach (int id in precompTrialBlock.Skip(1)) {
+								if (Globals.GetCurrentWorld().probeIdx.Contains (id) && id == lastId) {
+									noRepeatProbes = false;
+									break;
+								}
+								lastId = id;
+							}
+						}
+					}
+					Debug.Log (String.Join (",", precompTrialBlock.Select (x => x.ToString ()).ToArray ()));
+						
+					if (allProbesFound && noRepeatProbes) {
 						break;
 					} else {
-						Debug.Log ("Did not get probe included in precompTrialBlock, so regenerate again");	
+						Debug.Log ("Violated probe placement policies, try again");	
 					}
 				}
 				Debug.Log (String.Join (",", stimLocs.Select (x => x.ToString ()).ToArray ()));
