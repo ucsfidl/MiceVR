@@ -1,0 +1,25 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>false</biasCorrection>
+			<optoSide>LorR</optoSide>
+			<optoAlternation>false</optoAlternation>
+			<optoTrialsPerBlock>2</optoTrialsPerBlock>
+			<blockSize>24</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+			<correctionTrials>true</correctionTrials>  <!-- correction trials are NOT counted in any statistical calculations; correction trials will only occur on non-opto trials -->
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_3_BG.xml</includeWorld>
+	</worlds>
+</document>

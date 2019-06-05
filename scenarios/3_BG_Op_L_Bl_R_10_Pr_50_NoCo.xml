@@ -16,116 +16,11 @@
 			<optoAlternation>false</optoAlternation>  <!-- if false, only shine light at the presoFrac -->
 			<presoFracSpecified>true</presoFracSpecified>
 			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
-			<probeIdx>1</probeIdx>
 			<probReward>0.50</probReward>
 			<correctionTrials>false</correctionTrials>  <!-- correction trials are NOT counted in any statistical calculations -->
 		</gameConfig>
 	</config>
 	<worlds>
-		<world>
-			<trees>
-				<t> <!-- Left tree -->
-					<w>1</w>
-					<pos>19975;-16;20028</pos>
-					<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>4</v>
-					<h>2</h>
-					<d>0</d>
-					<r>0</r>
-					<presoFrac>0.45</presoFrac>
-				</t>
-				<t> <!-- Right tree -->
-					<w>1</w>
-					<pos>20025;-16;20028</pos>
-					<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>4</v>
-					<h>2</h>
-					<d>0</d>
-					<r>2</r>
-					<presoFrac>0.1</presoFrac>
-				</t>
-				<t> <!-- Center tree -->
-					<w>1</w>
-					<pos>20000;-16;20046</pos>
-					<scale>0;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-					<v>0</v>  <!-- Vfreq of gradient -->
-					<h>2</h>  <!-- Hfreq of gradient -->
-					<d>0</d>
-					<presoFrac>0.45</presoFrac>
-				</t>
-			</trees>
-			<walls>
-				<wall> <!-- Left wall -->
-					<pos>19994;0.5;20005</pos>
-					<rot>0;0;0</rot>
-					<scale>2;0;17</scale>
-				</wall>
-				<wall> <!-- Left diagonal wall -->
-					<pos>19991;0.5;20016</pos>
-					<rot>0;-30;0</rot>
-					<scale>2;0;9</scale>
-				</wall>
-				<wall> <!-- Left front wall -->
-					<pos>19982;0.5;20019</pos>
-					<rot>0;270;0</rot>
-					<scale>2;0;14</scale>
-				</wall>
-				<wall> <!-- Left Closing wall -->
-					<pos>19976;0.5;20028</pos>
-					<rot>0;0;0</rot>
-					<scale>2;0;19.1</scale>
-				</wall>
-				<wall> <!-- Left Back wall -->
-					<pos>19986;0.5;20037</pos>
-					<rot>0;270;0</rot>
-					<scale>2;0;19.1</scale>
-				</wall>
-				<wall> <!-- Left back receding wall -->
-					<pos>19994;0.5;20047</pos>
-					<rot>0;0;0</rot>
-					<scale>2;0;20</scale>
-				</wall>
-				<wall> <!-- Back wall -->
-					<pos>20000;0.5;20050.5</pos>
-					<rot>0;270;0</rot>
-					<scale>2;0;20</scale>
-				</wall>
-				<wall> <!-- Right back receding wall -->
-					<pos>20006;0.5;20047</pos>
-					<rot>0;0;0</rot>
-					<scale>2;0;20</scale>
-				</wall>
-				<wall> <!-- Right Back wall -->
-					<pos>20014;0.5;20037</pos>
-					<rot>0;270;0</rot>
-					<scale>2;0;19.1</scale>
-				</wall>
-				<wall> <!-- Right Closing wall -->
-					<pos>20024;0.5;20028</pos>
-					<rot>0;0;0</rot>
-					<scale>2;0;19.1</scale>
-				</wall>
-				<wall> <!-- Right front wall -->
-					<pos>20018;0.5;20019</pos>
-					<rot>0;270;0</rot>
-					<scale>2;0;14</scale>
-				</wall>
-				<wall> <!-- Right diagonal wall -->
-					<pos>20009;0.5;20016</pos>
-					<rot>0;30;0</rot>
-					<scale>2;0;9</scale>
-				</wall>
-				<wall> <!-- Right wall -->
-					<pos>20006;0.5;20005</pos>
-					<rot>0;0;0</rot>
-					<scale>2;0;17</scale>
-				</wall>
-				<wall> <!-- Front wall -->
-					<pos>20000;0.5;19994</pos>
-					<rot>0;90.00003;0</rot>
-					<scale>2;0;15</scale>
-				</wall>
-			</walls>
-		</world>
+		<includeWorld>inc_world_3_BG_R_10.xml</includeWorld>
 	</worlds>
 </document>

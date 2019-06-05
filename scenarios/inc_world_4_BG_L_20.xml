@@ -1,0 +1,153 @@
+<world> <!-- 4-choice -->
+	<gameType>detection</gameType>          <!-- Options: match, nonmatch -->
+	<probeIdx>0;2</probeIdx>
+	<trees>  <!-- All tree X positions are different, as used as an ID -->
+		<t> <!-- Left front tree -->
+			<w>1</w>
+			<pos>19973;-16;20006</pos>
+			<rot>0;-45;0</rot>
+			<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>2</h>
+			<d>0</d>
+			<r>0</r>
+			<presoFrac>0.1</presoFrac>
+		</t>
+		<t> <!-- Right front tree -->
+			<w>1</w>
+			<pos>20027;-16;20006</pos>
+			<rot>0;45;0</rot>
+			<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>2</h>
+			<d>0</d>
+			<r>2</r>
+			<presoFrac>0.4</presoFrac>
+		</t>
+		<t> <!-- Left back tree -->
+			<w>1</w>
+			<pos>19972;-16;20045</pos>
+			<rot>0;0;0</rot>
+			<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>2</h>
+			<d>0</d>
+			<r>0</r>
+			<presoFrac>0.1</presoFrac>
+		</t>
+		<t> <!-- Right back tree -->
+			<w>1</w>
+			<pos>20028;-16;20045</pos>
+			<rot>0;0;0</rot>
+			<scale>3;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>2</h>
+			<d>0</d>
+			<r>2</r>
+			<presoFrac>0.4</presoFrac>
+		</t>
+	</trees>
+	<walls> <!-- Walls listed in clockwise order -->
+		<wall> <!-- Left wall -->
+			<pos>19994;0.5;20003</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;13</scale>
+		</wall>
+		
+		<!-- LEFT FRONT ARM -->
+		<wall> <!-- Left Front Arm: Entrance diagonal wall -->
+			<pos>19992;0.5;20012</pos>
+			<rot>0;-30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Left Front Arm: Left wall -->
+			<pos>19985;0.5;20010</pos>
+			<rot>0;-135;0</rot>
+			<scale>2;0;17</scale>
+		</wall>
+		<wall> <!-- Left Front Arm: Back wall -->
+			<pos>19978;0.5;20010</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
+		<wall> <!-- Left Front Arm: Right wall -->
+			<pos>19982;0.5;20023</pos>
+			<rot>0;-135;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+
+		<!-- LEFT BACK ARM -->
+		<wall> <!-- Left Back Arm: Left wall -->
+			<pos>19979;0.5;20034</pos>
+			<rot>0;-45;0</rot>
+			<scale>2;0;21</scale>
+		</wall>
+		<wall> <!-- Left Back Arm: Back wall -->
+			<pos>19983.5;0.5;20050</pos>
+			<rot>0;45;0</rot>
+			<scale>2;0;24</scale>
+		</wall>
+		<wall> <!-- Left Back Arm: Right wall -->
+			<pos>19993.5;0.5;20050</pos>
+			<rot>0;-45;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
+		
+		<!-- RIGHT BACK ARM -->
+		<wall> <!-- Right Back Arm: Left wall -->
+			<pos>20006.5;0.5;20050</pos>
+			<rot>0;45;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
+		<wall> <!-- Right Back Arm: Back wall -->
+			<pos>20016.5;0.5;20050</pos>
+			<rot>0;-45;0</rot>
+			<scale>2;0;24</scale>
+		</wall>
+		<wall> <!-- Right Back Arm: Right wall -->
+			<pos>20021;0.5;20034</pos>
+			<rot>0;45;0</rot>
+			<scale>2;0;21</scale>
+		</wall>
+
+		<!-- RIGHT FRONT ARM -->
+		<wall> <!-- Right Front Arm: Left wall -->
+			<pos>20018;0.5;20023</pos>
+			<rot>0;135;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Right Front Arm: Back wall -->
+			<pos>20022;0.5;20010</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
+		<wall> <!-- Right Front Arm: Right wall -->
+			<pos>20015;0.5;20010</pos>
+			<rot>0;135;0</rot>
+			<scale>2;0;17</scale>
+		</wall>
+		<wall> <!-- Right Front Arm: Entrance diagonal wall -->
+			<pos>20008;0.5;20012</pos>
+			<rot>0;30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+
+		<wall> <!-- Right wall -->
+			<pos>20006;0.5;20003</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;13</scale>
+		</wall>
+						
+		<wall> <!-- Front wall -->
+			<pos>20000;0.5;19994</pos>
+			<rot>0;90;0</rot>
+			<scale>2;0;15</scale>
+		</wall>
+
+		<wall> <!-- Back wall / OUTSIDE THE MAZE -->
+			<pos>20000;0.5;20070</pos>
+			<rot>0;-90;0</rot>
+			<scale>2;0;15</scale>
+		</wall>
+	</walls>
+</world>

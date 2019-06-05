@@ -155,23 +155,24 @@ public class Loader : MonoBehaviour {
 	}
 
 	// Read and load the scenario text file into memory
-	public void LoadScenario()
-	{
-		// Clear trees that appear onscreen before level is loaded
-		GameObject[] gos;
-		gos = GameObject.FindGameObjectsWithTag("water");
-		/* Needs UnityEditor, which does not compile
-		foreach (GameObject go2 in gos) {
-			if (PrefabUtility.GetPrefabParent (go2) != null && PrefabUtility.GetPrefabObject (go2) == null) { // Is a prefab
-				Object.Destroy (go2);
-			}
-		}
-		*/
-
+	// NEW: Supports the <include> directive to essentially make a templating system.  Each <include>FILE</include> is read in as an XML doc and searched for certain xml nodes
+	public void LoadScenario() {
         if (File.Exists(PlayerPrefs.GetString("scenarioFolder") + "/" + this.loadScenarioFile)) {
-
-            XmlDocument xmlDoc = new XmlDocument(); // xmlDoc is the new xml document.
+            XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(File.ReadAllText(PlayerPrefs.GetString("scenarioFolder") + "/" + this.loadScenarioFile, ASCIIEncoding.ASCII)); // load the file.
+
+			// For each includeWorld, add to the <worlds> node in the root parent xml document opened above
+			XmlNode xn_worlds = xmlDoc.GetElementsByTagName("worlds").Item(0);  // There is only 1 worlds element
+			XmlNodeList includeFileNames = xmlDoc.GetElementsByTagName ("includeWorld");
+			foreach (XmlNode xn in includeFileNames) {
+				XmlDocument tmpDoc = new XmlDocument (); 
+				tmpDoc.LoadXml (File.ReadAllText (PlayerPrefs.GetString ("scenarioFolder") + "/" + xn.InnerXml, ASCIIEncoding.ASCII));
+				XmlNodeList xnlWorld = tmpDoc.GetElementsByTagName ("world");
+				foreach (XmlNode w in xnlWorld) {
+					XmlNode forRoot = xmlDoc.ImportNode (w, true);
+					xn_worlds.AppendChild(forRoot);
+				}
+			}
 
             XmlNodeList waterConfigList = xmlDoc.SelectNodes("document/config/waterConfig");
             foreach (XmlNode xn in waterConfigList) {
@@ -476,7 +477,6 @@ public class Loader : MonoBehaviour {
 				if (xn ["adaptPosEndIdx"] != null) {
 					int.TryParse(xn["adaptPosEndIdx"].InnerText, out Globals.adaptPosEndIdx);
 				}
-
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");

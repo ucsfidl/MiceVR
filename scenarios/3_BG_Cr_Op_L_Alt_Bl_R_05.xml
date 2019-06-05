@@ -1,0 +1,24 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>false</biasCorrection>
+			<optoSide>L</optoSide>
+			<optoAlternation>true</optoAlternation>
+			<presoFracSpecified>true</presoFracSpecified>
+			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_3_BG_Cr_R_05.xml</includeWorld>
+	</worlds>
+</document>
