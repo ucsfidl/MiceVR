@@ -1,0 +1,20 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>
+			<gameTurnControl>yaw</gameTurnControl>
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>true</biasCorrection>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_4_BG_Opa_50.xml</includeWorld>
+	</worlds>
+</document>
