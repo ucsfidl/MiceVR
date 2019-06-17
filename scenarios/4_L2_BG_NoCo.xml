@@ -1,0 +1,21 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<treesBelowGround>true</treesBelowGround>
+			<alternateWorlds>true</alternateWorlds>
+			<correctionTrials>false</correctionTrials>
+			<biasCorrection>true</biasCorrection>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_4_L2_BG.xml</includeWorld>
+	</worlds>
+</document>
