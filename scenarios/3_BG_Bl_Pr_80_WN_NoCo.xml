@@ -1,0 +1,24 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<treesBelowGround>true</treesBelowGround>
+			<probReward>0.80</probReward>
+			<probabilisticWhiteNoiseWhenNoReward>true</probabilisticWhiteNoiseWhenNoReward>  <!-- also includes timeout -->
+			<biasCorrection>false</biasCorrection>
+			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+			<correctionTrials>false</correctionTrials>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_3_BG.xml</includeWorld>
+	</worlds>
+</document>
