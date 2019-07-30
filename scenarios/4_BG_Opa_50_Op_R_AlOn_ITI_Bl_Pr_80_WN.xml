@@ -12,6 +12,7 @@
 			<gameTurnControl>yaw</gameTurnControl>
 			<treesBelowGround>true</treesBelowGround>
 			<biasCorrection>false</biasCorrection>
+			<correctionTrials>true</correctionTrials>  <!-- correction trials are NOT counted in any statistical calculations -->
 			<optoSide>R</optoSide>
 			<optoAlternation>false</optoAlternation>
 			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
