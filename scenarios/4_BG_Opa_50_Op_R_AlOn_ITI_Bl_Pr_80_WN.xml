@@ -23,6 +23,6 @@
 		</gameConfig>
 	</config>
 	<worlds>
-		<includeWorld>inc_world_4_BG_Opa_50.xml</includeWorld>
+		<includeWorld>inc_world_4_BG_Opa_50_Probe_R.xml</includeWorld>
 	</worlds>
 </document>
