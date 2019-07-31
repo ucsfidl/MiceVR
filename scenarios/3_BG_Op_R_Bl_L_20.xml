@@ -14,6 +14,7 @@
 			<biasCorrection>false</biasCorrection>
 			<optoSide>R</optoSide>
 			<optoAlternation>false</optoAlternation>
+			<presoFracSpecified>true</presoFracSpecified>
 			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
 		</gameConfig>
 	</config>
