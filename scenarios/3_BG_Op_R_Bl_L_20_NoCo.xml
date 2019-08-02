@@ -16,6 +16,7 @@
 			<optoAlternation>false</optoAlternation>
 			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
 			<correctionTrials>false</correctionTrials>  <!-- correction trials are NOT counted in any statistical calculations -->
+			<presoFracSpecified>true</presoFracSpecified>
 		</gameConfig>
 	</config>
 	<worlds>

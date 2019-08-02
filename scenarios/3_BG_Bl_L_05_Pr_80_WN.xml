@@ -15,6 +15,7 @@
 			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
 			<probReward>0.80</probReward>
 			<probabilisticWhiteNoiseWhenNoReward>true</probabilisticWhiteNoiseWhenNoReward>  <!-- also includes timeout -->
+			<presoFracSpecified>true</presoFracSpecified>
 		</gameConfig>
 	</config>
 	<worlds>
