@@ -21,7 +21,7 @@
 		</t>
 		<t> <!-- Back Left tree -->
 			<w>1</w>
-			<pos>19975;-16;20058</pos>
+			<pos>19976;-16;20058</pos>
 			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 			<v>4</v>
 			<h>2</h>
@@ -30,7 +30,7 @@
 		</t>
 		<t> <!-- Back Right tree -->
 			<w>1</w>
-			<pos>20025;-16;20058</pos>
+			<pos>20026;-16;20058</pos>
 			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 			<v>4</v>
 			<h>2</h>
