@@ -8,7 +8,7 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
+			<gameType>detection</gameType>          <!-- Options: match, nonmatch -->
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
 			<treesBelowGround>true</treesBelowGround>
 			<correctionTrials>false</correctionTrials>
