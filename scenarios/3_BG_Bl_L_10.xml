@@ -14,7 +14,7 @@
 			<biasCorrection>false</biasCorrection>
 			<presoFracSpecified>true</presoFracSpecified>
 			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
-			<probeIdx>0</probeIdx>
+			<correctionTrials>true</correctionTrials>
 		</gameConfig>
 	</config>
 	<worlds>
