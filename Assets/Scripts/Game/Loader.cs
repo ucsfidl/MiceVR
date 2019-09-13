@@ -96,7 +96,7 @@ public class Loader : MonoBehaviour {
 			for (int i = 0; i < data.rows.Count; i++) {
 				//Debug.Log ("Examining row " + i);
 
-				// Find the first row with blank date and duration, and read the settings from that line
+				// Find the first row with a blank date and duration, and read the settings from that line
 				if (data.rows [i].cells [12].value.Equals ("") && data.rows [i].cells [13].value.Equals ("")) {
 					Debug.Log ("Criteria met on row " + (i+2));
 					Debug.Log (data.rows [i].cells [12].cellColumTitle + " value is " + data.rows [i].cells [12].value);
@@ -104,43 +104,43 @@ public class Loader : MonoBehaviour {
 					RowData rData = data.rows[i];
 
 					for (int j = 0; j < rData.cells.Count; j++) {
-						switch (rData.cells [j].cellColumTitle) {
-						case "day":
+						switch (j) {
+						case 0:
 							{
 								GameObject.Find ("DayOnBallInput").GetComponent<InputField> ().text = rData.cells [j].value;
 								break;
 							}
-						case "scenario":
+						case 1:
 							{
 								GameObject.Find ("ScenarioInput").GetComponent<InputField> ().text = rData.cells [j].value;
 								break;
 							}
-						case "session":
+						case 2:
 							{
 								GameObject.Find ("ScenarioSessionInput").GetComponent<InputField> ().text = rData.cells [j].value;
 								break;
 							}
-						case "n":
+						case 3:
 							{
 								GameObject.Find ("VisibleNasalBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
 								break;
 							}
-						case "t":
+						case 4:
 							{
 								GameObject.Find ("VisibleTemporalBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
 								break;
 							}
-						case "h":
+						case 5:
 							{
 								GameObject.Find ("VisibleHighBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
 								break;
 							}
-						case "l":
+						case 6:
 							{
 								GameObject.Find ("VisibleLowBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
 								break;
 							}
-						case "maxh2o":
+						case 10:
 							{
 								GameObject.Find ("MaxReward").GetComponent<InputField> ().text = rData.cells [j].value;
 								break;
