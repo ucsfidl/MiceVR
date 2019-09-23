@@ -15,12 +15,14 @@ public class TabBehaviour : MonoBehaviour
     }
 
     private void Update() {
-        if (system.currentSelectedGameObject == null || !(Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)))
-            return;
+		if (system.currentSelectedGameObject == null || !(Input.GetKeyDown (KeyCode.Tab) || Input.GetKeyDown (KeyCode.Return) || Input.GetKeyDown (KeyCode.KeypadEnter))) {
+			return;
+		}
 
         Selectable current = system.currentSelectedGameObject.GetComponent<Selectable>();
-        if (current == null)
-            return;
+		if (current == null) {
+			return;
+		}
 
 		if (Input.GetKeyDown (KeyCode.Return) || Input.GetKeyDown (KeyCode.KeypadEnter)) {
 			if (current.name.Equals ("MouseInput")) {
@@ -28,6 +30,7 @@ public class TabBehaviour : MonoBehaviour
 			} else {
 				GameObject.FindGameObjectWithTag ("generator").GetComponent<Loader> ().LoadScenario ();
 			}
+			return;
 		}
 
         bool up = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
@@ -37,8 +40,7 @@ public class TabBehaviour : MonoBehaviour
         // The previous version would take the logical 0 selector, which would be the highest up in your editor hierarchy
         // But not certainly the first item on your GUI, or last for that matter
         // This code tabs in the correct visual order
-        if (next == null)
-        {
+        if (next == null)    {
             next = current;
 
             Selectable pnext;

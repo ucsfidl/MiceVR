@@ -309,37 +309,36 @@ public class GameControlScript : MonoBehaviour
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "Press SPACE to start";
 		//Debug.Log ("waiting for space bar");
-        if (Input.GetKeyUp(KeyCode.Space))
-        {
-            this.runTime = Time.time;
-            Globals.gameStartTime = DateTime.Now;
-            //Debug.Log("Game started at " + Globals.gameStartTime.ToLongTimeString());
-            this.movementRecorder.SetRun(this.runNumber);
-            this.movementRecorder.SetFileSet(true);
-            Color t = this.fadeToBlack.color;
-            t.a = 0f;
-            this.fadeToBlack.color = t;
-            this.fadeToBlackText.text = "";
-            this.fadeToBlack.gameObject.SetActive(false);
+		if (Input.GetKeyUp (KeyCode.Space)) {
+			this.runTime = Time.time;
+			Globals.gameStartTime = DateTime.Now;
+			//Debug.Log("Game started at " + Globals.gameStartTime.ToLongTimeString());
+			this.movementRecorder.SetRun (this.runNumber);
+			this.movementRecorder.SetFileSet (true);
+			Color t = this.fadeToBlack.color;
+			t.a = 0f;
+			this.fadeToBlack.color = t;
+			this.fadeToBlackText.text = "";
+			this.fadeToBlack.gameObject.SetActive (false);
 
-            this.firstFrameRun = true;
-            this.debugControlScript.enabled = true;
+			this.firstFrameRun = true;
+			this.debugControlScript.enabled = true;
 			Globals.hasNotTurned = true;
 			Globals.numCorrectTurns = 0;
-            this.characterController.enabled = true;  // Bring back character movement
-            this.state = "Running";
+			this.characterController.enabled = true;  // Bring back character movement
+			this.state = "Running";
 
 			this.mouseNameText.text = "Name: " + Globals.mouseName;
 			//this.scenarioNameText.text = "Scenario: " + Globals.scenarioName + " (Day " + Globals.trainingDayNumber + ", session #" + Globals.scenarioSessionNumber + ", setting " + Globals.inputDeg + ")";
-			this.scenarioNameText.text = "Scenario: " + Globals.scenarioName + " (Day " + Globals.trainingDayNumber + ", session #" + Globals.scenarioSessionNumber + ", fov " + Globals.visibleNasalBoundary + ", " 
-				+ Globals.visibleTemporalBoundary + ", " + Globals.visibleHighBoundary + ", " + Globals.visibleLowBoundary + ")";
+			this.scenarioNameText.text = "Scenario: " + Globals.scenarioName + " (Day " + Globals.trainingDayNumber + ", session #" + Globals.scenarioSessionNumber + ", fov " + Globals.visibleNasalBoundary + ", "
+			+ Globals.visibleTemporalBoundary + ", " + Globals.visibleHighBoundary + ", " + Globals.visibleLowBoundary + ")";
 
-			Globals.InitLogFiles();
-            Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
+			Globals.InitLogFiles ();
+			Globals.trialStartTime.Add (DateTime.Now.TimeOfDay);
 			lastTrialStartDateTime = DateTime.Now;
 			Respawn ();
 		}
-    }
+	}
 
     /*
      * dry trees timeout state

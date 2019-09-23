@@ -83,25 +83,33 @@ public class Loader : MonoBehaviour {
 	}
 
 	public void LoadSettingsFromSheets() {
+		// Needed to remove focus from the input fields, to fix a bug
+		GameObject.Find ("EventSystem").GetComponent<UnityEngine.EventSystems.EventSystem> ().SetSelectedGameObject (null);
+
 		// First, get each setting from the Sheet
 		SpreadSheetManager manager = new SpreadSheetManager();
 		GS2U_SpreadSheet spreadsheet = manager.LoadSpreadSheet (Globals.vrGoogleSheetsName);
 		GS2U_Worksheet worksheet = spreadsheet.LoadWorkSheet(Globals.mouseName);
+		bool foundNewLevel = false;
 		if (worksheet == null) {
 			GameObject.Find ("ErrorText").GetComponent<Text> ().text = "Worksheet '" + Globals.mouseName + "' NOT found!";
 		} else {
 			Debug.Log ("loaded worksheet " + Globals.mouseName);
 			WorksheetData data = worksheet.LoadAllWorksheetInformation ();
+			Debug.Log (data.rows.Count + " number of rows found");
 
 			for (int i = 0; i < data.rows.Count; i++) {
 				//Debug.Log ("Examining row " + i);
 
-				// Find the first row with a blank date and duration, and read the settings from that line
-				if (data.rows [i].cells [12].value.Equals ("") && data.rows [i].cells [13].value.Equals ("")) {
-					Debug.Log ("Criteria met on row " + (i+2));
+				// Find the first row with a blank date and duration, and read the settings from that line - this was buggy as sometimes the date column isn't filled in.
+				// Instead, find the first row that has a scenario but no date
+				// Note that the Sheets object only captures all rows up until the first empty row!  I have tested and confirmed this.
+				if (!data.rows [i].cells [1].value.Equals ("") && data.rows [i].cells [12].value.Equals ("")) {
+					Debug.Log ("Criteria met on row " + (i + 2));
+					Debug.Log (data.rows [i].cells [1].cellColumTitle + " value is " + data.rows [i].cells [1].value);
 					Debug.Log (data.rows [i].cells [12].cellColumTitle + " value is " + data.rows [i].cells [12].value);
-					Debug.Log (data.rows [i].cells [13].cellColumTitle + " value is " + data.rows [i].cells [13].value);
-					RowData rData = data.rows[i];
+					RowData rData = data.rows [i];
+					foundNewLevel = true;
 
 					for (int j = 0; j < rData.cells.Count; j++) {
 						switch (j) {
@@ -151,13 +159,27 @@ public class Loader : MonoBehaviour {
 				}
 			}
 
+			if (!foundNewLevel) { // If no new level entered, just redo yesterday's level
+				Debug.Log("did not find a new level");
+				for (int i = data.rows.Count-1; i >= 0 ; i--) {  // Start from the bottom and work our way back up
+					Debug.Log("Examining row to duplicate: " + i);
+					if (!data.rows [i].cells [1].value.Equals ("") && !data.rows [i].cells [12].value.Equals ("")) {
+						Debug.Log ("Duplicate row identified on row " + (i + 2));
+						break;
+					}
+
+				}
+			}
 		}
 	}
 
 	// Read and load the scenario text file into memory
 	// NEW: Supports the <include> directive to essentially make a templating system.  Each <include>FILE</include> is read in as an XML doc and searched for certain xml nodes
 	public void LoadScenario() {
-        if (File.Exists(PlayerPrefs.GetString("scenarioFolder") + "/" + this.loadScenarioFile)) {
+		// Needed to remove focus from the button, to fix a bug
+		GameObject.Find ("EventSystem").GetComponent<UnityEngine.EventSystems.EventSystem> ().SetSelectedGameObject (null);
+
+		if (File.Exists(PlayerPrefs.GetString("scenarioFolder") + "/" + this.loadScenarioFile)) {
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(File.ReadAllText(PlayerPrefs.GetString("scenarioFolder") + "/" + this.loadScenarioFile, ASCIIEncoding.ASCII)); // load the file.
 
