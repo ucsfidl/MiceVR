@@ -28,8 +28,8 @@ function plotLearningCurvesFromGSS(docid, mouseNames, startDays, endDays)
 % sheet/mouse.
 
 [screenWidth, screenHeight] = getScreenDim();
-screenOffsetX = 70;
-screenOffsetY = 70;
+screenOffsetX = 170;
+screenOffsetY = 170;
 
 colorLeft = [2 87 194]/255;  % blue
 colorRight = [226 50 50]/255; % red
@@ -107,7 +107,7 @@ for sheetIdx=1:length(sheetIDs)
         r = sheet(row, RESULTS);
             
         %if (str2double(d) == 112)
-            disp(d);
+            %disp(d);
         %end
         
         if (isstrprop(d, 'digit') & ~isempty(a) & ~isempty(w))
