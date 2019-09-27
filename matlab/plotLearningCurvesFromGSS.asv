@@ -268,7 +268,9 @@ for sheetIdx=1:length(sheetIDs)
     ax = gca;
     ax.YColor = 'k';
     % Remove y-axis values and tickmarks greater than 100
-    yticks([0:20:100])
+    set(gca,'YTickLabel',[]);
+    set(gca, 'YTickLabel', [yMin:100]);
+
     
     % plot criterion line
     %xl = xlim;

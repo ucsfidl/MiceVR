@@ -27,8 +27,6 @@ colors = [2 87 194;  % blue
 colorLeftFar = [2 193 194]/255; % cyan
 colorRightFar = [246 190 0]/255;  % orange
 
-noOpto = -1;
-
 % For each day, find the actions file and parse it to get the accuracy for
 % that day, separated by stimulus location and optogenetic status
 % Assumes that the current working directory is where it should look.
@@ -52,40 +50,28 @@ for i=1:length(days)
                 tline = fgetl(fid); % Throw out the first line, as it is a column header
                 if (formatVer == 0)  % Used for analyzing Candy's old action files
                     C = textscan(fid, '%s %s %s %d %d %d %d %d %d %f');
-                    targetLocs = C{4};
-                    turnLocs = C{7};
-                    optoLocs = {};
+                    
                 else
                     C = textscan(fid, '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d'); % C is a cell array with each string separated by a space
-                    targetLocs = C{5};
-                    turnLocs = C{12};
-                    optoLocs = C{17};
                 end
                 
                 for k = 1:length(C{1})  % For each line
-                    if (iscell(targetLocs(k)))
-                        tmp = strsplit(targetLocs{k}, ';');
+                    % C{5} is the target location, C{12} is the turn location
+                    if (iscell(C{5}(k)))
+                        tmp = strsplit(C{5}{k}, ';');
                         stimLoc = str2double(tmp{1});
-                    elseif (isstring(targetLocs(k)))
-                        stimLoc = str2double(targetLocs(k));
                     else
-                        stimLoc = targetLocs(k);
+                        stimLoc = str2double(C{5}(k));
                     end
-                    if (iscell(turnLocs(k)))
-                        tmp = strsplit(turnLocs{k}, ';');
+                    if (iscell(C{12}(k)))
+                        tmp = strsplit(C{12}{k}, ';');
                         actionLoc = str2double(tmp{1});
-                    elseif (isstring(turnLocs(k)))
-                        actionLoc = str2double(turnLocs(k));
-                    else
-                        actionLoc = turnLocs(k);
+                    else 
+                        actionLoc = str2double(C{12}(k));
                     end
-                    if (length(optoLocs) > 0)
-                        optoLoc = C{17}(k);
-                    else
-                        optoLoc = noOpto;  % For old action files, no optoLoc specified, so set to default value of no opto
-                    end
+                    optoLoc = C{17}(k);
                     
-                    if (optoLoc == noOpto)
+                    if (optoLoc == -1)
                         optoMult = 0;
                     else
                         optoMult = 1;
