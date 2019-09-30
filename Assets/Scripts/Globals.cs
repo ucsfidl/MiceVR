@@ -68,6 +68,10 @@ public static class Globals
 	public static Color distColor1;
 	public static Color distColor2;
 
+	// For the checkerboard targets - these are the defaults which can be overwritten in a scenario file
+	public static Color color1 = Color.white;
+	public static Color color2 = Color.black;
+
     public static MovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<MovementRecorder>();
     public static DateTime gameStartTime;
 	public static DateTime gameEndTime = new DateTime();
@@ -164,6 +168,8 @@ public static class Globals
 		public string type;
 		public float presoFrac;
 		public float opacity;
+		public Color color1;
+		public Color color2;
 	}
 	public static GameObject treeParent = GameObject.Find("Trees");
 
@@ -233,7 +239,7 @@ public static class Globals
 	public static List<int> adaptPosIdx = new List<int>();
 
 	public static void AddTreeToWorld(int worldNum, bool water, List<Vector3> posList, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
-		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac, float opacity) {
+		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac, float opacity, Color color1, Color color2) {
 		World w = GetWorld (worldNum);
 
 		Tree t = new Tree();
@@ -275,6 +281,8 @@ public static class Globals
 		t.type = type;
 		t.presoFrac = presoFrac;
 		t.opacity = opacity;
+		t.color1 = color1;
+		t.color2 = color2;
 
 		w.trees.Add (t);
 
@@ -509,6 +517,7 @@ public static class Globals
 					go.transform.parent = treeParent.transform;
 					go.isStatic = true;
 					go.GetComponent<WaterTreeScript> ().SetOpacity (t.opacity);
+					go.GetComponent<WaterTreeScript> ().SetColors (t.color1, t.color2);
 					//go.SetActive (false);
 					// Implements field restriction of a tree to just one side screen
 					if (t.restrictToCamera != -1) {

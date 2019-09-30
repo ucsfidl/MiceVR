@@ -533,6 +533,8 @@ public class Loader : MonoBehaviour {
 					List<Vector3> posList = new List<Vector3>();
 					Vector3 treeRotation = Vector3.zero;
 					Vector3 treeScale = Vector3.zero;
+					Color color1 = Globals.color1;
+					Color color2 = Globals.color2;
 					XmlNodeList treeAttributes = node.ChildNodes;
 
 					GameObject go;
@@ -595,19 +597,15 @@ public class Loader : MonoBehaviour {
 							respawn = (val.InnerText == "1") ? true : false;
 						} else if (val.Name == "rot") {
 							float x, y, z;
-
 							float.TryParse (val.InnerText.Split (';') [0], out x);
 							float.TryParse (val.InnerText.Split (';') [1], out y);
 							float.TryParse (val.InnerText.Split (';') [2], out z);
-
 							treeRotation = new Vector3 (x, y, z);
 						} else if (val.Name == "scale") {
 							float x, y, z;
-
 							float.TryParse (val.InnerText.Split (';') [0], out x);
 							float.TryParse (val.InnerText.Split (';') [1], out y);
 							float.TryParse (val.InnerText.Split (';') [2], out z);
-
 							treeScale = new Vector3 (x, y, z);
 						} else if (val.Name == "rank") {
 							int.TryParse (val.InnerText, out rank);
@@ -619,10 +617,22 @@ public class Loader : MonoBehaviour {
 							float.TryParse (val.InnerText, out presoFrac);
 						} else if (val.Name == "opacity") {
 							float.TryParse (val.InnerText, out opacity);
+						} else if (val.Name == "color1") {
+							float r, g, b;
+							float.TryParse (val.InnerText.Split (';') [0], out r);
+							float.TryParse (val.InnerText.Split (';') [1], out g);
+							float.TryParse (val.InnerText.Split (';') [2], out b);
+							color1 = new Color (r, g, b);
+						} else if (val.Name == "color2") {
+							float r, g, b;
+							float.TryParse (val.InnerText.Split (';') [0], out r);
+							float.TryParse (val.InnerText.Split (';') [1], out g);
+							float.TryParse (val.InnerText.Split (';') [2], out b);
+							color2 = new Color (r, g, b);
 						}
 					}
 
-					Globals.AddTreeToWorld (worldNum, water, posList, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName, type, presoFrac, opacity);
+					Globals.AddTreeToWorld (worldNum, water, posList, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName, type, presoFrac, opacity, color1, color2);
 				}
 
 				XmlNodeList wallList = world.GetElementsByTagName("wall"); // array of the wall nodes
