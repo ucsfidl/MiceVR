@@ -1,0 +1,23 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<alternateWorlds>true</alternateWorlds>
+			<treesBelowGround>true</treesBelowGround>
+			<correctionTrials>true</correctionTrials>
+			<biasCorrection>false</biasCorrection>
+			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_3_BG_Probe_R.xml</includeWorld>
+		<includeWorld>inc_world_4_BG_Probe_R.xml</includeWorld>
+	</worlds>
+</document>
