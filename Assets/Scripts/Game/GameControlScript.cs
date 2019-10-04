@@ -282,13 +282,14 @@ public class GameControlScript : MonoBehaviour
 					this.state = "Unblacken";
 				}
 			} else if (Input.GetKeyUp (KeyCode.O)) {  // toggle opto state just for this trial, if this is screwing with the mouse behavior
-				int optoState = Globals.optoStates[Globals.optoStates.Count-1];
 				if (Globals.currOptoState != Globals.optoOff) {
 					udpSender.GetComponent<UDPSend> ().OptoTurnOffAll ();
 					Globals.currOptoState = Globals.optoOff;
 				} else {
-					udpSender.GetComponent<UDPSend> ().OptoTurnOn (optoState);
-					Globals.currOptoState = optoState;
+					if (Globals.optoSide != Globals.optoLorR) { // OptoTurnOn does not support LorR
+						udpSender.GetComponent<UDPSend> ().OptoTurnOn (Globals.optoSide);  
+						Globals.currOptoState = Globals.optoSide;
+					}
 				}
 			}
         }
