@@ -138,6 +138,7 @@ public static class Globals
 
 	public static bool lightOnDuringITI = false;
 
+
 	public struct fov {
 		public float nasalBound;
 		public float tempBound;
@@ -237,6 +238,8 @@ public static class Globals
 	public static int adaptPosStartIdx = 0;  // Start at the first position, unless otherwise specified
 	public static int adaptPosEndIdx = -1;  // End at this position, unless otherwise specified
 	public static List<int> adaptPosIdx = new List<int>();
+
+	public static int numCorrectionTrialsSinceLastCorrectTrial = 0;  // To track which correction trial since the last correct trial, for displaying how long the mouse has been stuck correcting in the current bout of correction trials
 
 	public static void AddTreeToWorld(int worldNum, bool water, List<Vector3> posList, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
 		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac, float opacity, Color color1, Color color2) {

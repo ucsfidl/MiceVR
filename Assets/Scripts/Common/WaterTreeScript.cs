@@ -264,6 +264,7 @@ public class WaterTreeScript : MonoBehaviour {
 
 		// Must come after in-memory log is updated above
 		Globals.lastTrialWasIncorrect = 0;
+		Globals.numCorrectionTrialsSinceLastCorrectTrial = 0;  // Reset for next bout of corrections
 
         if (respawn) {
 			if (!Globals.CurrentlyCorrectionTrial ()) {
@@ -297,6 +298,7 @@ public class WaterTreeScript : MonoBehaviour {
 		}
 
 		Globals.lastTrialWasIncorrect = 1;
+		Globals.numCorrectionTrialsSinceLastCorrectTrial++;  // Increment for displaying the current count of correction trials in this correction bout
         Globals.hasNotTurned = false;
         Globals.firstTurnLoc.Add(this.gameObject.transform.position);
         Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
