@@ -42,6 +42,7 @@ public static class Globals
 	public static List<float> firstTurnAngle = new List<float>();  // Angle of target
 	public static List<int> worldID = new List<int>();  // Which world, in a multi-world scenario, was shown on this trial
 	public static List<int> optoStates = new List<int>();  // What the state of optogenetics light was for that trial
+	public static int currOptoState = optoOff;
     public static int numCorrectTurns;
 
 	public static int trialDelay;

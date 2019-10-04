@@ -281,6 +281,15 @@ public class GameControlScript : MonoBehaviour
 				} else {
 					this.state = "Unblacken";
 				}
+			} else if (Input.GetKeyUp (KeyCode.O)) {  // toggle opto state just for this trial, if this is screwing with the mouse behavior
+				int optoState = Globals.optoStates[Globals.optoStates.Count-1];
+				if (Globals.currOptoState != Globals.optoOff) {
+					udpSender.GetComponent<UDPSend> ().OptoTurnOffAll ();
+					Globals.currOptoState = Globals.optoOff;
+				} else {
+					udpSender.GetComponent<UDPSend> ().OptoTurnOn (optoState);
+					Globals.currOptoState = optoState;
+				}
 			}
         }
     }
@@ -1101,6 +1110,7 @@ public class GameControlScript : MonoBehaviour
 		Globals.distractorAngle.Add (distractorAngle);
 		udpSender.GetComponent<UDPSend> ().OptoTurnOn (optoState);  // Just reuse the last optoState for optogenetic correction trials
 		Globals.optoStates.Add (optoState);
+		Globals.currOptoState = optoState;  // Used to toggle opto state by user
 					
         this.runTime = Time.time;
 		this.movementRecorder.SetRun(this.runNumber);
