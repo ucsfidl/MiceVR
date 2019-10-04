@@ -334,7 +334,7 @@ public class GameControlScript : MonoBehaviour
 			+ Globals.visibleTemporalBoundary + ", " + Globals.visibleHighBoundary + ", " + Globals.visibleLowBoundary + ")";
 
 			Globals.InitLogFiles ();
-			Globals.trialStartTime.Add (DateTime.Now.TimeOfDay);
+			Globals.trialStartTime.Add (DateTime.Now);
 			lastTrialStartDateTime = DateTime.Now;
 			Respawn ();
 		}
@@ -395,7 +395,9 @@ public class GameControlScript : MonoBehaviour
 		updateRewardAmountText ();
 
         te = DateTime.Now.Subtract(Globals.gameStartTime);
-		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}:{2:G4}:{3}", te.Hours * 60 + te.Minutes, te.Seconds, Time.deltaTime * 1000, frameCounter++);
+		TimeSpan te2 = DateTime.Now.Subtract (Globals.trialStartTime[Globals.trialStartTime.Count - 1]);
+		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}:{2:00.00}:{3}", te.Hours * 60 + te.Minutes, te.Seconds, Time.deltaTime * 1000, frameCounter++) + " - " + 
+			string.Format("{0:D2}:{1:D2}", te2.Hours*60 + te2.Minutes, te2.Seconds);
         if (Time.time - this.runTime >= this.runDuration) {
             // fadetoblack + respawn
             this.movementRecorder.SetFileSet(false);
@@ -1114,7 +1116,7 @@ public class GameControlScript : MonoBehaviour
 
 		Globals.hasNotTurned = true;
 
-        Globals.trialStartTime.Add(DateTime.Now.TimeOfDay);
+        Globals.trialStartTime.Add(DateTime.Now);
 		lastTrialStartDateTime = DateTime.Now;
 
 		// Update again after the pause, as the world might have changed between trials

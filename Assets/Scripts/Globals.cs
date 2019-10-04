@@ -29,8 +29,8 @@ public static class Globals
     public static float rewardAmountSoFar;
 
 	public static bool hasNotTurned;
-	public static List<TimeSpan> trialStartTime = new List<TimeSpan>(); // Holds DateTime object of starttime
-	public static List<TimeSpan> trialEndTime = new List<TimeSpan>(); // Holds DateTime object of endtime
+	public static List<DateTime> trialStartTime = new List<DateTime>(); // Holds DateTime object of starttime
+	public static List<DateTime> trialEndTime = new List<DateTime>(); // Holds DateTime object of endtime
 	public static List<Vector3> targetLoc = new List<Vector3>(); // Full vector coord of tree placed in this list
 	public static List<float> targetHFreq = new List<float>();  // Orientation of target
 	public static List<float> targetVFreq = new List<float>();  // Orientation of target
@@ -455,7 +455,7 @@ public static class Globals
 			} else {  // Analyze the history, as enough time has passed at least
 				int lastPosIdx = Globals.adaptPosIdx[adaptPosIdx.Count - 1];
 				int numTrials = 0;
-				TimeSpan earliestTrialEnd = new TimeSpan();
+				DateTime earliestTrialEnd;
 
 				tPosIdx = lastPosIdx;
 				Debug.Log ("lastPosIdx=" + lastPosIdx);
@@ -470,7 +470,7 @@ public static class Globals
 					//Debug.Log (now.Subtract (Globals.trialStartTime [i]));
 					if (Globals.adaptPosIdx [i] == lastPosIdx) {
 						earliestTrialEnd = Globals.trialEndTime [i];
-						if (now.Subtract (Globals.trialEndTime [i]).Minute < Globals.adaptCritDur) {
+						if (now.Subtract (Globals.trialEndTime [i]).Minutes < Globals.adaptCritDur) {
 							numTrials++;
 							//Debug.Log ("num trials = " + numTrials);
 						}
@@ -479,7 +479,7 @@ public static class Globals
 
 				float trialRate = (float)numTrials / Globals.adaptCritDur;
 				Debug.Log ("trialRate = " + trialRate);
-				if (trialRate >= Globals.adaptProCritTrialsPerMin || now.Subtract (earliestTrialEnd).Minute >= Globals.adaptCritDur) {
+				if (trialRate >= Globals.adaptProCritTrialsPerMin || now.Subtract (earliestTrialEnd).Minutes >= Globals.adaptCritDur) {
 					if (trialRate >= Globals.adaptProCritTrialsPerMin) {
 						tPosIdx++;
 						Debug.Log ("incremented tPosIdx");
@@ -735,8 +735,8 @@ public static class Globals
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", true);
         // Write out turn decisions over time - easy to import into Excel and analyze
 
-        Debug.Log(trialStartTime[trialStartTime.Count - 1] + "\t" +
-                    trialEndTime[trialEndTime.Count - 1] + "\t" +
+		Debug.Log(trialStartTime[trialStartTime.Count - 1].TimeOfDay + "\t" +
+                    trialEndTime[trialEndTime.Count - 1].TimeOfDay + "\t" +
 					currFrame + "\t" + 
                     (trialEndTime[trialEndTime.Count - 1]).Subtract(trialStartTime[trialStartTime.Count - 1]) + "\t" +
 					targetLoc[targetLoc.Count - 1].x + ";" + targetLoc[targetLoc.Count - 1].y + ";" + targetLoc[targetLoc.Count - 1].z + "\t" +
@@ -757,8 +757,8 @@ public static class Globals
 					distractorAngle[distractorAngle.Count - 1] + "\t" +
 					correctionTrialMarks[correctionTrialMarks.Count - 1]);
 
-        turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1] + "\t" +
-                    trialEndTime[trialEndTime.Count - 1] + "\t" +
+		turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1].TimeOfDay + "\t" +
+                    trialEndTime[trialEndTime.Count - 1].TimeOfDay + "\t" +
 					currFrame + "\t" + 
                     (trialEndTime[trialEndTime.Count - 1]).Subtract(trialStartTime[trialStartTime.Count - 1]) + "\t" +
 					targetLoc[targetLoc.Count - 1].x + ";" + targetLoc[targetLoc.Count - 1].y + ";" + targetLoc[targetLoc.Count - 1].z + "\t" +

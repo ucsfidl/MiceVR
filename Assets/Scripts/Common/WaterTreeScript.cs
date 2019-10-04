@@ -276,7 +276,7 @@ public class WaterTreeScript : MonoBehaviour {
 			}
 			Globals.trialDelay = interTrialInterval;
 			GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
-            Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);
+            Globals.trialEndTime.Add(DateTime.Now);
             Globals.WriteToLogFiles();
 			if (!Globals.lightOnDuringITI) {
 				GameObject.Find ("UDPSender").GetComponent<UDPSend> ().OptoTurnOffAll ();
@@ -316,7 +316,7 @@ public class WaterTreeScript : MonoBehaviour {
 			}
 			Globals.trialDelay = interTrialInterval;
             GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
-            Globals.trialEndTime.Add(DateTime.Now.TimeOfDay);
+            Globals.trialEndTime.Add(DateTime.Now);
         }
 
         Globals.WriteToLogFiles();
