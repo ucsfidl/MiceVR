@@ -516,9 +516,11 @@ public class GameControlScript : MonoBehaviour
         // Move the player now, as the screen goes to black and the app detects collisions between the new tree and the player 
         // if the player is not moved.
         TeleportToBeginning();
+		//Debug.Log ("Moved player to beginning");
     }
 
     private void Respawn() {
+		Debug.Log ("Respawn");
 		// Is this teleportation needed? I think not.  Remove at some point.
         TeleportToBeginning();
 
@@ -612,6 +614,7 @@ public class GameControlScript : MonoBehaviour
 				}
 					
 				// Guarantee that there is a probe trial in each block, regardless of probe probability
+				Debug.Log("Guarantee probe in each block");
 				while (true) {
 					List<int> stimLocsCopy = new List<int> (stimLocs);
 					int ran, currStim;
@@ -634,18 +637,22 @@ public class GameControlScript : MonoBehaviour
 						}
 					}
 					// Ensure never 2 identical probes in a row, and that first trial in each block is not a probe, for when lesion or light always on
+					// However, if all the targets in a world are considered probes (as is the case in one-sided 2AFC), ignore this rule
+					Debug.Log("Checking probe rules in precomp block");
 					bool noRepeatProbes = true;
-					if (Globals.optoSide == Globals.optoOff || (Globals.optoSide != Globals.optoOff && Globals.optoTrialsPerBlock == Globals.blockSize)) {
-						if (Globals.GetCurrentWorld().probeIdx.Contains (precompTrialBlock [0])) {
-							noRepeatProbes = false;
-						} else {
-							int lastId = precompTrialBlock [0];
-							foreach (int id in precompTrialBlock.Skip(1)) {
-								if (Globals.GetCurrentWorld().probeIdx.Contains (id) && id == lastId) {
-									noRepeatProbes = false;
-									break;
+					if (Globals.GetCurrentWorld ().probeIdx.Count < Globals.GetCurrentWorld ().trees.Count) {
+						if (Globals.optoSide == Globals.optoOff || (Globals.optoSide != Globals.optoOff && Globals.optoTrialsPerBlock == Globals.blockSize)) {
+							if (Globals.GetCurrentWorld ().probeIdx.Contains (precompTrialBlock [0])) {
+								noRepeatProbes = false;
+							} else {
+								int lastId = precompTrialBlock [0];
+								foreach (int id in precompTrialBlock.Skip(1)) {
+									if (Globals.GetCurrentWorld ().probeIdx.Contains (id) && id == lastId) {
+										noRepeatProbes = false;
+										break;
+									}
+									lastId = id;
 								}
-								lastId = id;
 							}
 						}
 					}

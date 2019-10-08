@@ -1216,7 +1216,7 @@ public static class Globals
 	}
 
 	public static int GetTreeToActivateFromBlock() {
-		//Debug.Log ("precomp trial index = " + ((int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize));
+		Debug.Log ("precomp trial index = " + ((int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize));
 		return Globals.GetCurrentWorld ().precompTrialBlock [(int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize];
 	}
 
