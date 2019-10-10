@@ -520,7 +520,7 @@ public class GameControlScript : MonoBehaviour
     }
 
     private void Respawn() {
-		Debug.Log ("Respawn");
+		//Debug.Log ("Respawn");
 		// Is this teleportation needed? I think not.  Remove at some point.
         TeleportToBeginning();
 
@@ -1167,6 +1167,9 @@ public class GameControlScript : MonoBehaviour
             StartCoroutine(CheckForQ());
 			this.state = "WaitingForQuitCmd";
         }
+		if (Input.GetKeyUp (KeyCode.R)) {
+			this.state = "Respawn";
+		}
     }
 
     private IEnumerator CheckForQ() {
