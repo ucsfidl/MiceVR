@@ -125,6 +125,13 @@ public class GameControlScript : MonoBehaviour
 		}
 		this.prevPos = this.player.transform.position;
 
+		// Reveal targets if the mouse reaches the correct ZPos and the target had been hidden
+		if (this.state == "Running" && !Globals.hiddenShown && Globals.GetCurrentWorld().revealZPos.Count > 0 && this.player.transform.position.z >= Globals.GetCurrentWorld ().revealZPos [0]) {  // only pay attention to the first value in the list - expand if support added for target-dependent reveal zpos'
+			GameObject[] gos = Globals.GetTrees ();
+			gos[Globals.targetIdx].GetComponent<WaterTreeScript> ().Show ();
+			Globals.hiddenShown = true;
+		}
+
         switch (this.state) {
 			case "LoadScenario":
                 LoadScenario();
@@ -539,7 +546,7 @@ public class GameControlScript : MonoBehaviour
 		} else {
 			Globals.correctionTrialMarks.Add (0);
 		}
-
+			
 		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo!
 		// So if this is not a correction trial, then re-render everything per usual
 		if (Globals.CurrentlyCorrectionTrial ()) {
@@ -1109,8 +1116,9 @@ public class GameControlScript : MonoBehaviour
 					}
 				}
 			}
-		} 
-
+			Globals.targetIdx = treeToActivate;  // Store so targets can be revealed later when the mouse reaches a certain point in the world
+		}
+	
         Globals.targetLoc.Add(loc);
         Globals.targetHFreq.Add(hfreq);
         Globals.targetVFreq.Add(vfreq);
@@ -1133,6 +1141,7 @@ public class GameControlScript : MonoBehaviour
 		this.debugControlScript.enabled = true;
 
 		Globals.hasNotTurned = true;
+		Globals.hiddenShown = false;  // Flag to keep track of whether the hidden target have been shown on this trial
 
         Globals.trialStartTime.Add(DateTime.Now);
 		lastTrialStartDateTime = DateTime.Now;
@@ -1144,13 +1153,18 @@ public class GameControlScript : MonoBehaviour
 	}
 
     private void SetupTreeActivation(GameObject[] gos, int treeToActivate, int maxTrees) {
-        for (int i = 0; i < maxTrees; i++)  // In the 3-tree case, never deactivate the 3rd tree
-        {
+		for (int i = 0; i < maxTrees; i++) { // In the 3-tree case, never deactivate the 3rd tree
             gos[i].SetActive(true);
-            if (i == treeToActivate)
-                gos[i].GetComponent<WaterTreeScript>().Show();
-            else
-                gos[i].GetComponent<WaterTreeScript>().Hide();
+			if (i == treeToActivate) {
+				List<int> hiddenIdx = Globals.GetCurrentWorld ().hiddenIdx;
+				if (hiddenIdx.Count > 0 && hiddenIdx.Contains (treeToActivate)) {
+					gos [i].GetComponent<WaterTreeScript> ().Hide ();
+				} else {
+					gos [i].GetComponent<WaterTreeScript> ().Show ();
+				}
+			} else {
+				gos [i].GetComponent<WaterTreeScript> ().Hide ();
+			}
         }
     }
 

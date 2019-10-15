@@ -44,6 +44,8 @@ public static class Globals
 	public static List<int> optoStates = new List<int>();  // What the state of optogenetics light was for that trial
 	public static int currOptoState = optoOff;
     public static int numCorrectTurns;
+	public static int targetIdx;
+	public static bool hiddenShown = false;
 
 	public static int trialDelay;
 
@@ -194,6 +196,8 @@ public static class Globals
 		public int[] precompTrialBlock;
 		public int[] precompOptoBlock;  // Indicates optogenetic state on each trial - used to limit light exposure instead of alternating each trial - used if optoAlternation is set to false in the scenario
 		public List<int> probeIdx;  // This is the tree index of the rarest tree, also considered the probe tree - correction trials, if enabled, will not be performed for this tree
+		public List<int> hiddenIdx;  // These are the target indices for targets that are hidden at start but appear when the mouse reaches at or past a specified z position in the world
+		public List<float> revealZPos;  // Zposition that the mouse must reach before the hidden targets are made visible
 	}
 
 	public static List<World> worlds;  // For SDT where there are different worlds per level that vary trial-by-trial
@@ -324,6 +328,20 @@ public static class Globals
 		AddWorldToWorldList (w);
 	}
 
+	public static void AddHiddenIdxToWorld(int worldNum, int hiddenIdx) {
+		World w = GetWorld (worldNum);
+		w.hiddenIdx.Add (hiddenIdx);
+		//Debug.Log ("Added hidden " + hiddenIdx);
+		AddWorldToWorldList (w);
+	}
+
+	public static void AddRevealZPosToWorld(int worldNum, float revealZPos) {
+		//Debug.Log ("Added revealZPos " + revealZPos);
+		World w = GetWorld (worldNum);
+		w.revealZPos.Add (revealZPos);
+		AddWorldToWorldList (w);
+	}
+
 	public static void AddGameTypeToWorld(int worldNum, string gameType) {
 		World w = GetWorld (worldNum);
 		w.gameType = gameType;
@@ -349,6 +367,8 @@ public static class Globals
 			w.numRewardsAtStimLoc = new List<int> ();
 			w.numTurnsToStimLoc = new List<int> ();
 			w.probeIdx = new List<int> ();
+			w.hiddenIdx = new List<int> ();
+			w.revealZPos = new List<float> ();
 		}
 
 		return w;
@@ -501,7 +521,8 @@ public static class Globals
 
 		World w = worlds [worldNum];
 		GameObject go;
-		foreach (Tree t in w.trees) {
+		for (int i=0; i < w.trees.Count; i++) {
+			Tree t = w.trees [i];
 			if (t.water) {
 				if (t.deg_LS != null) {
 					if (t.materialName.Equals ("crickets")) {
@@ -522,7 +543,11 @@ public static class Globals
 					go.isStatic = true;
 					go.GetComponent<WaterTreeScript> ().SetOpacity (t.opacity);
 					go.GetComponent<WaterTreeScript> ().SetColors (t.color1, t.color2);
-					//go.SetActive (false);
+					// Implements hiding targets until the mouse passes a certain Z position - actually, this really happens in GameControlScript.SetupTreeActivation(), which is called later by Respawn after RenderWorld is called
+					//if (w.hiddenIdx.Count > 0 && w.hiddenIdx.Contains (i)) {
+					//	go.GetComponent<WaterTreeScript>().Hide();
+					//	Debug.Log ("Hid the target");
+					//}
 					// Implements field restriction of a tree to just one side screen
 					if (t.restrictToCamera != -1) {
 						if (t.posList[tPosIdx].x == 20000) {

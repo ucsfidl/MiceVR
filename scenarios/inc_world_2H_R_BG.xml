@@ -1,17 +1,8 @@
-<world>
+<world> <!-- 2-choice -->
 	<gameType>detection</gameType>
-	<hiddenIdx>2;3</hiddenIdx>
+	<hiddenIdx>1</hiddenIdx>
 	<revealZPos>20040</revealZPos>
 	<trees>
-		<t> <!-- Front Left tree -->
-			<w>1</w>
-			<pos>19975;-16;20026</pos>
-			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-			<v>4</v>
-			<h>2</h>
-			<d>0</d>
-			<r>0</r>
-		</t>
 		<t> <!-- Front Right tree -->
 			<w>1</w>
 			<pos>20025;-16;20026</pos>
@@ -20,15 +11,6 @@
 			<h>2</h>
 			<d>0</d>
 			<r>2</r>
-		</t>
-		<t> <!-- Back Left tree -->
-			<w>1</w>
-			<pos>19976;-16;20074</pos>
-			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
-			<v>4</v>
-			<h>2</h>
-			<d>0</d>
-			<r>0</r>
 		</t>
 		<t> <!-- Back Right tree -->
 			<w>1</w>
@@ -74,7 +56,7 @@
 		<wall> <!-- Midway left straight wall -->
 			<pos>19993;0.5;20052</pos>
 			<rot>0;0;0</rot>
-			<scale>2;0;17</scale>
+			<scale>2;0;80</scale>
 		</wall>
 		<wall> <!-- Midway back left diagonal wall -->
 			<pos>19991;0.5;20064</pos>

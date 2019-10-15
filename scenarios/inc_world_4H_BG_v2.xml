@@ -1,9 +1,7 @@
 <world>
 	<gameType>detection</gameType>
-	<hiddenIdx>2;3</hiddenIdx>
-	<revealZPos>20040</revealZPos>
-	<trees>
-		<t> <!-- Front Left tree -->
+	<trees>  <!-- All tree X positions are different, as used as an ID -->
+		<t> <!-- Left front tree -->
 			<w>1</w>
 			<pos>19975;-16;20026</pos>
 			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
@@ -12,7 +10,7 @@
 			<d>0</d>
 			<r>0</r>
 		</t>
-		<t> <!-- Front Right tree -->
+		<t> <!-- Right front tree -->
 			<w>1</w>
 			<pos>20025;-16;20026</pos>
 			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
@@ -21,24 +19,24 @@
 			<d>0</d>
 			<r>2</r>
 		</t>
-		<t> <!-- Back Left tree -->
+		<t> <!-- Left back tree -->
 			<w>1</w>
-			<pos>19976;-16;20074</pos>
+			<pos>19984;-16;20058</pos>
 			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 			<v>4</v>
 			<h>2</h>
 			<d>0</d>
 			<r>0</r>
 		</t>
-		<t> <!-- Back Right tree -->
+		<t> <!-- Right back tree -->
 			<w>1</w>
-			<pos>20026;-16;20074</pos>
+			<pos>20018;-16;20058</pos>
 			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 			<v>4</v>
 			<h>2</h>
 			<d>0</d>
 			<r>2</r>
-		</t>		
+		</t>
 	</trees>
 	<walls>
 		<wall> <!-- Front Left wall -->
@@ -62,67 +60,47 @@
 			<scale>2;0;19.1</scale>
 		</wall>
 		<wall> <!-- Front Left Back wall -->
-			<pos>19980;0.5;20037</pos>
+			<pos>19978;0.5;20030</pos>
 			<rot>0;270;0</rot>
 			<scale>2;0;19.1</scale>
 		</wall>
-		<wall> <!-- Midway front left diagonal wall -->
-			<pos>19991;0.5;20040</pos>
-			<rot>0;30;0</rot>
-			<scale>2;0;9</scale>
-		</wall>
-		<wall> <!-- Midway left straight wall -->
-			<pos>19993;0.5;20052</pos>
-			<rot>0;0;0</rot>
-			<scale>2;0;17</scale>
-		</wall>
-		<wall> <!-- Midway back left diagonal wall -->
-			<pos>19991;0.5;20064</pos>
-			<rot>0;-30;0</rot>
-			<scale>2;0;9</scale>
+		<wall> <!-- Midway left diagonal wall -->
+			<pos>19984;0.5;20041</pos>
+			<rot>0;-15;0</rot>
+			<scale>2;0;25</scale>
 		</wall>
 		<wall> <!-- Back Left front wall -->
-			<pos>19982;0.5;20067</pos>
+			<pos>19980;0.5;20051</pos>
 			<rot>0;-90;0</rot>
-			<scale>2;0;14</scale>
+			<scale>2;0;5</scale>
 		</wall>
 		<wall> <!-- Back Left closing wall -->
-			<pos>19976;0.5;20076</pos>
+			<pos>19976;0.5;20060</pos>
 			<rot>0;0;0</rot>
 			<scale>2;0;19.1</scale>
 		</wall>
 		<wall> <!-- Back wall -->
-			<pos>20000;0.5;20085</pos>
+			<pos>20000;0.5;20069</pos>
 			<rot>0;-90;0</rot>
 			<scale>2;0;54</scale>
 		</wall>
 		<wall> <!-- Back Right closing wall -->
-			<pos>20024;0.5;20076</pos>
+			<pos>20024;0.5;20060</pos>
 			<rot>0;0;0</rot>
 			<scale>2;0;19.1</scale>
 		</wall>
 		<wall> <!-- Back Right front wall -->
-			<pos>20018;0.5;20067</pos>
+			<pos>20020;0.5;20051</pos>
 			<rot>0;-90;0</rot>
-			<scale>2;0;14</scale>
-		</wall>
-		<wall> <!-- Midway back right diagonal wall -->
-			<pos>20009;0.5;20064</pos>
-			<rot>0;30;0</rot>
-			<scale>2;0;9</scale>
-		</wall>
-		<wall> <!-- Midway right straight wall -->
-			<pos>20007;0.5;20052</pos>
-			<rot>0;0;0</rot>
-			<scale>2;0;17</scale>
+			<scale>2;0;5</scale>
 		</wall>
 		<wall> <!-- Midway front right diagonal wall -->
-			<pos>20009;0.5;20040</pos>
-			<rot>0;-30;0</rot>
-			<scale>2;0;9</scale>
+			<pos>20016;0.5;20041</pos>
+			<rot>0;15;0</rot>
+			<scale>2;0;25</scale>
 		</wall>
 		<wall> <!-- Right Back wall -->
-			<pos>20020;0.5;20037</pos>
+			<pos>20022;0.5;20030</pos>
 			<rot>0;270;0</rot>
 			<scale>2;0;19.1</scale>
 		</wall>

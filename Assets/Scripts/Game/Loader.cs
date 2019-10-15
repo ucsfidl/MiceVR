@@ -527,6 +527,27 @@ public class Loader : MonoBehaviour {
 					}
 				}
 
+				XmlNodeList hiddenIdxNodes = world.GetElementsByTagName ("hiddenIdx");
+				if (hiddenIdxNodes.Count == 1) {
+					string[] hiddenIdx = hiddenIdxNodes.Item (0).InnerText.Split (';');
+					for (int i = 0; i < hiddenIdx.Length; i++) {
+						int tmp;
+						int.TryParse (hiddenIdx [i], out tmp);
+						Globals.AddHiddenIdxToWorld (worldNum, tmp);
+					}
+				}
+
+				XmlNodeList revealZPosNodes = world.GetElementsByTagName ("revealZPos");
+				if (revealZPosNodes.Count == 1) {
+					string[] revealZPosIdx = revealZPosNodes.Item (0).InnerText.Split (';');
+					for (int i = 0; i < revealZPosIdx.Length; i++) {
+						float tmp;
+						float.TryParse (revealZPosIdx [i], out tmp);
+						Globals.AddRevealZPosToWorld (worldNum, tmp);
+					}
+				}
+
+
 				XmlNodeList treeList = world.GetElementsByTagName("t"); // array of the tree nodes
 				foreach (XmlNode node in treeList) {
 					bool water = false;
