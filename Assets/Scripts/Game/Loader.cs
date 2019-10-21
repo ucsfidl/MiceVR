@@ -499,6 +499,10 @@ public class Loader : MonoBehaviour {
 				if (xn ["adaptPosEndIdx"] != null) {
 					int.TryParse(xn["adaptPosEndIdx"].InnerText, out Globals.adaptPosEndIdx);
 				}
+
+				if (xn ["catchFreq"] != null) {
+					float.TryParse(xn["catchFreq"].InnerText, out Globals.catchFreq);
+				}
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");

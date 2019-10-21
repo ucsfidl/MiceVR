@@ -141,6 +141,8 @@ public static class Globals
 
 	public static bool lightOnDuringITI = false;
 
+	public static float catchFreq = 0;  // This is the frequency at which catch trials, in which no target is visible at all, are presented
+
 
 	public struct fov {
 		public float nasalBound;
@@ -941,14 +943,14 @@ public static class Globals
 				locs [j] = w.trees[j].posList[0].x;
 			}
 
-
 			// With all locations in hand, calculate accuracy for each one, then print it out
 			int idx;
 			for (int j = 0; j < Globals.firstTurnLoc.Count; j++) {
 				idx = Array.IndexOf(locs, Globals.targetLoc[j].x);
 				// Added support for ignoring correction trials
 				// Check for world-matching again here, as results from different worlds will be intermingled in the in-memory logs
-				if (i == worldID[j] && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[j] == 0))) {
+				// Also, don't try to calculate target accuracy for catch trials
+				if (idx != -1 && i == worldID[j] && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[j] == 0))) {
 					numTrials [idx]++;
 					//Debug.Log("this-world trial");
 					if (Globals.targetLoc [j].x == Globals.firstTurnLoc [j].x) {
@@ -1029,16 +1031,21 @@ public static class Globals
 		return worldSeen;
 	}
 
-	// Only enter a correction trial if correction is enabled and last trial was incorrect AND last trial was not the location of the probes - this is to help retain the rule for 3-choice testing in pre-lesion animals
+	// Only enter a correction trial if correction is enabled and last trial was incorrect AND last trial was not the location of the probes AND last trial was not a catch trial
 	public static bool CurrentlyCorrectionTrial() {
-		//Debug.Log (GetCurrentWorld ().probeIdx.ToString ());
-		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 && 
+		//if (targetHFreq.Count >= 2) 
+		//	Debug.Log (targetHFreq [targetHFreq.Count - 2]);
+		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 &&
 			(optoSide == optoOff && !GetCurrentWorld().probeIdx.Contains (GetIdxOfStimLoc (targetLoc [firstTurnLoc.Count - 1].x)) || 
 				(optoSide != optoOff && (optoStates[firstTurnLoc.Count - 1] == optoOff || (GetCurrentWorld().probeIdx.Count > 0 && !GetCurrentWorld().probeIdx.Contains (GetIdxOfStimLoc (targetLoc [firstTurnLoc.Count - 1].x))))))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial
 			return true;
 		} else { 
 			return false;
 		}
+	}
+
+	public static bool CurrentlyCatchTrial() {
+		return targetHFreq [targetHFreq.Count - 1] == -1;
 	}
 
 	// Modified to support multi-worlds in a single scenario
@@ -1241,7 +1248,7 @@ public static class Globals
 	}
 
 	public static int GetTreeToActivateFromBlock() {
-		Debug.Log ("precomp trial index = " + ((int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize));
+		//Debug.Log ("precomp trial index = " + ((int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize));
 		return Globals.GetCurrentWorld ().precompTrialBlock [(int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize];
 	}
 

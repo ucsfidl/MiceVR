@@ -434,7 +434,6 @@ public class GameControlScript : MonoBehaviour
 		Debug.Log ("Tree at " + treeLocX);
     }
 
-
     /*
      * Fade to Black
      * */
@@ -547,7 +546,7 @@ public class GameControlScript : MonoBehaviour
 			Globals.correctionTrialMarks.Add (0);
 		}
 			
-		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo!
+		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo, unless it was a catch trial!
 		// So if this is not a correction trial, then re-render everything per usual
 		if (Globals.CurrentlyCorrectionTrial ()) {
 			Debug.Log ("in correction trial");
@@ -573,15 +572,15 @@ public class GameControlScript : MonoBehaviour
 			} else {
 				worldID = Globals.RenderWorld (-1); // -1 indicates that the world rendered should be randomly selected, without any bias correction (i.e. worlds in which accuracy is better do not occur less than worlds in which accuracy is worse)
 			}
-			Globals.worldID.Add(worldID);  		// Record which world this trial is on - must happen before below
+			Globals.worldID.Add(worldID);  		// Record which world this trial is on - MUST HAPPEN BEFORE BELOW
 
 			GameObject[] gos = Globals.GetTrees ();
 
-			// Just initial values, used only if there is 1 tree
-			loc = gos [0].transform.position;
-			hfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
-			vfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-			angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+			// Just initial values to catch trial values, to slightly simplify code below
+			loc = new Vector3(-1, -1, -1);
+			hfreq = -1;
+			vfreq = -1;
+			angle = -1;
 			distractorAngle = 360;  // we will use 360 as the null value
 
 
@@ -601,6 +600,7 @@ public class GameControlScript : MonoBehaviour
 				// and then remove from that List until the block is filled.
 				List<int> stimLocs = new List<int> ();
 				int[] maxFreq = new int[numTrees];  // Max number of each stimulus per block
+				int maxCatch = 0;
 				decimal[] prob = new decimal[numTrees];
 
 				// First, setup all the arrays
@@ -608,20 +608,29 @@ public class GameControlScript : MonoBehaviour
 					if (Globals.presoFracSpecified) {
 						prob [i] = (decimal)gos [i].GetComponent<WaterTreeScript> ().GetPresoFrac ();
 					} else {  // equal ratios
-						prob [i] = (decimal)(1F / numTrees);
+						if (Globals.catchFreq > 0) {  // Catch trials specified, so adjust probability array accordingly
+							prob[i] = (decimal)(1F / numTrees) - (decimal)(Globals.catchFreq / numTrees);
+						} else {
+							prob [i] = (decimal)(1F / numTrees);
+						}
 					}
 					maxFreq [i] = (int)Math.Ceiling (Globals.blockSize * prob [i]);
 				}
+				maxCatch = (int)Math.Round (Globals.blockSize * Globals.catchFreq);  // For some reason Ceiling rounds up 2 to 3...
+				//Debug.Log (Math.Round(Globals.blockSize * Globals.catchFreq));
 					
-				// Now, build the bag of stim locs, 
+				// Now, build the bag of stim locs
 				for (int i = 0; i < maxFreq.Length; i++) {
 					for (int j = 0; j < maxFreq [i]; j++) {
 						stimLocs.Add (i);
 					}
 				}
+				for (int i = 0; i < maxCatch; i++) {
+					stimLocs.Add (-1);  // We will use -1 to indicate a catch trial, and downstream code will respond appropriately
+				}
 					
 				// Guarantee that there is a probe trial in each block, regardless of probe probability
-				Debug.Log("Guarantee probe in each block");
+				//Debug.Log("Guarantee probe in each block");
 				while (true) {
 					List<int> stimLocsCopy = new List<int> (stimLocs);
 					int ran, currStim;
@@ -631,30 +640,46 @@ public class GameControlScript : MonoBehaviour
 						precompTrialBlock [i] = stimLocsCopy [ran];
 						stimLocsCopy.RemoveAt (ran);
 					}
-					if (Globals.GetCurrentWorld().probeIdx.Count == 0) {
-						break;
-					}
+
 					bool allProbesFound = false;
-					foreach (int pid in Globals.GetCurrentWorld().probeIdx) {
-						if (precompTrialBlock.Contains (pid)) {
-							allProbesFound = true;
-						} else {
-							allProbesFound = false;
-							break;
+					if (Globals.GetCurrentWorld ().probeIdx.Count == 0) {
+						allProbesFound = true;
+					} else {
+						foreach (int pid in Globals.GetCurrentWorld().probeIdx) {
+							if (precompTrialBlock.Contains (pid)) {
+								allProbesFound = true;
+							} else {
+								allProbesFound = false;
+								break;
+							}
 						}
 					}
-					// Ensure never 2 identical probes in a row, and that first trial in each block is not a probe, for when lesion or light always on
-					// However, if all the targets in a world are considered probes (as is the case in one-sided 2AFC), ignore this rule
-					Debug.Log("Checking probe rules in precomp block");
+
+					// Ensure that first trial in each block is not a probe, and that there are never 2 identical probes in a row, for when lesion or light always on
+					// Do this only if if less than 50% of targets are probes, as in some worlds (one-sided 2AFC, 2-choice world) with only 2 choices it is impossible to implement the noRepeats policy
 					bool noRepeatProbes = true;
-					if (Globals.GetCurrentWorld ().probeIdx.Count < Globals.GetCurrentWorld ().trees.Count) {
+					bool testForRepeatProbes = false;  // Flag used to see if repeats should be avoided. We don't avoid repeats if 50% of the trials include probes, only if less than 50% do
+					foreach (int probeIdx in Globals.GetCurrentWorld().probeIdx) {
+						if (Globals.presoFracSpecified) {
+							if (gos [probeIdx].GetComponent<WaterTreeScript> ().GetPresoFrac () < 0.5) {
+								testForRepeatProbes = true;
+							}
+						}
+					}
+					if (!testForRepeatProbes) {
+						if ((float)Globals.GetCurrentWorld ().probeIdx.Count / Globals.GetCurrentWorld ().trees.Count < 0.5) {
+							testForRepeatProbes = true;
+						}
+					}
+
+					if (testForRepeatProbes) {
 						if (Globals.optoSide == Globals.optoOff || (Globals.optoSide != Globals.optoOff && Globals.optoTrialsPerBlock == Globals.blockSize)) {
 							if (Globals.GetCurrentWorld ().probeIdx.Contains (precompTrialBlock [0])) {
 								noRepeatProbes = false;
 							} else {
 								int lastId = precompTrialBlock [0];
 								foreach (int id in precompTrialBlock.Skip(1)) {
-									if (Globals.GetCurrentWorld ().probeIdx.Contains (id) && id == lastId) {
+									if ((Globals.GetCurrentWorld ().probeIdx.Contains (id) && id == lastId)) {
 										noRepeatProbes = false;
 										break;
 									}
@@ -663,6 +688,21 @@ public class GameControlScript : MonoBehaviour
 							}
 						}
 					}
+
+					// Ensure that the first trial is not a catch trial and there are never 2 catch trials in a row.  Some blocks may not have catch trials, which might be OK.
+					if (precompTrialBlock [0] == -1) {
+						noRepeatProbes = false;
+					} else {
+						int lastId = precompTrialBlock [0];
+						foreach (int id in precompTrialBlock.Skip(1)) {
+							if (id == -1 && id == lastId) {
+								noRepeatProbes = false;
+								break;
+							}
+							lastId = id;
+						}
+					}
+
 					Debug.Log (String.Join (",", precompTrialBlock.Select (x => x.ToString ()).ToArray ()));
 						
 					if (allProbesFound && noRepeatProbes) {
@@ -741,6 +781,7 @@ public class GameControlScript : MonoBehaviour
 
 			if (gameType.Equals ("detection") || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
 				if (gos.Length == 1) { // Linear track
+					loc = gos [0].transform.position;
 					if (Globals.varyOrientation) {
 						if (r > 0.5) { // Half the time, swap the orientation of the tree
 							gos [0].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq);
@@ -748,8 +789,13 @@ public class GameControlScript : MonoBehaviour
 							vfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 							angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 						}
+					} else {
+						hfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+						angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					}
 				} else if (gos.Length == 2 || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
+					float catchThresh = 1 - Globals.catchFreq;
 					float rThresh0 = 0.5F;
 					if (Globals.presoRatio > 0) { // Works for 2-choice only, YN and 2AFC
 						rThresh0 = (float)Globals.presoRatio / (Globals.presoRatio + 1);
@@ -757,18 +803,28 @@ public class GameControlScript : MonoBehaviour
 					if (Globals.biasCorrection && Globals.numNonCorrectionTrials > 1) {
 						rThresh0 = 1 - Globals.GetTurnBias (20, 0);  // varies the boundary based on history of mouse turns
 					}
-					Debug.Log ("Loc: [0, " + rThresh0 + ", 1] - " + r);
-					treeToActivate = r < rThresh0 ? 0 : 1;
-					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
-					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					rThresh0 = rThresh0 * catchThresh;  // Support catch trials
+					Debug.Log ("Loc: [0, " + rThresh0 + ", " + catchThresh + ", 1] - " + r);
+					// If r is less than rThresh0, enable target #0; if not, if r is less than catchThresh, enable target #1; if not then do a catch trial (no targets enabled)
+					treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : -1;
+					while (true) {
+						// Don't allow the very first trial to be a catch trial, as that might be more confusing for the mouse
+						if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == -1) || (Globals.numNonCorrectionTrials > 1 && Globals.CurrentlyCatchTrial() && treeToActivate == -1)) {
+							r = UnityEngine.Random.value;
+							treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : -1;
+						} else {
+							break;
+						}
+					}						
 
 					if (gos.Length == 2) {
 						if (Globals.blockSize > 0) {
 							treeToActivate = Globals.GetTreeToActivateFromBlock ();
-							hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
-							vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-							angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+							if (treeToActivate > -1) {
+								hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+								vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+								angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+							}
 						}
 						SetupTreeActivation (gos, treeToActivate, 2);
 					} else if (gameType.Equals ("det_target")) {
@@ -777,14 +833,16 @@ public class GameControlScript : MonoBehaviour
 						if (Globals.varyOrientation) {
 							float r2 = UnityEngine.Random.value;
 							if (r2 > 0.5) { // Swap orientation of target tree
-								gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
+								if (treeToActivate > -1) {
+									gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
+								}
 								gos [2].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
 							}
 							Debug.Log ("Ori: [0, 0.5, 1] - " + r2);
 						}
 					} else if (gameType.Equals ("disc_target")) {
 						float r2 = UnityEngine.Random.value;
-						int treeToDistract = treeToActivate == 1 ? 0 : 1;
+						int treeToDistract = treeToActivate == 1 ? 0 : 1;  // Likely won't support catch trials - think about this later if needed
 
 						gos [treeToActivate].GetComponent<WaterTreeScript> ().SetCorrect (true);
 						gos [treeToDistract].GetComponent<WaterTreeScript> ().SetCorrect (false);
@@ -813,14 +871,17 @@ public class GameControlScript : MonoBehaviour
 						}
 						Debug.Log ("Ori: [0, 0.5, 1] - " + r2);
 					}
-					loc = gos [treeToActivate].transform.position;
-					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
-					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					if (treeToActivate > -1) {
+						loc = gos [treeToActivate].transform.position;
+						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					}
 				} else if (gos.Length == 4) {
 					if (Globals.blockSize > 0) {
 						treeToActivate = Globals.GetTreeToActivateFromBlock();
 					} else {
+						float catchThresh = 1 - Globals.catchFreq;
 						float thresh0 = 0.25F;
 						float thresh1 = 0.5F;
 						float thresh2 = 0.75F;
@@ -845,15 +906,29 @@ public class GameControlScript : MonoBehaviour
 							thresh2 = t2 / (t0 + t1 + t2 + t3) + thresh1;
 						}
 
-						Debug.Log ("random: " + r + " --- range: [0, " + thresh0 + ", " + thresh1 + ", " + thresh2 + ", 1]");
+						thresh0 = thresh0 * catchThresh;
+						thresh1 = thresh1 * catchThresh;
+						thresh2 = thresh2 * catchThresh;
 
-						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : 3;
+						Debug.Log ("random: " + r + " --- range: [0, " + thresh0 + ", " + thresh1 + ", " + thresh2 + ", " + catchThresh + ", 1]");
+
+						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : r < catchThresh ? 3 : -1;
+						while (true) {
+							// Don't allow the very first trial to be a catch trial, as that might be more confusing for the mouse
+							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == -1) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] == -1 && treeToActivate == -1)) {
+								r = UnityEngine.Random.value;
+								treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : r < catchThresh ? 3 : -1;
+							} else {
+								break;
+							}
+						}
 					}
-
-					loc = gos [treeToActivate].transform.position;
-					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
-					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					if (treeToActivate > -1) {
+						loc = gos [treeToActivate].transform.position;
+						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					}
 					SetupTreeActivation (gos, treeToActivate, 4);
 				}
 			} else if (gameType.Equals ("det_blind")) {
@@ -861,6 +936,7 @@ public class GameControlScript : MonoBehaviour
 					if (Globals.blockSize > 0) {
 						treeToActivate = Globals.GetTreeToActivateFromBlock();
 					} else {
+						float catchThresh = 1 - Globals.catchFreq;
 						double thresh0 = 0.333D;
 						double thresh1 = 0.666D;
 
@@ -932,21 +1008,35 @@ public class GameControlScript : MonoBehaviour
 							}
 						}
 
-						Debug.Log ("STIMLOC: [0, " + thresh0 + ", " + thresh1 + ", 1] - " + r);
-						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : 2;
+						thresh0 = thresh0 * catchThresh;
+						thresh1 = thresh1 * catchThresh;
+
+						Debug.Log ("STIMLOC: [0, " + thresh0 + ", " + thresh1 + ", " + catchThresh + ", 1] - " + r);
+						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < catchThresh ? 2 : -1;
+						while (true) {
+							// Don't allow the very first trial to be a catch trial or 2 catch trials in a row, as that might be more confusing for the mouse
+							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == -1) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] == -1 && treeToActivate == -1)) {
+								r = UnityEngine.Random.value;
+								treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < catchThresh ? 2 : -1;
+							} else {
+								break;
+							}
+						}
 					}
 
-					SetupTreeActivation (gos, treeToActivate, 2);
-					gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree - only necessary with persistent shadow
-
-					loc = gos [treeToActivate].transform.position;
-					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
-					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					SetupTreeActivation (gos, treeToActivate, 3);
+					if (treeToActivate > -1) {  // enable the center target only if this is not a catch trial
+						gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree
+						loc = gos [treeToActivate].transform.position;
+						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					}
 				} else if (gos.Length == 2) { // For training lesioned animals who have not been previously trained
 					if (Globals.blockSize > 0) {
 						treeToActivate = Globals.GetTreeToActivateFromBlock();
 					} else {
+						float catchThresh = 1 - Globals.catchFreq;
 						float rThresh0 = 0.5F;
 						if (Globals.presoRatio > 0) { // Works for 2-choice only, YN and 2AFC
 							rThresh0 = (float)Globals.presoRatio / (Globals.presoRatio + 1);
@@ -954,19 +1044,31 @@ public class GameControlScript : MonoBehaviour
 						if (Globals.biasCorrection && Globals.numNonCorrectionTrials > 1) {
 							rThresh0 = 1 - Globals.GetTurnBias (20, 0);  // varies the boundary based on history of mouse turns
 						}
-						Debug.Log ("Loc: [0, " + rThresh0 + ", 1] - " + r);
-						treeToActivate = r < rThresh0 ? 0 : 1;
+						rThresh0 = rThresh0 * catchThresh;  // Support catch trials
+						Debug.Log ("Loc: [0, " + rThresh0 + ", " + catchThresh + ", 1] - " + r);
+						// If r is less than rThresh0, enable target #0; if not, if r is less than catchThresh, enable target #1; if not then do a catch trial (no targets enabled)
+						treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : -1;
+						while (true) {
+							// Don't allow the very first trial to be a catch trial, as that might be more confusing for the mouse
+							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == -1) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] == -1 && treeToActivate == -1)) {
+								r = UnityEngine.Random.value;
+								treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : -1;
+							} else {
+								break;
+							}
+						}
 					}
 
-					SetupTreeActivation (gos, treeToActivate, 1);
-					gos [1].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree - only necessary with persistent shadow
-
-					loc = gos [treeToActivate].transform.position;
-					hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
-					vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
-					angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					SetupTreeActivation (gos, treeToActivate, 2);
+					if (treeToActivate > -1) { // On blind test catch trials, even hide the persistent center tree!
+						gos [1].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree - only necessary with persistent shadow
+						loc = gos [treeToActivate].transform.position;
+						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
+						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
+						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
+					}
 				}
-			} else if (gameType.Equals ("discrimination")) {
+			} else if (gameType.Equals ("discrimination")) {  // No concept of catch trials yet for the discrimination task
 				// Randomize orientations
 				float rThresh0 = 0.5F;
 				if (Globals.numNonCorrectionTrials > 1 && Globals.biasCorrection) {  // Add bias correction option if needed later
@@ -1004,7 +1106,7 @@ public class GameControlScript : MonoBehaviour
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (true);
 				}
 				Debug.Log ("[0, " + rThresh0 + ", 1] - " + r);
-			} else if (gameType.Equals ("match") || gameType.Equals ("nonmatch")) {
+			} else if (gameType.Equals ("match") || gameType.Equals ("nonmatch")) { // No concept of catch trials yet for this task
 				// First, pick an orientation at random for the central tree
 				float targetHFreq = gos [2].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 				float targetVFreq = gos [2].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
@@ -1153,7 +1255,7 @@ public class GameControlScript : MonoBehaviour
 	}
 
     private void SetupTreeActivation(GameObject[] gos, int treeToActivate, int maxTrees) {
-		for (int i = 0; i < maxTrees; i++) { // In the 3-tree case, never deactivate the 3rd tree
+		for (int i = 0; i < maxTrees; i++) {
             gos[i].SetActive(true);
 			if (i == treeToActivate) {
 				List<int> hiddenIdx = Globals.GetCurrentWorld ().hiddenIdx;

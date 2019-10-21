@@ -186,7 +186,7 @@ public class UDPSend : MonoBehaviour
 	public void OptoTurnOffAll() {
 		int msg = -7;
 		SendIntMsg (msg);
-		Debug.Log ("Turned off opto");
+		//Debug.Log ("Turned off opto");
 	}
 
 	private void SendIntMsg(int msg) {

@@ -1,0 +1,103 @@
+<world>
+	<gameType>detection</gameType>
+	<trees>
+		<t> <!-- Left tree -->
+			<w>1</w>
+			<pos>19975;-16;20026</pos>
+			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>2</h>
+			<d>0</d>
+		</t>
+		<t> <!-- Right tree -->
+			<w>1</w>
+			<pos>20025;-16;20026</pos>
+			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>2</h>
+			<d>0</d>
+		</t>
+	</trees>
+	<walls>
+		<wall> <!-- Front Left wall -->
+			<pos>19993;0.5;20004</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;17</scale>
+		</wall>
+		<wall> <!-- Left diagonal wall -->
+			<pos>19991;0.5;20016</pos>
+			<rot>0;-30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Left front wall -->
+			<pos>19982;0.5;20019</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;14</scale>
+		</wall>
+		<wall> <!-- Left Closing wall -->
+			<pos>19976;0.5;20028</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;19.1</scale>
+		</wall>
+		<wall> <!-- Left Back wall -->
+			<pos>19980;0.5;20037</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;40</scale>
+		</wall>
+		<wall> <!-- Straight left diagonal wall -->
+			<pos>19991;0.5;20040</pos>
+			<rot>0;30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Straight left receding wall -->
+			<pos>19994;0.5;20054</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
+		<wall> <!-- Back wall -->
+			<pos>20000;0.5;20050.5</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
+		<wall> <!-- Straight right receding wall -->
+			<pos>20006;0.5;20054</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
+		<wall> <!-- Straight right diagonal wall -->
+			<pos>20009;0.5;20040</pos>
+			<rot>0;-30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Right Back wall -->
+			<pos>20020;0.5;20037</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;40</scale>
+		</wall>
+		<wall> <!-- Right Closing wall -->
+			<pos>20024;0.5;20028</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;19.1</scale>
+		</wall>
+		<wall> <!-- Right front wall -->
+			<pos>20018;0.5;20019</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;14</scale>
+		</wall>
+		<wall> <!-- Right diagonal wall -->
+			<pos>20009;0.5;20016</pos>
+			<rot>0;30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Front Right wall -->
+			<pos>20007;0.5;20004</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;17</scale>
+		</wall>
+		<wall> <!-- Front wall -->
+			<pos>20000;0.5;19994</pos>
+			<rot>0;90.00003;0</rot>
+			<scale>2;0;15</scale>
+		</wall>
+	</walls>
+</world>
