@@ -14,19 +14,21 @@ function getStats(mouseName, days, sessions, includeCorrectionTrials)
 % -1;-1;-1 location of the target to indicate no target was presented.
 
 % X locs of 2-choice, 3-chioce and 4-choice worlds
-leftX = 19975;
+nearLeftX = 19975;
+far
 centerX = 20000;
-rightX = 20025;
+nearRightX = 20025;
 
-nearLeftX = 19973;
-farLeftX = 19972;
-nearRightX = 20027;
-farRightX = 20028;
+nearLeftXDiag = 19973;
+farLeftXDiag = 19972;
+nearRightXDiag = 20027;
+farRightXDiag = 20028;
 
 discLeftX = 19980;
 discRightX = 20020;
 
 catchX = -1;
+zCutoff = 20050;  % Used to separate front from rear stimuli in the one-sided 2AFC
 
 % first column is all Left stim trials
 % second column is all Right stim trials
@@ -83,29 +85,62 @@ for i=1:length(fileList)
                     % have a 2-choice world identical to the 3-choice world in stim locations.  We could explicitly
                     % record the number of choices in the log file, which I will start doing.  But in the meantime,
                     % just use the title of the file as well as worldNum to distinguish.
-                    
+                    levels = zeros(2,1);  % Currently support just 2 levels per world
+                    strs = split(fileList(i).name, '-');  % Example filename: Waldo-D100-3_BG_Bl_R_10-S5_actions
+                    % Take the 3rd string, and split by underscores
+                    % This is hacky, but fine for now - right way is to
+                    % record level identifier in the log file, but I will
+                    % get to that later.
+                    level_parts = split(strs{3}, '_');
+                    if(~isnan(str2double(level_parts{1}(1))))
+                        levels(1) = str2double(level_parts{1}(1));
+                        if (~isnan(str2double(level_parts{2}(1))))
+                            levels(2) = str2double(level_parts{2}(1));
+                        end
+                    end
                     for k = 1:length(C{1})  % For each line
                         % C{5} is the target location, C{12} is the turn location
                         if (iscell(C{5}(k)))
                             tmp = strsplit(C{5}{k}, ';');
                             stimLocX = str2double(tmp{1});
+                            stimLocZ = str2double(tmp{3});
                         else
                             stimLocX = str2double(C{5}(k));
                         end
                         if (iscell(C{12}(k)))
                             tmp = strsplit(C{12}{k}, ';');
                             actionLocX = str2double(tmp{1});
+                            actionLocZ = str2Double(tmp{3});
                         else 
                             actionLocX = str2double(C{12}(k));
                         end
                         optoLoc = C{17}(k);
+                        worldNum = C{16}(k);
                         
                         isCorrectionTrial = C{21}(k);
                         if (isCorrectionTrial && ~includeCorrectionTrials)
                             continue;
                         end
 
-                        if (stimLocX == leftX || stimLocX == rightX || stimLocX == centerX)
+                        if (levels(worldNum+1) == 2)
+                            trialType = 2;
+                            if (stimLocX < centerX)
+                                if (stimLocZ < zCutoff)
+                                    col = 1;
+                                else
+                                    col = 2;
+                                end
+                            else
+                                if (stimLocZ < zCutoff)
+                                    col = 1;
+                                else
+                                    col = 2;
+                                end
+                            end
+                        end
+                            
+                            if (actionLocX < centerX
+                        elseif (levels(worldNum+1) == 3) 
                             trialType = 3;
                             if (stimLocX < centerX)
                                 col = 1;
@@ -125,25 +160,25 @@ for i=1:length(fileList)
                             
                             % Put trials in correct sheet
                             results_3choice(row, col, optoLoc + 2) = results_3choice(row, col, optoLoc + 2) + 1;
-                        elseif (stimLocX == nearLeftX || stimLocX == farLeftX || stimLocX == nearRightX || stimLocX == farRightX)
+                        elseif (stimLocX == nearLeftXDiag || stimLocX == farLeftXDiag || stimLocX == nearRightXDiag || stimLocX == farRightXDiag)
                             trialType = 4;
-                            if (stimLocX == nearLeftX)
+                            if (stimLocX == nearLeftXDiag)
                                 col = 1;
-                            elseif (stimLocX == nearRightX)
+                            elseif (stimLocX == nearRightXDiag)
                                 col = 2;
-                            elseif (stimLocX == farLeftX)
+                            elseif (stimLocX == farLeftXDiag)
                                 col = 3;
-                            elseif (stimLocX == farRightX)
+                            elseif (stimLocX == farRightXDiag)
                                 col = 4;
                             end
 
-                            if (actionLocX == nearLeftX)
+                            if (actionLocX == nearLeftXDiag)
                                 row = 1;
-                            elseif (actionLocX == nearRightX)
+                            elseif (actionLocX == nearRightXDiag)
                                 row = 2;
-                            elseif (actionLocX == farLeftX)
+                            elseif (actionLocX == farLeftXDiag)
                                 row = 3;
-                            elseif (actionLocX == farRightX)
+                            elseif (actionLocX == farRightXDiag)
                                 row = 4;
                             end
                             

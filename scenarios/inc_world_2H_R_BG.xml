@@ -14,7 +14,7 @@
 		</t>
 		<t> <!-- Back Right tree -->
 			<w>1</w>
-			<pos>20026;-16;20074</pos>
+			<pos>20024;-16;20074</pos>
 			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 			<v>4</v>
 			<h>2</h>

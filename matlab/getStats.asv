@@ -79,11 +79,14 @@ for i=1:length(fileList)
                     % C is a cell array with each string separated by a space
                     C = textscan(fid, '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d'); 
                     % Figure out if it is 2-choice, 3-choice or 4-choice world for this trial
-                    % Prior versions relied on checking the stim location, which won't discriminate now that we
-                    % have a 2-choice world identical to the 3-choice world in stim locations.  We could explicitly
-                    % record the number of choices in the log file, which I will start doing.  But in the meantime,
-                    % just use the title of the file as well as worldNum to distinguish.
-                    
+                    % Prior versions relied on checking the stim
+                    % location, which won't discriminate now that we
+                    % have a 2-choice world identical to the 3-choice
+                    % world in stim locations.  We could explicitly
+                    % record the number of choices in the log file,
+                    % which I will start doing.  But in the meantime,
+                    % just use the title of the file as well as
+                    % worldNum to distinguish.
                     for k = 1:length(C{1})  % For each line
                         % C{5} is the target location, C{12} is the turn location
                         if (iscell(C{5}(k)))
