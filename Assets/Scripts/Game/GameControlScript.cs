@@ -722,8 +722,14 @@ public class GameControlScript : MonoBehaviour
 
 					// First, count the number of trials at each stimloc
 					int[] numTrialsPerStimLoc = new int[numTrees];
+					int numCatchTrials = 0;
 					for (int i = 0; i < Globals.blockSize; i++) {
-						numTrialsPerStimLoc [precompTrialBlock [i]] = numTrialsPerStimLoc [precompTrialBlock [i]] + 1;
+						if (precompTrialBlock [i] != -1) {  // if not a catch trial
+							numTrialsPerStimLoc [precompTrialBlock [i]] = numTrialsPerStimLoc [precompTrialBlock [i]] + 1;
+						} else {
+							precompOptoBlock[i] = Globals.optoSide;  // not used for anything yet
+						}
+
 					}
 					int minVal = numTrialsPerStimLoc.Min ();
 					int infrequentStimLoc = Array.IndexOf (numTrialsPerStimLoc, minVal);
