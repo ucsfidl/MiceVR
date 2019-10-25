@@ -1219,6 +1219,10 @@ public class GameControlScript : MonoBehaviour
 				}
 			}
 			Globals.targetIdx = treeToActivate;  // Store so targets can be revealed later when the mouse reaches a certain point in the world
+
+			if (treeToActivate == -1) { // This is a catch trial
+				Globals.numCatchTrials++;
+			}
 		}
 	
         Globals.targetLoc.Add(loc);
@@ -1377,7 +1381,7 @@ public class GameControlScript : MonoBehaviour
 	}
 
 	private void updateCorrectTurnsText() {
-		float numNonCorrectionTrials = (float)Globals.numNonCorrectionTrials - 1;
+		float numNonCorrectionTrials = (float)Globals.numNonCorrectionTrials - 1 - Globals.numCatchTrials;
 		if (Globals.CurrentlyCorrectionTrial ()) {
 			numNonCorrectionTrials = numNonCorrectionTrials + 1;
 		}

@@ -139,6 +139,8 @@ public static class Globals
 	public static int numNonCorrectionTrials;  // Initialized in code to 1
 	public static int numCorrectionTrials = 0;  // Used to count number of correction trials, which is recorded in the stats file
 
+	public static int numCatchTrials = 0;
+
 	public static bool lightOnDuringITI = false;
 
 	public static float catchFreq = 0;  // This is the frequency at which catch trials, in which no target is visible at all, are presented
@@ -816,13 +818,14 @@ public static class Globals
         StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_stats.txt");
         statsFile.WriteLine("<document>");
         statsFile.WriteLine("\t<stats>");
-		statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1) * 100) + "%" + GetTreeAccuracy(false) + "</accuracy>  <!-- nonCorrection trials only -->");
+		statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials) * 100) + "%" + GetTreeAccuracy(false) + "</accuracy>  <!-- nonCorrection trials only -->");
         // TODO - Fix off by one error when mouse finishes game!
         statsFile.WriteLine("\t\t<numEarnedRewards>" + numCorrectTurns + "</numEarnedRewards>");
         statsFile.WriteLine("\t\t<numUnearnedRewards>" + numberOfUnearnedRewards + "</numUnearnedRewards>");
-		statsFile.WriteLine("\t\t<numNonCorrectionTrials>" + (numNonCorrectionTrials - 1) + "</numNonCorrectionTrials>");
+		statsFile.WriteLine("\t\t<numNonCorrectionTrials>" + (numNonCorrectionTrials - 1 - numCatchTrials) + "</numNonCorrectionTrials>");
 		statsFile.WriteLine("\t\t<numCorrectionTrials>" + numCorrectionTrials + "</numCorrectionTrials>");
-		statsFile.WriteLine("\t\t<numAllTrials>" + (numNonCorrectionTrials - 1 + numCorrectionTrials) + "</numAllTrials>");
+		statsFile.WriteLine("\t\t<numCatchTrials>" + numCatchTrials + "</numCatchTrials>");
+		statsFile.WriteLine("\t\t<numAllTrials>" + (numNonCorrectionTrials - 1 + numCorrectionTrials + numCatchTrials) + "</numAllTrials>");
 
 		TimeSpan te;
 		if (gameEndTime == DateTime.MinValue) // Game is not over
@@ -879,12 +882,12 @@ public static class Globals
 								{ "durm", numMinElapsed.ToString() },
 								{ "rewards", numCorrectTurns.ToString () },
 								{ "rmin", string.Format ("{0:N1}", (numCorrectTurns / numMinElapsed)) },
-								{ "trials", (numNonCorrectionTrials - 1).ToString () },
-								{ "tmin", string.Format ("{0:N1}", (numNonCorrectionTrials - 1) / numMinElapsed) },
-								{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1) * 100) + "%" },
+								{ "trials", (numNonCorrectionTrials - 1 - numCatchTrials).ToString () },
+								{ "tmin", string.Format ("{0:N1}", (numNonCorrectionTrials - 1 - numCatchTrials) / numMinElapsed) },
+								{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials) * 100) + "%" },
 								{ "earned", Math.Round (totalEarnedRewardSize).ToString () },
 								{ "uball", Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString () },
-								{ "results", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1) * 100) + GetTreeAccuracy (false) },
+								{ "results", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials) * 100) + GetTreeAccuracy (false) },
 								{ "totalh2o", "=V" + (row + 1) + "+X" + (row + 1) }
 							}
 							);
@@ -1044,7 +1047,7 @@ public static class Globals
 		}
 	}
 
-	public static bool CurrentlyCatchTrial() {
+	public static bool CurrentlyCatchTrial() { // Can only be called while State is Running, not before Respawn gets a chance to run
 		return targetHFreq [targetHFreq.Count - 1] == -1;
 	}
 

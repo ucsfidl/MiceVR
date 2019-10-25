@@ -1,4 +1,4 @@
-function getStats(mouseName, days, sessions, includeCorrectionTrials)
+function getStats2(mouseName, days, sessions, includeCorrectionTrials)
 % This function will analyze the relevant actions.txt log files and return
 % a set of statistics useful to analyzing blindness and blindsight, as well
 % as a 2AFC stimulus discrimination task.
@@ -15,9 +15,10 @@ function getStats(mouseName, days, sessions, includeCorrectionTrials)
 
 % X locs of 2-choice, 3-chioce and 4-choice worlds
 nearLeftX = 19975;
-far
+farLeftX = 19976;
 centerX = 20000;
 nearRightX = 20025;
+farRightX = 20024;
 
 nearLeftXDiag = 19973;
 farLeftXDiag = 19972;
@@ -42,11 +43,11 @@ zCutoff = 20050;  % Used to separate front from rear stimuli in the one-sided 2A
 % optoR, and fourth is optoBoth.
 
 results_2choice = zeros(2,2,4);
-results_2choice_catch = zeros(2,2,4);  % No target presented in these results for "catch" trials
+results_2choice_catch = zeros(2,1,4);  % No target presented in these results for "catch" trials
 results_3choice = zeros(3,3,4);
-results_3choice_catch = zeros(3,3,4);
+results_3choice_catch = zeros(3,1,4);
 results_4choice = zeros(4,4,4);
-results_4choice_catch = zeros(4,4,4);
+results_4choice_catch = zeros(4,1,4);
 
 results_disc = zeros(2,2,4);
 results_disc_catch = zeros(2,2,4);
@@ -122,44 +123,83 @@ for i=1:length(fileList)
                             continue;
                         end
 
+                        currCatch = 0;
                         if (levels(worldNum+1) == 2)
                             trialType = 2;
-                            if (stimLocX < centerX)
-                                if (stimLocZ < zCutoff)
-                                    col = 1;
-                                else
-                                    col = 2;
-                                end
-                            else
-                                if (stimLocZ < zCutoff)
-                                    col = 1;
-                                else
-                                    col = 2;
-                                end
-                            end
-                        end
-                            
-                            if (actionLocX < centerX
-                        elseif (levels(worldNum+1) == 3) 
-                            trialType = 3;
-                            if (stimLocX < centerX)
+                            if (stimLocX == nearLeftX)
                                 col = 1;
-                            elseif (stimLocX > centerX)
+                            elseif (stimLocX == farLeftX)
+                                col = 2;
+                            elseif (stimLocX == nearRightX)
+                                % Hack that assumes that on 2H levels, R
+                                % level always comes second
+                                if (length(levels) == 1))  % Assumes no 2R-only levels
+                                    col = 2;
+                                elseif (length(levels) == 2 && worldNum == 0)
+                                    col = 2;
+                                elseif (length(levels) == 2 && worldNum == 1)
+                                    col = 1;
+                                end
+                            elseif (stimLocX == farRightX)
+                                col = 2;
+                            else % Catch trials!
+                                currCatch = 1;
+                            end
+                            
+                            if (actionLocX == nearLeftX)
+                                row = 1;
+                            elseif (actionLocX == farLeftX)
+                                row = 2;
+                            elseif (actionLocX == nearRightX)
+                                % Hack that assumes that on 2H levels, R
+                                % level always comes second
+                                if (length(levels) == 1))  % Assumes no 2R-only levels
+                                    row = 2;
+                                elseif (length(levels) == 2 && worldNum == 0)
+                                    row = 2;
+                                elseif (length(levels) == 2 && worldNum == 1)
+                                    row = 1;
+                                end
+                            elseif (actionLocX == farRightX)
+                                row = 2;
+                            else
+                                disp('action does not match an expected target location');
+                            end
+                            
+                            if (~currCatch)
+                                results_2choice(row, col, optoLoc + 2) = results_2choice(row, col, optoLoc + 2) + 1;
+                            else
+                                results_2choice_catch(row, 1, optoLoc + 2) = results_2choice_catch(row, 1, optoLoc + 2) + 1;
+                            end
+                        elseif (levels(worldNum+1) == 3) 
+                            % Need to update if do half 5-choice levels
+                            trialType = 3;
+                            if (stimLocX == nearLeftX)
+                                col = 1;
+                            elseif (stimLocX == nearRightX)
                                 col = 2;
                             elseif (stimLocX == centerX)
                                 col = 3;
+                            else
+                                currCatch = 1;
                             end
 
-                            if (actionLocX < centerX)
+                            if (actionLocX == nearLeftX)
                                 row = 1;
-                            elseif (actionLocX > centerX)
+                            elseif (actionLocX == nearRightX)
                                 row = 2;
                             elseif (actionLocX == centerX)
                                 row = 3;
+                            else
+                                disp('action does not match an expected target location');
                             end
                             
                             % Put trials in correct sheet
-                            results_3choice(row, col, optoLoc + 2) = results_3choice(row, col, optoLoc + 2) + 1;
+                            if (~currCatch)
+                                results_3choice(row, col, optoLoc + 2) = results_3choice(row, col, optoLoc + 2) + 1;
+                            else
+                                results_3choice_catch(row, 1, optoLoc + 2) = results_3choice_catch(row, 1, optoLoc + 2) + 1;
+                            end
                         elseif (stimLocX == nearLeftXDiag || stimLocX == farLeftXDiag || stimLocX == nearRightXDiag || stimLocX == farRightXDiag)
                             trialType = 4;
                             if (stimLocX == nearLeftXDiag)
@@ -170,6 +210,8 @@ for i=1:length(fileList)
                                 col = 3;
                             elseif (stimLocX == farRightXDiag)
                                 col = 4;
+                            else
+                                currCatch = 1;
                             end
 
                             if (actionLocX == nearLeftXDiag)
@@ -180,16 +222,24 @@ for i=1:length(fileList)
                                 row = 3;
                             elseif (actionLocX == farRightXDiag)
                                 row = 4;
+                            else
+                                disp('action does not match an expected target location');
                             end
                             
                             % Put trials in correct sheet
-                            results_4choice(row, col, optoLoc + 2) = results_4choice(row, col, optoLoc + 2) + 1;
+                            if (~currCatch)
+                                results_4choice(row, col, optoLoc + 2) = results_4choice(row, col, optoLoc + 2) + 1;
+                            else
+                                results_4choice_catch(row, 1, optoLoc + 2) = results_4choice_catch(row, 1, optoLoc + 2) + 1;
+                            end
                         elseif (stimLocX == discLeftX || stimLocX == discRightX)
                             trialType = 2;
                             if (stimLocX == discLeftX)
                                 col = 1;
                             elseif (stimLocX == discRightX)
                                 col = 2;
+                            else
+                                currCatch = 1;
                             end
                             
                             if (actionLocX == discLeftX)
@@ -198,12 +248,18 @@ for i=1:length(fileList)
                                 row = 2;
                             end
                             % Put trials in correct sheet
-                            results_disc(row, col, optoLoc + 2) = results_disc(row, col, optoLoc + 2) + 1;
+                            if (~currCatch)
+                                results_disc(row, col, optoLoc + 2) = results_disc(row, col, optoLoc + 2) + 1;
+                            else 
+                                results_disc_catch(row, 1, optoLoc + 2) = results_disc(row, 1, optoLoc + 2) + 1;
+                            end
                         else
                             error('Do not know how to analyze these data');
                         end
 
-                        % The following analysis only applies to the 3-chioce task
+                        % The following analysis only applies to the
+                        % 3-choice task - Not quite sure if this is
+                        % relevant any more.
                         if (trialType == 3 && col ~= row)  % error trial
                             nasal = C{8}(k);
                             temporal = C{9}(k);
@@ -230,6 +286,86 @@ for i=1:length(fileList)
                 fclose(fid);
             end
         end
+    end
+end
+
+% If there are 2-choice trials, print the results
+if (sum(sum(sum(results_2choice))) > 0)
+    disp('///////2-CHOICE///////');
+    results = results_2choice;  % just a helper
+
+    for j = 1:size(results,3)
+        % Don't display results if none for this opto-type
+        cnt = sum(sum(results));
+        if (cnt(j) == 0)
+            continue;
+        end
+        if (j == 1) 
+            disp('=====Non-Opto======')
+        elseif (j == 2)
+            disp('=====Opto Left======')
+        elseif (j == 3)
+            disp('=====Opto Right======')
+        elseif (j == 4)
+            disp('=====Opto Both======')
+        end
+        numCorrect = results(1,1,j)+results(2,2,j);
+        numTrials = sum(sum(results(:,:,j)));
+        disp(['ACCURACY = ' num2str(numCorrect/numTrials * 100, 2) '%']);
+        disp(['L->L = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+            num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+        disp(['L->R = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+            num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+        disp('-----------')
+        disp(['R->L = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
+            num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
+        disp(['R->R = ' num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
+            num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
+        disp('-----------')
+        disp([num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '/' ...
+              num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3)]);        
+        disp('-----------')
+        %disp(results(:,:,j));
+        %disp('===========')
+    end
+
+    if (sum(sum(sum(results_2choice_catch))) > 0)
+        disp('///////2-CHOICE CATCH///////');
+        results = results_2choice_catch;
+        for j = 1:size(results,3)
+            % Don't display results if none for this opto-type
+            cnt = sum(sum(results));
+            if (cnt(j) == 0)
+                continue;
+            end
+            if (j == 1) 
+                disp('=====Non-Opto======')
+            elseif (j == 2)
+                disp('=====Opto Left======')
+            elseif (j == 3)
+                disp('=====Opto Right======')
+            elseif (j == 4)
+                disp('=====Opto Both======')
+            end
+            numTrials = sum(sum(results(:,:,j)));
+            disp(['LEFT BIAS = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100)
+            disp(['L->L = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+                num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+            disp(['L->R = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+                num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+            disp('-----------')
+            disp(['R->L = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
+                num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
+            disp(['R->R = ' num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
+                num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
+            disp('-----------')
+            disp([num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '/' ...
+                  num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3)]);        
+            disp('-----------')
+            %disp(results(:,:,j));
+            %disp('===========')
+        end
+       
     end
 end
 

@@ -44,7 +44,7 @@ end
 vidFileName = mouseName;
 if (isfile(vrGSdocidFileName)) % If the docid file exists, use that to find the Google Sheet for this mouse
     fid = fopen(vrGSdocidFileName);
-    docid = fgetl(fid);
+    docid = fgetl(fid);q
     sheetID = GetSheetIDs(docid, {mouseName}, 1);   % Data sheets only, not all sheets
     sheet = GetGoogleSpreadsheet(docid, sheetID);
     lastDay = '0';
