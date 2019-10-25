@@ -23,6 +23,6 @@
 		</gameConfig>
 	</config>
 	<worlds>
-		<includeWorld>inc_world_2_BG_Probe_R.xml</includeWorld>
+		<includeWorld>inc_world_2_BG_Probe_L.xml</includeWorld>
 	</worlds>
 </document>
