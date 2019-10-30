@@ -2,7 +2,7 @@
 	<gameType>detection</gameType>          <!-- Options: match, nonmatch -->
 	<probeIdx>1;3</probeIdx>
 	<hiddenIdx>2;3</hiddenIdx>
-	<revealZPos>20022</revealZPos>
+	<revealZPos>20016</revealZPos>
 	<trees>  <!-- All tree X positions are different, as used as an ID -->
 		<t> <!-- Left front tree -->
 			<w>1</w>
