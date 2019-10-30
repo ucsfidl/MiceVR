@@ -1,7 +1,7 @@
 <world> <!-- 4-choice -->
 	<gameType>detection</gameType>          <!-- Options: match, nonmatch -->
 	<hiddenIdx>2;3</hiddenIdx>
-	<revealZPos>20016</revealZPos>
+	<revealZPos>20010</revealZPos>
 	<trees>  <!-- All tree X positions are different, as used as an ID -->
 		<t> <!-- Left front tree -->
 			<w>1</w>
