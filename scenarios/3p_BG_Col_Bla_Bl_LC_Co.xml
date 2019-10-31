@@ -8,16 +8,15 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>detection</gameType>
-			<alternateWorlds>true</alternateWorlds>
-			<gameTurnControl>yaw</gameTurnControl>
+			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
 			<treesBelowGround>true</treesBelowGround>
-			<biasCorrection>true</biasCorrection>
+			<biasCorrection>false</biasCorrection>
 			<correctionTrials>true</correctionTrials>
+			<blockSize>20</blockSize>
 		</gameConfig>
 	</config>
 	<worlds>
-		<includeWorld>inc_world_2Fp_L_BG.xml</includeWorld>
-		<includeWorld>inc_world_2Fp_R_BG.xml</includeWorld>
+		<includeWorld>inc_world_3p_BG_Col_Bla_Probe_R.xml</includeWorld>
 	</worlds>
 </document>

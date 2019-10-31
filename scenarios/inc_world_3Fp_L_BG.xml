@@ -1,0 +1,160 @@
+<world> <!-- 3-choice -->
+	<gameType>det_blind</gameType>
+	<hiddenIdx>1</hiddenIdx>
+	<revealZPos>20040</revealZPos>
+	<trees>
+		<t> <!-- Front Left tree -->
+			<w>1</w>
+			<pos>19975;-16;20026</pos>
+			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>2</h>
+			<d>0</d>
+		</t>
+		<t> <!-- Back Left tree -->
+			<w>1</w>
+			<pos>19976;-16;20074</pos>
+			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>2</h>
+			<d>0</d>
+		</t>
+		<t> <!-- Center tree -->
+			<w>1</w>
+			<pos>20000;-16;20094</pos>
+			<scale>0;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>0</v>  <!-- Vfreq of gradient -->
+			<h>2</h>  <!-- Hfreq of gradient -->
+			<d>0</d>
+		</t>
+	</trees>
+	<walls>
+		<wall> <!-- Front Left wall -->
+			<pos>19993;0.5;20004</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;17</scale>
+		</wall>
+		<wall> <!-- Front Left diagonal wall -->
+			<pos>19991;0.5;20016</pos>
+			<rot>0;-30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Front Left front wall -->
+			<pos>19982;0.5;20019</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;14</scale>
+		</wall>
+		<wall> <!-- Front Left Closing wall -->
+			<pos>19976;0.5;20028</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;19.1</scale>
+		</wall>
+		<wall> <!-- Front Left Back wall -->
+			<pos>19980;0.5;20037</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;19.1</scale>
+		</wall>
+		<wall> <!-- Midway front left diagonal wall -->
+			<pos>19991;0.5;20040</pos>
+			<rot>0;30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Midway left straight wall -->
+			<pos>19993;0.5;20052</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;17</scale>
+		</wall>
+		<wall> <!-- Midway back left diagonal wall -->
+			<pos>19991;0.5;20064</pos>
+			<rot>0;-30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Back Left front wall -->
+			<pos>19982;0.5;20067</pos>
+			<rot>0;-90;0</rot>
+			<scale>2;0;14</scale>
+		</wall>
+		<wall> <!-- Back Left closing wall -->
+			<pos>19976;0.5;20076</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;19.1</scale>
+		</wall>
+		<wall> <!-- Back Left back wall -->
+			<pos>19980;0.5;20085</pos>
+			<rot>0;-90;0</rot>
+			<scale>2;0;19.1</scale>
+		</wall>
+
+		<wall> <!-- Back left diagonal wall -->
+			<pos>19991;0.5;20088</pos>
+			<rot>0;30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Straight left receding wall -->
+			<pos>19994;0.5;20102</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
+		<wall> <!-- Back wall -->
+			<pos>20000;0.5;20098.5</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;20</scale>
+		</wall>
+
+		<wall> <!-- Back Right closing wall -->
+			<pos>20024;0.5;20076</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;19.1</scale>
+		</wall>
+		<wall> <!-- Back Right front wall -->
+			<pos>20018;0.5;20067</pos>
+			<rot>0;-90;0</rot>
+			<scale>2;0;14</scale>
+		</wall>
+		<wall> <!-- Midway back right diagonal wall -->
+			<pos>20009;0.5;20064</pos>
+			<rot>0;30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Midway right straight wall -->
+			<pos>20007;0.5;20052</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;90</scale>
+		</wall>
+		<wall> <!-- Midway front right diagonal wall -->
+			<pos>20009;0.5;20040</pos>
+			<rot>0;-30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Right Back wall -->
+			<pos>20020;0.5;20037</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;19.1</scale>
+		</wall>
+		<wall> <!-- Right Closing wall -->
+			<pos>20024;0.5;20028</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;19.1</scale>
+		</wall>
+		<wall> <!-- Right front wall -->
+			<pos>20018;0.5;20019</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;14</scale>
+		</wall>
+		<wall> <!-- Right diagonal wall -->
+			<pos>20009;0.5;20016</pos>
+			<rot>0;30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Front Right wall -->
+			<pos>20007;0.5;20004</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;17</scale>
+		</wall>
+		<wall> <!-- Front wall -->
+			<pos>20000;0.5;19994</pos>
+			<rot>0;90.00003;0</rot>
+			<scale>2;0;15</scale>
+		</wall>
+	</walls>
+</world>

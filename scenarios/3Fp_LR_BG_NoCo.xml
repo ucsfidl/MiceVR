@@ -8,7 +8,7 @@
 			<distType>u</distType>
 		</dryConfig>
 		<gameConfig>
-			<gameType>detection</gameType>
+			<gameType>det_blind</gameType>
 			<alternateWorlds>true</alternateWorlds>
 			<gameTurnControl>yaw</gameTurnControl>
 			<treesBelowGround>true</treesBelowGround>
@@ -17,7 +17,7 @@
 		</gameConfig>
 	</config>
 	<worlds>
-		<includeWorld>inc_world_2Fp_L_BG.xml</includeWorld>
-		<includeWorld>inc_world_2Fp_R_BG.xml</includeWorld>
+		<includeWorld>inc_world_3Fp_L_BG.xml</includeWorld>
+		<includeWorld>inc_world_3Fp_R_BG.xml</includeWorld>
 	</worlds>
 </document>
