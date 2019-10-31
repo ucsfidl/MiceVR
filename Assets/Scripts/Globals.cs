@@ -76,7 +76,7 @@ public static class Globals
 	public static Color color2 = Color.black;
 
     public static MovementRecorder mRecorder = GameObject.Find("FPSController").GetComponent<MovementRecorder>();
-    public static DateTime gameStartTime;
+    public static DateTime gameStartTime; // do not assign value here, as CheckForQ wants it to equal DateTime.MinValue, which it does when not set
 	public static DateTime gameEndTime = new DateTime();
 
 	public static bool biasCorrection = true;  // default to true if nothing entered in scenario file

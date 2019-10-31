@@ -558,6 +558,11 @@ public class GameControlScript : MonoBehaviour
 			distractorAngle = Globals.distractorAngle [Globals.distractorAngle.Count - 1];
 			optoState = Globals.optoStates [Globals.optoStates.Count - 1];
 			Globals.worldID.Add(worldID);  		// Record which world this trial is on - must happen before below
+			// If trees are hidden at the start, rehide the tree
+			if (Globals.GetCurrentWorld ().hiddenIdx.Contains (Globals.GetIdxOfStimLoc (loc.x))) {
+				GameObject[] gos = Globals.GetTrees ();
+				gos [Globals.GetIdxOfStimLoc (loc.x)].GetComponent<WaterTreeScript> ().Hide ();
+			}
 		} else {
 			Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again
 
@@ -1303,17 +1308,22 @@ public class GameControlScript : MonoBehaviour
         yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
         Debug.Log("quitting!");
 		this.udpSender.close();
-		Globals.WriteStatsFile();  // make sure before WriteStatsToGoogleSheet();
-		bool wroteData = Globals.WriteStatsToGoogleSheet();  // sometimes fails due to bad internet connection?  
 
-		if (wroteData) {
-			Application.Quit ();
+		if (DateTime.Compare(Globals.gameStartTime, DateTime.MinValue) != 0) {  // Only record stats if the game has started, otherwise just exit
+			Globals.WriteStatsFile ();  // make sure before WriteStatsToGoogleSheet();
+			bool wroteData = Globals.WriteStatsToGoogleSheet ();  // sometimes fails due to bad internet connection?  
+			if (wroteData) {
+				Application.Quit ();
+			} else {
+				this.fadeToBlackText.text = "Data not saved in sheets, so manually enter";
+				this.state = "NotSavedToSheets";
+				yield return new WaitUntil (() => Input.GetKeyUp (KeyCode.Q));
+				Application.Quit ();
+			}
 		} else {
-			this.fadeToBlackText.text = "Data not saved in sheets, so manually enter";
-			this.state = "NotSavedToSheets";
-			yield return new WaitUntil(() => Input.GetKeyUp(KeyCode.Q));
 			Application.Quit ();
 		}
+
     }
 
     private void MovePlayer() {
