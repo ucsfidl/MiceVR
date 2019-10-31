@@ -1,4 +1,4 @@
-<world> <!-- 3-choice -->
+<world>
 	<gameType>det_blind</gameType>
 	<hiddenIdx>1</hiddenIdx>
 	<revealZPos>20040</revealZPos>
