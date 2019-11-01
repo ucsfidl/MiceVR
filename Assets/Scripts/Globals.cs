@@ -558,15 +558,15 @@ public static class Globals
 							Debug.Log (t.restrictToCamera);
 						}
 						if (t.restrictToCamera == 0) {
-							go.layer = LayerMask.NameToLayer ("Left Visible Only");
+							//go.layer = LayerMask.NameToLayer ("Left Visible Only");
 							foreach (Transform tr in go.transform) {
-								tr.gameObject.layer = LayerMask.NameToLayer ("Left Visible Only");
+								//tr.gameObject.layer = LayerMask.NameToLayer ("Left Visible Only");
 								tr.gameObject.AddComponent<SetRenderQueue> ();
 							}
 						} else if (t.restrictToCamera == 2) {
-							go.layer = LayerMask.NameToLayer ("Right Visible Only");
+							//go.layer = LayerMask.NameToLayer ("Right Visible Only");
 							foreach (Transform tr in go.transform) {
-								tr.gameObject.layer = LayerMask.NameToLayer ("Right Visible Only");
+								//tr.gameObject.layer = LayerMask.NameToLayer ("Right Visible Only");
 								tr.gameObject.AddComponent<SetRenderQueue> ();
 							}
 						}
@@ -1148,15 +1148,15 @@ public static class Globals
 		toct.transform.localPosition = new Vector3 (0, occluderYScale, 0.5F);
 		tocb.transform.localScale = new Vector3 (occluderXScale, occluderYScale, 1);
 		tocb.transform.localPosition = new Vector3 (0, -occluderYScale, 0.5F);
-		if (locx < worldXCenter) {  // Tree is on left side, so shift center curtains to the right of center
-			tocmt.transform.localScale = new Vector3 (occluderXScale, occluderYScale, 1);
-			tocmt.transform.localPosition = new Vector3 (occluderXScale / 2, 0, 0.5F);
-		} else {  // Tree is on the right side, so shift center curtain to the left of center
-			tocmt.transform.localScale = new Vector3 (occluderXScale, occluderYScale, 1);
-			tocmt.transform.localPosition = new Vector3 (-occluderXScale / 2, 0, 0.5F);
-		}
+		tocmt.transform.localScale = new Vector3 (occluderXScale, occluderYScale, 1);
 		tocmn.transform.localScale = tocmt.transform.localScale;
-		tocmn.transform.localPosition = tocmt.transform.localPosition;
+		if (locx < worldXCenter) {
+			tocmn.transform.localPosition = new Vector3 (-occluderXScale, 0, 0.5F);
+			tocmt.transform.localPosition = new Vector3 (occluderXScale, 0, 0.5F);
+		} else {
+			tocmn.transform.localPosition = new Vector3 (occluderXScale, 0, 0.5F);
+			tocmt.transform.localPosition = new Vector3 (-occluderXScale, 0, 0.5F);
+		}
 
 		// RIGHT SCREEN FOR RIGHT TREES
 		tort.transform.localScale = new Vector3(occluderXScale, occluderYScale, 1);
@@ -1186,28 +1186,52 @@ public static class Globals
 		}
 	
 		// Third, shift the curtains to enforce a nasal border
-		if (nasalBound > fovNasalAzimuth) {
-			if (nasalBound > monitorAzimuth / 2) {
-				// Move central occluder all the way temporal
+		if (nasalBound >= fovNasalAzimuth) {
+			if (nasalBound >= monitorAzimuth / 2) {
+				// User has specified a nasal bound greater than or equal to 30 degrees, so the central and contra-stimulus screens should be totally occluded by the nasal occluder on each of those screens
+				// First, move central occluder all the way temporal
 				tocmn.transform.localPosition = new Vector3 (0, 0, 0.5F);
-				float margin = nasalBound - monitorAzimuth / 2;
+				float margin = nasalBound - monitorAzimuth / 2;  // This is how many degrees to move the nasal occluder on the ipsi-stimulus screen
 				if (locx < worldXCenter) {
+					// Second, move the contra-stim screen occluder all the way on the contra screen
+					tormn.transform.localPosition = new Vector3(0, 0, 0.5F);
+					// Finally, move the ipsi-stim screen occluder to its exact spot
 					tolmn.transform.localPosition = new Vector3 (occluderXScale - (margin / monitorAzimuth * occluderXScale), 0, 0.5F);
 				} else {
+					// Second, move the contra-stim screen occluder all the way on the contra screen
+					tolmn.transform.localPosition = new Vector3(0, 0, 0.5F);
+					// Finally, move the ipsi-stim screen occluder to its exact spot
 					tormn.transform.localPosition = new Vector3 (-occluderXScale + (margin / monitorAzimuth * occluderXScale), 0, 0.5F);
 				}
 			} else {
-				if (locx < worldXCenter) {
-					tocmn.transform.localPosition = new Vector3 ((1 - nasalBound/(monitorAzimuth/2)) * (occluderXScale/2), 0, 0.5F);
-				} else {
-					tocmn.transform.localPosition = new Vector3 (-(1 - nasalBound/(monitorAzimuth/2)) * (occluderXScale/2), 0, 0.5F);
+				// User has specified a nasalbound less than 30 degrees and greater than -30 degrees, so ipsi-screen nasal boundary is not used and central and possibly contra-screen nasal boundary will be adjusted
+				if (nasalBound >= -monitorAzimuth / 2) {
+					if (locx < worldXCenter) {
+						// Need to move both as if the nasalBound is negative (e.g. up to -30 degrees), then need to move both windows out of the way
+						tocmn.transform.localPosition = new Vector3 ((1 - nasalBound / (monitorAzimuth / 2)) * (occluderXScale / 2), 0, 0.5F);
+						tocmt.transform.localPosition = tocmn.transform.localPosition;
+						tormn.transform.localPosition = new Vector3(0, 0, 0.5F);
+					} else {
+						tocmn.transform.localPosition = new Vector3 (-(1 - nasalBound / (monitorAzimuth / 2)) * (occluderXScale / 2), 0, 0.5F);
+						tocmt.transform.localPosition = tocmn.transform.localPosition;
+						tolmn.transform.localPosition = new Vector3(0, 0, 0.5F);
+					}
+				} else {  // User has specified nasalbound less than -30 degrees, so only move contra-screen nasal boundary; we will shift the temporal occluder of that screen, as that is the correct way to think about it now
+					float margin = -(nasalBound + monitorAzimuth / 2);  // This is how many degrees to move the nasal occluder on the contra-stimulus screen
+					if (locx < worldXCenter) {
+						tormt.transform.localPosition = new Vector3 (margin / monitorAzimuth * occluderXScale, 0, 0.5F);
+					} else {
+						tolmt.transform.localPosition = new Vector3 (-margin / monitorAzimuth * occluderXScale, 0, 0.5F);
+					}
 				}
 			}
 		}
 
+
 		// Fourth and finally, shift the curtains to enforce a temporal border
-		if (tempBound < fovTemporalAzimuth) {
-			if (tempBound < fovTemporalAzimuth - monitorAzimuth) { // boundary spans more than the side monitor
+		// DOES NOT SUPPORT Temporal restrictions greater than 0
+		if (tempBound <= fovTemporalAzimuth) {
+			if (tempBound < fovTemporalAzimuth - monitorAzimuth) { // restriction extends to central monitor
 				if (locx < worldXCenter) {  // Tree is on the left
 					tolmt.transform.localPosition = new Vector3 (0, 0, 0.5F);
 					tocmt.transform.localPosition = new Vector3 (-occluderXScale + ((monitorAzimuth / 2 - tempBound) / monitorAzimuth) * occluderXScale, 0, 0.5F);
