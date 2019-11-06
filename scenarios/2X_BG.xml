@@ -1,0 +1,23 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>
+			<alternateWorlds>true</alternateWorlds>
+			<gameTurnControl>yaw</gameTurnControl>
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>true</biasCorrection>
+			<correctionTrials>true</correctionTrials>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_2X_L_BG.xml</includeWorld>
+		<includeWorld>inc_world_2X_R_BG.xml</includeWorld>
+	</worlds>
+</document>
