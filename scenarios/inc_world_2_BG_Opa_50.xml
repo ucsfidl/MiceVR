@@ -9,7 +9,7 @@
 			<h>2</h>
 			<d>0</d>
 			<r>0</r>
-			<opacity>50</opacity>
+			<opacity>0.5</opacity>
 		</t>
 		<t> <!-- Right tree -->
 			<w>1</w>
@@ -19,7 +19,7 @@
 			<h>2</h>
 			<d>0</d>
 			<r>2</r>
-			<opacity>50</opacity>
+			<opacity>0.5</opacity>
 		</t>
 	</trees>
 	<walls>
