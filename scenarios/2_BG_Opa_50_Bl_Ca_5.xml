@@ -1,0 +1,23 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>          <!-- Options: match, nonmatch -->
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>false</biasCorrection>
+			<correctionTrials>true</correctionTrials>
+			<blockSize>20</blockSize>
+			<catchFreq>0.05</catchFreq>  <!-- a catch trial is one in which no target is presented at all -->
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_2_BG_Opa_50.xml</includeWorld>
+	</worlds>
+</document>
