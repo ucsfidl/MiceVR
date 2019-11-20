@@ -1,0 +1,28 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>          <!-- Options: match, nonmatch -->
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>false</biasCorrection>
+			<correctionTrials>true</correctionTrials>  <!-- correction trials are NOT counted in any statistical calculations; correction trials will only occur on non-opto trials -->
+			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+			<optoSide>L</optoSide>
+			<optoAlternation>false</optoAlternation>  <!-- if false, only shine light at the presoFrac -->
+			<optoTrialsPerBlock>20</optoTrialsPerBlock>
+			<presoFracSpecified>true</presoFracSpecified>
+			<lightOnDuringITI>true</lightOnDuringITI>
+			<catchFreq>0.05</catchFreq>  <!-- a catch trial is one in which no target is presented at all -->
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_2_BG_Probe_R.xml</includeWorld>
+	</worlds>
+</document>
