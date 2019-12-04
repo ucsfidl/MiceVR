@@ -1,0 +1,22 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>false</biasCorrection>
+			<correctionTrials>true</correctionTrials>
+			<blockSize>20</blockSize>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_3p_BG_Col_Bla_R_10.xml</includeWorld>
+	</worlds>
+</document>
