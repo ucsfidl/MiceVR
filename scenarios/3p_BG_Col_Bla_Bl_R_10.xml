@@ -11,9 +11,10 @@
 			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
 			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
 			<treesBelowGround>true</treesBelowGround>
-			<biasCorrection>false</biasCorrection>
 			<correctionTrials>true</correctionTrials>
+			<biasCorrection>false</biasCorrection>
 			<blockSize>20</blockSize>
+			<presoFracSpecified>true</presoFracSpecified>
 		</gameConfig>
 	</config>
 	<worlds>
