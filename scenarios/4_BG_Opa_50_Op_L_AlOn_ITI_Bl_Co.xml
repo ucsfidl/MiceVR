@@ -1,0 +1,26 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>
+			<gameTurnControl>yaw</gameTurnControl>
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>false</biasCorrection>
+			<correctionTrials>true</correctionTrials>  <!-- correction trials are NOT counted in any statistical calculations -->
+			<optoSide>L</optoSide>
+			<optoAlternation>false</optoAlternation>
+			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+			<optoTrialsPerBlock>20</optoTrialsPerBlock>
+			<lightOnDuringITI>true</lightOnDuringITI>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_4_BG_Opa_50_Probe_R.xml</includeWorld>
+	</worlds>
+</document>
