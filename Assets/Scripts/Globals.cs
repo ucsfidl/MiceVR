@@ -874,6 +874,9 @@ public static class Globals
 
 					// Iterate the file
 					for (int i = 0; i < data.rows.Count; i++) {
+						// Note that if any of the column headers are deleted, then this will fail and write to the top of the spreadsheet.  Usually it is the first column header, Day, which is accidentally deleted. 
+						// I have locked this cell, but not the whole row of headers as this makes changes more difficult when I am not logged in to the shared computer.  If this fails, I might need to lock the whole row again.
+						// Or, I could iterate through the columns of the 2nd row to find the first one that looks like a date, and then use that moving forward.  Let's see, that is probably overkill for now.
 						if (data.rows [i].cells [12].value.Equals ("") && data.rows [i].cells [13].value.Equals ("")) {
 							int row = i + 1;
 							// Add the date (L), duration, rewards, trials, earned, unearned on ball, and total stats to the Google Sheet
@@ -1329,6 +1332,26 @@ public static class Globals
 			}
 		}
 		return idx;
+	}
+
+	public static GameObject GetTreeGameObjectFromXPos(float xPos) {
+		GameObject[] gos = GetTrees ();
+		for (int i = 0; i < gos.Length; i++) {
+			if (gos [i].gameObject.transform.position.x == xPos) {
+				return gos [i];
+			}
+		}
+		return null;
+	}
+
+	public static Vector3 GetAbsoluteScale(Transform t) {
+		Vector3 absScale = new Vector3(1,2,1);  // y is 2x for some reason, so hard code it here as well
+		while (t != null) {
+			//print (t.localScale);
+			absScale = new Vector3 (absScale.x * t.localScale.x, absScale.y * t.localScale.y, absScale.z * t.localScale.z);
+			t = t.parent;
+		}
+		return absScale;
 	}
 
 }

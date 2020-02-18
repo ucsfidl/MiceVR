@@ -52,6 +52,7 @@ public class GameControlScript : MonoBehaviour
 	private Vector3 startingPos;
 	private Quaternion startingRot;
 	private Vector3 prevPos;
+	private Quaternion prevRot;
 
 	private int centralViewVisible;
 
@@ -62,6 +63,8 @@ public class GameControlScript : MonoBehaviour
 
 	private float visiblePauseAtTrialStart = 2F;  // For first 2s of each trial, world won't move, so mouse can see stimulus - 1s seems too little time for my mice
 	private DateTime lastTrialStartDateTime;
+
+	private GameObject bb;
 
 	// Use this for initialization
     void Start() {
@@ -87,6 +90,7 @@ public class GameControlScript : MonoBehaviour
 		this.startingRot = this.player.transform.rotation;
 
 		this.prevPos = this.startingPos;
+		this.prevRot = this.startingRot;
 
 		// Will this fix the issue where rarely colliding with a wall causes mouse to fly above the wall?  No.
 		this.characterController.enableOverlapRecovery = false;  
@@ -114,7 +118,31 @@ public class GameControlScript : MonoBehaviour
 				this.udpSender.SendFrameTrigger ();
 			}
 		}
+
+		// Report location of the current target in screen coordinates
+		/* Uncomment to show bounding box
+		if (this.state == "Running" && (!this.prevPos.Equals(this.player.transform.position) || !this.prevRot.Equals(this.player.transform.rotation))) {  // Only update log when the position or rotation changes
+			Vector3 targetLoc = Globals.targetLoc [Globals.targetLoc.Count - 1];
+			GameObject targetGO = Globals.GetTreeGameObjectFromXPos (targetLoc.x);
+			GameObject crown = targetGO.GetComponent<WaterTreeScript> ().crown;
+
+			// Initialize bounding box if not done already, to help with debugging
+			if (bb == null) {
+				bb = GameObject.CreatePrimitive (PrimitiveType.Cube);
+				bb.GetComponent<Collider> ().enabled = false;
+			}
 			
+			// Draw a bounding box and see if this is accurate
+			bb.transform.position = crown.transform.position;
+			bb.transform.rotation = crown.transform.rotation;
+			bb.transform.localScale = Globals.GetAbsoluteScale (crown.transform);
+			bb.GetComponent<Renderer> ().material.color = Color.cyan;
+
+			//Rect r = GUIRectWithObject (targetGO.GetComponent<WaterTreeScript>().crown);
+			//Debug.Log (r.ToString ());
+		}
+		*/
+
 		// Keep mouse from scaling walls
 		if (this.player.transform.position.y > this.startingPos.y + 0.1) {
 			Vector3 tempPos = this.player.transform.position;
@@ -124,6 +152,9 @@ public class GameControlScript : MonoBehaviour
 			this.player.transform.position = tempPos;
 		}
 		this.prevPos = this.player.transform.position;
+		//Debug.Log ("PrevPos = " + prevPos.ToString());
+		this.prevRot = this.player.transform.rotation;
+		//Debug.Log ("PrevRot = " + prevRot.ToString());
 
 		// Reveal targets if the mouse reaches the correct ZPos and the target had been hidden
 		if (this.state == "Running" && !Globals.hiddenShown && Globals.GetCurrentWorld().revealZPos.Count > 0 && this.player.transform.position.z >= Globals.GetCurrentWorld ().revealZPos [0]) {  // only pay attention to the first value in the list - expand if support added for target-dependent reveal zpos'
@@ -415,6 +446,7 @@ public class GameControlScript : MonoBehaviour
 		TimeSpan te2 = DateTime.Now.Subtract (Globals.trialStartTime[Globals.trialStartTime.Count - 1]);
 		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}:{2:00.00}:{3}", te.Hours * 60 + te.Minutes, te.Seconds, Time.deltaTime * 1000, frameCounter++) + " - " + 
 			string.Format("{0:D2}:{1:D2}", te2.Hours*60 + te2.Minutes, te2.Seconds);
+		
         if (Time.time - this.runTime >= this.runDuration) {
             // fadetoblack + respawn
             this.movementRecorder.SetFileSet(false);
@@ -1246,7 +1278,7 @@ public class GameControlScript : MonoBehaviour
 		Globals.currOptoState = optoState;  // Used to toggle opto state by user
 					
         this.runTime = Time.time;
-		this.movementRecorder.SetRun(this.runNumber);
+		this.movementRecorder.SetRun(this.runNumber);  // indicates movement recorder data is going into a new trial file
 		this.movementRecorder.SetFileSet(true);
 		Color t = this.fadeToBlack.color;
 		t.a = 0f;
@@ -1286,6 +1318,7 @@ public class GameControlScript : MonoBehaviour
     }
 
     private void GameOver() {
+		this.movementRecorder.SetFileSet (false);  // Stop the movement recorder as the game is over - previous files kept recording location
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "GAME OVER MUSCULUS!";

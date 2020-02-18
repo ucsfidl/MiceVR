@@ -1,4 +1,4 @@
-function getStats(mouseName, days, sessions, includeCorrectionTrials)
+function getStats(loc, mouseName, days, sessions, includeCorrectionTrials)
 % This function will analyze the relevant actions.txt log files and return
 % a set of statistics useful to analyzing blindness and blindsight, as well
 % as a 2AFC stimulus discrimination task.
@@ -12,6 +12,9 @@ function getStats(mouseName, days, sessions, includeCorrectionTrials)
 %
 % It also supports a separate category of catch trials, looking for a
 % -1;-1;-1 location of the target to indicate no target was presented.
+
+actionsFolderUCB = 'C:\Users\nikhil\UCB\data-VR\';
+actionsFolderUCSF = 'C:\Users\nikhil\UCSF\data\';
 
 % X locs of 2-choice, 3-chioce and 4-choice worlds
 nearLeftX = 19975;
@@ -58,7 +61,13 @@ leftStimStraightErrorsMap = containers.Map();
 rightStimStraightErrorsMap = containers.Map();
 
 % First, find all the filenames to read in
-fileList = dir(['*actions.txt']); % Get all mat files, and use that to construct filenames for video files
+if (loc == 'UCB')
+    actionsFolder = actionsFolderUCB;
+else
+    actionsFolder = actionsFolderUCSF;
+end
+
+fileList = dir([actionsFolder '*actions.txt']); % Get all mat files, and use that to construct filenames for video files
 
 numFilesAnalyzed = 0;
 for i=1:length(fileList)
