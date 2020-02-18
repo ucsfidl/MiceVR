@@ -77,7 +77,7 @@ public class MovementRecorder : MonoBehaviour {
 			}
 
 			outfile.Write(mouseLocation + ";" + mouseHeading + ";" + target1Left + "," + target1Right + ";" + target2Left + "," + target2Right + System.Environment.NewLine);
-			print (mouseLocation + ";" + mouseHeading + ";" + target1Left + "," + target1Right + ";" + target2Left + "," + target2Right + System.Environment.NewLine);
+			//Debug.Log (mouseLocation + ";" + mouseHeading + ";" + target1Left + "," + target1Right + ";" + target2Left + "," + target2Right + System.Environment.NewLine);
 
 			// UNCOMMENT if lick detector is reliable
 			//rewardFile.Write ("Rewards:" + rewards + ";Licks:" + licks + ";" + System.DateTime.Now.Hour + "-" + System.DateTime.Now.Minute + "-" + System.DateTime.Now.Second
