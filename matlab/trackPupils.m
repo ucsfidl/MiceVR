@@ -12,7 +12,7 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, fps, otsuWeight, p
 
 % Good settings for arguments:
 % NEW - single illuminator above
-% INSTRUCTION: If pupil contrast is low, decrease number; and vice versa
+% INSTRUCTION: If pupil contrast is low, increase number; and vice versa
 % otsuweight = 0.34      BAD = [0.5 0.47 0.44] Cryo_117
 %                        BAD = [0.4 0.35] Berlin_001
 %                        BAD = [0.3], GOOD [0.35] Alpha_133
@@ -32,6 +32,7 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, fps, otsuWeight, p
 % seSize = 10 hides whiskers/eye lashes, 5 does not!
 
 tic
+disp('Started...');
 
 maxPupilAspectRatio = paratio;  % 1.437; 1.45 lets some through, so go smaller, but not less than 1.4; motion blur causes 1.4326
                             % Quasar had one eye > 2.2!  2.45 bad for Umpa.
@@ -285,6 +286,7 @@ save(saveFileName, 'centers', 'areas', 'vLeftFileName', 'vRightFileName', 'frame
 close(vout);
 
 t = toc;  % seconds
+disp([num2str(round(t/60)) ' min elapsed.']);
 disp([num2str(round(t/(numFrames/fps), 1)) 'x realtime']);
 
 beep

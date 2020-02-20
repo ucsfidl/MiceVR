@@ -24,7 +24,7 @@ vrGSdocidFileName = '../config/vrGSdocid.txt';
 DAY = 1;
 
 vidWidth = 200;
-vidHeight = 150;
+vidHeight = 150;l
 
 numCams = 2;
 numSlaves = numCams - 1;

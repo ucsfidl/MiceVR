@@ -3,7 +3,6 @@ function analyzeTraj(mouseName, days, sessions, trialTypeStrArr, includeCorrecti
 % SAMPLE USAGE
 % > analyzeTraj('Vixen', [43], [], ["L->L" "R->R" "C->C"], 0, 1, 1, 0.02)
 %
-%
 % This function takes as input a mouse's name as well as the days and
 % corresponding sessions that should be analyzed.  It then looks in the
 % replay directory (hard-coded - change if it is somewhere else on your
@@ -72,7 +71,7 @@ catchX = -1;
 wallColor = [0.85 0.85 0.85];
 wallWidth = 20;
 
-% Error out is number of sessions is non-zero and does not match number of days.
+% Error out if number of sessions is non-zero and does not match number of days.
 if (~isempty(sessions) && length(days) ~= length(sessions))
     error('Number of sessions is non-zero and does not match number of days. It should.')
 end

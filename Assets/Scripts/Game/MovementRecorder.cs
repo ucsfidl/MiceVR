@@ -56,8 +56,8 @@ public class MovementRecorder : MonoBehaviour {
 			List<Vector3?> screenPointsC = GetMinMaxScreenPointsOnCam (cameras [1], targetLoc, crown);
 			List<Vector3?> screenPointsR = GetMinMaxScreenPointsOnCam (cameras [2], targetLoc, crown);
 
-			target1Left = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 0, cameras[0].pixelWidth).ToString("0");
-			target1Right = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 1, cameras[0].pixelWidth).ToString("0");
+			target1Left = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 0, cameras[0].pixelWidth).ToString();
+			target1Right = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 1, cameras[0].pixelWidth).ToString();
 
 			int worldID = Globals.worldID [Globals.worldID.Count - 1];  // This may not work until GameControlScript has added the new world - ok for now
 			string gameType = Globals.GetGameType (worldID);
@@ -72,8 +72,8 @@ public class MovementRecorder : MonoBehaviour {
 				screenPointsC = GetMinMaxScreenPointsOnCam (cameras [1], targetLoc, crown);
 				screenPointsR = GetMinMaxScreenPointsOnCam (cameras [2], targetLoc, crown);
 
-				target2Left = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 0, cameras[0].pixelWidth).ToString("0");
-				target2Right = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 1, cameras[0].pixelWidth).ToString("0");
+				target2Left = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 0, cameras[0].pixelWidth).ToString();
+				target2Right = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 1, cameras[0].pixelWidth).ToString();
 			}
 
 			outfile.Write(mouseLocation + ";" + mouseHeading + ";" + target1Left + "," + target1Right + ";" + target2Left + "," + target2Right + System.Environment.NewLine);

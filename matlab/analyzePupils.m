@@ -2,10 +2,14 @@ function analyzePupils(trackFileName, numStim, frameLim, degPerPx, fps)
 % Once trackPupils is done, this script is used to analyze the pupil
 % positions and plot a bunch of stuff.
 
+% Expects cleanUpTrialTimes to be run before running, which will produce
+% a *_corr.mat file with corrected trialStarts and trialEnds.
+
 % ISSUE: because frames are dropped to determine when a trial starts and
 % ends, the overall time plotted will be lagging more and more over time.
 % Fix this at some point if it is important.
 
+% USAGE:
 % > analyzePupils('Zizzle-D58-nb_04_sw3_wt-S53_trk.mat', 4, [1 0], 0.98, 60)
 
 tic;
@@ -22,6 +26,9 @@ varianceAlpha = 0.5;
 colorLeft = [2 87 194]/255;  % blue
 colorRight = [226 50 50]/255; % red
 colorCenter = [15 157 88]/255;  % green
+
+colorLeftFar = [2 193 193]/255; % cyan 
+colorRightFar = [242 183 124]/255; % orange
 
 shadingColorLeft = [0.84 0.89 0.99];  % dull blue
 shadingColorLeftFar = [0.84 0.98 0.99]; % dull cyan
@@ -58,10 +65,10 @@ frameStart = frameLim(1);
 frameStop = frameLim(2);
 
 % Be sure to change these if the x location of the trees changes
-stimLeftNear = 19977;
-stimLeftFar = 19978;
-stimRightNear = 20023;
-stimRightFar = 20022;
+stimLeftNear = 19973;
+stimLeftFar = 19972;
+stimRightNear = 20027;
+stimRightFar = 20028;
 
 stimCenter = 20000;
 
@@ -121,8 +128,21 @@ if (actionsFile ~= -1) % File found
         line = fgetl(actionsFile);
         if (line ~= -1) % The file is not finished
             tokens = regexp(line, expr, 'tokens');
-            stimLocs = [stimLocs str2num(tokens{1}{1})];
-            actionLocs = [actionLocs str2num(tokens{1}{2})];
+            
+            if (length(tokens{1}{1}) == 1)  % maintain backward compatibility with old format
+                stimLocs = [stimLocs tokens{1}{1}];
+            else
+                tmp = split(tokens{1}{1}, ';');
+                stimLocs = [stimLocs str2double(tmp{1})];
+            end
+            
+            if (length(tokens{1}{2}) == 1) % maintain backward compatibility with old log files
+                actionLocs = [actionLocs tokens{1}{2}];
+            else
+                tmp = split(tokens{1}{2}, ';');
+                actionLocs = [actionLocs str2double(tmp{1})];
+            end
+            
             if (length(tokens{1}) > 2)
                 optoStates = [optoStates str2num(tokens{1}{3})];
             else
@@ -137,7 +157,7 @@ else
 end
 
 % If trial times are available, incorporate into the graphs
-load([rootFileName '.mat'], 'trialStarts', 'trialEnds');
+load([rootFileName '_corr.mat'], 'trialStarts', 'trialEnds');
 if (trialStarts(1).FrameNumber ~= 0)  % new format includes 0 as first index, but old format didn't, so permit backwards compatibility
     trialStartFrames = [1-trialStartOffset trialStarts.FrameNumber] + trialStartOffset; % First trial start is not written
 else
@@ -173,7 +193,7 @@ if (trimmedStarts(1) > frameStart)
 end
 trimmedEnds = trialEndFrames(trialEndFrames <= frameStop);
 trimmedEnds = trimmedEnds(trimmedEnds >= frameStart);
-if (trimmedEnds(end) < frameStop && frameStop ~= totalFrames)
+if (trimmedEnds(end) < frameStop && frameStop ~= totalFrames && length(trimmedStarts) == length(trimmedEnds) + 1)
     trimmedEnds = [trimmedEnds frameStop];
 end
 xTrials = cat(1, trimmedStarts, trimmedEnds);
@@ -618,7 +638,7 @@ end
 if (~isempty(trialStartFrames))
     patch(xPauseUnitsTime, yPause, shadingColorInterTrial, 'EdgeColor', shadingColorInterTrial);
 end
-h = plot(xUnitsTime, elavDeg(:, 1), leftEyeColor, xUnitsTime, elavDeg(:, 2), rightEyeColor);
+h = plot(xUnitsTime, elavDeg(1:length(xUnitsTime), 1), leftEyeColor, xUnitsTime, elavDeg(1:length(xUnitsTime), 2), rightEyeColor);
 title([rootFileName ': Pupil Elevation'], 'Interpreter', 'none');
 ylabel('elevation (deg, + right, - left)');
 xlabel('time (s)');
@@ -645,7 +665,7 @@ end
 if (~isempty(trialStartFrames))
     patch(xPauseUnitsTime, yPause, shadingColorInterTrial, 'EdgeColor', shadingColorInterTrial);
 end
-h = plot(xUnitsTime, azimDeg(:, 1), leftEyeColor, xUnitsTime, azimDeg(:, 2), rightEyeColor);
+h = plot(xUnitsTime, azimDeg(1:length(xUnitsTime), 1), leftEyeColor, xUnitsTime, azimDeg(1:length(xUnitsTime), 2), rightEyeColor);
 title([rootFileName ': Pupil Azimuth'], 'Interpreter', 'none');
 ylabel('azimuth (deg, + right, - left)');
 xlabel('time (s)');
