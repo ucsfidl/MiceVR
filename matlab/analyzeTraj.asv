@@ -254,14 +254,11 @@ for tt_i=1:length(trialTypeStrArr)
                     treePosXYZ = split(treePosStr, ';');
                     if (t_i == 3)  % For 3-choice, always plot 3rd tree
                         plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', shadingColorCenter);
-                    elseif (str2double(treePosXYZ{1}) == stimLocX)
-                        markerColor = [1 1 1];
-                        if (stimLocX == nearLeftX)
-                            markerColor = shadingColorLeft;
-                        elseif (stimLocX == nearRightX)
-                            markerColor = shadingColorRight;
-                        end
-                        plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
+                    elseif (treePosXYZ == stimLocX)
+                        if (stimLocX == 
+                    end
+                    if (treePosXYZ == stimLocX || t_1 == 3)
+                        plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', 'w');
                     end
                 end
             end

@@ -435,7 +435,7 @@ for j=1:2  % For each eye
     xlim([-10 10]);
     ylim([0 length(x)]);
     ylabel('Frame (normalized)')
-    xlabel('Pupil Azimuth (deg)');
+    xlabel('Azimuth (deg)');
 end
 
 % Second, plot the stimulus x action average of the eye movements
@@ -513,7 +513,7 @@ for i=1:numStim
             xlim([-10 10]);
             ylim([0 length(x)]);
             ylabel('Frame (normalized)')
-            xlabel('Pupil Azimuth (deg)');
+            xlabel('Azimuth (deg)');
         end
     end
 end
@@ -610,7 +610,7 @@ if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, plot thi
             ylim([-10 10]);
             xlim([0 length(x)]);
             xlabel('Frame (normalized)')
-            ylabel('Pupil Azimuth (deg)');
+            ylabel('Azimuth (deg)');
         end
     end
 end
@@ -642,12 +642,12 @@ if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, mark opt
     patch(xTrialsUnitsTime, yOpto, optoColors, 'EdgeColor', 'none');
 end
 if (~isempty(trialStartFrames))
-    patch(xPauseUnitsTime, yPause, shadingColorInterTrial, 'EdgeColor', shadingColorInterTrial);
+    patch(yPause, xPauseUnitsTime, shadingColorInterTrial, 'EdgeColor', shadingColorInterTrial);
 end
-h = plot(xUnitsTime, elavDeg(1:length(xUnitsTime), 1), leftEyeColor, xUnitsTime, elavDeg(1:length(xUnitsTime), 2), rightEyeColor);
+h = plot(elavDeg(1:length(xUnitsTime), 1), xUnitsTime, leftEyeColor, elavDeg(1:length(xUnitsTime), 2), xUnitsTime, rightEyeColor);
 title([rootFileName ': Pupil Elevation'], 'Interpreter', 'none');
-ylabel('Pupil Elevation (deg');
-xlabel(xlab);
+xlabel('Eye Elevation (deg');
+ylabel(xlab);
 for i = 1:length(allColors)
     p(i) = patch(NaN, NaN, allColors(i,:));
 end
@@ -656,15 +656,15 @@ if (numStim == 4)
 elseif (numStim == 3)
     legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'center stim/action', 'inter-trial interval');
 end
-ylim([ymin ymax]);
-xlim([0 xUnitsTime(end)]);
+xlim([ymin ymax]);
+ylim([0 xUnitsTime(end)]);
 dcmObj = datacursormode(gcf);
 set(dcmObj,'UpdateFcn',@dataCursorCallback,'Enable','on');
 
 % AZIMUTH PLOT
 figure; hold on
-patch(-yStim, xTrialsUnitsTime, stimColors, 'EdgeColor', 'none');
-patch(-yAction, xTrialsUnitsTime, actionColors, 'EdgeColor', 'none');
+patch(yStim, xTrialsUnitsTime, stimColors, 'EdgeColor', 'none');
+patch(yAction, xTrialsUnitsTime, actionColors, 'EdgeColor', 'none');
 if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, mark optostate on the graph
     patch(yOpto, xTrialsUnitsTime, optoColors, 'EdgeColor', 'none');
 end
@@ -673,7 +673,7 @@ if (~isempty(trialStartFrames))
 end
 h = plot(azimDeg(1:length(xUnitsTime), 1), xUnitsTime, leftEyeColor, azimDeg(1:length(xUnitsTime), 2), xUnitsTime, rightEyeColor);
 title([rootFileName ': Pupil Azimuth'], 'Interpreter', 'none');
-xlabel('Pupil Azimuth (deg');
+xlabel('Eye Azimuth (deg');
 ylabel(xlab);
 for i = 1:length(allColors)
     p(i) = patch(NaN, NaN, allColors(i,:));

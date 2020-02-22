@@ -145,7 +145,7 @@ end
 % OK, if all corrected, the number of trials should be equal to the number of lines in the actions file
 % Then, rename old .mat file and make new .mat file with the corrected trial boundaries
 if (length(newTrialEnds) == length(C{1}))
-    movefile(videoMetadataFileName, [videoMetadataFileName(1:end-4) '_orig.mat']);
+    movefile(videoMetadataFileName, [videoMetadataFileName(1:end-4) '_orig.mat'], 'f');  % not sure why, but I need to force it
     if (length(trialEnds) == length(newTrialEnds)) % No trimming was done - original file was good
         disp(['No trimming done, original file good with ' length(trialEnds) ' trial ends.']);
         disp(['Old .mat file moved to ' videoMetadataFileName(1:end-4) '_orig.mat']); 
