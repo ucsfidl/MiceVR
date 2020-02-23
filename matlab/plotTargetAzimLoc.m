@@ -115,7 +115,13 @@ for d_i=1:length(days)  % Iterate through all of the specified days
     if (isempty(trials))
         trialsToDo = 1:length(actRecs{1});
     else
-        trialsToDo = trials(trials <= length(actRecs{1}));
+        lastTrial = trials(1);  % Assume only one trial, unless 2 numbers specified
+        if (length(trials) > 1)
+            if (trials(2) <= 0)
+                lastTrial = length(actRecs{1});
+            end
+        end
+        trialsToDo = trials(1):lastTrial;
     end
     
 
@@ -153,27 +159,8 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             % First, many trials Unity reports the wrong location of the edge of the target, so need to clean
             % up to smoothen the plots.
             if (denoise)
-                dLB = abs(diff(abs(targetLeftBound)));
-                noiseIdxs = find(dLB > maxAllowedJump);
-                for idx = 1:2:length(noiseIdxs)
-                    priorVal = targetLeftBound(noiseIdxs(idx));
-                    if (idx < length(noiseIdxs)) % more indexes left
-                        targetLeftBound(noiseIdxs(idx)+1:noiseIdxs(idx+1)) = priorVal;
-                    else
-                        targetLeftBound(noiseIdxs(idx)+1:end) = priorVal;
-                    end
-                end
-
-                dRB = abs(diff(targetRightBound));
-                noiseIdxs = find(dRB > maxAllowedJump);
-                for idx = 1:2:length(noiseIdxs)
-                    priorVal = targetRightBound(noiseIdxs(idx));
-                    if (idx < length(noiseIdxs)) % more indexes left
-                        targetRightBound(noiseIdxs(idx)+1:noiseIdxs(idx+1)) = priorVal;
-                    else
-                        targetRightBound(noiseIdxs(idx)+1:end) = priorVal;
-                    end
-                end
+                targetLeftBound = denoiseBounds(targetLeftBound, maxAllowedJump);
+                targetRightBound = denoiseBounds(targetRightBound, maxAllowedJump);
             end
                         
             % Second, adjust target bounds for when the target is not displayed on any monitor, so it isn't plotted

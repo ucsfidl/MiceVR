@@ -41,11 +41,11 @@ grayShade = [0.95 0.95 0.95];
 fps = 60;
 successDelay = 2; %sec
 failureDelay = 4; %sec
-extraFramesAtStart = 2;  % seems like there are 2 extra frames at the start - 122 frames of no motion instead of 120; need this for synchronizing with eye data
-extraFramesAtEnd = 2; % seems like there are a couple extra frames where the mouse is already teleported back to the beginning at the end
+extraFramesAtStart = 2;  % 2 or 3: seems like there are 2 extra frames at the start - 122 frames of no motion instead of 120; need this for synchronizing with eye data
+extraFramesAtEnd = 3; % 2 or 3: seems like there are a couple extra frames where the mouse is already teleported back to the beginning at the end
 immobilePeriod = 2;  % 2 sec of immobility at the start of each trial
 
-maxAllowedJump = 5;  % max allowed change in the target's azimuthal location, for removing noise and smoothening
+maxAllowedJump = 9;  % max allowed change in the target's azimuthal location, for removing noise and smoothening
 
 % Error out if number of sessions is non-zero and does not match number of days.
 if (~isempty(sessions) && length(days) ~= length(sessions))
@@ -111,21 +111,29 @@ for d_i=1:length(days)  % Iterate through all of the specified days
     if (useEyeTracking)
         load([eyevideosFolder mouseName '_' prepDayStr '_trk_an.mat'], 'azimDeg', 'trialStartFrames', 'trialEndFrames');
     end
+    
+    if (isempty(trials))
+        trialsToDo = 1:length(actRecs{1});
+    else
+        trialsToDo = trials(trials <= length(actRecs{1}));
+    end
+    
 
     % Iterate through each trial, drawing the angular bounds of the target
-    for trialIdx = 1:length(actRecs{1})
+    trialIdx = 1;
+    while trialIdx <= length(trialsToDo)
         % First, need to determine if this was a correct or incorrect trial
         % actRecs{5} is the target location, actRecs{12} is the turn location
-        stimLocX = getStimLocFromActions(actRecs, trialIdx);
-        actLocX = getActionLocFromActions(actRecs, trialIdx);
+        stimLocX = getStimLocFromActions(actRecs, trialsToDo(trialIdx));
+        actLocX = getActionLocFromActions(actRecs, trialsToDo(trialIdx));
         
         % Second, find the nasal and temporal restrictions for this trial
-        nasalBound = actRecs{8}(trialIdx);
-        temporalBound = actRecs{9}(trialIdx);
+        nasalBound = actRecs{8}(trialsToDo(trialIdx));
+        temporalBound = actRecs{9}(trialsToDo(trialIdx));
 
         % Now, just plot based on the replay file
         % Ex line: 20000,0.74,20000;0;-51,-8;,
-        replaysFileID = fopen([replaysFolder replaysFileNames{trialIdx}]);
+        replaysFileID = fopen([replaysFolder replaysFileNames{trialsToDo(trialIdx)}]);
         if (replaysFileID ~= -1)
             repRecs = textscan(replaysFileID, '%f %f %f %f %f %f %f %f', 'Delimiter', {';', ','}); 
             xStart = 1 + extraFramesAtStart;
@@ -145,14 +153,37 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             % First, many trials Unity reports the wrong location of the edge of the target, so need to clean
             % up to smoothen the plots.
             if (denoise)
-                dLB = abs(diff(targetLeftBound));
+                dLB = abs(diff(abs(targetLeftBound)));
                 noiseIdxs = find(dLB > maxAllowedJump);
-                for idx = 1:2:length(noiseIdxs)
-                    priorVal = targetLeftBound(noiseIdxs(idx));
-                    if (idx < length(noiseIdxs)) % more indexes left
-                        targetLeftBound(noiseIdxs(idx)+1:noiseIdxs(idx+1)) = priorVal;
+                idx = 1;
+                while 1
+                    if (idx <= length(noiseIdxs))  % there are noiseIdxs left
+                        priorVal = targetLeftBound(noiseIdxs(idx));
+                        if (idx < length(noiseIdxs)) % at least one more value left
+                            startIdx = noiseIdxs(idx);
+                            idx = idx + 1;
+                            endIdx = noiseIdxs(idx);
+                            while 1
+                                if (abs(targetLeftBound(endIdx) - priorVal) <= maxAllowedJump)
+                                    break;
+                                else
+                                    if (idx + 1 <= length(noiseIdxs))
+                                        endIdx = noiseIdxs(idx+2);
+                                        idx = idx + 3;
+                                    else
+                                        targetLeftBound(noiseIdxs(idx)+1:end) = priorVal;
+                                        break;
+                                   end
+                                end
+                            end
+                            targetLeftBound(startIdx+1:endIdx) = priorVal;
+                            idx = idx + 1;
+                        else
+                            targetLeftBound(noiseIdxs(idx)+1:end) = priorVal;
+                            break;
+                        end
                     else
-                        targetLeftBound(noiseIdxs(idx)+1:end) = priorVal;
+                        break;
                     end
                 end
 
@@ -193,7 +224,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             % If both bounds were off-screen, since it was corrected to the same value, shifting it won't alter
             % the display in an irreparable way.
             if (useEyeTracking)
-                eyeShift = azimDeg(trialStartFrames(trialIdx):trialEndFrames(trialIdx), whichEye);
+                eyeShift = azimDeg(trialStartFrames(trialsToDo(trialIdx)):trialEndFrames(trialsToDo(trialIdx)), whichEye);
                 % Deal with NaNs in eye tracking (e.g. recorded when mouse blinks)
                 % For now 0 - could interpolate in the future, but this is easier now
                 eyeShift(isnan(eyeShift)) = 0;
@@ -248,7 +279,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 act = 'Center';
             end
             
-            fr = ['fr=' num2str(trialStartFrames(trialIdx))];
+            fr = ['fr=' num2str(trialStartFrames(trialsToDo(trialIdx)))];
             
             f1 = figure; hold on
             set(gcf,'color','w');
@@ -272,12 +303,12 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             else
                 r = 'ur';
             end
-            title([mouseName '-D' dayStr ': T' num2str(trialIdx) ', ' r ', ' t '->' act ', ' fr]);
+            title([mouseName '-D' dayStr ': T' num2str(trialsToDo(trialIdx))  ', ' fr ', ' r ', ' t '->' act]);
 
             fclose(replaysFileID); % done with it.
 
             % Also plot the animal's trajectory on that trial
-            f2 = analyzeTraj(mouseName, days(d_i), [], trialIdx, trialTypeStrArr, 1, 0, 8, 0.06);
+            f2 = analyzeTraj(mouseName, days(d_i), [], trialsToDo(trialIdx), trialTypeStrArr, 1, 0, 8, 0.06);
             
             % Logic to only keep open the figs that you hit 'k' for 'keep' on
             closeFig = 1;
@@ -290,6 +321,15 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                           case 'k'
                               closeFig = 0;
                           case 13 % 13 is the return key 
+                              trialIdx = trialIdx+1;
+                              break
+                          case 29 % RIGHT arrow key
+                              trialIdx = trialIdx+1;
+                              break  % go forward one trial
+                          case 28 % LEFT arrow key
+                              if (trialIdx ~= 1)
+                                  trialIdx = trialIdx-1; % go back one trial
+                              end
                               break
                           otherwise 
                               % Wait for a different command. 
