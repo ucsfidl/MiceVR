@@ -62,11 +62,14 @@ actionsFolder = 'C:\Users\nikhil\UCB\data-VR\';
 replaysFolder = 'C:\Users\nikhil\UCB\data-replays\';
 
 % X locs of 2-choice, 3-chioce and 4-choice worlds
-nearLeftX = 19975;
-farLeftX = 19976;
+leftX = 19975;
 centerX = 20000;
-nearRightX = 20025;
-farRightX = 20024;
+rightX = 20025;
+
+leftNearX = 19973;
+leftFarX = 19972;
+rightNearX = 20027;
+rightFarX = 20028;
 
 catchX = -1;
 
@@ -164,34 +167,25 @@ for tt_i=1:length(trialTypeStrArr)
             stimLocX = getStimLocFromActions(actRecs, r_i);  % don't need stimLocZ so drop for now
             actionLocX = getActionLocFromActions(actRecs, r_i);
             if (trialTypeStrArr(tt_i) == "*->*" || ...
-                (stimLocX == nearRightX && trialTypeStrArr(tt_i) == "R->*") || ...
-                (stimLocX == nearRightX && actionLocX == nearRightX && trialTypeStrArr(tt_i) == "R->R") || ...
-                (stimLocX == nearRightX && actionLocX == nearLeftX && trialTypeStrArr(tt_i) == "R->L") || ...
-                (stimLocX == nearRightX && actionLocX == centerX && trialTypeStrArr(tt_i) == "R->C") || ...
-                (stimLocX == nearRightX && (actionLocX == nearLeftX || actionLocX == centerX) && trialTypeStrArr(tt_i) == "R->LC") || ...
+                (stimLocX == rightX && trialTypeStrArr(tt_i) == "R->*") || ...
+                (stimLocX == rightX && actionLocX == rightX && trialTypeStrArr(tt_i) == "R->R") || ...
+                (stimLocX == rightX && actionLocX == leftX && trialTypeStrArr(tt_i) == "R->L") || ...
+                (stimLocX == rightX && actionLocX == centerX && trialTypeStrArr(tt_i) == "R->C") || ...
+                (stimLocX == rightX && (actionLocX == leftX || actionLocX == centerX) && trialTypeStrArr(tt_i) == "R->LC") || ...
                 (stimLocX == centerX && trialTypeStrArr(tt_i) == "C->*") || ...
                 (stimLocX == centerX && actionLocX == centerX && trialTypeStrArr(tt_i) == "C->C") || ...
-                (stimLocX == centerX && actionLocX == nearRightX && trialTypeStrArr(tt_i) == "C->R") || ...
-                (stimLocX == centerX && actionLocX == nearLeftX && trialTypeStrArr(tt_i) == "C->L") || ...
-                (stimLocX == centerX && (actionLocX == nearLeftX || actionLocX == nearRightX) && trialTypeStrArr(tt_i) == "C->LR") || ...
-                (stimLocX == nearLeftX && trialTypeStrArr(tt_i) == "L->*") || ...
-                (stimLocX == nearLeftX && actionLocX == nearLeftX && trialTypeStrArr(tt_i) == "L->L") || ...
-                (stimLocX == nearLeftX && actionLocX == nearRightX && trialTypeStrArr(tt_i) == "L->R") || ...
-                (stimLocX == nearLeftX && actionLocX == centerX && trialTypeStrArr(tt_i) == "L->C") || ...
-                (stimLocX == nearLeftX && (actionLocX == nearRightX || actionLocX == centerX) && trialTypeStrArr(tt_i) == "L->RC"))
+                (stimLocX == centerX && actionLocX == rightX && trialTypeStrArr(tt_i) == "C->R") || ...
+                (stimLocX == centerX && actionLocX == leftX && trialTypeStrArr(tt_i) == "C->L") || ...
+                (stimLocX == centerX && (actionLocX == leftX || actionLocX == rightX) && trialTypeStrArr(tt_i) == "C->LR") || ...
+                (stimLocX == leftX && trialTypeStrArr(tt_i) == "L->*") || ...
+                (stimLocX == leftX && actionLocX == leftX && trialTypeStrArr(tt_i) == "L->L") || ...
+                (stimLocX == leftX && actionLocX == rightX && trialTypeStrArr(tt_i) == "L->R") || ...
+                (stimLocX == leftX && actionLocX == centerX && trialTypeStrArr(tt_i) == "L->C") || ...
+                (stimLocX == leftX && (actionLocX == rightX || actionLocX == centerX) && trialTypeStrArr(tt_i) == "L->RC"))
                     filtRecIDs(length(filtRecIDs)+1) = r_i;
             end
         end
-        
-        % Figure out which trees to show
-        if (trialTypeStrArr{tt_i}(1) == 'L')
-            treeToShow = 0;
-        elseif (trialTypeStrArr{tt_i}(1) == 'R')
-            treeToShow = 1;
-        else
-            treeToShow = 2;
-        end
-        
+                
         % There could be 1 more replay files than entries in the actions file if the game is manually ended, 
         % so limit the count to the number of rows in the actions files
         if (isempty(trials))
@@ -247,22 +241,38 @@ for tt_i=1:length(trialTypeStrArr)
                     plot(rotatedWallPos(1,:), rotatedWallPos(2,:), 'Color', wallColor, 'LineWidth', wallWidth)
                 end
                 % After drawing walls, draw the tree visible on this trial.
-                % Assumes 3-choice trials only, but will change later to support 2
-                % and 4-choice trials.
+                % Supports 3 and 4-choice trials
                 for t_i=1:length(worldNode.trees.t)
                     treePosStr = worldNode.trees.t{t_i}.pos.Text;
                     treePosXYZ = split(treePosStr, ';');
-                    if (t_i == 3)  % For 3-choice, always plot 3rd tree
-                        plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', shadingColorCenter);
-                    elseif (str2double(treePosXYZ{1}) == stimLocX)
-                        markerColor = [1 1 1];
-                        if (stimLocX == nearLeftX)
-                            markerColor = shadingColorLeft;
-                        elseif (stimLocX == nearRightX)
-                            markerColor = shadingColorRight;
+                    if (length(worldNode.trees.t) == 3)
+                        if (t_i == 3)  % For 3-choice, always plot 3rd tree
+                            plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', shadingColorCenter);
+                        elseif (str2double(treePosXYZ{1}) == stimLocX)
+                            markerColor = [1 1 1];
+                            if (stimLocX == leftX)
+                                markerColor = shadingColorLeft;
+                            elseif (stimLocX == rightX)
+                                markerColor = shadingColorRight;
+                            end
+                            plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
                         end
-                        plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
+                    elseif (length(worldNode.trees.t) == 4)
+                        if (str2double(treePosXYZ{1}) == stimLocX)
+                            markerColor = [1 1 1];
+                            if (stimLocX == leftNearX)
+                                markerColor = shadingColorLeft;
+                            elseif (stimLocX == leftFarX)
+                                markerColor = shadingColorLeftFar;
+                            elseif (stimLocX == rightNearX)
+                                markerColor = shadingColorRight;
+                            elseif (stimLocX == rightFarX)
+                                markerColor = shadingColorRightFar;
+                            end
+                            plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
+                        end
                     end
+                    
                 end
             end
 

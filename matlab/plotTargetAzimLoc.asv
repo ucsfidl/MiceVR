@@ -18,7 +18,7 @@ function plotTargetAzimLoc(mouseName, days, sessions, trials, trialTypeStrArr, d
 scenariosFolder = 'C:\Users\nikhil\Documents\GitHub\MiceVR\scenarios\';
 actionsFolder = 'C:\Users\nikhil\UCB\data-VR\';
 replaysFolder = 'C:\Users\nikhil\UCB\data-replays\';
-eyevideosFolder = 'C:\Users\nikhil\UCB\videos_eyes\';
+eyevideosFolder = 'C:\Users\nikhil\UCB\data-eyevideos\';
 
 % Be sure to change these if the x location of the trees changes
 stimLeftNear = 19973;
@@ -45,7 +45,7 @@ extraFramesAtStart = 2;  % 2 or 3: seems like there are 2 extra frames at the st
 extraFramesAtEnd = 3; % 2 or 3: seems like there are a couple extra frames where the mouse is already teleported back to the beginning at the end
 immobilePeriod = 2;  % 2 sec of immobility at the start of each trial
 
-maxAllowedJump = 9;  % max allowed change in the target's azimuthal location, for removing noise and smoothening
+maxAllowedJump = 10;  % max allowed change in the target's azimuthal location, for removing noise and smoothening
 
 % Error out if number of sessions is non-zero and does not match number of days.
 if (~isempty(sessions) && length(days) ~= length(sessions))
@@ -115,7 +115,13 @@ for d_i=1:length(days)  % Iterate through all of the specified days
     if (isempty(trials))
         trialsToDo = 1:length(actRecs{1});
     else
-        trialsToDo = trials(trials <= length(actRecs{1}));
+        lastTrial = trials(1);  % Assume only one trial, unless 2 numbers specified
+        if (length(trials) > 1)
+            if (trials(2) <= 0)
+                lastTrial = length(actRecs{1});
+            end
+        end
+        trialsToDo = trials(1):lastTrial;
     end
     
 
@@ -153,50 +159,8 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             % First, many trials Unity reports the wrong location of the edge of the target, so need to clean
             % up to smoothen the plots.
             if (denoise)
-                dLB = abs(diff(abs(targetLeftBound)));
-                noiseIdxs = find(dLB > maxAllowedJump);
-                idx = 1;
-                while 1
-                    if (idx <= length(noiseIdxs))  % there are noiseIdxs left
-                        priorVal = targetLeftBound(noiseIdxs(idx));
-                        if (idx < length(noiseIdxs)) % at least one more value left
-                            startIdx = noiseIdxs(idx);
-                            idx = idx + 1;
-                            endIdx = noiseIdxs(idx);
-                            while 1
-                                if (abs(targetLeftBound(endIdx) - priorVal) <= maxAllowedJump)
-                                    break;
-                                else
-                                    if (idx + 1 <= length(noiseIdxs))
-                                        endIdx = noiseIdxs(idx+2);
-                                        idx = idx + 3;
-                                    else
-                                        targetLeftBound(noiseIdxs(idx)+1:end) = priorVal;
-                                        break;
-                                   end
-                                end
-                            end
-                            targetLeftBound(startIdx+1:endIdx) = priorVal;
-                            idx = idx + 1;
-                        else
-                            targetLeftBound(noiseIdxs(idx)+1:end) = priorVal;
-                            break;
-                        end
-                    else
-                        break;
-                    end
-                end
-
-                dRB = abs(diff(targetRightBound));
-                noiseIdxs = find(dRB > maxAllowedJump);
-                for idx = 1:2:length(noiseIdxs)
-                    priorVal = targetRightBound(noiseIdxs(idx));
-                    if (idx < length(noiseIdxs)) % more indexes left
-                        targetRightBound(noiseIdxs(idx)+1:noiseIdxs(idx+1)) = priorVal;
-                    else
-                        targetRightBound(noiseIdxs(idx)+1:end) = priorVal;
-                    end
-                end
+                targetLeftBound = denoiseBounds(targetLeftBound, maxAllowedJump);
+                targetRightBound = denoiseBounds(targetRightBound, maxAllowedJump);
             end
                         
             % Second, adjust target bounds for when the target is not displayed on any monitor, so it isn't plotted
@@ -240,27 +204,35 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 targetRightBound = targetRightBound - eyeShift;
             end
 
+            left = -1;  % bool which says whether stim is on the left (1) or right (0) or center (-1)
             if (stimLocX == stimLeftNear)
                 t = 'Near Left';
                 shade = shadingColorLeft;
+                left = 1;
             elseif (stimLocX == stimLeftFar)
                 t = 'Far Left';
                 shade = shadingColorLeftFar;
+                left = 1;
             elseif (stimLocX == stimRightNear)
                 t = 'Near Right';
                 shade = shadingColorRight;
+                left = 0;
             elseif (stimLocX == stimRightFar)
                 t = 'Far Right';
                 shade = shadingColorRightFar;
+                left = 0;
             elseif (stimLocX < stimCenter)
                 t = 'Left';
                 shade = shadingColorLeft;
+                left = 1;
             elseif (stimLocX > stimCenter)
                 t = 'Right';
                 shade = shadingColorRight;
+                left = 0;
             elseif (stimLocX == stimCenter)
                 t = 'Center';
                 shade = shadingColorCenter;
+                left = -1;
             end
             
             if (actLocX == stimLeftNear)
@@ -279,6 +251,11 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 act = 'Center';
             end
             
+            if (left == 1)
+                disp(max(targetRightBound));
+            elseif (left == 0)
+                disp(min(targetLeftBound));
+            
             fr = ['fr=' num2str(trialStartFrames(trialsToDo(trialIdx)))];
             
             f1 = figure; hold on
@@ -290,6 +267,8 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             patch([targetLeftBound' flip(targetRightBound')],[x flip(x)], shade, 'LineStyle', 'None');
             % Plot top boundary when trial ends explicitly, as not visible on a white figure background otherwise
             plot([-90 90], [x(end) x(end)], 'k');
+            % Plot 0 degree  dotted line
+            plot([0 0], [x(1) x(end)], 'k--');
             xlim([-90 90]);
             ylim([0 x(end)]);
             xticks(-90:15:90);
@@ -331,6 +310,9 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                                   trialIdx = trialIdx-1; % go back one trial
                               end
                               break
+                          case 27
+                              trialIdx = length(trialsToDo)+1;
+                              break
                           otherwise 
                               % Wait for a different command. 
                       end
@@ -344,7 +326,6 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             error(['Replays file ' replaysFileNames(1) 'could not be opened, so ending.']);
         end
     end
-
 
 end
 

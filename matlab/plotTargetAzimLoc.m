@@ -18,7 +18,7 @@ function plotTargetAzimLoc(mouseName, days, sessions, trials, trialTypeStrArr, d
 scenariosFolder = 'C:\Users\nikhil\Documents\GitHub\MiceVR\scenarios\';
 actionsFolder = 'C:\Users\nikhil\UCB\data-VR\';
 replaysFolder = 'C:\Users\nikhil\UCB\data-replays\';
-eyevideosFolder = 'C:\Users\nikhil\UCB\videos_eyes\';
+eyevideosFolder = 'C:\Users\nikhil\UCB\data-eyevideos\';
 
 % Be sure to change these if the x location of the trees changes
 stimLeftNear = 19973;
@@ -45,7 +45,7 @@ extraFramesAtStart = 2;  % 2 or 3: seems like there are 2 extra frames at the st
 extraFramesAtEnd = 3; % 2 or 3: seems like there are a couple extra frames where the mouse is already teleported back to the beginning at the end
 immobilePeriod = 2;  % 2 sec of immobility at the start of each trial
 
-maxAllowedJump = 9;  % max allowed change in the target's azimuthal location, for removing noise and smoothening
+maxAllowedJump = 10;  % max allowed change in the target's azimuthal location, for removing noise and smoothening
 
 % Error out if number of sessions is non-zero and does not match number of days.
 if (~isempty(sessions) && length(days) ~= length(sessions))
@@ -61,6 +61,7 @@ end
 for d_i=1:length(days)  % Iterate through all of the specified days
     dayStr = num2str(days(d_i));
     % Prepend zeros if only 1 or 2 digits
+    prepDayStr = dayStr;
     if (length(dayStr) == 1)
         prepDayStr = ['00' dayStr];
     elseif (length(dayStr) == 2)
@@ -204,27 +205,35 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 targetRightBound = targetRightBound - eyeShift;
             end
 
+            left = -1;  % bool which says whether stim is on the left (1) or right (0) or center (-1)
             if (stimLocX == stimLeftNear)
                 t = 'Near Left';
                 shade = shadingColorLeft;
+                left = 1;
             elseif (stimLocX == stimLeftFar)
                 t = 'Far Left';
                 shade = shadingColorLeftFar;
+                left = 1;
             elseif (stimLocX == stimRightNear)
                 t = 'Near Right';
                 shade = shadingColorRight;
+                left = 0;
             elseif (stimLocX == stimRightFar)
                 t = 'Far Right';
                 shade = shadingColorRightFar;
+                left = 0;
             elseif (stimLocX < stimCenter)
                 t = 'Left';
                 shade = shadingColorLeft;
+                left = 1;
             elseif (stimLocX > stimCenter)
                 t = 'Right';
                 shade = shadingColorRight;
+                left = 0;
             elseif (stimLocX == stimCenter)
                 t = 'Center';
                 shade = shadingColorCenter;
+                left = -1;
             end
             
             if (actLocX == stimLeftNear)
@@ -243,6 +252,16 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 act = 'Center';
             end
             
+            if (left == 1)
+                disp(['T' num2str(trialsToDo(trialIdx)) ...
+                      '-F' num2str(find(targetRightBound == max(targetRightBound))) ':' ...
+                      num2str(max(targetRightBound))]);
+            elseif (left == 0)
+                disp(['T' num2str(trialsToDo(trialIdx)) ...
+                      '-F' num2str(find(targetLeftBound == min(targetLeftBound))) ':' ...
+                      num2str(min(targetLeftBound))]);
+            end
+            
             fr = ['fr=' num2str(trialStartFrames(trialsToDo(trialIdx)))];
             
             f1 = figure; hold on
@@ -254,6 +273,8 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             patch([targetLeftBound' flip(targetRightBound')],[x flip(x)], shade, 'LineStyle', 'None');
             % Plot top boundary when trial ends explicitly, as not visible on a white figure background otherwise
             plot([-90 90], [x(end) x(end)], 'k');
+            % Plot 0 degree  dotted line
+            plot([0 0], [x(1) x(end)], 'k--');
             xlim([-90 90]);
             ylim([0 x(end)]);
             xticks(-90:15:90);
@@ -295,6 +316,9 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                                   trialIdx = trialIdx-1; % go back one trial
                               end
                               break
+                          case 27
+                              trialIdx = length(trialsToDo)+1;
+                              break
                           otherwise 
                               % Wait for a different command. 
                       end
@@ -308,7 +332,6 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             error(['Replays file ' replaysFileNames(1) 'could not be opened, so ending.']);
         end
     end
-
 
 end
 

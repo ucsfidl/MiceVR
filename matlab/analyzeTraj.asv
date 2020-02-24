@@ -62,7 +62,7 @@ actionsFolder = 'C:\Users\nikhil\UCB\data-VR\';
 replaysFolder = 'C:\Users\nikhil\UCB\data-replays\';
 
 % X locs of 2-choice, 3-chioce and 4-choice worlds
-nearLeftX = 19975;
+leftX = 19975;
 farLeftX = 19976;
 centerX = 20000;
 nearRightX = 20025;
@@ -182,16 +182,7 @@ for tt_i=1:length(trialTypeStrArr)
                     filtRecIDs(length(filtRecIDs)+1) = r_i;
             end
         end
-        
-        % Figure out which trees to show
-        if (trialTypeStrArr{tt_i}(1) == 'L')
-            treeToShow = 0;
-        elseif (trialTypeStrArr{tt_i}(1) == 'R')
-            treeToShow = 1;
-        else
-            treeToShow = 2;
-        end
-        
+                
         % There could be 1 more replay files than entries in the actions file if the game is manually ended, 
         % so limit the count to the number of rows in the actions files
         if (isempty(trials))
@@ -247,19 +238,38 @@ for tt_i=1:length(trialTypeStrArr)
                     plot(rotatedWallPos(1,:), rotatedWallPos(2,:), 'Color', wallColor, 'LineWidth', wallWidth)
                 end
                 % After drawing walls, draw the tree visible on this trial.
-                % Assumes 3-choice trials only, but will change later to support 2
-                % and 4-choice trials.
+                % Supports 3 and 4-choice trials
                 for t_i=1:length(worldNode.trees.t)
                     treePosStr = worldNode.trees.t{t_i}.pos.Text;
                     treePosXYZ = split(treePosStr, ';');
-                    if (t_i == 3)  % For 3-choice, always plot 3rd tree
-                        plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', shadingColorCenter);
-                    elseif (treePosXYZ == stimLocX)
-                        if (stimLocX == 
+                    if (length(worldNode.trees.t) == 3)
+                        if (t_i == 3)  % For 3-choice, always plot 3rd tree
+                            plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', shadingColorCenter);
+                        elseif (str2double(treePosXYZ{1}) == stimLocX)
+                            markerColor = [1 1 1];
+                            if (stimLocX == nearLeftX)
+                                markerColor = shadingColorLeft;
+                            elseif (stimLocX == nearRightX)
+                                markerColor = shadingColorRight;
+                            end
+                            plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
+                        end
+                    elseif (length(worldNode.trees.t) == 4)
+                        if (str2double(treePosXYZ{1}) == stimLocX)
+                            markerColor = [1 1 1];
+                            if (stimLocX == nearLeftX)
+                                markerColor = shadingColorLeft;
+                            elseif (stimLocX == farLeftX)
+                                markerColor = shadingColorLeftFar;
+                            elseif (stimLocX == nearRightX)
+                                markerColor = shadingColorRight;
+                            elseif (stimLocX == farRightX)
+                                markerColor = shadingColorRightFar;
+                            end
+                            plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
+                        end
                     end
-                    if (treePosXYZ == stimLocX || t_1 == 3)
-                        plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', 'w');
-                    end
+                    
                 end
             end
 
