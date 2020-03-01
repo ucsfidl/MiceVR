@@ -5,7 +5,7 @@ function analyzePupils(trackFileName, numStim, frameLim, degPerPx, fps, timeInSe
 % Expects cleanUpTrialTimes to be run before running, which will produce
 % a *_corr.mat file with corrected trialStarts and trialEnds.
 
-% ISSUE: because frames are dropped to determine when a trial starts and
+% IeSSUE: because frames are dropped to determine when a trial starts and
 % ends, the overall time plotted will be lagging more and more over time.
 % Fix this at some point if it is important.
 

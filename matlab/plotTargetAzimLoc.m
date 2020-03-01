@@ -16,7 +16,7 @@ function plotTargetAzimLoc(mouseName, days, sessions, trials, trialTypeStrArr, d
 
 %%% CHANGE THESE VARS FOR YOUR SETUP PRIOR TO RUNNING %%%
 scenariosFolder = 'C:\Users\nikhil\Documents\GitHub\MiceVR\scenarios\';
-actionsFolder = 'C:\Users\nikhil\UCB\data-VR\';
+actionsFolder = 'C:\Users\nikhil\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhil\UCB\data-replays\';
 eyevideosFolder = 'C:\Users\nikhil\UCB\data-eyevideos\';
 
