@@ -18,9 +18,7 @@
 			<trees>
 				<t>
 					<w>1</w>
-					<pos>				<!-- The order specified here indicates the order of advancement, with the first position the initial or base position -->
-						20000;-16;20040
-					</pos>
+					<pos>20000;-16;20040</pos>
 					<d>0</d>
 					<h>2</h>
 					<v>2</v>
