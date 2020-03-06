@@ -58,7 +58,7 @@ function f = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, inc
 
 %%% CHANGE THESE VARS FOR YOUR SETUP PRIOR TO RUNNING %%%
 scenariosFolder = 'C:\Users\nikhil\Documents\GitHub\MiceVR\scenarios\';
-actionsFolder = 'C:\Users\nikhil\UCB\data-VR\';
+actionsFolder = 'C:\Users\nikhil\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhil\UCB\data-replays\';
 
 % X locs of 2-choice, 3-chioce and 4-choice worlds

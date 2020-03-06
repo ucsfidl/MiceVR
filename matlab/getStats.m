@@ -13,8 +13,8 @@ function getStats(loc, mouseName, days, sessions, includeCorrectionTrials)
 % It also supports a separate category of catch trials, looking for a
 % -1;-1;-1 location of the target to indicate no target was presented.
 
-actionsFolderUCB = 'C:\Users\nikhil\UCB\data-VR\';
-actionsFolderUCSF = 'C:\Users\nikhil\UCSF\data\';
+actionsFolderUCB = 'C:\Users\nikhi\UCB\data-actions\';
+actionsFolderUCSF = 'C:\Users\nikhi\UCSF\data\';
 
 % X locs of 2-choice, 3-chioce and 4-choice worlds
 nearLeftX = 19975;
