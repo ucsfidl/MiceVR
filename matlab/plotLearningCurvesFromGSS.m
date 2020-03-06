@@ -1,4 +1,4 @@
-function plotLearningCurvesFromGSS(docid, mouseNames, startDays, endDays)
+function plotLearningCurvesFromGSS(docid, mouseNames, days)
 % Takes a Google Spreadsheet, and plots the learning curves.
 % Each tab is a mouse, and 2 plots are generated per moues:
 % (1) Overall accuracy on the session
@@ -92,7 +92,7 @@ for sheetIdx=1:length(sheetIDs)
     name = '';
     strain = '';
     experiment = '';
-        
+            
     for row=1:size(sheet, 1)
         % If all characters are digits, this is a valid number and we found the first valid line
         d = sheet{row, DAY};
@@ -110,10 +110,11 @@ for sheetIdx=1:length(sheetIDs)
             %disp(d);
         %end
         
+        dayNum = str2double(d);
+        
         if (isstrprop(d, 'digit') & ~isempty(a) & ~isempty(w))
-            if (isempty(startDays) || ...
-                    (str2double(d) >= startDays(sheetIdx) && (isempty(endDays) || str2double(d) <= endDays(sheetIdx))))
-                xAcc(end+1) = str2double(d);
+            if (isempty(days) || ~isempty(find(days == dayNum, 1)))
+                xAcc(end+1) = length(xAcc) + 1;
                 acc(end+1) = str2double(a(1:end-1));  % Trim off the percent
                 tpm(end+1) = str2double(t);
                 
@@ -269,6 +270,19 @@ for sheetIdx=1:length(sheetIDs)
     ax.YColor = 'k';
     % Remove y-axis values and tickmarks greater than 100
     yticks([0:20:100])
+    
+    % Update the xlabelticks appropriately
+    xtl = xticklabels;
+    interval = str2double(xtl{2}) - str2double(xtl{1});
+    xtl{1} = num2str(days(1)-1);
+    for t = 2:length(xtl)
+        if ((length(days)+1)/interval < t)
+            xtl{t} = num2str(days(end)+1);
+        else
+            xtl{t} = num2str(days((t-1)*interval));
+        end
+    end
+    xticklabels(xtl);
     
     % plot criterion line
     %xl = xlim;
