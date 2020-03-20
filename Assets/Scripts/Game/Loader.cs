@@ -709,6 +709,7 @@ public class Loader : MonoBehaviour {
 
 			this.errorText.text = "";
 
+			//Debug.Log("finished");
 			finishedReadingScenario = true;
         } else if (!File.Exists(PlayerPrefs.GetString("scenarioFolder") + "/" + this.loadScenarioFile)) {
             this.errorText.text = "ERROR: File does not exist";
