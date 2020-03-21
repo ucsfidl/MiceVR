@@ -1,9 +1,9 @@
 function f = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, includeCorrectionTrials, drawOneFig, markSize, markAlpha)
 % SAMPLE USAGE
 % // MANY TRacks on one plot
-% > analyzeTraj('Vixen', [43], [], ["L->L" "R->R" "C->C"], 0, 1, 1, 0.02)
+% > analyzeTraj('Vixen', [43], [], [], ["L->L" "R->R" "C->C"], 0, 1, 1, 0.02)
 % // EACH TRIAL on a separate plot
-% > analyzeTraj('Dragon', [182], [], [], 1, 0, 8, 0.06)
+% > analyzeTraj('Dragon', [182], [], [], [], 1, 0, 8, 0.06)
 %
 % This function takes as input a mouse's name as well as the days and
 % corresponding sessions that should be analyzed.  It then looks in the
@@ -57,9 +57,9 @@ function f = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, inc
 % get Tunlin's take on this as well.
 
 %%% CHANGE THESE VARS FOR YOUR SETUP PRIOR TO RUNNING %%%
-scenariosFolder = 'C:\Users\nikhil\Documents\GitHub\MiceVR\scenarios\';
-actionsFolder = 'C:\Users\nikhil\UCB\data-actions\';
-replaysFolder = 'C:\Users\nikhil\UCB\data-replays\';
+scenariosFolder = 'C:\Users\nikhi\Documents\GitHub\MiceVR\scenarios\';
+actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
+replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
 
 % X locs of 2-choice, 3-chioce and 4-choice worlds
 leftX = 19975;
@@ -283,8 +283,7 @@ for tt_i=1:length(trialTypeStrArr)
             if (replaysFileID ~= -1)  % File was opened properly
                 C = textscan(replaysFileID, '%f %f %f %f %f %f %f %f', 'Delimiter', {';', ','});
                 % Sometimes the replay file has an x coord but no z coord, not sure why.
-                scatter(C{1}(1:length(C{3})), C{3}, markSize, 'MarkerFaceColor', [1 0 0], 'MarkerEdgeColor', [1 0 0], ...
-                  'MarkerFaceAlpha', markAlpha, 'MarkerEdgeAlpha', markAlpha);
+                scatter(C{1}(1:length(C{3})), C{3}, markSize, jet(length(C{3})), 'MarkerFaceAlpha', markAlpha, 'MarkerEdgeAlpha', markAlpha);
                 plot(centerX, centerX, 'o', 'MarkerSize', markSize, 'MarkerEdgeColor', 'w', 'MarkerFaceColor', 'b');
 
                 fclose(replaysFileID);
