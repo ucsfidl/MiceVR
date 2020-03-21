@@ -282,10 +282,9 @@ for tt_i=1:length(trialTypeStrArr)
             end
 
             if (stimLocX == actionLocX)
-                cutFromEnd = correctDelay * fps;
+                endFrames = correctDelay * fps;
             else
-                cutFromEnd = incorrectDelay * fps;
-            end
+                
             
             %disp(['Processed replay #' num2str(filtRecIDs(r_i))]);
 
@@ -294,7 +293,7 @@ for tt_i=1:length(trialTypeStrArr)
             if (replaysFileID ~= -1)  % File was opened properly
                 C = textscan(replaysFileID, '%f %f %f %f %f %f %f %f', 'Delimiter', {';', ','});
                 % Sometimes the replay file has an x coord but no z coord, not sure why.
-                scatter(C{1}(1:length(C{3})-cutFromEnd), C{3}(1:end-cutFromEnd), markSize, jet(length(C{3}(1:end-cutFromEnd))), 'MarkerFaceAlpha', markAlpha, 'MarkerEdgeAlpha', markAlpha);
+                scatter(C{1}(1:length(C{3})), C{3}, markSize, jet(length(C{3})), 'MarkerFaceAlpha', markAlpha, 'MarkerEdgeAlpha', markAlpha);
                 plot(centerX, centerX, 'o', 'MarkerSize', markSize, 'MarkerEdgeColor', 'w', 'MarkerFaceColor', 'b');
 
                 fclose(replaysFileID);
