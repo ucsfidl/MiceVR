@@ -152,10 +152,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
         if (replaysFileID ~= -1)
             repRecs = textscan(replaysFileID, '%f %f %f %f %f %f %f %f', 'Delimiter', {';', ','}); 
             fclose(replaysFileID); % done with it.
-            % Sometimes, if a game is canceled before starting, there might be a blank replay file.  This handles that.
-            if (isempty(repRecs{1}))
-                continue;
-            end
+            if (length(repRecs{1}) == 0
             xStart = 1 + extraFramesAtStart;
             % Truncate the end of the replay file, since the screen is not displayed after the mouse makes a decision
             if (stimLocX == actLocX)
