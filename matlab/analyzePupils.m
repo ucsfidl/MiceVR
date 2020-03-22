@@ -17,6 +17,8 @@ tic;
 %leftColor = [1 1 0.79];  % off-yellow
 %rightColor = [0.81 1 0.81];  % off-green
 
+actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
+
 leftEyeColor = 'b'; 
 rightEyeColor = 'r';
 leftEyeVarianceColor = [0.74 0.87 1];  % light blue
@@ -101,7 +103,17 @@ azimDeg = reshape(azimDeg, size(azimDeg, 1), size(azimDeg, 3));
 stimLocs = [];
 actionLocs = [];
 optoStates = [];
-actionsFileName = [rootFileName '_actions.txt'];
+
+% Find the actions file in the actions folder
+parts = split(trackFileName, '_');
+actionsFileList = dir([actionsFolder parts{1} '-D' parts{2} '*actions.txt']);
+
+if (length(actionsFileList) == 1)
+    actionsFileName = [actionsFileList(1).folder '\' actionsFileList(1).name];
+else
+    error('Too many matching actions files in the actions folder');
+end
+
 actionsFile = fopen(actionsFileName);
 if (actionsFile ~= -1) % File found
     fgetl(actionsFile);  % First line is a header so ignore
