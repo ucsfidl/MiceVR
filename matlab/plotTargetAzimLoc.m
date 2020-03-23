@@ -142,6 +142,10 @@ for d_i=1:length(days)  % Iterate through all of the specified days
         stimLocX = getStimLocFromActions(actRecs, trialsToDo(trialIdx));
         actLocX = getActionLocFromActions(actRecs, trialsToDo(trialIdx));
         
+        if trialIdx == 155
+           disp(''); 
+        end
+        
         % Second, find the nasal and temporal restrictions for this trial
         nasalBound = actRecs{8}(trialsToDo(trialIdx));
         temporalBound = actRecs{9}(trialsToDo(trialIdx));
@@ -158,10 +162,16 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             end
             xStart = 1 + extraFramesAtStart;
             % Truncate the end of the replay file, since the screen is not displayed after the mouse makes a decision
-            if (stimLocX == actLocX)
-                xEnd = length(repRecs{1}) - successDelay * fps;
+            % Except if it is the last trial!
+            lastTrial = trialsToDo(trialIdx) == trialsToDo(end);
+            if (~lastTrial)
+                if (stimLocX == actLocX)
+                    xEnd = length(repRecs{1}) - successDelay * fps;
+                else
+                    xEnd = length(repRecs{1}) - failureDelay * fps;
+                end
             else
-                xEnd = length(repRecs{1}) - failureDelay * fps;
+                xEnd = length(repRecs{1});
             end
             xEnd = xEnd - extraFramesAtEnd;
             x = (xStart:xEnd)/fps;  % so units are in time, not frames
@@ -256,8 +266,8 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 left = -1;
             end
             
-                act = 'Near Left';
             if (actLocX == stimLeftNear)
+                act = 'Near Left';
             elseif (actLocX == stimLeftFar)
                 act = 'Far Left';
             elseif (actLocX == stimRightNear)
@@ -330,7 +340,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 title([mouseName '-D' dayStr ': T' num2str(trialsToDo(trialIdx))  ', ' fr ', ' r ', ' t '->' act]);
 
                 % Also plot the animal's trajectory on that trial
-                f2 = analyzeTraj(mouseName, days(d_i), [], trialsToDo(trialIdx), trialTypeStrArr, 1, 0, 8, 1);
+                f2 = analyzeTraj(mouseName, days(d_i), [], trialsToDo(trialIdx), trialTypeStrArr, 1, 0, 8, 1, lastTrial);
 
                 % Logic to only keep open the figs that you hit 'k' for 'keep' on
                 closeFig = 1;

@@ -1,9 +1,9 @@
-function f = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, includeCorrectionTrials, drawOneFig, markSize, markAlpha)
+function f = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, includeCorrectionTrials, drawOneFig, markSize, markAlpha, lastTrial)
 % SAMPLE USAGE
 % // MANY TRacks on one plot
-% > analyzeTraj('Vixen', [43], [], [], ["L->L" "R->R" "C->C"], 0, 1, 1, 0.02)
+% > analyzeTraj('Vixen', [43], [], [], ["L->L" "R->R" "C->C"], 0, 1, 1, 0.02, 0)
 % // EACH TRIAL on a separate plot
-% > analyzeTraj('Dragon', [182], [], [], [], 1, 0, 8, 0.06)
+% > analyzeTraj('Dragon', [182], [], [], [], 1, 0, 8, 0.06, 0)
 %
 % This function takes as input a mouse's name as well as the days and
 % corresponding sessions that should be analyzed.  It then looks in the
@@ -281,10 +281,14 @@ for tt_i=1:length(trialTypeStrArr)
                 end
             end
 
-            if (stimLocX == actionLocX)
-                cutFromEnd = correctDelay * fps;
+            if (~lastTrial)
+                if (stimLocX == actionLocX)
+                    cutFromEnd = correctDelay * fps;
+                else
+                    cutFromEnd = incorrectDelay * fps;
+                end
             else
-                cutFromEnd = incorrectDelay * fps;
+                cutFromEnd = 0;
             end
             
             %disp(['Processed replay #' num2str(filtRecIDs(r_i))]);
