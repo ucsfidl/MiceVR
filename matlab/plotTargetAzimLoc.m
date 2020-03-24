@@ -141,11 +141,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
         % actRecs{5} is the target location, actRecs{12} is the turn location
         stimLocX = getStimLocFromActions(actRecs, trialsToDo(trialIdx));
         actLocX = getActionLocFromActions(actRecs, trialsToDo(trialIdx));
-        
-        if trialIdx == 155
-           disp(''); 
-        end
-        
+                
         % Second, find the nasal and temporal restrictions for this trial
         nasalBound = actRecs{8}(trialsToDo(trialIdx));
         temporalBound = actRecs{9}(trialsToDo(trialIdx));
@@ -297,6 +293,8 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 disp(['T' num2str(trialsToDo(trialIdx)) ...
                       '-F' num2str(find(targetLeftBound(targetLeftBound ~= targetRightBound) == extreme,1)) ':' ...
                       num2str(extreme)]);
+            else % Target is centered, so no extreme
+                %disp('Centered target');
             end
             
             fr = [''];

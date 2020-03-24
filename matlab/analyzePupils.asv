@@ -86,11 +86,10 @@ end
 totalFrames = length(centers);
 
 % First, quickly calculate the eye blinks which will be stored in the data file
-eyeblinkStartFrames = cell(1,2);  % first is left eye eyeblink start times, second is right eye eyeblink start times
+eyeblinks = cell(1,2);  % first is left eye eyeblink start times, second is right eye eyeblink start times
 for i=1:2
     ebD = diff(isnan(centers(:, 1, i)));
-    eyeblinkStartFrames{i} = find(ebD == 1) + 1;
-end
+    eyeblinks{i} = 
 
 if frameStop == 0 || frameStop > totalFrames
     frameStop = totalFrames;
@@ -635,8 +634,7 @@ if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, plot thi
 end
 
 
-save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', ...
-    'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates', 'eyeblinkStartFrames');
+save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', 'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates');
 
 
 % Plot stimulation and actions first
