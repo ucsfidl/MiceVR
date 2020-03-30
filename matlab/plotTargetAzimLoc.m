@@ -27,7 +27,7 @@ actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
 eyevideosFolder = 'C:\Users\nikhi\UCB\data-eyevideos\';
 
-actLineFormat = '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d';
+actLineFormat = '%s\t%s\t%d\t%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%d\t%d';
 
 % Be sure to change these if the x location of the trees changes
 stimLeftNear = 19973;
@@ -114,7 +114,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
     actionsFileName = [actionsFolder mouseName '-D' dayStr '-' scenarioName '-S' sessionNum '_actions.txt'];
     actionsFileID = fopen(actionsFileName);
     if (actionsFileID ~= -1)  % File was opened properly
-        firstLine = fgetl(actionsFileID); % Throw out the first line, as it is a column header
+        firstLine = fgets(actionsFileID); % Throw out the first line, as it is a column header
         actRecs = textscan(actionsFileID, actLineFormat); 
     else
         error(['Actions file ' actionsFileName 'could not be opened, so ending.']);
@@ -320,7 +320,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 disp(['T' num2str(trialsToDo(trialIdx)) ...
                       '-F' num2str(find(targetLeftBound(targetLeftBound ~= targetRightBound) == extreme,1)) ':' ...
                       num2str(extreme)]);
-            else % Target is centered, so no extreme
+            else % Target is centered, so no extrema
                 %disp('Centered target');
             end
             
@@ -331,7 +331,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 
             if (~interactive)
                 if (outputNewActionsFile && newActionsFileID ~= -1)
-                    tca = cellfun(@(v) v(1), actRecs, 'UniformOutput', 0);
+                    tca = cellfun(@(v) v(trialsToDo(trialIdx)), actRecs, 'UniformOutput', 0);
                     tca2 = cell(size(tca));
                     for m=1:length(tca)
                         if iscell(tca{m})
@@ -340,7 +340,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                             tca2{m} = tca{m};
                         end
                     end
-                    fprintf(newActionsFileID, actLineFormat, tca2{:});
+                    fprintf(newActionsFileID, [actLineFormat '\n'], tca2{:});
                 end
                 trialIdx = trialIdx + 1;
                 totalTrialsAnalyzed = totalTrialsAnalyzed + 1;

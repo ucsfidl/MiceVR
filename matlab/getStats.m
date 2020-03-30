@@ -1,4 +1,4 @@
-function getStats(loc, mouseName, days, sessions, includeCorrectionTrials)
+function getStats(loc, mouseName, days, sessions, includeCorrectionTrials, analyzeCensored)
 % This function will analyze the relevant actions.txt log files and return
 % a set of statistics useful to analyzing blindness and blindsight, as well
 % as a 2AFC stimulus discrimination task.
@@ -67,7 +67,11 @@ else
     actionsFolder = actionsFolderUCSF;
 end
 
-fileList = dir([actionsFolder '*actions.txt']); % Get all mat files, and use that to construct filenames for video files
+if analyzeCensored
+    fileList = dir([actionsFolder '*actions_censored.txt']);
+else
+    fileList = dir([actionsFolder '*actions.txt']); % Get all mat files, and use that to construct filenames for video files
+end
 
 numFilesAnalyzed = 0;
 for i=1:length(fileList)
