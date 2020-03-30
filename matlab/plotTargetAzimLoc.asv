@@ -332,15 +332,18 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             if (~interactive)
                 if (outputNewActionsFile && newActionsFileID ~= -1)
                     tca = cellfun(@(v) v(1), actRecs, 'UniformOutput', 0);
-                    tca2 = cell(size(tca));
+                    tca2 = cell(size(
+                    actLine = '';
+                    tStr = '';
                     for m=1:length(tca)
                         if iscell(tca{m})
-                            tca2{m} = tca{m}{1};
+                            tStr = tca{m}{1};
                         elseif isnumeric(tca{m})
-                            tca2{m} = tca{m};
+                            tStr = num2str(tca{m})
                         end
+                        actLine = [actLine tStr];
                     end
-                    fprintf(newActionsFileID, actLineFormat, tca2{:});
+                    fprintf(newActionsFileID, actLineFormat, );
                 end
                 trialIdx = trialIdx + 1;
                 totalTrialsAnalyzed = totalTrialsAnalyzed + 1;
