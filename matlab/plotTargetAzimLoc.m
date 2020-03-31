@@ -1,6 +1,6 @@
 function nasalExtrema = plotTargetAzimLoc(mouseName, days, sessions, trials, stimLocsToAnalyze, ...
     trialTypeStrArr, denoiseBallMovement, useFieldRestriction, useEyeTracking, whichEye, includeCorrectionTrials, ...
-    outputNewActionsFile, targetAzimLimit, fractionOfRun, interactive)
+    outputNewActionsFile, targetAzimLimit, fractionOfRun, censorOnlyIfCorrect, interactive)
 % This function takes as inputs the replay files for a session as well as the mouse's eye movements 
 % during that session.  It outputs several plots:
 % 1) For the specified trialType, a plot for each trial showing the 
@@ -19,7 +19,7 @@ function nasalExtrema = plotTargetAzimLoc(mouseName, days, sessions, trials, sti
 % outputNewActionsFile set to 1 causes a new actions file to be written, which has the censored trials removed.
 
 % EXAMPLE USAGE:
-% ne = plotTargetAzimLoc('Marvel', [166],[],[1 0],[],[],1,1,1,'R',0,1,[6], 1, 0);
+% >> ne = plotTargetAzimLoc('Marvel', [184],[],[1 0],[],[],1,1,1,'R',0,1,[0], 0.5, 0);
 
 %%% CHANGE THESE VARS FOR YOUR SETUP PRIOR TO RUNNING %%%
 scenariosFolder = 'C:\Users\nikhi\Documents\GitHub\MiceVR\scenarios\';
@@ -335,8 +335,11 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 
             if (~interactive)
                 if (outputNewActionsFile && newActionsFileID ~= -1)
-                    if (isempty(targetAzimLimit) || left == -1 || (left == 1 && nasalExtrema(end) < targetAzimLimit(1)) || ...
-                            (left == 0 && nasalExtrema(end) > -targetAzimLimit(1)))
+                    if (isempty(targetAzimLimit) || left == -1 || ...
+                            (left == 1 && nasalExtrema(end) < targetAzimLimit(1)) || ...
+                            (left == 1 && nasalExtrema(end) >= targetAzimLimit(1) && censorOnlyIfCorrect && stimLocX ~= actLocX) || ...
+                            (left == 0 && nasalExtrema(end) > -targetAzimLimit(1)) || ...
+                            (left == 0 && nasalExtrema(end) <= -targetAzimLimit(1) && censorOnlyIfCorrect && stimLocX ~= actLocX))
                         tca = cellfun(@(v) v(trialsToDo(trialIdx)), actRecs, 'UniformOutput', 0);
                         tca2 = cell(size(tca));
                         for m=1:length(tca)
