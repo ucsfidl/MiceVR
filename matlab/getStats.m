@@ -523,6 +523,7 @@ if (sum(sum(sum(results_4choice))) > 0)
               num2str(round(results(4,4,j) / sum(results(:,4,j)) * 100), 3)]);
         disp('-----------');
         disp(results(:,:,j));
+        disp(['Total 4-choice trials = ' num2str(sum(sum(sum(results))))]);
         disp('===========');
     end
     

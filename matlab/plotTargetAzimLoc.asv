@@ -1,6 +1,6 @@
 function nasalExtrema = plotTargetAzimLoc(mouseName, days, sessions, trials, stimLocsToAnalyze, ...
     trialTypeStrArr, denoiseBallMovement, useFieldRestriction, useEyeTracking, whichEye, includeCorrectionTrials, ...
-    outputNewActionsFile, interactive)
+    outputNewActionsFile, targetAzimLimit, fractionOfRun, interactive)
 % This function takes as inputs the replay files for a session as well as the mouse's eye movements 
 % during that session.  It outputs several plots:
 % 1) For the specified trialType, a plot for each trial showing the 
@@ -27,7 +27,7 @@ actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
 eyevideosFolder = 'C:\Users\nikhi\UCB\data-eyevideos\';
 
-actLineFormat = '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d';
+actLineFormat = '%s\t%s\t%d\t%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%d\t%d';
 
 % Be sure to change these if the x location of the trees changes
 stimLeftNear = 19973;
@@ -114,7 +114,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
     actionsFileName = [actionsFolder mouseName '-D' dayStr '-' scenarioName '-S' sessionNum '_actions.txt'];
     actionsFileID = fopen(actionsFileName);
     if (actionsFileID ~= -1)  % File was opened properly
-        firstLine = fgetl(actionsFileID); % Throw out the first line, as it is a column header
+        firstLine = fgets(actionsFileID); % Throw out the first line, as it is a column header
         actRecs = textscan(actionsFileID, actLineFormat); 
     else
         error(['Actions file ' actionsFileName 'could not be opened, so ending.']);
@@ -128,7 +128,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             newActionsFileID = fopen(newActionsFileName, 'w');
             fprintf(newActionsFileID, firstLine);
         else
-            err('Cannot output new actions file and have interactive mode.  Pick one or the other.');
+            % error('Cannot output new actions file and have interactive mode.  Pick one or the other.');
         end
     end
     
@@ -305,23 +305,27 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 act = 'Center';
             end
             
+            % If fractionOfRun is specified, only look over that interval of the run to determine the extrema
+            maxFrame = floor(fractionOfRun*length(targetLeftBound));
             if (left == 1)
                 % HACK to find only visible shaded regions on the plot, as sometimes the extrema are equal between the left and right bounds and actually nothing is visible
                 % FIGURE OUT a proper fix when I get a chance
                 % Actually, since when the target is off screen we set the bounds to the nasalBound, this is OK...
-                extreme = max(targetRightBound(targetLeftBound ~= targetRightBound));
+                limitedRightBound = targetRightBound(1:maxFrame);
+                extreme = max(limitedRightBound(targetLeftBound(1:maxFrame) ~= limitedRightBound));
                 nasalExtrema(end+1) = extreme;
                 disp(['T' num2str(trialsToDo(trialIdx)) ...
-                      '-F' num2str(find(targetRightBound(targetLeftBound ~= targetRightBound) == extreme,1)) ':' ...
+                      ' - LEFT - F' num2str(find(targetRightBound(targetLeftBound ~= targetRightBound) == extreme,1)) ':' ...
                       num2str(extreme)]);
             elseif (left == 0)
-                extreme = min(targetLeftBound(targetLeftBound ~= targetRightBound));
+                limitedLeftBound = targetLeftBound(1:maxFrame);
+                extreme = min(limitedLeftBound(limitedLeftBound ~= targetRightBound(1:maxFrame)));
                 nasalExtrema(end+1) = extreme;
                 disp(['T' num2str(trialsToDo(trialIdx)) ...
-                      '-F' num2str(find(targetLeftBound(targetLeftBound ~= targetRightBound) == extreme,1)) ':' ...
+                      ' - RIGHT - F' num2str(find(targetLeftBound(targetLeftBound ~= targetRightBound) == extreme,1)) ':' ...
                       num2str(extreme)]);
-            else % Target is centered, so no extreme
-                %disp('Centered target');
+            else % Target is centered, so no extrema
+                disp(['T' num2str(trialsToDo(trialIdx)) ' - CENTER']);
             end
             
             fr = [''];
@@ -331,19 +335,21 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 
             if (~interactive)
                 if (outputNewActionsFile && newActionsFileID ~= -1)
-                    tca = cellfun(@(v) v(1), actRecs, 'UniformOutput', 0);
-                    tca2 = cell(size(
-                    actLine = '';
-                    tStr = '';
-                    for m=1:length(tca)
-                        if iscell(tca{m})
-                            tStr = tca{m}{1};
-                        elseif isnumeric(tca{m})
-                            tStr = num2str(tca{m})
+                    if (isempty(targetAzimLimit) || left == -1 || (left == 1 && nasalExtrema(end) > targetAzimLimit(1)) || ...
+                            (left == 0 && nasalExter)
+                        tca = cellfun(@(v) v(trialsToDo(trialIdx)), actRecs, 'UniformOutput', 0);
+                        tca2 = cell(size(tca));
+                        for m=1:length(tca)
+                            if iscell(tca{m})
+                                tca2{m} = tca{m}{1};
+                            elseif isnumeric(tca{m})
+                                tca2{m} = tca{m};
+                            end
                         end
-                        actLine = [actLine tStr];
+                        fprintf(newActionsFileID, [actLineFormat '\n'], tca2{:});
+                    else
+                        disp(['Censored trial#' num2str(trialsToDo(trialIdx)) ' as beyond allowed target azimuth']);
                     end
-                    fprintf(newActionsFileID, actLineFormat, );
                 end
                 trialIdx = trialIdx + 1;
                 totalTrialsAnalyzed = totalTrialsAnalyzed + 1;
@@ -424,11 +430,9 @@ for d_i=1:length(days)  % Iterate through all of the specified days
 
 end
 
-if (outputNewActionsFile && newActionsFileID ~= -1)
+if (~interactive && outputNewActionsFile && newActionsFileID ~= -1)
     fclose(newActionsFileID);
     disp(['Total trials written to file = ' num2str(totalTrialsAnalyzed)]);
-else
-    disp(['Total trials analyzed = ' num2str(totalTrialsAnalyzed)]);
 end
 
 end
