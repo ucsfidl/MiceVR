@@ -325,7 +325,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                       ' - R - F' num2str(find(targetLeftBound(targetLeftBound ~= targetRightBound) == extreme,1)) ':' ...
                       num2str(extreme)]);
             else % Target is centered, so no extrema
-                disp(['T' num2str(trialsToDo(trialIdx)) ' - CENTER']);
+                disp(['T' num2str(trialsToDo(trialIdx)) ' - C']);
             end
             
             fr = [''];

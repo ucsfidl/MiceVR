@@ -111,7 +111,7 @@ stimLocs = [];
 actionLocs = [];
 optoStates = [];
 
-% Find the actions file in the actions folder.  Remove preceding 0's from dayNum (parts{2}) doing the trick below
+% Find the actions file in the actions folder.  Remove preceding 0's from dayNum (parts{2}) 
 parts = split(trackFileName, '_');
 actionsFileList = dir([actionsFolder parts{1} '-D' num2str(str2double(parts{2})) '*actions.txt']);
 
@@ -469,28 +469,21 @@ for eye=1:2  % For each eye
     stimCorrectEyeLengths = [];
     % First collect all the trial lengths for the correct trials, to assist with normalizing trial duration
     for stimIdx=1:numStim
-        % Account for some sessions where the mouse always gets a specific stim location wrong
-        if (~isempty(stimActionEyeMoveTrials{stimIdx,stimIdx,eye}))
-            stimCorrectEyeLengths = [stimCorrectEyeLengths cellfun(@(x) length(x), stimActionEyeMoveTrials{stimIdx,stimIdx,eye})];
-            n = n + length(stimActionEyeMoveTrials{stimIdx,stimIdx,eye});
-        end
+        stimCorrectEyeLengths = [stimCorrectEyeLengths cellfun(@(x) length(x), stimActionEyeMoveTrials{stimIdx,stimIdx,eye})];
+        n = n + length(stimActionEyeMoveTrials{stimIdx,stimIdx,eye});
     end
 
     % Next, resample the longer trials to the length of the shortest trial, because all 4 trial types will be plotted on the same axis
     minLengths(eye) = min(stimCorrectEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
     for stimIdx=1:numStim
-        if (~isempty(stimActionEyeMoveTrials{stimIdx,stimIdx,eye}))
-            resampledStimEye{stimIdx,eye} = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimActionEyeMoveTrials{stimIdx,stimIdx,eye}, 'UniformOutput', false);
-            d = cell2mat(resampledStimEye{stimIdx,eye}(:)');
-            m{stimIdx,eye} = nanmean(d, 2);
-            sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
-        end
+        resampledStimEye{stimIdx,eye} = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimActionEyeMoveTrials{stimIdx,stimIdx,eye}, 'UniformOutput', false);
+        d = cell2mat(resampledStimEye{stimIdx,eye}(:)');
+        m{stimIdx,eye} = nanmean(d, 2);
+        sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
     end
     
     for stimIdx=1:numStim
-        if (~isempty(m{stimIdx,eye}))
-            ySem{stimIdx,eye} = [m{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(m{stimIdx,eye}'+sem{stimIdx,eye}')];
-        end
+        ySem{stimIdx,eye} = [m{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(m{stimIdx,eye}'+sem{stimIdx,eye}')];
     end
 
     figure; hold on;
@@ -498,44 +491,42 @@ for eye=1:2  % For each eye
     plot(zeros(1,length(m{1,eye})), x, 'k--');
     xSem = cat(2, x, fliplr(x));
     for stimIdx=1:numStim
-        if (~isempty(m{stimIdx,eye}))
-            if (numStim == 3)
-                if (stimIdx==1)
-                    curColor = colorLeft;
-                    curShadingColor = shadingColorLeft;
-                    sLoc = 'Left';
-                elseif (stimIdx==2)
-                    curColor = colorRight;
-                    curShadingColor = shadingColorRight;
-                    sLoc = 'Right';
-                elseif (stimIdx==3)
-                    curColor = colorCenter;
-                    curShadingColor = shadingColorCenter;
-                    sLoc = 'Center';
-                end
-            elseif (numStim == 4)
-                if (stimIdx==1)
-                    curColor = colorLeft;
-                    curShadingColor = shadingColorLeft;
-                    sLoc = 'Left Near';
-                elseif (stimIdx==2)
-                    curColor = colorLeftFar;
-                    curShadingColor = shadingColorLeftFar;
-                    sLoc = 'Left Far';
-                elseif (stimIdx==3)
-                    curColor = colorRight;
-                    curShadingColor = shadingColorRight;
-                    sLoc = 'Right Near';
-                elseif (stimIdx==4)
-                    curColor = colorRightFar;
-                    curShadingColor = shadingColorRightFar;
-                    sLoc = 'Right Far';
-                end
+        if (numStim == 3)
+            if (stimIdx==1)
+                curColor = colorLeft;
+                curShadingColor = shadingColorLeft;
+                sLoc = 'Left';
+            elseif (stimIdx==2)
+                curColor = colorRight;
+                curShadingColor = shadingColorRight;
+                sLoc = 'Right';
+            elseif (stimIdx==3)
+                curColor = colorCenter;
+                curShadingColor = shadingColorCenter;
+                sLoc = 'Center';
             end
-            patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
-            alpha(varianceAlpha);
-            h = [h plot(m{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
+        elseif (numStim == 4)
+            if (stimIdx==1)
+                curColor = colorLeft;
+                curShadingColor = shadingColorLeft;
+                sLoc = 'Left Near';
+            elseif (stimIdx==2)
+                curColor = colorLeftFar;
+                curShadingColor = shadingColorLeftFar;
+                sLoc = 'Left Far';
+            elseif (stimIdx==3)
+                curColor = colorRight;
+                curShadingColor = shadingColorRight;
+                sLoc = 'Right Near';
+            elseif (stimIdx==4)
+                curColor = colorRightFar;
+                curShadingColor = shadingColorRightFar;
+                sLoc = 'Right Far';
+            end
         end
+        patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
+        alpha(varianceAlpha);
+        h = [h plot(m{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
     end
     if (eye == 1)
         eyeName = 'Left';
@@ -676,8 +667,6 @@ end
 % Fourth, plot the stimulus x action average of the eye movements
 % This helps assess whether the eyes follow the stim, or the eyes follow
 % the navigation!
-% COMMENTED OUT FOR NOW!
-%{
 minLengths = zeros(size(stimActionEyeMoveTrials,1), size(stimActionEyeMoveTrials,2), 1);
 resampledStimActionEye = cell(size(stimActionEyeMoveTrials));
 m = cell(size(stimActionEyeMoveTrials));
@@ -851,7 +840,7 @@ if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, plot thi
         end
     end
 end
-%}
+
 
 save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', ...
     'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates', 'eyeblinkStartFrames');
