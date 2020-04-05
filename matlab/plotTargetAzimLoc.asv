@@ -61,8 +61,6 @@ maxAllowedJump = 10;  % max allowed change in the target's azimuthal location be
 nasalExtrema = [];
 totalTrialsAnalyzed = 0;
 
-% Variable that stores accuracy as a function of nasalExtrema
-
 % Error out if number of sessions is non-zero and does not match number of days.
 if (~isempty(sessions) && length(days) ~= length(sessions))
     error('Number of sessions is non-zero and does not match number of days. It should.')
@@ -460,7 +458,7 @@ if (~interactive && outputNewActionsFile && newActionsFileID ~= -1)
     if (writeOutOnlyIfCensored)
         modifier = 'censored';
     end
-    disp(['Total ' modifier ' trials written to file = ' num2str(totalTrialsAnalyzed)]);
+    disp(['Total ' trials written to file = ' num2str(totalTrialsAnalyzed)]);
 end
 
 end
