@@ -215,6 +215,18 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             % First, many trials Unity reports the wrong location of the edge of the target, so need to clean
             % up to smoothen the plots.
             if (denoiseBallMovement)
+                % For some unknown reason, on rig 1 (as Uranus D96-105 can testify), the near targets
+                % are registered as -91,91 at the beginning of the trial.  So fix this first by
+                % finding the first NON -91,91 value, and overwriting all early values with this value.
+                if (targetLeftBound(1) == -91 && targetRightBound(1) == 91)
+                    firstRealLeftIdx = find(targetLeftBound ~= -91,1);
+                    firstRealRightIdx = find(targetRightBound ~= 91,1);
+                    if (firstRealLeftIdx < firstRealRightIdx)
+                        targetLeftBound(1:firstRealLeftIdx-1) = targetLeftBound(firstRealLeftIdx);
+                    else
+                        targetRightBound(1:firstRealRightIdx-1) = targetRightBound(firstRealRightIdx);
+                    end
+                end
                 targetLeftBound = denoiseBounds(targetLeftBound, maxAllowedJump);
                 targetRightBound = denoiseBounds(targetRightBound, maxAllowedJump);
             end
