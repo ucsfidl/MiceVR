@@ -42,14 +42,14 @@ end
 newTrialStarts = [newTrialStarts allTrialMarkers(1)];
 fileTrialStartFrame = 0;
 
-% Find the actions file in the actions folder
+% Find the actions file in the actions folder.  Remove preceding 0's from dayNum (parts{2}) doing the trick below
 parts = split(videoMetadataFileName, '_');
-actionsFileList = dir([actionsFolder parts{1} '-D' parts{2}(1:end-4) '*actions.txt']);
+actionsFileList = dir([actionsFolder parts{1} '-D' num2str(str2double(parts{2}(1:end-4))) '*actions.txt']);
 
 if (length(actionsFileList) == 1)
     actionsFileName = [actionsFileList(1).folder '\' actionsFileList(1).name];
 else
-    error('Too many matching actions files in the actions folder');
+    error('Too many or too few matching actions files in the actions folder');
 end
 
 fid = fopen(actionsFileName);

@@ -1,4 +1,4 @@
-function nasalExtrema = plotTargetAzimLoc(mouseName, days, sessions, trials, stimLocsToAnalyze, ...
+function [nasalExtrema accuracyPerExtrema] = plotTargetAzimLoc(mouseName, days, sessions, trials, stimLocsToAnalyze, ...
     trialTypeStrArr, denoiseBallMovement, useFieldRestriction, useEyeTracking, whichEye, includeCorrectionTrials, ...
     outputNewActionsFile, targetAzimLimit, fractionOfRun, censorOnlyIfCorrect, writeOutOnlyIfCensored, interactive)
 % This function takes as inputs the replay files for a session as well as the mouse's eye movements 
@@ -19,7 +19,7 @@ function nasalExtrema = plotTargetAzimLoc(mouseName, days, sessions, trials, sti
 % outputNewActionsFile set to 1 causes a new actions file to be written, which has the censored trials removed.
 
 % EXAMPLE USAGE:
-% >> ne = plotTargetAzimLoc('Marvel', [184],[],[1 0],[],[],1,1,1,'R',0,1,[0], 0.5, 0);
+% >> [ne acc] = plotTargetAzimLoc('Dragon', [182:188],[],[1 0],[19972 19973],[], 1,1,1,'R',0, 1, [0], 1, 1, 0, 0);
 
 %%% CHANGE THESE VARS FOR YOUR SETUP PRIOR TO RUNNING %%%
 scenariosFolder = 'C:\Users\nikhi\Documents\GitHub\MiceVR\scenarios\';
@@ -60,6 +60,15 @@ maxAllowedJump = 10;  % max allowed change in the target's azimuthal location be
 
 nasalExtrema = [];
 totalTrialsAnalyzed = 0;
+totalTrialsNotAnalyzed = 0;
+
+% Variable that stores accuracy as a function of nasalExtrema
+bucketSize = 4;  % pool accuracy data in 5 degree buckets
+buckets = -40:bucketSize:40;
+buckets(1) = -Inf;
+buckets(end) = Inf;
+numCorrect = zeros(length(buckets), 1);
+numIncorrect = zeros(length(buckets), 1);
 
 % Error out if number of sessions is non-zero and does not match number of days.
 if (~isempty(sessions) && length(days) ~= length(sessions))
@@ -307,22 +316,29 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             
             % If fractionOfRun is specified, only look over that interval of the run to determine the extrema
             maxFrame = floor(fractionOfRun*length(targetLeftBound));
-            if (left == 1)
-                % HACK to find only visible shaded regions on the plot, as sometimes the extrema are equal between the left and right bounds and actually nothing is visible
-                % FIGURE OUT a proper fix when I get a chance
-                % Actually, since when the target is off screen we set the bounds to the nasalBound, this is OK...
-                limitedRightBound = targetRightBound(1:maxFrame);
-                extreme = max(limitedRightBound(targetLeftBound(1:maxFrame) ~= limitedRightBound));
+            if (left == 1 || left == 0)
+                if (left == 1)
+                    % HACK to find only visible shaded regions on the plot, as sometimes the extrema are equal between the left and right bounds and actually nothing is visible
+                    % FIGURE OUT a proper fix when I get a chance
+                    % Actually, since when the target is off screen we set the bounds to the nasalBound, this is OK...
+                    limitedRightBound = targetRightBound(1:maxFrame);
+                    extreme = max(limitedRightBound(targetLeftBound(1:maxFrame) ~= limitedRightBound));
+                    m = 'L';
+                elseif (left == 0)
+                    limitedLeftBound = targetLeftBound(1:maxFrame);
+                    extreme = min(limitedLeftBound(limitedLeftBound ~= targetRightBound(1:maxFrame)));
+                    m = 'R';
+                end
+                if (extree
                 nasalExtrema(end+1) = extreme;
+                idx = find(buckets >= extreme, 1);
+                if (stimLocX == actLocX)
+                    numCorrect(idx) = numCorrect(idx) + 1;
+                else
+                    numIncorrect(idx) = numIncorrect(idx) + 1;
+                end
                 disp(['T' num2str(trialsToDo(trialIdx)) ...
-                      ' - L - F' num2str(find(targetRightBound(targetLeftBound ~= targetRightBound) == extreme,1)) ':' ...
-                      num2str(extreme)]);
-            elseif (left == 0)
-                limitedLeftBound = targetLeftBound(1:maxFrame);
-                extreme = min(limitedLeftBound(limitedLeftBound ~= targetRightBound(1:maxFrame)));
-                nasalExtrema(end+1) = extreme;
-                disp(['T' num2str(trialsToDo(trialIdx)) ...
-                      ' - R - F' num2str(find(targetLeftBound(targetLeftBound ~= targetRightBound) == extreme,1)) ':' ...
+                      ' - ' m ' - F' num2str(find(targetRightBound(targetLeftBound ~= targetRightBound) == extreme,1)) ':' ...
                       num2str(extreme)]);
             else % Target is centered, so no extrema
                 disp(['T' num2str(trialsToDo(trialIdx)) ' - C']);
@@ -354,6 +370,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                             fprintf(newActionsFileID, [actLineFormat '\n'], tca2{:});
                             totalTrialsAnalyzed = totalTrialsAnalyzed + 1;
                         else
+                            totalTrialsNotAnalyzed = totalTrialsNotAnalyzed + 1;
                             disp(['Excluded valid trial#' num2str(trialsToDo(trialIdx)) ' as within allowed target azimuth']);
                         end
                     else
@@ -370,6 +387,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                             fprintf(newActionsFileID, [actLineFormat '\n'], tca2{:});
                             totalTrialsAnalyzed = totalTrialsAnalyzed + 1;
                         else
+                            totalTrialsNotAnalyzed = totalTrialsNotAnalyzed + 1;
                             disp(['Censored trial#' num2str(trialsToDo(trialIdx)) ' as beyond allowed target azimuth']);
                         end
                     end
@@ -449,8 +467,22 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             error(['Replays file ' replaysFileNames(1) 'could not be opened, so ending.']);
         end
     end
-
 end
+
+accuracyPerExtrema = numCorrect ./ (numCorrect + numIncorrect);
+
+figure;
+yyaxis left;
+histogram(nasalExtrema, -40:bucketSize:40, 'Normalization', 'probability');
+ylabel('fraction');
+hold on;
+
+yyaxis right;
+scatter(buckets(2:end-1) - bucketSize/2, accuracyPerExtrema(2:end-1),40,'o', 'MarkerFaceColor', [223 110 61]/255);
+xlabel('most nasal position (degrees)');
+ylabel('accuracy');
+ylim([-0.1 1.1]);
+
 
 if (~interactive && outputNewActionsFile && newActionsFileID ~= -1)
     fclose(newActionsFileID);
@@ -458,7 +490,8 @@ if (~interactive && outputNewActionsFile && newActionsFileID ~= -1)
     if (writeOutOnlyIfCensored)
         modifier = 'censored';
     end
-    disp(['Total ' trials written to file = ' num2str(totalTrialsAnalyzed)]);
+    pctAnalyzed = totalTrialsAnalyzed / (totalTrialsAnalyzed + totalTrialsNotAnalyzed);
+    disp(['Total ' modifier ' trials written to file = ' num2str(totalTrialsAnalyzed) ' (' num2str(pctAnalyzed*100,2) '%)']);
 end
 
 end
