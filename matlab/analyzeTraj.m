@@ -1,4 +1,5 @@
-function f = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, includeCorrectionTrials, drawOneFig, markSize, markAlpha, lastTrial)
+function f = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, includeCorrectionTrials, ...
+                            drawOneFig, markSize, markAlpha, lastTrial, useSubPlot)
 % SAMPLE USAGE
 % // MANY TRacks on one plot
 % > analyzeTraj('Vixen', [43], [], [], ["L->L" "R->R" "C->C"], 0, 1, 1, 0.02, 0)
@@ -115,7 +116,7 @@ for tt_i=1:length(trialTypeStrArr)
     % Generally will be drawingOneFig, so init a figure for drawing
     if (drawOneFig)
         figN = figN+1;
-        f = initTrajFig(figN);
+        f = initTrajFig(figN, useSubPlot);
     end
     
     for d_i=1:length(days)  % Iterate through all of the specified days
@@ -209,8 +210,12 @@ for tt_i=1:length(trialTypeStrArr)
             end
 
             if (~drawOneFig)
-                f = initTrajFig(1);
-                set(f, 'Position', [68*3 7*634/8 448 420])
+                if (~useSubPlot)
+                    f = initTrajFig(1, useSubPlot);
+                    set(f, 'Position', [68*3 7*634/8 448 420])
+                else
+                    initTrajFig(1, useSubPlot);
+                end
             end
 
             % Draw level map with walls and tree as a large circle

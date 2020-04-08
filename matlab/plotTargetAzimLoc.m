@@ -18,8 +18,10 @@ function [nasalExtrema accuracyPerExtrema] = plotTargetAzimLoc(mouseName, days, 
 
 % outputNewActionsFile set to 1 causes a new actions file to be written, which has the censored trials removed.
 
+% targetAzimLimit is a tuple with the first element being for left targets and the 2nd for right targets
+
 % EXAMPLE USAGE:
-% >> [ne acc] = plotTargetAzimLoc('Dragon', [182:188],[],[1 0],[19972 19973],[], 1,1,1,'R',0, 1, [0], 1, 1, 0, 0);
+% >> [ne acc] = plotTargetAzimLoc('Uranus', [99],[],[1 0],[],[],1,1,1,'R',0, 1, [5 -5], 1, 1, 0, 1);
 
 %%% CHANGE THESE VARS FOR YOUR SETUP PRIOR TO RUNNING %%%
 scenariosFolder = 'C:\Users\nikhi\Documents\GitHub\MiceVR\scenarios\';
@@ -221,7 +223,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 if (targetLeftBound(1) == -91 && targetRightBound(1) == 91)
                     firstRealLeftIdx = find(targetLeftBound ~= -91,1);
                     firstRealRightIdx = find(targetRightBound ~= 91,1);
-                    if (firstRealLeftIdx < firstRealRightIdx)
+                    if (isempty(firstRealRightIdx) || (~isempty(firstRealLeftIdx) && firstRealLeftIdx < firstRealRightIdx))
                         targetLeftBound(1:firstRealLeftIdx-1) = targetLeftBound(firstRealLeftIdx);
                     else
                         targetRightBound(1:firstRealRightIdx-1) = targetRightBound(firstRealRightIdx);
@@ -330,18 +332,18 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             maxFrame = floor(fractionOfRun*length(targetLeftBound));
             if (left == 1 || left == 0)
                 if (left == 1)
-                    % HACK to find only visible shaded regions on the plot, as sometimes the extrema are equal between the left and right bounds and actually nothing is visible
-                    % FIGURE OUT a proper fix when I get a chance
-                    % Actually, since when the target is off screen we set the bounds to the nasalBound, this is OK...
                     limitedRightBound = targetRightBound(1:maxFrame);
                     extreme = max(limitedRightBound(targetLeftBound(1:maxFrame) ~= limitedRightBound));
                     m = 'L';
+                    extremeFrame = find(targetRightBound(targetLeftBound ~= targetRightBound) == extreme,1);
                 elseif (left == 0)
                     limitedLeftBound = targetLeftBound(1:maxFrame);
                     extreme = min(limitedLeftBound(limitedLeftBound ~= targetRightBound(1:maxFrame)));
                     m = 'R';
+                    extremeFrame = find(targetLeftBound(targetLeftBound ~= targetRightBound) == extreme,1);
                 end
                 if (isempty(extreme))  % This happened on Uranus D96 T17 - I guess the mouse looked away from the target for the whole time.  Need to investigate.
+                    error('Something is likely wrong with the ball tracking replay data.  No extreme found.');
                     totalTrialsNotAnalyzed = totalTrialsNotAnalyzed + 1;
                     disp(['Excluded trial#' num2str(trialsToDo(trialIdx)) ' as no extreme found']);
                     trialIdx = trialIdx + 1;
@@ -355,7 +357,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                     numIncorrect(idx) = numIncorrect(idx) + 1;
                 end
                 disp(['T' num2str(trialsToDo(trialIdx)) ...
-                      ' - ' m ' - F' num2str(find(targetRightBound(targetLeftBound ~= targetRightBound) == extreme,1)) ':' ...
+                      ' - ' m ' - F' num2str(extremeFrame) ':' ...
                       num2str(extreme)]);
             else % Target is centered, so no extrema
                 disp(['T' num2str(trialsToDo(trialIdx)) ' - C']);
@@ -372,8 +374,8 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                     if (isempty(targetAzimLimit) || left == -1 || ...
                             (left == 1 && nasalExtrema(end) < targetAzimLimit(1)) || ...
                             (left == 1 && nasalExtrema(end) >= targetAzimLimit(1) && censorOnlyIfCorrect && stimLocX ~= actLocX) || ...
-                            (left == 0 && nasalExtrema(end) > -targetAzimLimit(1)) || ...
-                            (left == 0 && nasalExtrema(end) <= -targetAzimLimit(1) && censorOnlyIfCorrect && stimLocX ~= actLocX))
+                            (left == 0 && nasalExtrema(end) > -targetAzimLimit(2)) || ...
+                            (left == 0 && nasalExtrema(end) <= -targetAzimLimit(2) && censorOnlyIfCorrect && stimLocX ~= actLocX))
                         if (~writeOutOnlyIfCensored)
                             tca = cellfun(@(v) v(trialsToDo(trialIdx)), actRecs, 'UniformOutput', 0);
                             tca2 = cell(size(tca));
@@ -411,9 +413,16 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 end
                 trialIdx = trialIdx + 1;
             else
-                f1 = figure; hold on
+                f1 = figure; 
+                set(f1, 'Position', [68+530 590 800 400])
+                subplot(1,2,2);
+                hold on;
                 set(gcf,'color','w');
                 set(gca, 'Layer', 'top');
+                set(gca, 'Position', [0.5 0.13 0.48 0.7]); 
+                %set(f1, 'MenuBar', 'none');
+                %set(f1, 'ToolBar', 'none');
+
                 % Plot the initial period where the mouse is frozen at the start
                 patch([-90 90 90 -90], [0 0 immobilePeriod immobilePeriod], grayShade, 'LineStyle', 'None');
                 % Plot the actual size of the targe
@@ -441,10 +450,12 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 else
                     r = 'ur';
                 end
-                title([mouseName '-D' dayStr ': T' num2str(trialsToDo(trialIdx))  ', ' fr ', ' r ', ' t '->' act]);
+                title([mouseName '-D' dayStr ': T' num2str(trialsToDo(trialIdx))  ', ' fr ', ' r]);
 
                 % Also plot the animal's trajectory on that trial
-                f2 = analyzeTraj(mouseName, days(d_i), [], trialsToDo(trialIdx), trialTypeStrArr, 1, 0, 8, 1, lastTrial);
+                subplot(1,2,1);
+                set(gca, 'Position', [0.04 0.05 0.44 0.9]);
+                analyzeTraj(mouseName, days(d_i), [], trialsToDo(trialIdx), trialTypeStrArr, 1, 0, 8, 1, lastTrial, 1);
 
                 % Logic to only keep open the figs that you hit 'k' for 'keep' on
                 closeFig = 1;
@@ -477,7 +488,6 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 end
                 if (closeFig)
                     close(f1);
-                    close(f2);
                 end
             end
         else
