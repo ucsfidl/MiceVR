@@ -24,6 +24,13 @@ stimLeftFar = 19972;
 stimRightNear = 20027;
 stimRightFar = 20028;
 
+colors = [255 255 255;   % white, for places on the winnerMask which are not used for predictions
+          2 87 194;      % blue
+          2 193 193;     % cyan
+          226 50 50;     % red
+          242 183 124;   % orange
+          ] / 255;
+
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
 
@@ -173,54 +180,24 @@ while (1) % a while loop to iterate until earliest cutoff is found
     predictionAccuracy = zeros(4,1);
     for idx=1:4
         indices = winnerMask == idx;
-        currArray = locAccuracy(:,:,idx);
+        currArray = binnedLocs(:,:,idx);
         numer = sum(currArray(indices));
-        denom = sum(sum(indices));
+        denom = 0;
+        for idx2=1:4
+            currArray2 = binnedLocs(:,:,idx2);
+            denom = denom + sum(currArray2(indices));
+        end
         predictionAccuracy(idx) = numer / denom;
     end
     
     if (min(predictionAccuracy) < minAccuracy)  % push decision point to later
         newCutoff = round(cutoff + (lastHighCutoff - cutoff) / 2, 2);
         if (newCutoff == cutoff)
-            allDone = 1;
+            break;
         end
         lastLowCutoff = cutoff;
         cutoff = newCutoff;
-        resetCutoff = 1;
     else % push decision point earlier
-        
-    end
-    
-    % owpa = overallWeightedPredictionAccuracy
-    owpa = 0;
-    for idx=1:4
-        weight = sum(sum(binnedLocs(:,:,idx))) / numTrials;
-        owpa = owpa + weight * predictionAccuracy(idx);
-    end
-    
-    checkSpots = [];
-    for idx=1:4
-        if (isempty(checkSpots))
-            failureSpots = find(locAccuracy < minAccuracy & locAccuracy > 1-minAccuracy);
-        else % only need to check values at spots that a previous stim location did not have greater than the contraint on accuracy
-            failureSpots = find(locAccuracy(checkSpots) < minAccuracy & locAccuracy(checkSpots) > 1-minAccuracy);
-        end
-        if (~isempty(failureSpots))  % Some locations have low prediction value, so break and try again with new, more liberal cutoff
-            newCutoff = round(cutoff + (lastHighCutoff - cutoff) / 2, 2);
-            if (newCutoff == cutoff)
-                allDone = 1;
-                break;
-            end
-            lastLowCutoff = cutoff;
-            cutoff = newCutoff;
-            resetCutoff = 1;
-            break;
-        end
-        checkSpots = find(locAccuracy < minAccuracy);
-    end
-    if (allDone)
-        break;
-    elseif (~resetCutoff)
         newCutoff = round(cutoff - (cutoff - lastLowCutoff) / 2, 2);
         if (newCutoff == cutoff)
             break;
@@ -228,7 +205,9 @@ while (1) % a while loop to iterate until earliest cutoff is found
         lastHighCutoff = cutoff;
         cutoff = newCutoff;
     end
-    % Remember to update the cutoff in a binary manner
 end
+
+colormap(colors);
+imagesc(
 
 end

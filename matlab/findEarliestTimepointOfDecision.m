@@ -1,4 +1,5 @@
-function cutoff = findEarliestTimepointOfDecision(mouseName, days, sessions, minAccuracy)
+function [cutoff, predictionAccuracy] = findEarliestTimepointOfDecision(mouseName, days, sessions, minAccuracy, ...
+                                                                        poolingSize)
 % This is a helper function to help identify what the cutoff should be for censoring a trial
 % if the mouse moved the target into its good field before the cutoff timepoint.  The cutoff is what is outputted
 % by this function, and it is the earliest timepoint in a normalized trial (range 0-100%) in which
@@ -24,6 +25,13 @@ stimLeftFar = 19972;
 stimRightNear = 20027;
 stimRightFar = 20028;
 
+colors = [1 1 1;   % white, for places on the winnerMask which are not used for predictions
+          0.84 0.89 0.99;      % dull blue
+          0.84 0.98 0.99;     % dull cyan
+          1 0.87 0.71;     % dull orange
+          0.9 0.9 0.69;   % dull yellow
+          ];
+
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
 
@@ -35,7 +43,8 @@ failureDelay = 4; %sec
 
 totalTrialsAnalyzed = 0;
 
-poolingSize = 2;  % This is for pooling slightly different locations into 1 bucket, so accuracy stats can be calcuated.
+% Use user-provided argument instead
+% poolingSize = 2;  % This is for pooling slightly different locations into 1 bucket, so accuracy stats can be calcuated.
                  % A pooling size of 1 means 1x1 (just rounding to the nearest integer), 2 means 2x2, 3 means 3x3, etc.
 
 allDone = 0;
@@ -102,7 +111,7 @@ mouseLocToActLoc = zeros(numTrials, 3);
 
 lastHighCutoff = 1;
 lastLowCutoff = 0;
-cutoff = 0.5;  % Starting value for binary search
+cutoff = 0.15;  % Starting value for binary search
 while (1) % a while loop to iterate until earliest cutoff is found
     for currTrial = 1:numTrials
         % By default include correction trials, as those are useful info.  Consider excluding if don't get good results.
@@ -171,6 +180,8 @@ while (1) % a while loop to iterate until earliest cutoff is found
     winnerMask = winnerMask - 1;
     
     predictionAccuracy = zeros(4,1);
+    numerAll = 0;
+    denomAll = 0;
     for idx=1:4
         indices = winnerMask == idx;
         currArray = binnedLocs(:,:,idx);
@@ -181,9 +192,11 @@ while (1) % a while loop to iterate until earliest cutoff is found
             denom = denom + sum(currArray2(indices));
         end
         predictionAccuracy(idx) = numer / denom;
+        numerAll = numerAll + numer;
+        denomAll = denomAll + denom;
     end
     
-    if (min(predictionAccuracy) < minAccuracy)  % push decision point to later
+    if (sum(isnan(predictionAccuracy)) > 0 || numerAll / denomAll < minAccuracy)  % push decision point to later
         newCutoff = round(cutoff + (lastHighCutoff - cutoff) / 2, 2);
         if (newCutoff == cutoff)
             break;
@@ -199,5 +212,10 @@ while (1) % a while loop to iterate until earliest cutoff is found
         cutoff = newCutoff;
     end
 end
+
+figure;
+colormap(colors);
+imagesc(flipud(winnerMask));
+%pcolor(winnerMask);  % the grid adds too much visual noise
 
 end

@@ -1,4 +1,4 @@
-function [nasalExtrema accuracyPerExtrema] = plotTargetAzimLoc(mouseName, days, sessions, trials, stimLocsToAnalyze, ...
+function [nasalExtrema, accuracyPerExtrema] = plotTargetAzimLoc(mouseName, days, sessions, trials, stimLocsToAnalyze, ...
     trialTypeStrArr, denoiseBallMovement, useFieldRestriction, useEyeTracking, whichEye, includeCorrectionTrials, ...
     outputNewActionsFile, targetAzimLimit, fractionOfRun, censorOnlyIfCorrect, writeOutOnlyIfCensored, interactive)
 % This function takes as inputs the replay files for a session as well as the mouse's eye movements 
@@ -21,7 +21,8 @@ function [nasalExtrema accuracyPerExtrema] = plotTargetAzimLoc(mouseName, days, 
 % targetAzimLimit is a tuple with the first element being for left targets and the 2nd for right targets
 
 % EXAMPLE USAGE:
-% >> [ne acc] = plotTargetAzimLoc('Uranus', [99],[],[1 0],[],[],1,1,1,'R',0, 1, [5 -5], 1, 1, 0, 1);
+% >> [ne acc] = plotTargetAzimLoc('Uranus', [99],[],[1 0],[],[],1,1,1,'R',0, 1, [0 0], 0.57, 1, 0, 0);
+
 
 %%% CHANGE THESE VARS FOR YOUR SETUP PRIOR TO RUNNING %%%
 scenariosFolder = 'C:\Users\nikhi\Documents\GitHub\MiceVR\scenarios\';
@@ -478,7 +479,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                                       trialIdx = trialIdx-1; % go back one trial
                                   end
                                   break
-                              case 27
+                              case 27 % ESC key
                                   trialIdx = length(trialsToDo)+1;
                                   break
                               otherwise 
