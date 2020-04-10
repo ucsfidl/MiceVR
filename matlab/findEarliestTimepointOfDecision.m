@@ -47,8 +47,6 @@ totalTrialsAnalyzed = 0;
 % poolingSize = 2;  % This is for pooling slightly different locations into 1 bucket, so accuracy stats can be calcuated.
                  % A pooling size of 1 means 1x1 (just rounding to the nearest integer), 2 means 2x2, 3 means 3x3, etc.
 
-allDone = 0;
-
 replaysFileList = [];
 trialsPerDay = zeros(length(days), 1);
 for d_i=1:length(days)  % Iterate through all of the specified days, collecting all relevant replays
@@ -217,5 +215,9 @@ figure;
 colormap(colors);
 imagesc(flipud(winnerMask));
 %pcolor(winnerMask);  % the grid adds too much visual noise
+
+% Output some other stats
+disp(['num trials = ' num2str(sum(trialsPerDay))]);
+disp(['num positions = ' num2str(length(find(winnerMask)))]);
 
 end
