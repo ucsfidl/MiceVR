@@ -61,19 +61,7 @@ if (fid ~= -1)
     for lineIdx = 1:length(C{1})  % For each line
         mdIdx = mdIdx + 1;
         % Check to see if the last trial got recorded in the matlab video file.  Sometimes, rarely, it does not, so then prepopulate
-        if (mdIdx > length(allTrialMarkers))
-            break;
-            stimLocX = getStimLocFromActions(C, lineIdx);
-            actLocX = getActionLocFromActions(C, lineIdx);
-            if (stimLocX == actLocX)
-                allTrialMarkers(mdIdx) = allTrialMarkers(mdIdx-1);
-                allTrialMarkers(mdIdx).AbsTime = allTrialMarkers(mdIdx).AbsTime + 2;
-                allTrialMarkers(mdIdx).FrameNumber = allTrialMarkers(mdIdx).FrameNumber + 2*fps;
-                allTrialMarkers(mdIdx+1) = allTrialMarkers(mdIdx);
-            else
-                
-            end
-        end
+        
         % Find the metadata date for use in the fileTrialEndDateTime object
         candTrialEndDateTime = datetime(allTrialMarkers(mdIdx).AbsTime);
         
@@ -170,7 +158,7 @@ end
 
 % OK, if all corrected, the number of trials should be equal to the number of lines in the actions file
 % Then, rename old .mat file and make new .mat file with the corrected trial boundaries
-if (length(newTrialEnds) <= length(C{1}))
+if (length(newTrialEnds) == length(C{1}))
     movefile(videoMetadataFileName, [videoMetadataFileName(1:end-4) '_orig.mat'], 'f');  % not sure why, but I need to force it
     if (length(trialEnds) == length(newTrialEnds)) % No trimming was done - original file was good
         disp(['No trimming done, original file good with ' num2str(length(trialEnds)) ' trial ends.']);
@@ -184,9 +172,6 @@ if (length(newTrialEnds) <= length(C{1}))
     trialStarts = newTrialStarts;
     trialEnds = newTrialEnds;
     save([videoMetadataFileName(1:end-4) '_corr.mat'], 'framesAcquiredLogged', 'trialStarts', 'trialEnds');
-    if (length(newTrialEnds) < length(C{1}))
-        disp('Truncated 1 or more trials at the end, due to incomplete video metadata .mat file');
-    end
 else
     error('Analyzed trialStarts and trialEnds, but still not consistent with the actions file :(');
 end
