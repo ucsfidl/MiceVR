@@ -356,7 +356,7 @@ public class GameControlScript : MonoBehaviour
         this.fadeToBlack.gameObject.SetActive(true);
         this.fadeToBlack.color = Color.black;
         this.fadeToBlackText.text = "Press SPACE to start";
-		Debug.Log ("waiting for space bar");
+		//Debug.Log ("waiting for space bar");
 		if (Input.GetKeyUp (KeyCode.Space)) {
 			Debug.Log ("Running");
 			this.runTime = Time.time;
