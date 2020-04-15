@@ -49,31 +49,33 @@ public class MovementRecorder : MonoBehaviour {
 			string target2Right = "";
 
 			Vector3 targetLoc = Globals.targetLoc [Globals.targetLoc.Count - 1];
-			GameObject targetGO = Globals.GetTreeGameObjectFromXPos (targetLoc.x);
-			GameObject crown = targetGO.GetComponent<WaterTreeScript> ().crown;
+			if (targetLoc.x != -1) { // If it is not a catch trial, record target location on each trial
+				GameObject targetGO = Globals.GetTreeGameObjectFromXPos (targetLoc.x);
+				GameObject crown = targetGO.GetComponent<WaterTreeScript> ().crown;
 
-			List<Vector3?> screenPointsL = GetMinMaxScreenPointsOnCam (cameras [0], targetLoc, crown);
-			List<Vector3?> screenPointsC = GetMinMaxScreenPointsOnCam (cameras [1], targetLoc, crown);
-			List<Vector3?> screenPointsR = GetMinMaxScreenPointsOnCam (cameras [2], targetLoc, crown);
+				List<Vector3?> screenPointsL = GetMinMaxScreenPointsOnCam (cameras [0], targetLoc, crown);
+				List<Vector3?> screenPointsC = GetMinMaxScreenPointsOnCam (cameras [1], targetLoc, crown);
+				List<Vector3?> screenPointsR = GetMinMaxScreenPointsOnCam (cameras [2], targetLoc, crown);
 
-			target1Left = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 0, cameras[0].pixelWidth).ToString();
-			target1Right = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 1, cameras[0].pixelWidth).ToString();
+				target1Left = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 0, cameras [0].pixelWidth).ToString ();
+				target1Right = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 1, cameras [0].pixelWidth).ToString ();
 
-			int worldID = Globals.worldID [Globals.worldID.Count - 1];  // This may not work until GameControlScript has added the new world - ok for now
-			string gameType = Globals.GetGameType (worldID);
-			if (gameType.Equals ("det_blind")) {
-				GameObject[] gos = Globals.GetTrees ();
-				GameObject straightTargetGO = gos[2];  // straight tree is always the 3rd target - UPDATE if this changes
+				int worldID = Globals.worldID [Globals.worldID.Count - 1];  // This may not work until GameControlScript has added the new world - ok for now
+				string gameType = Globals.GetGameType (worldID);
+				if (gameType.Equals ("det_blind")) {
+					GameObject[] gos = Globals.GetTrees ();
+					GameObject straightTargetGO = gos [2];  // straight tree is always the 3rd target - UPDATE if this changes
 
-				targetLoc = straightTargetGO.transform.position;
-				crown = straightTargetGO.GetComponent<WaterTreeScript> ().crown;
+					targetLoc = straightTargetGO.transform.position;
+					crown = straightTargetGO.GetComponent<WaterTreeScript> ().crown;
 
-				screenPointsL = GetMinMaxScreenPointsOnCam (cameras [0], targetLoc, crown);
-				screenPointsC = GetMinMaxScreenPointsOnCam (cameras [1], targetLoc, crown);
-				screenPointsR = GetMinMaxScreenPointsOnCam (cameras [2], targetLoc, crown);
+					screenPointsL = GetMinMaxScreenPointsOnCam (cameras [0], targetLoc, crown);
+					screenPointsC = GetMinMaxScreenPointsOnCam (cameras [1], targetLoc, crown);
+					screenPointsR = GetMinMaxScreenPointsOnCam (cameras [2], targetLoc, crown);
 
-				target2Left = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 0, cameras[0].pixelWidth).ToString();
-				target2Right = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 1, cameras[0].pixelWidth).ToString();
+					target2Left = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 0, cameras [0].pixelWidth).ToString ();
+					target2Right = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 1, cameras [0].pixelWidth).ToString ();
+				}
 			}
 
 			outfile.Write(mouseLocation + ";" + mouseHeading + ";" + target1Left + "," + target1Right + ";" + target2Left + "," + target2Right + System.Environment.NewLine);

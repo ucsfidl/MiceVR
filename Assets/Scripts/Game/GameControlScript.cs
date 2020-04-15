@@ -643,14 +643,14 @@ public class GameControlScript : MonoBehaviour
 
 				// First, setup all the arrays
 				for (int i = 0; i < numTrees; i++) {
-					if (Globals.presoFracSpecified) {
-						prob [i] = (decimal)gos [i].GetComponent<WaterTreeScript> ().GetPresoFrac ();
-					} else {  // equal ratios
-						if (Globals.catchFreq > 0) {  // Catch trials specified, so adjust probability array accordingly
-							prob[i] = (decimal)(1F / numTrees) - (decimal)(Globals.catchFreq / numTrees);
+					if (Globals.catchFreq > 0) {
+						if (Globals.presoFracSpecified) {
+							prob [i] = (decimal)gos [i].GetComponent<WaterTreeScript> ().GetPresoFrac () - (decimal)(Globals.catchFreq / numTrees);
 						} else {
-							prob [i] = (decimal)(1F / numTrees);
+							prob [i] = (decimal)(1F / numTrees) - (decimal)(Globals.catchFreq / numTrees);
 						}
+					} else {
+						prob [i] = (decimal)(1F / numTrees);
 					}
 					maxFreq [i] = (int)Math.Ceiling (Globals.blockSize * prob [i]);
 				}
@@ -697,6 +697,7 @@ public class GameControlScript : MonoBehaviour
 					// Do this only if if less than 50% of targets are probes, as in some worlds (one-sided 2AFC, 2-choice world) with only 2 choices it is impossible to implement the noRepeats policy
 					bool noRepeatProbes = true;
 					bool testForRepeatProbes = false;  // Flag used to see if repeats should be avoided. We don't avoid repeats if 50% of the trials include probes, only if less than 50% do
+					bool catchPlacementOK = true;
 					foreach (int probeIdx in Globals.GetCurrentWorld().probeIdx) {
 						if (Globals.presoFracSpecified) {
 							if (gos [probeIdx].GetComponent<WaterTreeScript> ().GetPresoFrac () < 0.5) {
@@ -727,14 +728,14 @@ public class GameControlScript : MonoBehaviour
 						}
 					}
 
-					// Ensure that the first trial is not a catch trial and there are never 2 catch trials in a row.  Some blocks may not have catch trials, which might be OK.
+					// Ensure that the first trial is not a catch trial and there are never 2 catch trials in a row.  Some blocks may not have catch trials, which seems OK.
 					if (precompTrialBlock [0] == -1) {
-						noRepeatProbes = false;
+						catchPlacementOK = false;
 					} else {
 						int lastId = precompTrialBlock [0];
 						foreach (int id in precompTrialBlock.Skip(1)) {
 							if (id == -1 && id == lastId) {
-								noRepeatProbes = false;
+								catchPlacementOK = false;
 								break;
 							}
 							lastId = id;
@@ -743,7 +744,7 @@ public class GameControlScript : MonoBehaviour
 
 					Debug.Log (String.Join (",", precompTrialBlock.Select (x => x.ToString ()).ToArray ()));
 						
-					if (allProbesFound && noRepeatProbes) {
+					if (allProbesFound && noRepeatProbes && catchPlacementOK) {
 						break;
 					} else {
 						Debug.Log ("Violated probe placement policies, try again");	
