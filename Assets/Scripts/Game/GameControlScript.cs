@@ -728,8 +728,8 @@ public class GameControlScript : MonoBehaviour
 						}
 					}
 
-					// Ensure that the first trial is not a catch trial and there are never 2 catch trials in a row.  Some blocks may not have catch trials, which seems OK.
-					if (precompTrialBlock [0] == -1) {
+					// Ensure that the first trial is not a catch trial, that there are never 2 catch trials in a row, and that there is at least 1 catch trial per block.
+					if (precompTrialBlock [0] == -1 || (Globals.catchFreq > 0 && !precompTrialBlock.Contains(-1))) {
 						catchPlacementOK = false;
 					} else {
 						int lastId = precompTrialBlock [0];
@@ -741,12 +741,11 @@ public class GameControlScript : MonoBehaviour
 							lastId = id;
 						}
 					}
-
-					Debug.Log (String.Join (",", precompTrialBlock.Select (x => x.ToString ()).ToArray ()));
-						
+												
 					if (allProbesFound && noRepeatProbes && catchPlacementOK) {
 						break;
 					} else {
+						Debug.Log (String.Join (",", precompTrialBlock.Select (x => x.ToString ()).ToArray ()));
 						Debug.Log ("Violated probe placement policies, try again");	
 					}
 				}
