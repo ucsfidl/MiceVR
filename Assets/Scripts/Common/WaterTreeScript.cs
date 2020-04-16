@@ -269,10 +269,11 @@ public class WaterTreeScript : MonoBehaviour {
         if (respawn) {
 			if (!Globals.CurrentlyCorrectionTrial ()) {
 				Globals.numNonCorrectionTrials++;
-				//Debug.Log ("next trial is non-correction trial");
 			} else {  // Might be off by 1 bug here, as nonCorrectionTrials is the current trial #, but numCorrectionTrials is the total number of correction trials
 				Globals.numCorrectionTrials++;
-				//Debug.Log ("next trial is Correction trial");
+			}
+			if (Globals.CurrentlyExtinctionTrial ()) {
+				Globals.numExtinctionTrials++;
 			}
 			Globals.trialDelay = interTrialInterval;
 			GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
@@ -297,7 +298,7 @@ public class WaterTreeScript : MonoBehaviour {
 			interTrialInterval = correctTurnDelay;
 		}
 
-		if (Globals.CurrentlyCatchTrial()) {
+		if (Globals.CurrentlyCatchTrial() || Globals.CurrentlyExtinctionTrial()) {
 			Globals.lastTrialWasIncorrect = 0;
 		} else {
 			Globals.lastTrialWasIncorrect = 1;
@@ -313,12 +314,14 @@ public class WaterTreeScript : MonoBehaviour {
 			if (!Globals.CurrentlyCorrectionTrial ()) {
 				Globals.numNonCorrectionTrials++;
 				Globals.numCorrectionTrialsSinceLastCorrectTrial = 0;  // Increment for displaying the current count of correction trials in this correction bout
-				//Debug.Log ("next trial is non-correction trial");
 			} else {  // Might be off by 1 bug here, as nonCorrectionTrials is the current trial #, but numCorrectionTrials is the total number of correction trials
 				Globals.numCorrectionTrials++;
 				Globals.numCorrectionTrialsSinceLastCorrectTrial++;  // Increment for displaying the current count of correction trials in this correction bout
-				//Debug.Log ("next trial is Correction trial");
 			}
+			if (Globals.CurrentlyExtinctionTrial ()) {
+				Globals.numExtinctionTrials++;
+			}
+
 			Globals.trialDelay = interTrialInterval;
             GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
             Globals.trialEndTime.Add(DateTime.Now);

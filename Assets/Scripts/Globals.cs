@@ -135,16 +135,19 @@ public static class Globals
 	public static bool correctionTrialsEnabled = true;  // As of 1/19/19, correction trials are on by default, just like bias correction
 	public static int lastTrialWasIncorrect = 0;  // Indicates that the current trial will be a correction trial, if correction trials are enabled
 	public static List<int> correctionTrialMarks = new List<int>();  // For each trial, holds a bool which tracks whether that trial was a correction trial or not
+	public static List<int> extinctionTrialMarks = new List<int>();  // For each trial, holds a bool which tracks whether that trial was a trial to test for unilateral extinction or not
 
 	public static int numNonCorrectionTrials;  // Initialized in code to 1
 	public static int numCorrectionTrials = 0;  // Used to count number of correction trials, which is recorded in the stats file
 
 	public static int numCatchTrials = 0;
 
+	public static int numExtinctionTrials = 0;
+
 	public static bool lightOnDuringITI = false;
 
 	public static float catchFreq = 0;  // This is the frequency at which catch trials, in which no target is visible at all, are presented
-
+	public static float extinctFreq = 0;  // If >0, this indicates the frequency of trials that will be extinction trials (no center target with a side target) - only valid on det_blind scenarios (3-choice scenarios) - also only if blocks enabled
 
 	public struct fov {
 		public float nasalBound;
@@ -199,6 +202,7 @@ public static class Globals
 
 		public int[] precompTrialBlock;
 		public int[] precompOptoBlock;  // Indicates optogenetic state on each trial - used to limit light exposure instead of alternating each trial - used if optoAlternation is set to false in the scenario
+		public int[] precompExtinctBlock;  // Initially all 0, indicates with a 1 whether the current trial, on 3-choice det_blind games, is an extinction trial, meaning the center target is not present but a left or right target is
 		public List<int> probeIdx;  // This is the tree index of the rarest tree, also considered the probe tree - correction trials, if enabled, will not be performed for this tree
 		public List<int> hiddenIdx;  // These are the target indices for targets that are hidden at start but appear when the mouse reaches at or past a specified z position in the world
 		public List<float> revealZPos;  // Zposition that the mouse must reach before the hidden targets are made visible
@@ -385,6 +389,12 @@ public static class Globals
 	public static void SetCurrentWorldPrecompTrialBlock(int[] precompTrialBlock) {
 		World w = worlds [worldID [worldID.Count - 1]];
 		w.precompTrialBlock = precompTrialBlock;
+		worlds [worldID [worldID.Count - 1]] = w;
+	}
+
+	public static void SetCurrentWorldPrecompExtinctBlock(int[] precompExtinctBlock) {
+		World w = worlds [worldID [worldID.Count - 1]];
+		w.precompExtinctBlock = precompExtinctBlock;
 		worlds [worldID [worldID.Count - 1]] = w;
 	}
 
@@ -785,7 +795,8 @@ public static class Globals
 					targetAngle[targetAngle.Count - 1] + "\t" + 
 					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
 					distractorAngle[distractorAngle.Count - 1] + "\t" +
-					correctionTrialMarks[correctionTrialMarks.Count - 1]);
+					correctionTrialMarks[correctionTrialMarks.Count - 1] + "\t" + 
+					extinctionTrialMarks[extinctionTrialMarks.Count - 1]);
 
 		turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1].TimeOfDay + "\t" +
                     trialEndTime[trialEndTime.Count - 1].TimeOfDay + "\t" +
@@ -807,7 +818,8 @@ public static class Globals
 					targetAngle[targetAngle.Count - 1] + "\t" + 
 					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
 					distractorAngle[distractorAngle.Count - 1] + "\t" +
-					correctionTrialMarks[correctionTrialMarks.Count - 1]);
+					correctionTrialMarks[correctionTrialMarks.Count - 1] + "\t" + 
+					extinctionTrialMarks[extinctionTrialMarks.Count - 1]);
 		
         turnsFile.Close();
         WriteStatsFile();
@@ -825,6 +837,7 @@ public static class Globals
 		statsFile.WriteLine("\t\t<numNonCorrectionTrials>" + (numNonCorrectionTrials - 1 - numCatchTrials) + "</numNonCorrectionTrials>");
 		statsFile.WriteLine("\t\t<numCorrectionTrials>" + numCorrectionTrials + "</numCorrectionTrials>");
 		statsFile.WriteLine("\t\t<numCatchTrials>" + numCatchTrials + "</numCatchTrials>");
+		statsFile.WriteLine("\t\t<numExtinctionTrials>" + numExtinctionTrials + "</numCatchTrials>");
 		statsFile.WriteLine("\t\t<numAllTrials>" + (numNonCorrectionTrials - 1 + numCorrectionTrials + numCatchTrials) + "</numAllTrials>");
 
 		TimeSpan te;
@@ -1053,7 +1066,7 @@ public static class Globals
 	public static bool CurrentlyCatchTrial() { // Can only be called while State is Running, not before Respawn gets a chance to run
 		return targetHFreq [targetHFreq.Count - 1] == -1;
 	}
-
+		
 	// Modified to support multi-worlds in a single scenario
     public static float GetLastAccuracy(int n) {
 		int currWorld = worldID [worldID.Count - 1];
@@ -1281,6 +1294,20 @@ public static class Globals
 		//Debug.Log ("precomp trial index = " + ((int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize));
 		return Globals.GetCurrentWorld ().precompTrialBlock [(int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize];
 	}
+
+	public static bool CurrentlyExtinctionTrial() {
+		int val = 0;  // default to not being an extinction trial
+		if (blockSize > -1) {
+			val = Globals.GetCurrentWorld ().precompExtinctBlock [(int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize];
+		}
+
+		if (val == 1) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 
 	// Assumes get info for current world - add param if need more control
 	public static float GetActualRewardRate(float xPos) {

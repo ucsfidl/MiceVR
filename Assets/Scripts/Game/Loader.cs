@@ -503,6 +503,9 @@ public class Loader : MonoBehaviour {
 				if (xn ["catchFreq"] != null) {
 					float.TryParse(xn["catchFreq"].InnerText, out Globals.catchFreq);
 				}
+				if (xn ["extinctFreq"] != null) {
+					float.TryParse(xn["extinctFreq"].InnerText, out Globals.extinctFreq);
+				}
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");

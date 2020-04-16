@@ -578,7 +578,7 @@ public class GameControlScript : MonoBehaviour
 		} else {
 			Globals.correctionTrialMarks.Add (0);
 		}
-			
+
 		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo, unless it was a catch trial!
 		// So if this is not a correction trial, then re-render everything per usual
 		if (Globals.CurrentlyCorrectionTrial ()) {
@@ -621,7 +621,6 @@ public class GameControlScript : MonoBehaviour
 			angle = -1;
 			distractorAngle = 360;  // we will use 360 as the null value
 
-
 			int treeToActivate = 0;
 			float r = UnityEngine.Random.value;
 
@@ -638,24 +637,18 @@ public class GameControlScript : MonoBehaviour
 				// and then remove from that List until the block is filled.
 				List<int> stimLocs = new List<int> ();
 				int[] maxFreq = new int[numTrees];  // Max number of each stimulus per block
-				int maxCatch = 0;
+				int maxCatch = (int)Math.Round (Globals.blockSize * Globals.catchFreq);  // For some reason Ceiling rounds up 2 to 3...
 				decimal[] prob = new decimal[numTrees];
 
 				// First, setup all the arrays
 				for (int i = 0; i < numTrees; i++) {
-					if (Globals.catchFreq > 0) {
-						if (Globals.presoFracSpecified) {
-							prob [i] = (decimal)gos [i].GetComponent<WaterTreeScript> ().GetPresoFrac () - (decimal)(Globals.catchFreq / numTrees);
-						} else {
-							prob [i] = (decimal)(1F / numTrees) - (decimal)(Globals.catchFreq / numTrees);
-						}
+					if (Globals.presoFracSpecified) {
+						prob [i] = (decimal)gos [i].GetComponent<WaterTreeScript> ().GetPresoFrac () - (decimal)(Globals.catchFreq / numTrees);
 					} else {
-						prob [i] = (decimal)(1F / numTrees);
+						prob [i] = (decimal)(1F / numTrees) - (decimal)(Globals.catchFreq / numTrees);
 					}
 					maxFreq [i] = (int)Math.Ceiling (Globals.blockSize * prob [i]);
 				}
-				maxCatch = (int)Math.Round (Globals.blockSize * Globals.catchFreq);  // For some reason Ceiling rounds up 2 to 3...
-				//Debug.Log (Math.Round(Globals.blockSize * Globals.catchFreq));
 					
 				// Now, build the bag of stim locs
 				for (int i = 0; i < maxFreq.Length; i++) {
@@ -753,6 +746,36 @@ public class GameControlScript : MonoBehaviour
 				Debug.Log (String.Join (",", precompTrialBlock.Select (x => x.ToString ()).ToArray ()));
 
 				Globals.SetCurrentWorldPrecompTrialBlock(precompTrialBlock);
+
+				// Next, if extinctionFreq > 0, precomp Extinction Trial Block mask
+				// First, initialize to 0
+				int[] precompExtinctBlock = new int[Globals.blockSize];
+				for (int i = 0; i < Globals.blockSize; i++) {
+					precompExtinctBlock [i] = 0;
+				}
+				// Next, update values depending on extinctFreq and which trial type, as no extinction trials when only center target is present
+				if (Globals.extinctFreq > 0) {
+					int maxExtinct = (int)Math.Round (Globals.blockSize * Globals.extinctFreq);  // For some reason Ceiling rounds up 2 to 3...
+					// For left (idx=0) and right (idx=1) trials, randomly pick the trials to get maxExtinct done
+					for (int locIdx = 0; locIdx < 2; locIdx++) {
+						int[] arrIdx = precompTrialBlock.Select((b,i) => b == locIdx ? i : -1).Where(i => i != -1).ToArray();
+						List<int> prevExtinctIdx = new List<int> ();
+						for (int i = 0; i < maxExtinct; i++) {
+							while(true) { // Keep randomly picking indexes for the extinction trial until one is found that hasn't been used before
+								int ranIdx = UnityEngine.Random.Range (0, arrIdx.Length);  // A starting index of 0 allows the first trial of a type to be an extinction trial.  If this seems wrong later, change here
+								if (!prevExtinctIdx.Contains (ranIdx)) {
+									precompExtinctBlock [arrIdx[ranIdx]] = 1;  // Mark this trial as being an extinction trial
+									prevExtinctIdx.Add (ranIdx);
+									break;
+								}
+							}
+						}
+
+					}
+				}
+				Debug.Log (String.Join (",", precompExtinctBlock.Select (x => x.ToString ()).ToArray ()));
+				Globals.SetCurrentWorldPrecompExtinctBlock(precompExtinctBlock);
+
 
 				// Next, if optoAlternation is turned off and this is an opto game, precompute the opto state for each trial
 				if (Globals.optoSide != -1 && !Globals.optoAlternation) { // an optoSide was specified and optoAlternation is turned off
@@ -1070,7 +1093,10 @@ public class GameControlScript : MonoBehaviour
 
 					SetupTreeActivation (gos, treeToActivate, 3);
 					if (treeToActivate > -1) {  // enable the center target only if this is not a catch trial
-						gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree
+						// If not an extinction trial, show the center target
+						if (!Globals.CurrentlyExtinctionTrial()) {  
+							gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree
+						}
 						loc = gos [treeToActivate].transform.position;
 						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
@@ -1268,7 +1294,13 @@ public class GameControlScript : MonoBehaviour
 				Globals.numCatchTrials++;
 			}
 		}
-	
+
+		if (Globals.CurrentlyExtinctionTrial ()) {  
+			Globals.extinctionTrialMarks.Add (1);
+		} else {
+			Globals.extinctionTrialMarks.Add (0);
+		}
+
         Globals.targetLoc.Add(loc);
         Globals.targetHFreq.Add(hfreq);
         Globals.targetVFreq.Add(vfreq);

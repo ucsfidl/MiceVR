@@ -420,6 +420,9 @@ if (sum(sum(sum(results_3choice))) > 0)
         %disp(results(:,:,j));
         %disp('===========')
     end
+    
+    disp([num2str(round(results(3,2,2) / sum(results(:,2,2)) * 100), 3) '/' ...
+          num2str(round(results(3,1,3) / sum(results(:,1,3)) * 100), 3) ' BLIND (opto)']);
 
     if (sum(sum(sum(results_3choice_catch))) > 0)
         disp('///////3-CHOICE CATCH///////');
@@ -450,9 +453,6 @@ if (sum(sum(sum(results_3choice))) > 0)
         end
     end
         
-    disp([num2str(round(results(3,2,2) / sum(results(:,2,2)) * 100), 3) '/' ...
-          num2str(round(results(3,1,3) / sum(results(:,1,3)) * 100), 3) ' BLIND (opto)']);
-    
 end
 
 % If there are 4-choice trials, print the results

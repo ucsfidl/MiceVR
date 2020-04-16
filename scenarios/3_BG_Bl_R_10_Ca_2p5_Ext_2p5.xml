@@ -13,9 +13,9 @@
 			<treesBelowGround>true</treesBelowGround>
 			<correctionTrials>true</correctionTrials>
 			<biasCorrection>false</biasCorrection>
-			<blockSize>33</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
-			<catchFreq>0.03</catchFreq>
-			<extinctFreq>0.03</extinctFreq>
+			<blockSize>40</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+			<catchFreq>0.025</catchFreq>
+			<extinctFreq>0.025</extinctFreq>
 			<presoFracSpecified>true</presoFracSpecified>
 		</gameConfig>
 	</config>
