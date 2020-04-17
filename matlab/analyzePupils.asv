@@ -494,11 +494,10 @@ for eye=1:2  % For each eye
     end
 
     figure; hold on;
-    skipLegend = zeros(1,numStim);
     for stimIdx=1:numStim
         if (~isempty(m{stimIdx,eye}))
-            x = 1:length(m{stimIdx,eye});
-            plot(zeros(1,length(m{stimIdx,eye})), x, 'k--');  % This is replotted each time - no biggie
+            x = 1:length(m{1,eye}); % All the lengths are the same for each stim for 1 eye, so just pull from 1
+            plot(zeros(1,length(m{1,eye})), x, 'k--');  % This is replotted each time - no biggie
             xSem = cat(2, x, fliplr(x));
 
             if (numStim == 3)
@@ -537,8 +536,6 @@ for eye=1:2  % For each eye
             patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
             alpha(varianceAlpha);
             h = [h plot(m{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
-        else
-            skipLegend(stimIdx) = 1;
         end
     end
     if (eye == 1)
@@ -550,18 +547,10 @@ for eye=1:2  % For each eye
     title([rootFileName ': ' eyeName ' eye, CORRECT trials only'], 'Interpreter', 'none');
     annotation('textbox', [.8 0 .2 .2], 'String', ['n=' num2str(n)], 'FitBoxToText', 'on', 'EdgeColor', 'white');  
     if (numStim == 3)
-        standardLegend = {'left stim'; 'right stim'; 'center stim'};
+        legend(h, 'left stim', 'right stim', 'center stim');
     elseif (numStim == 4)
-        standardLegend = ['left near stim', 'left far stim', 'right near stim', 'right far stim'];
+        legend(h, 'left near stim', 'left far stim', 'right near stim', 'right far stim');
     end
-    currLeg = {};
-    for i=1:length(standardLegend)
-        if (~skipLegend(i))
-            currLeg{end+1} = standardLegend{i};
-        end
-    end
-    legend(h, currLeg);
-
     xlim([-10 10]);
     ylim([0 length(x)]);
     ylabel('Frame (normalized)')
@@ -616,7 +605,6 @@ for eye=1:2  % For each eye
     end
 
     figure; hold on;
-    skipLegend = zeros(1,numStim);
     % All the lengths are NOT the same for each stim for 1 eye (some are empty), so pull from 1 that has data
     for stimIdx=1:numStim
         if (~isempty(m{stimIdx,eye}))
@@ -664,8 +652,6 @@ for eye=1:2  % For each eye
             patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
             alpha(varianceAlpha);
             h = [h plot(m{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
-        else
-            skipLegend(stimIdx) = 1;
         end
     end
     
@@ -678,18 +664,10 @@ for eye=1:2  % For each eye
     title([rootFileName ': ' eyeName ' eye, INCORRECT trials only'], 'Interpreter', 'none');
     annotation('textbox', [.8 0 .2 .2], 'String', ['n=' num2str(n)], 'FitBoxToText', 'on', 'EdgeColor', 'white');  
     if (numStim == 3)
-        standardLegend = {'left stim'; 'right stim'; 'center stim'};
+        legend(h, 'left stim', 'right stim', 'center stim');
     elseif (numStim == 4)
-        standardLegend = ['left near stim', 'left far stim', 'right near stim', 'right far stim'];
+        legend(h, 'left near stim', 'left far stim', 'right near stim', 'right far stim');
     end
-    currLeg = {};
-    for i=1:length(standardLegend)
-        if (~skipLegend(i))
-            currLeg{end+1} = standardLegend{i};
-        end
-    end
-    legend(h, currLeg);
-
     xlim([-10 10]);
     ylim([0 length(x)]);
     ylabel('Frame (normalized)')
