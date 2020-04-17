@@ -48,7 +48,7 @@ results_2choice = zeros(2,2,4);
 results_2choice_catch = zeros(2,1,4);  % No target presented in these results for "catch" trials
 results_3choice = zeros(3,3,4);
 results_3choice_catch = zeros(3,1,4);
-results_3choice_extinction = zeros(3,3,4);
+results_3choice_extinction = zeros(2,1,4);
 results_4choice = zeros(4,4,4);
 results_4choice_catch = zeros(4,1,4);
 
@@ -481,15 +481,24 @@ if (sum(sum(sum(results_3choice))) > 0)
                              num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
             disp(['LE->R = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
                              num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-            disp(['LE->C = ' num2str(round(results(3,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+            disp(['LE->L = ' num2str(round(results(3,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
                              num2str(results(3,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
             disp('-----------')
             disp(['RE->L = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
                              num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-            disp(['RE->R = ' num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                             num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-            disp(['RE->C = ' num2str(round(results(3,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                             num2str(results(3,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
+            disp(['RE->R = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
+                             num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
+            disp(['RE->C = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
+                             num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
+            disp(['RE->L = 
+            disp(['RE->R = 
+            disp(['RE->C = 
+            disp(['LEFT BIAS = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+                num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+            disp(['RIGHT BIAS = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+                num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+            disp(['CENTER BIAS = ' num2str(round(results(3,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+                num2str(results(3,1,j)) '/' num2str(sum(results(:,1,j))) ')']);            
             disp('-----------')
         end
     end
