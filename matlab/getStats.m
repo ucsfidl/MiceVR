@@ -463,8 +463,8 @@ if (sum(sum(sum(results_3choice))) > 0)
         results = results_3choice_extinction;
         for j = 1:size(results,3)
             % Don't display results if none for this opto-type
-            cnt = sum(results);
-            if (cnt(j) == 0)
+            cnt = sum(sum(results(:,:,j)));
+            if (cnt == 0)
                 continue;
             end
             if (j == 1) 
