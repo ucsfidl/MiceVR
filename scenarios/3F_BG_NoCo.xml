@@ -1,0 +1,23 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>det_blind</gameType>
+			<alternateWorlds>true</alternateWorlds>
+			<gameTurnControl>yaw</gameTurnControl>
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>true</biasCorrection>
+			<correctionTrials>false</correctionTrials>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_3F_L_BG.xml</includeWorld>
+		<includeWorld>inc_world_3F_R_BG.xml</includeWorld>
+	</worlds>
+</document>
