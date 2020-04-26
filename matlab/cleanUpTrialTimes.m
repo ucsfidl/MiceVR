@@ -44,7 +44,7 @@ fileTrialStartFrame = 0;
 
 % Find the actions file in the actions folder.  Remove preceding 0's from dayNum (parts{2}) doing the trick below
 parts = split(videoMetadataFileName, '_');
-actionsFileList = dir([actionsFolder parts{1} '-D' num2str(str2double(parts{2}(1:end-4))) '*actions.txt']);
+actionsFileList = dir([actionsFolder parts{1} '-D' num2str(str2double(parts{2}(1:end-4))) '-*actions.txt']);
 
 if (length(actionsFileList) == 1)
     actionsFileName = [actionsFileList(1).folder '\' actionsFileList(1).name];
@@ -55,7 +55,7 @@ end
 fid = fopen(actionsFileName);
 if (fid ~= -1)
     fgetl(fid); % Throw out the first line, as it is a column header
-    C = textscan(fid, '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d'); 
+    C = textscan(fid, '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d %d'); 
 
     mdIdx = 1;  % keep a metadata index separate from the lineIdx
     for lineIdx = 1:length(C{1})  % For each line

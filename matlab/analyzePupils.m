@@ -39,8 +39,13 @@ shadingColorRightFar = [1 1 0.79];  % dull yellow
 shadingColorCenter = [0.85 1 0.8]; % dull green
 shadingColorInterTrial = [0.9 0.9 0.9];  % grey
 
-ymin = -25;
-ymax = 25;
+% Used as the full trace plot limits, where this is actually the xmin and xmax for the azimuth plot
+ymin = -50;
+ymax = 50;
+
+% Used for the average plot limits
+avgXMin = -30;
+avgXMax = 30;
 
 lw = 1.5; % LineWidth
 
@@ -451,7 +456,7 @@ for eye=1:2  % For each eye
     elseif (numStim == 4)
         legend(h, 'left near stim', 'left far stim', 'right near stim', 'right far stim');
     end
-    xlim([-10 10]);
+    xlim([avgXMin avgXMax]);
     ylim([0 length(x)]);
     ylabel('Frame (normalized)')
     xlabel('Pupil Azimuth (deg)');
@@ -552,7 +557,7 @@ for eye=1:2  % For each eye
     if (numStim == 3)
         standardLegend = {'left stim'; 'right stim'; 'center stim'};
     elseif (numStim == 4)
-        standardLegend = ['left near stim', 'left far stim', 'right near stim', 'right far stim'];
+        standardLegend = {'left near stim'; 'left far stim'; 'right near stim'; 'right far stim'};
     end
     currLeg = {};
     for i=1:length(standardLegend)
@@ -562,7 +567,7 @@ for eye=1:2  % For each eye
     end
     legend(h, currLeg);
 
-    xlim([-10 10]);
+    xlim([avgXMin avgXMax]);
     ylim([0 length(x)]);
     ylabel('Frame (normalized)')
     xlabel('Pupil Azimuth (deg)');
@@ -680,7 +685,7 @@ for eye=1:2  % For each eye
     if (numStim == 3)
         standardLegend = {'left stim'; 'right stim'; 'center stim'};
     elseif (numStim == 4)
-        standardLegend = ['left near stim', 'left far stim', 'right near stim', 'right far stim'];
+        standardLegend = {'left near stim'; 'left far stim'; 'right near stim'; 'right far stim'};
     end
     currLeg = {};
     for i=1:length(standardLegend)
@@ -690,7 +695,7 @@ for eye=1:2  % For each eye
     end
     legend(h, currLeg);
 
-    xlim([-10 10]);
+    xlim([avgXMin avgXMax]);
     ylim([0 length(x)]);
     ylabel('Frame (normalized)')
     xlabel('Pupil Azimuth (deg)');
