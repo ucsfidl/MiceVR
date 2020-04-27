@@ -65,6 +65,10 @@ if (numStim == 4)
     allColors = [shadingColorLeft; shadingColorLeftFar; shadingColorRight; shadingColorRightFar; shadingColorInterTrial];
 elseif (numStim == 3)
     allColors = [shadingColorLeft; shadingColorRight; shadingColorCenter; shadingColorInterTrial];
+elseif (numStim == 1)
+    allColors = [1 1 1];
+else
+    error("Unsupported number of stim.");
 end
 
 frameStart = frameLim(1);
@@ -82,7 +86,7 @@ trialStartOffset = 1;  % Add this much to the recorded trial frame starts - for 
 trialEndOffset = 0;
 
 load(trackFileName, 'centers', 'areas');
-if (isempty(strfind(trackFileName, '_part_trk.mat')))
+if (~contains(trackFileName, '_part_trk.mat'))
     rootFileName = trackFileName(1:end-8);
 else
     rootFileName = trackFileName(1:end-13);
@@ -118,7 +122,7 @@ optoStates = [];
 
 % Find the actions file in the actions folder.  Remove preceding 0's from dayNum (parts{2}) doing the trick below
 parts = split(trackFileName, '_');
-actionsFileList = dir([actionsFolder parts{1} '-D' num2str(str2double(parts{2})) '*actions.txt']);
+actionsFileList = dir([actionsFolder parts{1} '-D' num2str(str2double(parts{2})) '-*actions.txt']);
 
 if (length(actionsFileList) == 1)
     actionsFileName = [actionsFileList(1).folder '\' actionsFileList(1).name];
@@ -132,7 +136,7 @@ if (actionsFile ~= -1) % File found
     % Special processing here since I changed the format of the log files
     % to make them not backwards compatible after June 4, 2018.  All future
     % changes should be backwards compatible.
-    [dum, str] = dos(['dir ' actionsFileName]);
+    [~, str] = dos(['dir ' actionsFileName]);
     c = textscan(str,'%s');
     createdate = c{1}{15};
     cd = datetime(createdate, 'InputFormat', 'MM/dd/yyyy');
@@ -296,6 +300,12 @@ elseif (numStim == 3)
         
         optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
     end
+elseif (numStim == 1)
+    for i=1:numCompletedTrials
+        stimColors(1,i,:) = [1 1 1];
+        actionColors(1,i,:) = [1 1 1];
+        optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
+    end
 end
 
 stimColors = stimColors(1, 1+numTruncatedStart:end-numTruncatedEnd, :);
@@ -326,7 +336,9 @@ for i=1:length(trimmedStimLocs)
             idx1 = 2;
         elseif (trimmedStimLocs(i) == stimCenter)
             idx1 = 3;
-        end        
+        end
+    elseif (numStim == 1)
+        idx1 = 1;
     end
     for j=1:2
         s = stimEyeMoveTrials{idx1, j};
@@ -352,6 +364,8 @@ for i=1:length(trimmedStimLocs)
         elseif (trimmedActionLocs(i) == stimCenter)
             idx2 = 3;
         end
+    elseif (numStim == 1)
+        idx2 = 1;
     end
     for j=1:2
         a = actionEyeMoveTrials{idx2, j};
@@ -438,6 +452,10 @@ for eye=1:2  % For each eye
                 curShadingColor = shadingColorRightFar;
                 sLoc = 'Right Far';
             end
+        elseif (numStim == 1)
+            curColor = [0 0 0];
+            curShadingColor = [0.5 0.5 0.5];
+            sLoc = 'Straight';
         end
         patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
         alpha(varianceAlpha);
@@ -455,6 +473,8 @@ for eye=1:2  % For each eye
         legend(h, 'left stim', 'right stim', 'center stim');
     elseif (numStim == 4)
         legend(h, 'left near stim', 'left far stim', 'right near stim', 'right far stim');
+    elseif (numStim == 1)
+        legend(h, 'straight');
     end
     xlim([avgXMin avgXMax]);
     ylim([0 length(x)]);
@@ -538,6 +558,10 @@ for eye=1:2  % For each eye
                     curShadingColor = shadingColorRightFar;
                     sLoc = 'Right Far';
                 end
+            elseif (numStim == 1)
+                curColor = [0 0 0];
+                curShadingColor = [0.5 0.5 0.5];
+                sLoc = 'Straight';
             end
             patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
             alpha(varianceAlpha);
@@ -558,6 +582,8 @@ for eye=1:2  % For each eye
         standardLegend = {'left stim'; 'right stim'; 'center stim'};
     elseif (numStim == 4)
         standardLegend = {'left near stim'; 'left far stim'; 'right near stim'; 'right far stim'};
+    elseif (numStim == 1)
+        standardLegend = {'straight'};
     end
     currLeg = {};
     for i=1:length(standardLegend)
@@ -665,6 +691,10 @@ for eye=1:2  % For each eye
                     curShadingColor = shadingColorRightFar;
                     sLoc = 'Right Far';
                 end
+            elseif (numStim == 1)
+                curColor = [0 0 0];
+                curShadingColor = [0.5 0.5 0.5];
+                sLoc = 'Straight';
             end
             patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
             alpha(varianceAlpha);
@@ -686,6 +716,8 @@ for eye=1:2  % For each eye
         standardLegend = {'left stim'; 'right stim'; 'center stim'};
     elseif (numStim == 4)
         standardLegend = {'left near stim'; 'left far stim'; 'right near stim'; 'right far stim'};
+    elseif (numStim == 1)
+        standardLegend = {'straight'};
     end
     currLeg = {};
     for i=1:length(standardLegend)
@@ -881,10 +913,6 @@ if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, plot thi
 end
 %}
 
-save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', ...
-    'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates', 'eyeblinkStartFrames');
-
-
 % Plot stimulation and actions first
 % Then plot inter-trial intervals
 % Finally plot actual eye movement data
@@ -914,13 +942,15 @@ h = plot(xUnitsTime, elavDeg(1:length(xUnitsTime), 1), leftEyeColor, xUnitsTime,
 title([rootFileName ': Pupil Elevation'], 'Interpreter', 'none');
 ylabel('Pupil Elevation (deg');
 xlabel(xlab);
-for i = 1:length(allColors)
+for i = 1:size(allColors, 1)
     p(i) = patch(NaN, NaN, allColors(i,:));
 end
 if (numStim == 4)
     legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'left far stim/action', 'right near stim/action', 'right far stim/action', 'inter-trial interval');
 elseif (numStim == 3)
     legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'center stim/action', 'inter-trial interval');
+elseif (numStim == 1)
+    legend([h;p'], 'left eye', 'right eye', 'straight stim/action', 'inter-trial interval');
 end
 ylim([ymin ymax]);
 xlim([0 xUnitsTime(end)]);
@@ -941,17 +971,60 @@ h = plot(azimDeg(1:length(xUnitsTime), 1), xUnitsTime, leftEyeColor, azimDeg(1:l
 title([rootFileName ': Pupil Azimuth'], 'Interpreter', 'none');
 xlabel('Pupil Azimuth (deg');
 ylabel(xlab);
-for i = 1:length(allColors)
+for i = 1:size(allColors,1)
     p(i) = patch(NaN, NaN, allColors(i,:));
 end
 if (numStim == 4)
     legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'left far stim/action', 'right near stim/action', 'right far stim/action', 'inter-trial interval');
 elseif (numStim == 3)
     legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'center stim/action', 'inter-trial interval');
+elseif (numStim == 1)
+    legend([h;p'], 'left eye', 'right eye', 'straight stim/action', 'inter-trial interval');
 end
 xlim([ymin ymax]);
 ylim([0 xUnitsTime(end)]);
 dcmObj = datacursormode(gcf);
 set(dcmObj,'UpdateFcn',@dataCursorCallback,'Enable','on');
+
+% Finally, calculate the amplitudes of all saccades observed.  To start, we will just analyze the azimuth trace.
+% First, if there are NaNs in each eye trace, interpolate to fill in the data and remove all NaNs.
+% The code needs to annotate saccadeStart and saccadeEnd for each saccade.  Those are specific frames.
+% Then, a set of amplitudes can easily be extracted from these sets.
+azimDegNoNaN = azimDeg;
+saccadeStartFrames = cell(1,2);
+saccadeEndFrames = cell(1,2);
+saccadeAmplitudes = cell(1,2);
+for i=1:size(azimDeg,2) % for each eye, fill in the NaNs
+    nanAz = isnan(azimDeg(:,i));
+    t = 1:numel(azimDeg(:,i));
+    azimDegNoNaN(nanAz,i) = interp1(t(~nanAz), azimDegNoNaN(~nanAz,i), t(nanAz));
+    d = diff(azimDegNoNaN(:,i));
+    saccadeThresh = 2 * std(d);  % std(d) is often around 1 px
+    f = find(saccadeThresh < abs(d));
+    fd = diff(f);
+    saccadeStartFrames{i} = [f(1); f(find(fd ~= 1)+1)];
+    saccadeEndFrames{i} = f(find(fd ~= 1))+1;
+    if (length(saccadeEndFrames{i}) < length(saccadeStartFrames{i}))  % Find the end of the last saccade
+        saccadeEndFrames{i}(end+1) = f(end) + 1;
+    end
+    % Now, for each saccade pair, store its amplitude
+    % For now, assume the saccade start and end frames are the largest swing, but this might not be true so later examine the full range for min and max locations
+    saccadeAmplitudes{i} = azimDegNoNaN(saccadeEndFrames{i},i) - azimDegNoNaN(saccadeStartFrames{i},i);
+    figure;
+    histogram(saccadeAmplitudes{i}, -40:2:40);
+    if (i == 1)
+        title([rootFileName ': Saccades (left eye)']);
+    elseif (i == 2)
+        title([rootFileName ': Saccades (right eye)']);
+    end
+    xlabel('Saccade size (degrees)');
+    ylabel('Count');
+end
+
+% Save it all for posterity
+save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', ...
+    'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates', 'eyeblinkStartFrames', ...
+    'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes');
+
 
 end
