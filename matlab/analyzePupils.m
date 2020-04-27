@@ -1013,9 +1013,9 @@ for i=1:size(azimDeg,2) % for each eye, fill in the NaNs
     figure;
     histogram(saccadeAmplitudes{i}, -40:2:40);
     if (i == 1)
-        title([rootFileName ': Saccades (left eye)']);
+        title([rootFileName ': Saccades (left eye)'], 'Interpreter', 'none');
     elseif (i == 2)
-        title([rootFileName ': Saccades (right eye)']);
+        title([rootFileName ': Saccades (right eye)'], 'Interpreter', 'none');
     end
     xlabel('Saccade size (degrees)');
     ylabel('Count');
