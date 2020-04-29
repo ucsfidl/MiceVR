@@ -40,8 +40,8 @@ shadingColorCenter = [0.85 1 0.8]; % dull green
 shadingColorInterTrial = [0.9 0.9 0.9];  % grey
 
 % Used as the full trace plot limits, where this is actually the xmin and xmax for the azimuth plot
-ymin = -50;
-ymax = 50;
+ymin = -60;
+ymax = 60;
 
 % Used for the average plot limits
 avgXMin = -30;
@@ -994,16 +994,17 @@ azimDegNoNaN = azimDeg;
 saccadeStartFrames = cell(1,2);
 saccadeEndFrames = cell(1,2);
 saccadeAmplitudes = cell(1,2);
+saccadeThresh = zeros(1,2);
 for i=1:size(azimDeg,2) % for each eye, fill in the NaNs
     nanAz = isnan(azimDeg(:,i));
     t = 1:numel(azimDeg(:,i));
     azimDegNoNaN(nanAz,i) = interp1(t(~nanAz), azimDegNoNaN(~nanAz,i), t(nanAz));
     d = diff(azimDegNoNaN(:,i));
-    saccadeThresh = 2 * std(d);  % std(d) is often around 1 px
-    f = find(saccadeThresh < abs(d));
+    saccadeThresh(i)= 2 * std(d);  % std(d) is often near 1 px
+    f = find(saccadeThresh(i) < abs(d));
     fd = diff(f);
     saccadeStartFrames{i} = [f(1); f(find(fd ~= 1)+1)];
-    saccadeEndFrames{i} = f(find(fd ~= 1))+1;
+    saccadeEndFrames{i} = f(fd ~= 1)+1;
     if (length(saccadeEndFrames{i}) < length(saccadeStartFrames{i}))  % Find the end of the last saccade
         saccadeEndFrames{i}(end+1) = f(end) + 1;
     end
@@ -1024,7 +1025,9 @@ end
 % Save it all for posterity
 save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', ...
     'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates', 'eyeblinkStartFrames', ...
-    'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes');
+    'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes', 'saccadeThresh');
 
+disp(['Saccade thresh L eye = ' num2str(saccadeThresh(1))]);
+disp(['Saccade thresh R eye = ' num2str(saccadeThresh(2))]);
 
 end
