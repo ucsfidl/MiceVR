@@ -23,8 +23,8 @@ function analyzePupils(trackFileName, numStim, frameLim, Rp, pxPerMm, fps, timeI
 % - Update to deal with slanted eyes?
 % - Update to deal with a corneal reflection, if needed?
 
-% USAGE:
-% >> analyzePupils(['Dragon_229_trk.mat'], 4, [1 0], 1.15, 47, 60, 0)
+% USAGE:  degPerPx = 0.75, 0.98, 0.5
+% >analyzePupils(['Dragon_229_trk.mat'], 4, [1 0], 1.15, 47, 60, 0)
 
 %leftColor = [1 1 0.79];  % off-yellow
 %rightColor = [0.81 1 0.81];  % off-green
@@ -1041,8 +1041,6 @@ save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg
     'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes', 'saccadeThresh');
 
 disp(['Saccade thresh L eye = ' num2str(saccadeThresh(1))]);
-disp(['Mean saccade size L eye = ' num2str(mean(abs(saccadeAmplitudes{1})))]);
 disp(['Saccade thresh R eye = ' num2str(saccadeThresh(2))]);
-disp(['Mean saccade size R eye = ' num2str(mean(abs(saccadeAmplitudes{2})))]);
 
 end

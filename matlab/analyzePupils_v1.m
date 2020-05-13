@@ -1,30 +1,18 @@
-function analyzePupils(trackFileName, numStim, frameLim, Rp, pxPerMm, fps, timeInSec)
+function analyzePupils_v1(trackFileName, numStim, frameLim, degPerPx, fps, timeInSec)
 % Once trackPupils is done and cleanUpTrialTimes is run, this script is used to analyze the pupil
-% positions and produce many plots.
+% positions and plot a bunch of stuff.
 
-% cleanUpTrialTimes must be run before running, which will produce
-% a *_corr.mat file with corrected trialStarts and trialEnds, which this script looks for.
+% Expects cleanUpTrialTimes to be run before running, which will produce
+% a *_corr.mat file with corrected trialStarts and trialEnds.
 
-% It now also keeps track of eye blink times, based on when the centroid is lost.  This is VERY rough and should be 
-% checked by hand, as it depends on the quality of the contrast of the eye video.  If contrast is poor, centroid will
-% be lost even though there is no eye blink.  If contrast is good, this works pretty well.
+% It now also keeps track of eye blink times, based on when the centroid is lost
 
 % ISSUE: because frames are dropped to determine when a trial starts and
 % ends, the overall time plotted will be lagging more and more over time.
 % Fix this at some point if it is important.
 
-% Previously (prior to 5/11/2020), Rp was degPerPx, which was an approximation.  
-% Now that I can measure Rp for each mouse's eye, the code has been updated to expect Rp, which is the size of the 
-% radius from the corneal curvature center to the pupil.  Note that this is the correct value to use for 
-% azimuthal deviations, but a different calculation is better done for elevation deviations (see Zoccolan..Cox 2010).
-% Along with this correction, we have also added a pxPerMm calibration value, as Rp is in mm.
-
-% TODO:
-% - Update to deal with slanted eyes?
-% - Update to deal with a corneal reflection, if needed?
-
-% USAGE:
-% >> analyzePupils(['Dragon_229_trk.mat'], 4, [1 0], 1.15, 47, 60, 0)
+% USAGE:  degPerPx = 0.75, 0.98, 0.5
+% > analyzePupils('Uranus_089_trk.mat', 3, [1 0], 0.75, 60, 0)
 
 %leftColor = [1 1 0.79];  % off-yellow
 %rightColor = [0.81 1 0.81];  % off-green
@@ -52,12 +40,12 @@ shadingColorCenter = [0.85 1 0.8]; % dull green
 shadingColorInterTrial = [0.9 0.9 0.9];  % grey
 
 % Used as the full trace plot limits, where this is actually the xmin and xmax for the azimuth plot
-ymin = -40;
-ymax = 40;
+ymin = -60;
+ymax = 60;
 
 % Used for the average plot limits
-avgXMin = -20;
-avgXMax = 20;
+avgXMin = -30;
+avgXMax = 30;
 
 lw = 1.5; % LineWidth
 
@@ -121,11 +109,10 @@ end
 % First, find the central position of the eye, given all of the data, and
 % subtract that away.
 elavCenter = nanmean(centers(:, 2, :));
-elavDeg = asind(((elavCenter - centers(:,2,:))/pxPerMm) / Rp);
+elavDeg = -((centers(:,2,:) - elavCenter) .* degPerPx);
 elavDeg = reshape(elavDeg, size(elavDeg, 1), size(elavDeg, 3));
 azimCenter = nanmean(centers(:, 1, :));
-azimDeg = asind(((azimCenter - centers(:,1,:))/pxPerMm) / Rp);
-%azimDeg = -((centers(:,1,:) - azimCenter) .* degPerPx);
+azimDeg = -((centers(:,1,:) - azimCenter) .* degPerPx);
 azimDeg = reshape(azimDeg, size(azimDeg, 1), size(azimDeg, 3));
 
 % Read the actions file so the graph can be properly annotated
