@@ -20,7 +20,7 @@ trialEnds = struct([]);
 lastEventTime = 0;
 fps = 60;
 
-vrGSdocidFileName = '../config/vrGSdocid.txt';
+% vrGSdocidFileName = '../config/vrGSdocid.txt';
 DAY = 1;
 
 vidWidth = 208;  % 200
@@ -44,6 +44,7 @@ end
 % First, using the Google Sheet ID specified as a variable above, read the
 % Google Sheet and find the first of the last days without a result.
 vidFileName = mouseName;
+%{
 if (isfile(vrGSdocidFileName)) % If the docid file exists, use that to find the Google Sheet for this mouse
     fid = fopen(vrGSdocidFileName);
     docid = fgetl(fid);
@@ -64,6 +65,7 @@ if (isfile(vrGSdocidFileName)) % If the docid file exists, use that to find the 
     end
     vidFileName = [vidFileName '_' prefix lastDay];
 end
+%}
 
 % Second, run in non-parellel mode to get the image previews needed for
 % making sure the eyes are in focus and lighting adujustments.  
