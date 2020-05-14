@@ -30,7 +30,7 @@ actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
 eyevideosFolder = 'C:\Users\nikhi\UCB\data-eyevideos\';
 
-actLineFormat = '%s\t%s\t%d\t%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%d\t%d';
+actLineFormat = getActionLineFormat();
 
 % Be sure to change these if the x location of the trees changes
 stimLeftNear = 19973;

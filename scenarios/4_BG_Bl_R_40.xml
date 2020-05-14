@@ -1,0 +1,22 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>
+			<gameTurnControl>yaw</gameTurnControl>
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>false</biasCorrection>
+			<presoFracSpecified>true</presoFracSpecified>
+			<blockSize>20</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_4_BG_R_40.xml</includeWorld>
+	</worlds>
+</document>

@@ -62,8 +62,6 @@ scenariosFolder = 'C:\Users\nikhi\Documents\GitHub\MiceVR\scenarios\';
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
 
-actLineFormat = getActionLineFormat();
-
 % X locs of 2-choice, 3-chioce and 4-choice worlds
 leftX = 19975;
 centerX = 20000;
@@ -151,7 +149,7 @@ for tt_i=1:length(trialTypeStrArr)
         actionsFileID = fopen(actionsFileName);
         if (actionsFileID ~= -1)  % File was opened properly
             fgetl(actionsFileID); % Throw out the first line, as it is a column header
-            actRecs = textscan(actionsFileID, actLineFormat); 
+            actRecs = textscan(actionsFileID, '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d'); 
         else
             error(['Actions file ' actionsFileName 'could not be opened, so ending.']);
         end
@@ -171,7 +169,8 @@ for tt_i=1:length(trialTypeStrArr)
         % Next, identify which action records match the specified trial type
         filtRecIDs = [];
         for r_i=1:length(actRecs{1})
-            stimLocX = getStimLocFromActions(actRecs, r_i);  % don't need stimLocZ so drop for now
+r_i
+stimLocX = getStimLocFromActions(actRecs, r_i);  % don't need stimLocZ so drop for now
             actionLocX = getActionLocFromActions(actRecs, r_i);
             if (trialTypeStrArr(tt_i) == "*->*" || ...
                 (stimLocX == rightX && trialTypeStrArr(tt_i) == "R->*") || ...

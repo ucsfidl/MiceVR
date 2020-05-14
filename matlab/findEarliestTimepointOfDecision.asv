@@ -20,13 +20,8 @@ function [cutoff, predictionAccuracy] = findEarliestTimepointOfDecision(mouseNam
 % This analysis does not take into account gaze and thereby target position in the visual field, 
 % just mouse position in the world.
 
-% Argument: poolingSize
-% This is for pooling slightly different locations into 1 bucket, so accuracy stats can be calcuated.
-% A pooling size of 1 means 1x1 (just rounding to the nearest integer), 2 means 2x2, 3 means 3x3, etc.
-% Usually I use a value of 1, which is more prone to over-fitting than higher values.
-
 % NEW 5/13/20: Added support for uneven 4-choice presentation.  If presentation rate is not balanced, make sure the less
-% frequent decisions are prioritized so that minAccuracy (say 70%) of trials are predicted correctly.
+% frequent decisions are prioritized so that minAccuracy (say 70%) 
 
 stimLeftNear = 19973;
 stimLeftFar = 19972;
@@ -35,21 +30,25 @@ stimRightFar = 20028;
 
 colors = [1 1 1;   % white, for places on the winnerMask which are not used for predictions
           0.84 0.89 0.99;      % dull blue
-          1 0.87 0.71;     % dull orange
           0.84 0.98 0.99;     % dull cyan
+          1 0.87 0.71;     % dull orange
           0.9 0.9 0.69;   % dull yellow
           ];
 
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
 
-actLineFormat = getActionLineFormat();
+actLineFormat = '%s\t%s\t%d\t%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%d\t%d\t%d';
 
 fps = 60;
 successDelay = 2; %sec
 failureDelay = 4; %sec
 
 totalTrialsAnalyzed = 0;
+
+% Use user-provided argument instead
+% poolingSize = 2;  % This is for pooling slightly different locations into 1 bucket, so accuracy stats can be calcuated.
+                 % A pooling size of 1 means 1x1 (just rounding to the nearest integer), 2 means 2x2, 3 means 3x3, etc.
 
 replaysFileList = [];
 trialsPerDay = zeros(length(days), 1);
@@ -113,9 +112,8 @@ mouseLocToActLoc = zeros(numTrials, 3);
 
 lastHighCutoff = 1;
 lastLowCutoff = 0;
-cutoff = 0.5;  % Starting value for binary search - this value can actually affect the final result by 10%!
+cutoff = 0.15;  % Starting value for binary search
 while (1) % a while loop to iterate until earliest cutoff is found
-    % First, find all mouse positions for all trials at the cutoff fraction and group together
     for currTrial = 1:numTrials
         % By default include correction trials, as those are useful info.  Consider excluding if don't get good results.
         actLocX = getActionLocFromActions(actRecs, currTrial);
@@ -144,7 +142,6 @@ while (1) % a while loop to iterate until earliest cutoff is found
         end
     end
 
-    % SECOND, pool positions based on poolingSize
     minZVal = floor(min(mouseLocToActLoc(:,1)));
     maxZVal = ceil(max(mouseLocToActLoc(:,1)));
     zRange = round((maxZVal - minZVal) / poolingSize) + 1;
@@ -159,9 +156,9 @@ while (1) % a while loop to iterate until earliest cutoff is found
         if (mouseLocToActLoc(idx,3) == stimLeftNear)
             actIdx = 1;
         elseif (mouseLocToActLoc(idx,3) == stimLeftFar)
-            actIdx = 3;
-        elseif (mouseLocToActLoc(idx,3) == stimRightNear)
             actIdx = 2;
+        elseif (mouseLocToActLoc(idx,3) == stimRightNear)
+            actIdx = 3;
         else
             actIdx = 4;
         end

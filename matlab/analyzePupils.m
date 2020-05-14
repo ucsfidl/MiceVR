@@ -121,10 +121,10 @@ end
 % First, find the central position of the eye, given all of the data, and
 % subtract that away.
 elavCenter = nanmean(centers(:, 2, :));
-elavDeg = asind(((elavCenter - centers(:,2,:))/pxPerMm) / Rp);
+elavDeg = real(asind(((elavCenter - centers(:,2,:))/pxPerMm) / Rp));
 elavDeg = reshape(elavDeg, size(elavDeg, 1), size(elavDeg, 3));
 azimCenter = nanmean(centers(:, 1, :));
-azimDeg = asind(((azimCenter - centers(:,1,:))/pxPerMm) / Rp);
+azimDeg = real(asind(((azimCenter - centers(:,1,:))/pxPerMm) / Rp));
 %azimDeg = -((centers(:,1,:) - azimCenter) .* degPerPx);
 azimDeg = reshape(azimDeg, size(azimDeg, 1), size(azimDeg, 3));
 
