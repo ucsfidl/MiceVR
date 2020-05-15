@@ -121,11 +121,12 @@ end
 % First, find the central position of the eye, given all of the data, and
 % subtract that away.
 elavCenter = nanmean(centers(:, 2, :));
-elavDeg = real(asind(((elavCenter - centers(:,2,:))/pxPerMm) / Rp));
+elavDeg = cat(3, real(asind(((elavCenter(:,:,1) - centers(:,2,1))/pxPerMm(1)) / Rp(1))), ...
+                 real(asind(((elavCenter(:,:,2) - centers(:,2,2))/pxPerMm(2)) / Rp(2))));
 elavDeg = reshape(elavDeg, size(elavDeg, 1), size(elavDeg, 3));
 azimCenter = nanmean(centers(:, 1, :));
-azimDeg = real(asind(((azimCenter - centers(:,1,:))/pxPerMm) / Rp));
-%azimDeg = -((centers(:,1,:) - azimCenter) .* degPerPx);
+azimDeg = cat(3, real(asind(((azimCenter(:,:,1) - centers(:,1,1))/pxPerMm(1)) / Rp(1))), ...
+                 real(asind(((azimCenter(:,:,2) - centers(:,1,2))/pxPerMm(2)) / Rp(2))));
 azimDeg = reshape(azimDeg, size(azimDeg, 1), size(azimDeg, 3));
 
 % Read the actions file so the graph can be properly annotated
@@ -1012,6 +1013,21 @@ for i=1:size(azimDeg,2) % for each eye, fill in the NaNs
     nanAz = isnan(azimDeg(:,i));
     t = 1:numel(azimDeg(:,i));
     azimDegNoNaN(nanAz,i) = interp1(t(~nanAz), azimDegNoNaN(~nanAz,i), t(nanAz));
+    % Set any remaining NaNs, like at the beginning or end, to the nearest value.  There is probably a cleaner way to do this... But this works.
+    nanIdx = find(isnan(azimDegNoNaN(:,i)));
+    if (~isempty(nanIdx))
+        firstNaN = nanIdx(1);
+        lastNaN = nanIdx(end);
+        if firstNaN == 1 % Array starts with a NaN, so that failed to interpolate
+            firstNoNaN = find(~isnan(azimDegNoNaN(:,i)), 1);
+            azimDegNoNaN(1:firstNoNaN-1, i) = azimDegNoNaN(firstNoNaN, i);
+        end
+        if lastNaN == length(azimDegNoNaN(:,i)) % Array ends with a NaN
+            lastNoNaN = find(~isnan(azimDegNoNaN(:,i)), 1, 'last');
+            azimDegNoNaN(lastNoNaN+1:end, i) = azimDegNoNaN(lastNoNaN, i);
+        end
+    end
+        
     d = diff(azimDegNoNaN(:,i));
     saccadeThresh(i)= 2 * std(d);  % std(d) is often near 1 px
     f = find(saccadeThresh(i) < abs(d));
