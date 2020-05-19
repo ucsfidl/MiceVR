@@ -97,7 +97,7 @@ stimCenter = 20000;
 trialStartOffset = 1;  % Add this much to the recorded trial frame starts - for backwards compatibility
 trialEndOffset = 0;
 
-load(trackFileName, 'centers', 'areas');
+load(trackFileName, 'centers', 'areas', 'majorAxisLengths', 'minorAxisLengths');
 if (~contains(trackFileName, '_part_trk.mat'))
     rootFileName = trackFileName(1:end-8);
 else
@@ -116,6 +116,14 @@ end
 if frameStop == 0 || frameStop > totalFrames
     frameStop = totalFrames;
 end
+
+% Second, record pupil sizes over the duration of the session
+% Take the areas matrix and assume each is an area of a circle (approximation). 
+% Then take the pxPerMM for each eye and 
+% We do 2 measures - a simplistic one assuming we are looking at a non-deformed circle
+areasMm2 = cat(3, areas(:,:,1) * (1/pxPerMm(1)^2), areas(:,:,2) * (1/pxPerMm(2)^2));
+% and a second one which assumes the longest ellipse axis is the diameter (due to foreshortening of the minor axis)
+majorAxisMm = cat(3, majorAxisLengths(:,:,1) / pxPerMm(1), majorAxisLengths(:,:,2) / pxPerMm(2));
 
 % Process the position changes for plotting later
 % First, find the central position of the eye, given all of the data, and
@@ -1054,11 +1062,17 @@ end
 % Save it all for posterity
 save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', ...
     'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates', 'eyeblinkStartFrames', ...
-    'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes', 'saccadeThresh');
+    'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes', 'saccadeThresh', 'areasMm2');
 
 disp(['Saccade thresh L eye = ' num2str(saccadeThresh(1))]);
 disp(['Mean saccade size L eye = ' num2str(mean(abs(saccadeAmplitudes{1})))]);
 disp(['Saccade thresh R eye = ' num2str(saccadeThresh(2))]);
 disp(['Mean saccade size R eye = ' num2str(mean(abs(saccadeAmplitudes{2})))]);
 
+disp(['Mean pupil sizes by areas: L = ' num2str(round(sqrt(nanmean(areasMm2(:,1,1))/pi)*2, 2)) ' mm diameter, R = ' ...
+                                num2str(round(sqrt(nanmean(areasMm2(:,1,2))/pi)*2, 2)) ' mm diameter']);
+
+disp(['Mean pupil sizes by ellipse major axis: L = ' num2str(round(nanmean(majorAxisMm(:,1,1)), 2)) ' mm diameter, R = ' ...
+                                num2str(round(nanmean(majorAxisMm(:,1,2)), 2)) ' mm diameter']);
+                            
 end

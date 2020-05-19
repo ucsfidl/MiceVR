@@ -1,6 +1,7 @@
-function [nasalExtrema, accuracyPerExtrema] = plotTargetAzimLoc(mouseName, days, sessions, trials, stimLocsToAnalyze, ...
-    trialTypeStrArr, denoiseBallMovement, useFieldRestriction, useEyeTracking, whichEye, includeCorrectionTrials, ...
-    outputNewActionsFile, targetAzimLimit, fractionOfRun, censorOnlyIfCorrect, writeOutOnlyIfCensored, interactive)
+function [nasalExtremaL, nasalExtremaR, accuracyPerExtrema] = plotTargetAzimLoc(mouseName, days, sessions, trials, ...
+    stimLocsToAnalyze, trialTypeStrArr, denoiseBallMovement, useFieldRestriction, useEyeTracking, whichEye, ...
+    includeCorrectionTrials, outputNewActionsFile, targetAzimLimit, fractionOfRun, censorOnlyIfCorrect, ...
+    writeOutOnlyIfCensored, interactive)
 % This function takes as inputs the replay files for a session as well as the mouse's eye movements 
 % during that session.  It outputs several plots:
 % 1) For the specified trialType, a plot for each trial showing the 
@@ -61,12 +62,13 @@ maxAllowedJump = 10;  % max allowed change in the target's azimuthal location be
                       % does not account for eye movements (which could be larger than this value), just target movements due
                       % to ball movements
 
-nasalExtrema = [];
+nasalExtremaL = [];
+nasalExtremaR = [];
 totalTrialsAnalyzed = 0;
 totalTrialsNotAnalyzed = 0;
 
 % Variable that stores accuracy as a function of nasalExtrema
-bucketSize = 4;  % pool accuracy data in 5 degree buckets
+bucketSize = 4;  % pool accuracy data in 4 degree buckets
 buckets = -40:bucketSize:40;
 buckets(1) = -Inf;
 buckets(end) = Inf;
@@ -335,11 +337,13 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 if (left == 1)
                     limitedRightBound = targetRightBound(1:maxFrame);
                     extreme = max(limitedRightBound(targetLeftBound(1:maxFrame) ~= limitedRightBound));
+                    nasalExtremaL(end+1) = extreme;
                     m = 'L';
                     extremeFrame = find(targetRightBound(targetLeftBound ~= targetRightBound) == extreme,1);
                 elseif (left == 0)
                     limitedLeftBound = targetLeftBound(1:maxFrame);
                     extreme = min(limitedLeftBound(limitedLeftBound ~= targetRightBound(1:maxFrame)));
+                    nasalExtremaR(end+1) = extreme;
                     m = 'R';
                     extremeFrame = find(targetLeftBound(targetLeftBound ~= targetRightBound) == extreme,1);
                 end
@@ -350,7 +354,6 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                     trialIdx = trialIdx + 1;
                     continue;
                 end
-                nasalExtrema(end+1) = extreme;
                 idx = find(buckets >= extreme, 1);
                 if (stimLocX == actLocX)
                     numCorrect(idx) = numCorrect(idx) + 1;
@@ -373,10 +376,10 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 if (outputNewActionsFile && newActionsFileID ~= -1)
                     % INCLUSION CRITERIA
                     if (isempty(targetAzimLimit) || left == -1 || ...
-                            (left == 1 && nasalExtrema(end) < targetAzimLimit(1)) || ...
-                            (left == 1 && nasalExtrema(end) >= targetAzimLimit(1) && censorOnlyIfCorrect && stimLocX ~= actLocX) || ...
-                            (left == 0 && nasalExtrema(end) > -targetAzimLimit(2)) || ...
-                            (left == 0 && nasalExtrema(end) <= -targetAzimLimit(2) && censorOnlyIfCorrect && stimLocX ~= actLocX))
+                            (left == 1 && nasalExtremaL(end) < targetAzimLimit(1)) || ...
+                            (left == 1 && nasalExtremaL(end) >= targetAzimLimit(1) && censorOnlyIfCorrect && stimLocX ~= actLocX) || ...
+                            (left == 0 && nasalExtremaR(end) > -targetAzimLimit(2)) || ...
+                            (left == 0 && nasalExtremaR(end) <= -targetAzimLimit(2) && censorOnlyIfCorrect && stimLocX ~= actLocX))
                         if (~writeOutOnlyIfCensored)
                             tca = cellfun(@(v) v(trialsToDo(trialIdx)), actRecs, 'UniformOutput', 0);
                             tca2 = cell(size(tca));
@@ -500,18 +503,23 @@ end
 accuracyPerExtrema = numCorrect ./ (numCorrect + numIncorrect);
 
 figure;
-yyaxis left;
-histogram(nasalExtrema, -40:bucketSize:40, 'Normalization', 'probability');
-ylabel('fraction');
 hold on;
+yyaxis left;
+histogram(nasalExtremaL, -40:bucketSize:40, 'Normalization', 'probability', 'FaceColor', [2 87 194]/255);
+histogram(nasalExtremaR, -40:bucketSize:40, 'Normalization', 'probability', 'FaceColor', [226 50 50]/255);
+ylabel('fraction');
 
+green = [0.4660 0.6740 0.1880];
 yyaxis right;
-scatter(buckets(2:end-1) - bucketSize/2, accuracyPerExtrema(2:end-1),40,'o', 'MarkerFaceColor', [223 110 61]/255);
+scatter(buckets(2:end-1) - bucketSize/2, accuracyPerExtrema(2:end-1),40, ...
+        'MarkerEdgeColor', green, 'MarkerFaceColor', green);
 xlabel('most nasal edge of target (degrees)');
-ylabel('accuracy');
+ylabel('accuracy', 'Color', green);
 ylim([-0.1 1.1]);
-title(['n=' num2str(length(nasalExtrema))])
-
+set(gca, 'YColor', green);
+% Plot 0 degree  dotted line
+plot([0 0], ylim, 'k--');
+title(['n_L=' num2str(length(nasalExtremaL)) ', n_R=' num2str(length(nasalExtremaR))]);
 
 if (~interactive && outputNewActionsFile && newActionsFileID ~= -1)
     fclose(newActionsFileID);

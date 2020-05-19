@@ -120,6 +120,8 @@ end
 % Init storage variables
 centers = zeros(numFrames, 2, 2); % Z dimension is 1 for each eye, left eye first
 areas = zeros(numFrames, 1, 2);  % Z dimension is 1 for each eye, left eye first
+majorAxisLengths = zeros(numFrames, 1, 2);
+minorAxisLengths = zeros(numFrames, 1, 2);
 
 if (seSize > 0)
     if (totalFrames == numFrames)
@@ -242,6 +244,8 @@ while relFrame + frameStart <= frameStop + 1
                     s(idx).MajorAxisLength / s(idx).MinorAxisLength < maxPupilAspectRatio)
                     centers(relFrame,:,i) = s(idx).Centroid; % raw pixel position
                     areas(relFrame,:,i) = s(idx).ConvexArea;  % in px - need to calibrate
+                    majorAxisLengths(relFrame,:,i) = s(idx).MajorAxisLength;
+                    minorAxisLengths(relFrame,:,i) = s(idx).MinorAxisLength;
                     %%% DRAW ONTO VIDEO FOR VALIDATION %%%
                     c = s(idx).Centroid;
                     rMaj = s(idx).MajorAxisLength / 2;
@@ -258,14 +262,20 @@ while relFrame + frameStart <= frameStop + 1
                 else
                     centers(relFrame,:,i) = [NaN NaN];
                     areas(relFrame,:,i) = [NaN];
+                    majorAxisLengths(relFrame,:,i) = [NaN];
+                    minorAxisLengths(relFrame,:,i) = [NaN];
                 end
             else
                 centers(relFrame,:,i) = [NaN NaN];
                 areas(relFrame,:,i) = [NaN];
+                majorAxisLengths(relFrame,:,i) = [NaN];
+                minorAxisLengths(relFrame,:,i) = [NaN];
             end
         else
             centers(relFrame,:,i) = [NaN NaN];
             areas(relFrame,:,i) = [NaN];
+            majorAxisLengths(relFrame,:,i) = [NaN];
+            minorAxisLengths(relFrame,:,i) = [NaN];
         end
     end
     
@@ -280,7 +290,8 @@ if (totalFrames == numFrames)
 else  % Partial analysis, so change file name as such
     saveFileName = [outRoot '_part_trk.mat'];
 end
-save(saveFileName, 'centers', 'areas', 'vLeftFileName', 'vRightFileName', 'frameLim', 'fps', 'otsuWeight', ...
+save(saveFileName, 'centers', 'areas', 'majorAxisLengths', 'minorAxisLengths', ...
+    'vLeftFileName', 'vRightFileName', 'frameLim', 'fps', 'otsuWeight', ...
     'pupilSzRangePx', 'seSize', 'paratio');
 
 close(vout);
