@@ -7,7 +7,7 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, fps, otsuWeight, p
 % A helper script called analyzePupils.m will take the output of this
 % script and analyze it, producing graphs and other analysis.
 
-% > trackPupils('Ingersol_93_2.mp4', 'Ingersol_93_1.mp4', [50001 0], 60, [0.34 0.34], [50 3000], 4, 1.7, 0)
+% > trackPupils('Ingersol_93_2.mp4', 'Ingersol_93_1.mp4', [50001 0], 60, [0.34 0.34], [50 4000], 4, 1.7, 0)
 % > analyzePupils('Zizzle-D58-nb_04_sw3_wt-S53_trk.mat', 4, [1 0], 0.98)
 
 % Good settings for arguments:
