@@ -152,19 +152,19 @@ elavDeg = cat(3, real(asind(((elavCenter(:,:,1) - centers(:,2,1))/pxPerMm(1)) ./
 elavDeg = reshape(elavDeg, size(elavDeg, 1), size(elavDeg, 3));
 
 if (useCR)
-    if (crCenters(1,1,1) == 0) % No CR found
+    if (sum(crCenters(:,1,1)) == 0)
         cL = nanmean(centers(:, 1, 1));
     else
         cL = crCenters(:,1,1);
     end
-    if (crCenters(1,1,2) == 0) % No CR found
+    if (sum(crCenters(:,1,2)) == 0)
         cR = nanmean(centers(:, 1, 1));
     else
         cR = crCenters(:,1,2);
     end
     
-    azimDeg = cat(3, real(asind((cL - centers(:,1,1))/pxPerMm(1)) ./ RpL), ...
-                     real(asind((cR - centers(:,1,2))/pxPerMm(2)) ./ RpR));
+    azimDeg = cat(3, real(asind(((crCenters(:,1,1) - centers(:,1,1))/pxPerMm(1)) ./ RpL)), ...
+                     real(asind(((crCenters(:,1,2) - centers(:,1,2))/pxPerMm(2)) ./ RpR)));
     azimCenter = nanmean(azimDeg);
     azimDeg = cat(3, azimDeg(:,1,1) - azimCenter(:,:,1), azimDeg(:,1,2) - azimCenter(:,:,2));
 else
