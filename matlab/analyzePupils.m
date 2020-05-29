@@ -1,4 +1,4 @@
-function analyzePupils(trackFileName, numStim, frameLim, gRp, pxPerMm, timeInSec, usePupilDiamToCalcRp, useCR)
+function analyzePupils(trackFileName, numStim, frameLim, gRp, pxPerMm, usePupilDiamToCalcRp, useCR)
 % Once trackPupils is done and cleanUpTrialTimes is run, this script is used to analyze the pupil
 % positions and produce many plots.
 
@@ -21,7 +21,6 @@ function analyzePupils(trackFileName, numStim, frameLim, gRp, pxPerMm, timeInSec
 
 % TODO:
 % - Update to deal with slanted eyes?
-% - Update to deal with a corneal reflection, if needed?
 
 % USAGE:
 % >> analyzePupils(['Dragon_229_trk.mat'], 4, [1 0], 1.15, 47, 60, 0)
@@ -30,6 +29,7 @@ function analyzePupils(trackFileName, numStim, frameLim, gRp, pxPerMm, timeInSec
 %rightColor = [0.81 1 0.81];  % off-green
 
 fps = 60;
+timeInSec = 0;
 
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 
@@ -54,8 +54,8 @@ shadingColorCenter = [0.85 1 0.8]; % dull green
 shadingColorInterTrial = [0.9 0.9 0.9];  % grey
 
 % Used as the full trace plot limits, where this is actually the xmin and xmax for the azimuth plot
-ymin = -40;
-ymax = 40;
+ymin = -50;
+ymax = 50;
 
 % Used for the average plot limits
 avgXMin = -20;
@@ -1108,8 +1108,9 @@ disp(['Mean saccade size R eye = ' num2str(mean(abs(saccadeAmplitudes{2})))]);
 
 disp(['Mean pupil sizes by areas: L = ' num2str(round(sqrt(nanmean(areasMm2(:,1,1))/pi)*2, 2)) ' mm diameter, R = ' ...
                                 num2str(round(sqrt(nanmean(areasMm2(:,1,2))/pi)*2, 2)) ' mm diameter']);
-
 disp(['Mean pupil sizes by ellipse major axis: L = ' num2str(round(nanmean(majorAxisMm(:,1,1)), 2)) ' mm diameter, R = ' ...
                                 num2str(round(nanmean(majorAxisMm(:,1,2)), 2)) ' mm diameter']);
+
+disp(['Mean Rp: L = ' num2str(nanmean(RpL)) ', R = ' num2str(nanmean(RpR)) ]);                            
                             
 end

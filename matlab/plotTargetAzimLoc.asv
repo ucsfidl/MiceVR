@@ -285,11 +285,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             end
 
             left = -1;  % bool which says whether stim is on the left (1) or right (0) or center (-1)
-            if (stimLocX == -1)  % Catch trial
-                t = 'Catch';
-                shade = shadingColorCenter;
-                left = -2;
-            elseif (stimLocX == stimLeftNear)
+            if (stimLocX == stimLeftNear)
                 t = 'Near Left';
                 shade = shadingColorLeft;
                 left = 1;
@@ -353,11 +349,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 end
                 if (isempty(extreme))  % This happened on Uranus D96 T17 - I guess the mouse looked away from the target for the whole time.  Need to investigate.
                     error('Something is likely wrong with the ball tracking replay data.  No extreme found.');
-                    if (left == 1)
-                        totalTrialsNotAnalyzed(1) = totalTrialsNotAnalyzed(1) + 1;
-                    elseif (left == 0)
-                        totalTrialsNotAnalyzed(2) = totalTrialsNotAnalyzed(2) + 1;
-                    end
+                    totalTrialsNotAnalyzed = totalTrialsNotAnalyzed + 1;
                     disp(['Excluded trial#' num2str(trialsToDo(trialIdx)) ' as no extreme found']);
                     trialIdx = trialIdx + 1;
                     continue;
@@ -371,15 +363,11 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 disp(['T' num2str(trialsToDo(trialIdx)) ...
                       ' - ' m ' - F' num2str(extremeFrame) ':' ...
                       num2str(extreme)]);
-            else % Target is centered or this is a catch trial, so no extrema and keep
-                if (left == -1)
-                    disp(['T' num2str(trialsToDo(trialIdx)) ' - C']);
-                elseif (left == -2)
-                    disp(['T' num2str(trialsToDo(trialIdx)) ' - Ca']);
-                end
+            else % Target is centered, so no extrema
+                disp(['T' num2str(trialsToDo(trialIdx)) ' - C']);
             end
             
-            fr = '';
+            fr = [''];
             if (useEyeTracking)
                 fr = ['fr=' num2str(trialStartFrames(trialsToDo(trialIdx)))];
             end
@@ -387,7 +375,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             if (~interactive)
                 if (outputNewActionsFile && newActionsFileID ~= -1)
                     % INCLUSION CRITERIA
-                    if (isempty(targetAzimLimit) || left == -1 || left == -2 || ...
+                    if (isempty(targetAzimLimit) || left == -1 || ...
                             (left == 1 && nasalExtremaL(end) < targetAzimLimit(1)) || ...
                             (left == 1 && nasalExtremaL(end) >= targetAzimLimit(1) && censorOnlyIfCorrect && stimLocX ~= actLocX) || ...
                             (left == 0 && nasalExtremaR(end) > targetAzimLimit(2)) || ...
@@ -434,11 +422,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                                 totalTrialsAnalyzed(2) = totalTrialsAnalyzed(2) + 1;
                             end
                         else
-                            if (left == 1)
-                                totalTrialsNotAnalyzed(1) = totalTrialsNotAnalyzed(1) + 1;
-                            elseif (left == 0)
-                                totalTrialsNotAnalyzed(2) = totalTrialsNotAnalyzed(2) + 1;
-                            end
+                            totalTrialsNotAnalyzed = totalTrialsNotAnalyzed + 1;
                             disp(['Censored trial#' num2str(trialsToDo(trialIdx)) ' as beyond allowed target azimuth']);
                         end
                     end
@@ -556,10 +540,9 @@ if (~interactive && outputNewActionsFile && newActionsFileID ~= -1)
         modifier = 'censored';
     end
     pctAnalyzed = totalTrialsAnalyzed ./ (totalTrialsAnalyzed + totalTrialsNotAnalyzed);
-    disp(['Total ' modifier ' trials written to file = ' num2str(sum(totalTrialsAnalyzed))]);
-    disp(['L trials kept = ' num2str(pctAnalyzed(1)*100,2) '% (' num2str(totalTrialsAnalyzed(1)) '/' num2str(totalTrialsAnalyzed(1) + totalTrialsNotAnalyzed(1)) ')']);
-    disp(['R trials kept = ' num2str(pctAnalyzed(2)*100,2) '% (' num2str(totalTrialsAnalyzed(2)) '/' num2str(totalTrialsAnalyzed(2) + totalTrialsNotAnalyzed(2)) ')']);
-    disp(['Mean of nasal extrema histograms: L = ' num2str(mean(nasalExtremaL)) ', R = ' num2str(mean(nasalExtremaR))]);
+    disp(['Total ' modifier ' trials written to file = ' num2str(totalTrialsAnalyzed)]);
+    disp(['L trials kept = ' num2str(pctAnalyzed*100,2) '% (' num2str(totalTrialsAnalyzed(1)) '/' num2str(totaltrialsAnalyzed(1) + totalTrialsNotAnalyzed) ')']);
+    disp(['R trials kept
 end
 
 end
