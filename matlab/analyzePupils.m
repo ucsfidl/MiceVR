@@ -58,8 +58,8 @@ ymin = -50;
 ymax = 50;
 
 % Used for the average plot limits
-avgXMin = -20;
-avgXMax = 20;
+avgXMin = -30;
+avgXMax = 30;
 
 lw = 1.5; % LineWidth
 
