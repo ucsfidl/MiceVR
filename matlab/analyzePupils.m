@@ -1,4 +1,4 @@
-function analyzePupils(trackFileName, numStim, frameLim, gRp, pxPerMm, usePupilDiamToCalcRp, useCR)
+function analyzePupils(trackFileName, numStim, frameLim, gRp, pxPerMm, usePupilDiamToCalcRp, slope, yintercept, useCR)
 % Once trackPupils is done and cleanUpTrialTimes is run, this script is used to analyze the pupil
 % positions and produce many plots.
 
@@ -133,7 +133,11 @@ majorAxisMm = cat(3, majorAxisLengths(:,:,1) / pxPerMm(1), majorAxisLengths(:,:,
 
 % Instead of using a static Rp, use one based on pupil size.  So Rp varies during the entire task.
 % For now just use the equation from Stahl 2002.
-Rp = -0.142*majorAxisMm + 1.055;
+if (isempty(slope))
+    slope = -0.142;
+    yintercept = 1.055;
+end
+Rp = slope*majorAxisMm + yintercept;
 
 if (usePupilDiamToCalcRp)
     RpL = Rp(:,:,1);
@@ -205,12 +209,12 @@ if (actionsFile ~= -1) % File found
     else
         expr = '.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t.*?\t.*?\t([^\s]*)\t*';
     end
-    m=0;
+    k=0;
     while(true)
-        if (m == 94)
+        if (k == 94)
             %disp(m);
         end
-        m = m+1;
+        k = k+1;
         line = fgetl(actionsFile);
         if (line ~= -1) % The file is not finished
             tokens = regexp(line, expr, 'tokens');
@@ -544,7 +548,7 @@ end
 % Second, plot the stimulus average of the eye movements for only CORRECT trials
 minLengths = zeros(2, 1);  % One for each eye
 resampledStimEye = cell(size(stimEyeMoveTrials));
-m = cell(size(stimEyeMoveTrials));
+mu = cell(size(stimEyeMoveTrials));
 sem = cell(size(stimEyeMoveTrials));
 ySem = cell(size(stimEyeMoveTrials));
 for eye=1:2  % For each eye
@@ -566,23 +570,23 @@ for eye=1:2  % For each eye
         if (~isempty(stimActionEyeMoveTrials{stimIdx,stimIdx,eye}))
             resampledStimEye{stimIdx,eye} = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimActionEyeMoveTrials{stimIdx,stimIdx,eye}, 'UniformOutput', false);
             d = cell2mat(resampledStimEye{stimIdx,eye}(:)');
-            m{stimIdx,eye} = nanmean(d, 2);
+            mu{stimIdx,eye} = nanmean(d, 2);
             sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
         end
     end
     
     for stimIdx=1:numStim
-        if (~isempty(m{stimIdx,eye}))
-            ySem{stimIdx,eye} = [m{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(m{stimIdx,eye}'+sem{stimIdx,eye}')];
+        if (~isempty(mu{stimIdx,eye}))
+            ySem{stimIdx,eye} = [mu{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(mu{stimIdx,eye}'+sem{stimIdx,eye}')];
         end
     end
 
     figure; hold on;
     skipLegend = zeros(1,numStim);
     for stimIdx=1:numStim
-        if (~isempty(m{stimIdx,eye}))
-            x = 1:length(m{stimIdx,eye});
-            plot(zeros(1,length(m{stimIdx,eye})), x, 'k--');  % This is replotted each time - no biggie
+        if (~isempty(mu{stimIdx,eye}))
+            x = 1:length(mu{stimIdx,eye});
+            plot(zeros(1,length(mu{stimIdx,eye})), x, 'k--');  % This is replotted each time - no biggie
             xSem = cat(2, x, fliplr(x));
 
             if (numStim == 3)
@@ -624,7 +628,7 @@ for eye=1:2  % For each eye
             end
             patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
             alpha(varianceAlpha);
-            h = [h plot(m{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
+            h = [h plot(mu{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
         else
             skipLegend(stimIdx) = 1;
         end
@@ -663,7 +667,7 @@ end
 warning('off','MATLAB:legend:IgnoringExtraEntries')
 minLengths = zeros(2, 1);  % One for each eye
 resampledStimEye = cell(size(stimEyeMoveTrials));
-m = cell(size(stimEyeMoveTrials));
+mu = cell(size(stimEyeMoveTrials));
 sem = cell(size(stimEyeMoveTrials));
 ySem = cell(size(stimEyeMoveTrials));
 for eye=1:2  % For each eye
@@ -696,28 +700,28 @@ for eye=1:2  % For each eye
         end
         if (~isempty(resampledStimEye{stimIdx,eye}))
             d = cell2mat(resampledStimEye{stimIdx,eye}(:)');
-            m{stimIdx,eye} = nanmean(d, 2);
+            mu{stimIdx,eye} = nanmean(d, 2);
             sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
         end
     end
     
     for stimIdx=1:numStim
-        ySem{stimIdx,eye} = [m{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(m{stimIdx,eye}'+sem{stimIdx,eye}')];
+        ySem{stimIdx,eye} = [mu{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(mu{stimIdx,eye}'+sem{stimIdx,eye}')];
     end
 
     figure; hold on;
     skipLegend = zeros(1,numStim);
     % All the lengths are NOT the same for each stim for 1 eye (some are empty), so pull from 1 that has data
     for stimIdx=1:numStim
-        if (~isempty(m{stimIdx,eye}))
-            x = 1:length(m{stimIdx,eye}); 
-            plot(zeros(1,length(m{stimIdx,eye})), x, 'k--');
+        if (~isempty(mu{stimIdx,eye}))
+            x = 1:length(mu{stimIdx,eye}); 
+            plot(zeros(1,length(mu{stimIdx,eye})), x, 'k--');
             xSem = cat(2, x, fliplr(x));
             break;
         end
     end
     for stimIdx=1:numStim
-        if (~isempty(m{stimIdx,eye}))
+        if (~isempty(mu{stimIdx,eye}))
             if (numStim == 3)
                 if (stimIdx==1)
                     curColor = colorLeft;
@@ -757,7 +761,7 @@ for eye=1:2  % For each eye
             end
             patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
             alpha(varianceAlpha);
-            h = [h plot(m{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
+            h = [h plot(mu{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
         else
             skipLegend(stimIdx) = 1;
         end

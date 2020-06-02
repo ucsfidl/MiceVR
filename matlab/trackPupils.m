@@ -44,7 +44,7 @@ fps = 60;  % All videos are 60 fps
 
 % For corneal reflection tracking
 crSzRangePx = [50 300];  % CR is as small as 69 px
-craRatio = 1.4;  % 1.3 is too low, it misses the CR on some frames
+craRatio = 1.5;  % 1.4 is too low, it misses the CR on some frames
 
 tic
 disp('Started...');
@@ -142,7 +142,7 @@ areas = zeros(numFrames, 1, 2);  % Z dimension is 1 for each eye, left eye first
 majorAxisLengths = zeros(numFrames, 1, 2);
 minorAxisLengths = zeros(numFrames, 1, 2);
 crCenters = zeros(numFrames, 2, 2);
-crArease = zeros(numFrames, 1, 2);
+crAreas = zeros(numFrames, 1, 2);
 crMajorAxisLengths = zeros(numFrames, 1, 2);
 crMinorAxisLengths = zeros(numFrames, 1, 2);
 

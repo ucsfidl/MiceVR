@@ -269,10 +269,14 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                     error('Invalid eye specified');
                 end
                 eyeShift = azimDeg(trialStartFrames(trialsToDo(trialIdx)):trialEndFrames(trialsToDo(trialIdx)), whichEyeIdx);
-                % Deal with NaNs in eye tracking (e.g. recorded when mouse blinks)
-                % For now 0 - could interpolate in the future, but this is easier now
+                % Deal with NaNs in eye tracking (e.g. recorded when mouse blinks or pupil is occluded by a whisker or foam piece)
+                % For now 0 - could interpolate in the future, but this is easier now.
+                % Setting to 0 is OK because I want a definitive eye location to know when to censor a trial.
+                % Right now even a single frame that brings the target into the good field will cause a trial to be censored,
+                % so there won't be any benefit from interpolating.  So leave as setting to 0.  Note that now that we 
+                % are also tracking corneal reflections, if either the corneal reflection center or pupil center cannot
+                % be found, the eye location value will be NaN, and so set to 0 here.
                 eyeShift(isnan(eyeShift)) = 0;
-                % Compare with using the R eye - any substantial difference?
                 frameCntDiff = length(eyeShift) - length(targetLeftBound);
                 if (frameCntDiff > 0)
                     eyeShift = eyeShift(1:length(targetLeftBound));

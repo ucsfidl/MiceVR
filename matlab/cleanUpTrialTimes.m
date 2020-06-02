@@ -1,4 +1,4 @@
-function cleanUpTrialTimes(videoMetadataFileName, fps)
+function cleanUpTrialTimes(videoMetadataFileName)
 % This script addresses a bug that often appears with the demarcating of 
 % trial start and end times in an eye video.  In Unity, a trial start and a 
 % trial end are indicated by a certain number of missing frames, which Unity
@@ -17,6 +17,8 @@ function cleanUpTrialTimes(videoMetadataFileName, fps)
 
 % USAGE:
 % > cleanUpTrialTimes('Dragon_182.mat', 60)
+
+fps = 60;
 
 successWait = 2;  % if trial success, gap between trial end and start will be 2 seconds
 failureWait = 4;  % if trial failure, gap between trial end and start will be 4 seconds
