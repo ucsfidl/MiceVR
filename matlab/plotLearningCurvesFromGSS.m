@@ -279,7 +279,10 @@ for sheetIdx=1:length(sheetIDs)
         if ((length(days)+1)/interval < t)
             xtl{t} = num2str(days(end)+1);
         else
-            xtl{t} = num2str(days((t-1)*interval));
+            if ((t-1)*interval == round((t-1)*interval)) % if whole number
+                xtl{t} = num2str(days((t-1)*interval));
+            else
+                xtl{t} = '';
         end
     end
     xticklabels(xtl);

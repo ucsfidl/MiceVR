@@ -517,6 +517,7 @@ if (sum(sum(sum(results_4choice))) > 0)
         end
         numCorrect = results(1,1,j)+results(2,2,j)+results(3,3,j)+results(4,4,j);
         numTrials = sum(sum(results(:,:,j)));
+        disp('======RAW======');
         disp(['ACCURACY = ' num2str(numCorrect/numTrials * 100, 2) '%']);
         sr = sum(results(:,1,j));
         disp(['NL->NL = ' num2str(round(results(1,1,j) / sr * 100), 3) '% (' ...
@@ -563,6 +564,40 @@ if (sum(sum(sum(results_4choice))) > 0)
               num2str(round(results(3,3,j) / sum(results(:,3,j)) * 100), 3) '/' ...
               num2str(round(results(4,4,j) / sum(results(:,4,j)) * 100), 3)]);
         disp('-----------');
+        disp('===ADJUSTED===');
+        denom = results(1,1,j) + results(3,1,j);
+        disp(['NL->NL = ' num2str(round(results(1,1,j) / denom * 100), 3) '% (' ...
+            num2str(results(1,1,j)) '/' num2str(denom) ')']);
+        disp(['NL->FL = ' num2str(round(results(3,1,j) / denom * 100), 3) '% (' ...
+            num2str(results(3,1,j)) '/' num2str(denom) ')']);
+        disp(['KEPT = ' num2str(round(((results(1,1,j) + results(3,1,j)) / sum(results(:,1,j))) * 100, 0)) '% ']);
+        disp('-----------')
+        denom = results(2,2,j) + results(4,2,j);
+        disp(['NR->NR = ' num2str(round(results(2,2,j) / denom * 100), 3) '% (' ...
+            num2str(results(2,2,j)) '/' num2str(denom) ')']);
+        disp(['NR->FR = ' num2str(round(results(4,2,j) / denom * 100), 3) '% (' ...
+            num2str(results(4,2,j)) '/' num2str(denom) ')']);
+        disp(['KEPT = ' num2str(round(((results(2,2,j) + results(4,2,j)) / sum(results(:,2,j))) * 100, 0)) '% ']);
+        disp('-----------')
+        denom = results(1,3,j) + results(3,3,j);
+        disp(['FL->NL = ' num2str(round(results(1,3,j) / denom * 100), 3) '% (' ...
+            num2str(results(1,3,j)) '/' num2str(denom) ')']);
+        disp(['FL->FL = ' num2str(round(results(3,3,j) / denom * 100), 3) '% (' ...
+            num2str(results(3,3,j)) '/' num2str(denom) ')']);
+        disp(['KEPT = ' num2str(round(((results(1,3,j) + results(3,3,j)) / sum(results(:,3,j))) * 100, 0)) '% ']);
+        disp('-----------')
+        denom = results(2,4,j) + results(4,4,j);
+        disp(['FR->NR = ' num2str(round(results(2,4,j) / denom * 100), 3) '% (' ...
+            num2str(results(2,4,j)) '/' num2str(denom) ')']);
+        disp(['FR->FR = ' num2str(round(results(4,4,j) / denom * 100), 3) '% (' ...
+            num2str(results(4,4,j)) '/' num2str(denom) ')']);        
+        disp(['KEPT = ' num2str(round(((results(2,4,j) + results(4,4,j)) / sum(results(:,4,j))) * 100, 0)) '% ']);
+        disp('-----------');
+        disp([num2str(round(results(1,1,j) / (results(1,1,j) + results(3,1,j)) * 100), 3) '/' ...
+              num2str(round(results(2,2,j) / (results(2,2,j) + results(4,2,j)) * 100), 3) '/' ...
+              num2str(round(results(3,3,j) / (results(1,3,j) + results(3,3,j)) * 100), 3) '/' ...
+              num2str(round(results(4,4,j) / (results(2,4,j) + results(4,4,j)) * 100), 3)]);
+        disp('-----------');
         disp(results(:,:,j));
         disp(['Total 4-choice trials = ' num2str(sum(sum(sum(results))))]);
         disp('===========');
@@ -598,7 +633,6 @@ if (sum(sum(sum(results_4choice))) > 0)
             disp('-----------')
         end
     end
-    
 end
 
 % If there are disc trials, print the results

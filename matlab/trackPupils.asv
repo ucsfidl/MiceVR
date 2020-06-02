@@ -38,22 +38,22 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, otsuWeight, crPres
 % These used to be arguments, but they haven't changed in over a year so pulling inside the function
 pupilSzRangePx = [50 4000];
 seSize = 4;
-paRatio = 1.8;  % 5/28/20 - was 1.7, but changed to 1.8 to help track eccentric pupils in Torque 419
+paratio = 1.7;
 useGPU = 0;
 fps = 60;  % All videos are 60 fps
 
 % For corneal reflection tracking
-crSzRangePx = [50 300];  % CR is as small as 69 px
-craRatio = 1.5;  % 1.4 is too low, it misses the CR on some frames
+crSzRangePx = [100 300];
+crRatio = 1.4;  % 1.3 is too low, it misses the CR on some frames
 
 tic
 disp('Started...');
 
-maxPupilAspectRatio = paRatio;  % 1.437; 1.45 lets some through, so go smaller, but not less than 1.4; motion blur causes 1.4326
+maxPupilAspectRatio = paratio;  % 1.437; 1.45 lets some through, so go smaller, but not less than 1.4; motion blur causes 1.4326
                             % Quasar had one eye > 2.2!  2.45 bad for Umpa.
                             % Changed to 2.6 on 4/27/18 when analyzing
                             % videos from rig3 from 4/25/18
-maxCRAspectRatio = craRatio;
+maxCRAspectRatio = crRatio;
                             
 % Wash to extend blanks out by 1 on either side?
 
@@ -142,7 +142,7 @@ areas = zeros(numFrames, 1, 2);  % Z dimension is 1 for each eye, left eye first
 majorAxisLengths = zeros(numFrames, 1, 2);
 minorAxisLengths = zeros(numFrames, 1, 2);
 crCenters = zeros(numFrames, 2, 2);
-crAreas = zeros(numFrames, 1, 2);
+crArease = zeros(numFrames, 1, 2);
 crMajorAxisLengths = zeros(numFrames, 1, 2);
 crMinorAxisLengths = zeros(numFrames, 1, 2);
 
@@ -411,9 +411,8 @@ else  % Partial analysis, so change file name as such
 end
 save(saveFileName, 'centers', 'areas', 'majorAxisLengths', 'minorAxisLengths', ...
     'vLeftFileName', 'vRightFileName', 'frameLim', 'fps', 'otsuWeight', ...
-    'pupilSzRangePx', 'seSize', 'paRatio', ...
-    'crCenters', 'crAreas', 'crMajorAxisLengths', 'crMinorAxisLengths', ...
-    'crSzRangePx', 'craRatio');
+    'pupilSzRangePx', 'seSize', 'paratio', ...
+    'crCenter', 'crArea);
 
 close(vout);
 

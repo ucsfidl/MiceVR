@@ -1,4 +1,4 @@
-function analyzePupils(trackFileName, numStim, frameLim, Rp, pxPerMm, fps, timeInSec)
+function analyzePupils(trackFileName, numStim, frameLim, gRp, pxPerMm, usePupilDiamToCalcRp, slope, yintercept, useCR)
 % Once trackPupils is done and cleanUpTrialTimes is run, this script is used to analyze the pupil
 % positions and produce many plots.
 
@@ -21,13 +21,15 @@ function analyzePupils(trackFileName, numStim, frameLim, Rp, pxPerMm, fps, timeI
 
 % TODO:
 % - Update to deal with slanted eyes?
-% - Update to deal with a corneal reflection, if needed?
 
 % USAGE:
 % >> analyzePupils(['Dragon_229_trk.mat'], 4, [1 0], 1.15, 47, 60, 0)
 
 %leftColor = [1 1 0.79];  % off-yellow
 %rightColor = [0.81 1 0.81];  % off-green
+
+fps = 60;
+timeInSec = 0;
 
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 
@@ -52,12 +54,12 @@ shadingColorCenter = [0.85 1 0.8]; % dull green
 shadingColorInterTrial = [0.9 0.9 0.9];  % grey
 
 % Used as the full trace plot limits, where this is actually the xmin and xmax for the azimuth plot
-ymin = -40;
-ymax = 40;
+ymin = -50;
+ymax = 50;
 
 % Used for the average plot limits
-avgXMin = -20;
-avgXMax = 20;
+avgXMin = -30;
+avgXMax = 30;
 
 lw = 1.5; % LineWidth
 
@@ -97,7 +99,11 @@ stimCenter = 20000;
 trialStartOffset = 1;  % Add this much to the recorded trial frame starts - for backwards compatibility
 trialEndOffset = 0;
 
-load(trackFileName, 'centers', 'areas');
+load(trackFileName, 'centers', 'areas', 'majorAxisLengths', 'minorAxisLengths');
+if (useCR)
+    load(trackFileName, 'crCenters', 'crAreas', 'crMajorAxisLengths', 'crMinorAxisLengths');
+end
+
 if (~contains(trackFileName, '_part_trk.mat'))
     rootFileName = trackFileName(1:end-8);
 else
@@ -117,15 +123,59 @@ if frameStop == 0 || frameStop > totalFrames
     frameStop = totalFrames;
 end
 
-% Process the position changes for plotting later
-% First, find the central position of the eye, given all of the data, and
-% subtract that away.
+% Second, record pupil sizes over the duration of the session
+% Take the areas matrix and assume each is an area of a circle (approximation). 
+% Then take the pxPerMM for each eye and 
+% We do 2 measures - a simplistic one assuming we are looking at a non-deformed circle
+areasMm2 = cat(3, areas(:,:,1) * (1/pxPerMm(1)^2), areas(:,:,2) * (1/pxPerMm(2)^2));
+% and a second one which assumes the longest ellipse axis is the diameter (due to foreshortening of the minor axis)
+majorAxisMm = cat(3, majorAxisLengths(:,:,1) / pxPerMm(1), majorAxisLengths(:,:,2) / pxPerMm(2));
+
+% Instead of using a static Rp, use one based on pupil size.  So Rp varies during the entire task.
+% For now just use the equation from Stahl 2002.
+if (isempty(slope))
+    slope = -0.142;
+    yintercept = 1.055;
+end
+Rp = slope*majorAxisMm + yintercept;
+
+if (usePupilDiamToCalcRp)
+    RpL = Rp(:,:,1);
+    RpR = Rp(:,:,2);
+else
+    RpL = gRp(1);
+    RpR = gRp(2);
+end
+
+% Process the position changes for plotting later.
+% Either, find the central position of the eye, given all of the data, and subtract that away.
+% Or, if an on-axis corneal reflection is present, use that as a landmark, calculate the center relative to that, and subtract away.
 elavCenter = nanmean(centers(:, 2, :));
-elavDeg = asind(((elavCenter - centers(:,2,:))/pxPerMm) / Rp);
+elavDeg = cat(3, real(asind(((elavCenter(:,:,1) - centers(:,2,1))/pxPerMm(1)) ./ RpL)), ...
+                 real(asind(((elavCenter(:,:,2) - centers(:,2,2))/pxPerMm(2)) ./ RpR)));
 elavDeg = reshape(elavDeg, size(elavDeg, 1), size(elavDeg, 3));
-azimCenter = nanmean(centers(:, 1, :));
-azimDeg = asind(((azimCenter - centers(:,1,:))/pxPerMm) / Rp);
-%azimDeg = -((centers(:,1,:) - azimCenter) .* degPerPx);
+
+if (useCR)
+    if (crCenters(1,1,1) == 0) % No CR found
+        cL = nanmean(centers(:, 1, 1));
+    else
+        cL = crCenters(:,1,1);
+    end
+    if (crCenters(1,1,2) == 0) % No CR found
+        cR = nanmean(centers(:, 1, 1));
+    else
+        cR = crCenters(:,1,2);
+    end
+    
+    azimDeg = cat(3, real(asind((cL - centers(:,1,1))/pxPerMm(1)) ./ RpL), ...
+                     real(asind((cR - centers(:,1,2))/pxPerMm(2)) ./ RpR));
+    azimCenter = nanmean(azimDeg);
+    azimDeg = cat(3, azimDeg(:,1,1) - azimCenter(:,:,1), azimDeg(:,1,2) - azimCenter(:,:,2));
+else
+    azimCenter = nanmean(centers(:, 1, :));
+    azimDeg = cat(3, real(asind(((azimCenter(:,:,1) - centers(:,1,1))/pxPerMm(1)) ./ RpL)), ...
+                     real(asind(((azimCenter(:,:,2) - centers(:,1,2))/pxPerMm(2)) ./ RpR)));
+end
 azimDeg = reshape(azimDeg, size(azimDeg, 1), size(azimDeg, 3));
 
 % Read the actions file so the graph can be properly annotated
@@ -159,12 +209,12 @@ if (actionsFile ~= -1) % File found
     else
         expr = '.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t.*?\t.*?\t([^\s]*)\t*';
     end
-    m=0;
+    k=0;
     while(true)
-        if (m == 94)
+        if (k == 94)
             %disp(m);
         end
-        m = m+1;
+        k = k+1;
         line = fgetl(actionsFile);
         if (line ~= -1) % The file is not finished
             tokens = regexp(line, expr, 'tokens');
@@ -498,7 +548,7 @@ end
 % Second, plot the stimulus average of the eye movements for only CORRECT trials
 minLengths = zeros(2, 1);  % One for each eye
 resampledStimEye = cell(size(stimEyeMoveTrials));
-m = cell(size(stimEyeMoveTrials));
+mu = cell(size(stimEyeMoveTrials));
 sem = cell(size(stimEyeMoveTrials));
 ySem = cell(size(stimEyeMoveTrials));
 for eye=1:2  % For each eye
@@ -520,23 +570,23 @@ for eye=1:2  % For each eye
         if (~isempty(stimActionEyeMoveTrials{stimIdx,stimIdx,eye}))
             resampledStimEye{stimIdx,eye} = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimActionEyeMoveTrials{stimIdx,stimIdx,eye}, 'UniformOutput', false);
             d = cell2mat(resampledStimEye{stimIdx,eye}(:)');
-            m{stimIdx,eye} = nanmean(d, 2);
+            mu{stimIdx,eye} = nanmean(d, 2);
             sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
         end
     end
     
     for stimIdx=1:numStim
-        if (~isempty(m{stimIdx,eye}))
-            ySem{stimIdx,eye} = [m{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(m{stimIdx,eye}'+sem{stimIdx,eye}')];
+        if (~isempty(mu{stimIdx,eye}))
+            ySem{stimIdx,eye} = [mu{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(mu{stimIdx,eye}'+sem{stimIdx,eye}')];
         end
     end
 
     figure; hold on;
     skipLegend = zeros(1,numStim);
     for stimIdx=1:numStim
-        if (~isempty(m{stimIdx,eye}))
-            x = 1:length(m{stimIdx,eye});
-            plot(zeros(1,length(m{stimIdx,eye})), x, 'k--');  % This is replotted each time - no biggie
+        if (~isempty(mu{stimIdx,eye}))
+            x = 1:length(mu{stimIdx,eye});
+            plot(zeros(1,length(mu{stimIdx,eye})), x, 'k--');  % This is replotted each time - no biggie
             xSem = cat(2, x, fliplr(x));
 
             if (numStim == 3)
@@ -578,7 +628,7 @@ for eye=1:2  % For each eye
             end
             patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
             alpha(varianceAlpha);
-            h = [h plot(m{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
+            h = [h plot(mu{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
         else
             skipLegend(stimIdx) = 1;
         end
@@ -617,7 +667,7 @@ end
 warning('off','MATLAB:legend:IgnoringExtraEntries')
 minLengths = zeros(2, 1);  % One for each eye
 resampledStimEye = cell(size(stimEyeMoveTrials));
-m = cell(size(stimEyeMoveTrials));
+mu = cell(size(stimEyeMoveTrials));
 sem = cell(size(stimEyeMoveTrials));
 ySem = cell(size(stimEyeMoveTrials));
 for eye=1:2  % For each eye
@@ -650,28 +700,28 @@ for eye=1:2  % For each eye
         end
         if (~isempty(resampledStimEye{stimIdx,eye}))
             d = cell2mat(resampledStimEye{stimIdx,eye}(:)');
-            m{stimIdx,eye} = nanmean(d, 2);
+            mu{stimIdx,eye} = nanmean(d, 2);
             sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
         end
     end
     
     for stimIdx=1:numStim
-        ySem{stimIdx,eye} = [m{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(m{stimIdx,eye}'+sem{stimIdx,eye}')];
+        ySem{stimIdx,eye} = [mu{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(mu{stimIdx,eye}'+sem{stimIdx,eye}')];
     end
 
     figure; hold on;
     skipLegend = zeros(1,numStim);
     % All the lengths are NOT the same for each stim for 1 eye (some are empty), so pull from 1 that has data
     for stimIdx=1:numStim
-        if (~isempty(m{stimIdx,eye}))
-            x = 1:length(m{stimIdx,eye}); 
-            plot(zeros(1,length(m{stimIdx,eye})), x, 'k--');
+        if (~isempty(mu{stimIdx,eye}))
+            x = 1:length(mu{stimIdx,eye}); 
+            plot(zeros(1,length(mu{stimIdx,eye})), x, 'k--');
             xSem = cat(2, x, fliplr(x));
             break;
         end
     end
     for stimIdx=1:numStim
-        if (~isempty(m{stimIdx,eye}))
+        if (~isempty(mu{stimIdx,eye}))
             if (numStim == 3)
                 if (stimIdx==1)
                     curColor = colorLeft;
@@ -711,7 +761,7 @@ for eye=1:2  % For each eye
             end
             patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
             alpha(varianceAlpha);
-            h = [h plot(m{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
+            h = [h plot(mu{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
         else
             skipLegend(stimIdx) = 1;
         end
@@ -1012,6 +1062,21 @@ for i=1:size(azimDeg,2) % for each eye, fill in the NaNs
     nanAz = isnan(azimDeg(:,i));
     t = 1:numel(azimDeg(:,i));
     azimDegNoNaN(nanAz,i) = interp1(t(~nanAz), azimDegNoNaN(~nanAz,i), t(nanAz));
+    % Set any remaining NaNs, like at the beginning or end, to the nearest value.  There is probably a cleaner way to do this... But this works.
+    nanIdx = find(isnan(azimDegNoNaN(:,i)));
+    if (~isempty(nanIdx))
+        firstNaN = nanIdx(1);
+        lastNaN = nanIdx(end);
+        if firstNaN == 1 % Array starts with a NaN, so that failed to interpolate
+            firstNoNaN = find(~isnan(azimDegNoNaN(:,i)), 1);
+            azimDegNoNaN(1:firstNoNaN-1, i) = azimDegNoNaN(firstNoNaN, i);
+        end
+        if lastNaN == length(azimDegNoNaN(:,i)) % Array ends with a NaN
+            lastNoNaN = find(~isnan(azimDegNoNaN(:,i)), 1, 'last');
+            azimDegNoNaN(lastNoNaN+1:end, i) = azimDegNoNaN(lastNoNaN, i);
+        end
+    end
+        
     d = diff(azimDegNoNaN(:,i));
     saccadeThresh(i)= 2 * std(d);  % std(d) is often near 1 px
     f = find(saccadeThresh(i) < abs(d));
@@ -1038,11 +1103,18 @@ end
 % Save it all for posterity
 save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', ...
     'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates', 'eyeblinkStartFrames', ...
-    'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes', 'saccadeThresh');
+    'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes', 'saccadeThresh', 'areasMm2', 'Rp');
 
 disp(['Saccade thresh L eye = ' num2str(saccadeThresh(1))]);
 disp(['Mean saccade size L eye = ' num2str(mean(abs(saccadeAmplitudes{1})))]);
 disp(['Saccade thresh R eye = ' num2str(saccadeThresh(2))]);
 disp(['Mean saccade size R eye = ' num2str(mean(abs(saccadeAmplitudes{2})))]);
 
+disp(['Mean pupil sizes by areas: L = ' num2str(round(sqrt(nanmean(areasMm2(:,1,1))/pi)*2, 2)) ' mm diameter, R = ' ...
+                                num2str(round(sqrt(nanmean(areasMm2(:,1,2))/pi)*2, 2)) ' mm diameter']);
+disp(['Mean pupil sizes by ellipse major axis: L = ' num2str(round(nanmean(majorAxisMm(:,1,1)), 2)) ' mm diameter, R = ' ...
+                                num2str(round(nanmean(majorAxisMm(:,1,2)), 2)) ' mm diameter']);
+
+disp(['Mean Rp: L = ' num2str(nanmean(RpL)) ', R = ' num2str(nanmean(RpR)) ]);                            
+                            
 end

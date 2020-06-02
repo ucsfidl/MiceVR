@@ -62,6 +62,8 @@ scenariosFolder = 'C:\Users\nikhi\Documents\GitHub\MiceVR\scenarios\';
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
 
+actLineFormat = getActionLineFormat();
+
 % X locs of 2-choice, 3-chioce and 4-choice worlds
 leftX = 19975;
 centerX = 20000;
@@ -149,7 +151,7 @@ for tt_i=1:length(trialTypeStrArr)
         actionsFileID = fopen(actionsFileName);
         if (actionsFileID ~= -1)  % File was opened properly
             fgetl(actionsFileID); % Throw out the first line, as it is a column header
-            actRecs = textscan(actionsFileID, '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d'); 
+            actRecs = textscan(actionsFileID, actLineFormat); 
         else
             error(['Actions file ' actionsFileName 'could not be opened, so ending.']);
         end

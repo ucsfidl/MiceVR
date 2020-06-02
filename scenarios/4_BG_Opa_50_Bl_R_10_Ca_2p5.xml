@@ -1,0 +1,24 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>
+			<gameTurnControl>yaw</gameTurnControl>
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>false</biasCorrection>
+			<correctionTrials>true</correctionTrials>  <!-- correction trials are NOT counted in any statistical calculations -->
+			<blockSize>40</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+			<catchFreq>0.025</catchFreq>  <!-- a catch trial is one in which no target is presented at all -->
+			<presoFracSpecified>true</presoFracSpecified>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_4_BG_Opa_50_R_10.xml</includeWorld>
+	</worlds>
+</document>

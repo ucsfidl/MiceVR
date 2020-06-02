@@ -185,21 +185,29 @@ while (1) % a while loop to iterate until earliest cutoff is found
     winnerMask = winnerMask - 1;
     
     predictionAccuracy = zeros(4,1);
+    numerAll = 0;
+    denomAll = 0;
     for idx=1:4
         indices = winnerMask == idx;
         currArray = binnedLocs(:,:,idx);
         numer = sum(currArray(indices));
         % In v1, I was calculating accuracy for each action based on the location at which the action was "decided"
-        % This underestimates inaccuracy, esp. when target positions are unequally presented (unbalanced).
+        % This underestimates inaccuracy, esp. when target positions are equally presented (balanced).
         % In the new version, I calculate accuracy as the fraction of correct predictions divided by the 
         % total number of actions.  This is an action-centric calculation rather than a location-of-decision-centric
         % calculation, and this should be more conservative and better.
-        denom = sum(sum(binnedLocs(:,:,idx)));
+        % V1:
+        denom = 0;
+        for idx2=1:4
+            currArray2 = binnedLocs(:,:,idx2);
+            denom = denom + sum(currArray2(indices));
+        end
         predictionAccuracy(idx) = numer / denom;
+        numerAll = numerAll + numer;
+        denomAll = denomAll + denom;
     end
     
-    % I could use mean or min here.  min is more conservative, so going with that.
-    if (sum(isnan(predictionAccuracy)) > 0 || min(predictionAccuracy) < minAccuracy)  % push decision point to later
+    if (sum(isnan(predictionAccuracy)) > 0 || numerAll / denomAll < minAccuracy)  % push decision point to later
         newCutoff = round(cutoff + (lastHighCutoff - cutoff) / 2, 2);
         if (newCutoff == cutoff)
             break;
