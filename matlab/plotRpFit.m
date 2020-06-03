@@ -7,10 +7,11 @@ function plotRpFit(pupilDiam, Rp)
 
 R_sq = 1 - (S.normr/norm(Rp - mean(Rp)))^2;
 
+figure;
 plot(pupilDiam, Rp, 'bo')
 hold on
 plot(pupilDiam, y_fit, 'r-')
-plot(pupilDiam, y_fit+2*delta, 'm--', pupilDiam, y_fit-2*delta, 'm--')
+plot(sort(pupilDiam), sort(y_fit+2*delta), 'm--', sort(pupilDiam), sort(y_fit-2*delta), 'm--')
 title('Linear Fit of Data with 95% Prediction Interval')
 legend('Data','Linear Fit','95% Prediction Interval')
 
