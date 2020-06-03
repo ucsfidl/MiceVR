@@ -36,7 +36,7 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, otsuWeight, crPres
 % seSize = 10 hides whiskers/eye lashes, 5 does not!
 
 % These used to be arguments, but they haven't changed in over a year so pulling inside the function
-pupilSzRangePx = [50 4000];
+pupilSzRangePx = [200 4000];  % 5/28/20 - min 100 is too small and gives false positives on eye blinks for Uranus 90
 seSize = 4;
 paRatio = 1.8;  % 5/28/20 - was 1.7, but changed to 1.8 to help track eccentric pupils in Torque 419
 useGPU = 0;

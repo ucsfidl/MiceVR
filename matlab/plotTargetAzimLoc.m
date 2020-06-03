@@ -1,5 +1,5 @@
-function [nasalExtremaL, nasalExtremaR, accuracyPerExtrema] = plotTargetAzimLoc(mouseName, days, sessions, trials, ...
-    stimLocsToAnalyze, trialTypeStrArr, denoiseBallMovement, useFieldRestriction, useEyeTracking, whichEye, ...
+function [nasalExtremaL, nasalExtremaR, accuracyPerExtremaL, accuracyPerExtremaR] = ... 
+    plotTargetAzimLoc(mouseName, days, trials, stimLocsToAnalyze, useFieldRestriction, useEyeTracking, whichEye, ...
     includeCorrectionTrials, outputNewActionsFile, targetAzimLimit, fractionOfRun, censorOnlyIfCorrect, ...
     writeOutOnlyIfCensored, interactive)
 % This function takes as inputs the replay files for a session as well as the mouse's eye movements 
@@ -24,6 +24,10 @@ function [nasalExtremaL, nasalExtremaR, accuracyPerExtrema] = plotTargetAzimLoc(
 % EXAMPLE USAGE:
 % >> [ne acc] = plotTargetAzimLoc('Uranus', [99],[],[1 0],[],[],1,1,1,'R',0, 1, [0 0], 0.57, 1, 0, 0);
 
+% Old arguments that I don't change
+sessions = [];
+denoiseBallMovement = 1;
+trialTypeStrArr = [];
 
 %%% CHANGE THESE VARS FOR YOUR SETUP PRIOR TO RUNNING %%%
 scenariosFolder = 'C:\Users\nikhi\Documents\GitHub\MiceVR\scenarios\';
@@ -72,8 +76,10 @@ bucketSize = 4;  % pool accuracy data in 4 degree buckets
 buckets = -40:bucketSize:40;
 buckets(1) = -Inf;
 buckets(end) = Inf;
-numCorrect = zeros(length(buckets), 1);
-numIncorrect = zeros(length(buckets), 1);
+numCorrectL = zeros(length(buckets), 1);
+numCorrectR = zeros(length(buckets), 1);
+numIncorrectL = zeros(length(buckets), 1);
+numIncorrectR = zeros(length(buckets), 1);
 
 % Error out if number of sessions is non-zero and does not match number of days.
 if (~isempty(sessions) && length(days) ~= length(sessions))
@@ -368,9 +374,17 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 end
                 idx = find(buckets >= extreme, 1);
                 if (stimLocX == actLocX)
-                    numCorrect(idx) = numCorrect(idx) + 1;
+                    if (left == 1)
+                        numCorrectL(idx) = numCorrectL(idx) + 1;
+                    elseif (left == 0)
+                        numCorrectR(idx) = numCorrectR(idx) + 1;
+                    end
                 else
-                    numIncorrect(idx) = numIncorrect(idx) + 1;
+                    if (left == 1)
+                        numIncorrectL(idx) = numIncorrectL(idx) + 1;
+                    elseif (left == 0)
+                        numIncorrectR(idx) = numIncorrectR(idx) + 1;
+                    end
                 end
                 disp(['T' num2str(trialsToDo(trialIdx)) ...
                       ' - ' m ' - F' num2str(extremeFrame) ':' ...
@@ -532,26 +546,35 @@ for d_i=1:length(days)  % Iterate through all of the specified days
     end
 end
 
-accuracyPerExtrema = numCorrect ./ (numCorrect + numIncorrect);
+accuracyPerExtremaL = numCorrectL ./ (numCorrectL + numIncorrectL);
+accuracyPerExtremaR = numCorrectR ./ (numCorrectR + numIncorrectR);
+
+pctAnalyzed = totalTrialsAnalyzed ./ (totalTrialsAnalyzed + totalTrialsNotAnalyzed);
 
 figure;
 hold on;
 yyaxis left;
-histogram(nasalExtremaL, -40:bucketSize:40, 'Normalization', 'probability', 'FaceColor', [2 87 194]/255);
-histogram(nasalExtremaR, -40:bucketSize:40, 'Normalization', 'probability', 'FaceColor', [226 50 50]/255);
-ylabel('fraction');
+blue = [2 87 194]/255;
+red = [226 50 50]/255;
+histogram(nasalExtremaL, -40:bucketSize:40, 'Normalization', 'probability', 'FaceColor', blue);
+histogram(nasalExtremaR, -40:bucketSize:40, 'Normalization', 'probability', 'FaceColor', red);
+ylabel('fraction (bars)', 'Color', 'black');
+set(gca, 'YColor', 'k');
 
 green = [0.4660 0.6740 0.1880];
 yyaxis right;
-scatter(buckets(2:end-1) - bucketSize/2, accuracyPerExtrema(2:end-1),40, ...
-        'MarkerEdgeColor', green, 'MarkerFaceColor', green);
+scatter(buckets(2:end-1) - bucketSize/2, accuracyPerExtremaL(2:end-1),40, ...
+        'MarkerEdgeColor', blue, 'MarkerFaceColor', blue);
+scatter(buckets(2:end-1) - bucketSize/2, accuracyPerExtremaR(2:end-1),40, ...
+        'MarkerEdgeColor', red, 'MarkerFaceColor', red);
 xlabel('most nasal edge of target (degrees)');
-ylabel('accuracy', 'Color', green);
+ylabel('accuracy (dots)', 'Color', 'black');
 ylim([-0.1 1.1]);
-set(gca, 'YColor', green);
+set(gca, 'YColor', 'k');
 % Plot 0 degree  dotted line
 plot([0 0], ylim, 'k--');
-title(['n_L=' num2str(length(nasalExtremaL)) ', n_R=' num2str(length(nasalExtremaR))]);
+title([mouseName ' D' num2str(days) ': n_L=' num2str(length(nasalExtremaL)) ' (' num2str(pctAnalyzed(1)*100,2) ...
+        '% kept), n_R=' num2str(length(nasalExtremaR)) ' (' num2str(pctAnalyzed(2)*100,2) '% kept)']);
 
 if (~interactive && outputNewActionsFile && newActionsFileID ~= -1)
     fclose(newActionsFileID);
@@ -559,7 +582,6 @@ if (~interactive && outputNewActionsFile && newActionsFileID ~= -1)
     if (writeOutOnlyIfCensored)
         modifier = 'censored';
     end
-    pctAnalyzed = totalTrialsAnalyzed ./ (totalTrialsAnalyzed + totalTrialsNotAnalyzed);
     disp(['Total ' modifier ' trials written to file = ' num2str(sum(totalTrialsAnalyzed))]);
     disp(['L trials kept = ' num2str(pctAnalyzed(1)*100,2) '% (' num2str(totalTrialsAnalyzed(1)) '/' num2str(totalTrialsAnalyzed(1) + totalTrialsNotAnalyzed(1)) ')']);
     disp(['R trials kept = ' num2str(pctAnalyzed(2)*100,2) '% (' num2str(totalTrialsAnalyzed(2)) '/' num2str(totalTrialsAnalyzed(2) + totalTrialsNotAnalyzed(2)) ')']);

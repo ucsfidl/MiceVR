@@ -13,7 +13,7 @@ R_sq = 1 - (S.normr/norm(Rp - mean(Rp)))^2;
 figure;
 plot(pupilDiam, Rp, 'b.', 'MarkerSize', 20)
 hold on
-plot(pupilDiam, y_fit, 'k-', 'LineWidth', 2)
+plot(pupilDiam, y_fit, 'r-', 'LineWidth', 2)
 if (m < 0)
     plot(sort(pupilDiam), sort(y_fit+2*delta, 'descend'), 'm--', sort(pupilDiam), sort(y_fit-2*delta, 'descend'), 'm--')
 else
@@ -22,7 +22,7 @@ end
     
 set(gca,'box','off');
 title(tit);
-%legend('Data','Linear Fit','95% Prediction Interval');
+legend('Data','Linear Fit','95% Prediction Interval');
 xlabel('Pupil diameter (mm)');
 ylabel('R_p (mm)');
 

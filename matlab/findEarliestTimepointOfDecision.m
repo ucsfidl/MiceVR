@@ -1,11 +1,10 @@
-function [cutoff, predictionAccuracy] = findEarliestTimepointOfDecision(mouseName, days, sessions, minAccuracy, ...
-                                                                        poolingSize)
+function [cutoff, predictionAccuracy] = findEarliestTimepointOfDecision(mouseName, days, numTargets, minAccuracy, poolingSize)
 % This is a helper function to help identify what the cutoff should be for censoring a trial
 % if the mouse moved the target into its good field before the cutoff timepoint.  The cutoff is what is outputted
 % by this function, and it is the earliest timepoint in a normalized trial (range 0-100%) in which
 % the mouse's decision on the trial can be predicted with a user-specified accuracy (e.g. 70%). 
 
-% To determine this, the program will do a binary search between 0-100%, with a step size of 1%.
+% To determine this, the program will do a binary search between 0-100%, with a min step size of 1%.
 
 % The program will iterate through all replays and find the location of the mouse at t=50%. It will also
 % log where the mouse decided to go for that trial.  Then, it will analyze this 2-d array to produce
@@ -25,29 +24,40 @@ function [cutoff, predictionAccuracy] = findEarliestTimepointOfDecision(mouseNam
 % A pooling size of 1 means 1x1 (just rounding to the nearest integer), 2 means 2x2, 3 means 3x3, etc.
 % Usually I use a value of 1, which is more prone to over-fitting than higher values.
 
-% NEW 5/13/20: Added support for uneven 4-choice presentation.  If presentation rate is not balanced, make sure the less
+% 5/13/20: Added support for uneven 4-choice presentation.  If presentation rate is not balanced, make sure the less
 % frequent decisions are prioritized so that minAccuracy (say 70%) of trials are predicted correctly.
+
+sessions = [];
+fps = 60;
 
 stimLeftNear = 19973;
 stimLeftFar = 19972;
 stimRightNear = 20027;
 stimRightFar = 20028;
 
-colors = [1 1 1;   % white, for places on the winnerMask which are not used for predictions
+stimLeft = 19975;
+stimRight = 20025;
+stimCenter = 20000;
+
+colors4 = [1 1 1;   % white, for places on the winnerMask which are not used for predictions
           0.84 0.89 0.99;      % dull blue
           1 0.87 0.71;     % dull orange
           0.84 0.98 0.99;     % dull cyan
           0.9 0.9 0.69;   % dull yellow
           ];
 
+colors3 = [ 1 1 1;   % white, for places on the winnerMask which are not used for predictions
+            0.84 0.89 0.99;  % dull blue
+            1 0.87 0.71;     % dull orange
+            0.85 1 0.8];     % dull green
+
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
 
 actLineFormat = getActionLineFormat();
 
-fps = 60;
-successDelay = 2; %sec
-failureDelay = 4; %sec
+successDelay = 2; % sec
+failureDelay = 4; % sec
 
 totalTrialsAnalyzed = 0;
 
@@ -151,16 +161,16 @@ while (1) % a while loop to iterate until earliest cutoff is found
     minXVal = floor(min(mouseLocToActLoc(:,2)));
     maxXVal = ceil(max(mouseLocToActLoc(:,2))); 
     xRange = round((maxXVal - minXVal) / poolingSize) + 1;
-    binnedLocs = zeros(zRange, xRange, 4);
+    binnedLocs = zeros(zRange, xRange, numTargets);
 
     for idx=1:length(mouseLocToActLoc(:,1))
         zIdx = round((mouseLocToActLoc(idx,1) - minZVal) / poolingSize) + 1;
         xIdx = round((mouseLocToActLoc(idx,2) - minXVal) / poolingSize) + 1;
-        if (mouseLocToActLoc(idx,3) == stimLeftNear)
+        if (mouseLocToActLoc(idx,3) == stimLeftNear || mouseLocToActLoc(idx, 3) == stimLeft)
             actIdx = 1;
-        elseif (mouseLocToActLoc(idx,3) == stimRightNear)
+        elseif (mouseLocToActLoc(idx,3) == stimRightNear || mouseLocToActLoc(idx,3) == stimRight)
             actIdx = 2;
-        elseif (mouseLocToActLoc(idx,3) == stimLeftFar)
+        elseif (mouseLocToActLoc(idx,3) == stimLeftFar || mouseLocToActLoc(idx,3) == stimCenter)
             actIdx = 3;
         else
             actIdx = 4;
@@ -172,7 +182,7 @@ while (1) % a while loop to iterate until earliest cutoff is found
     end
 
     locAccuracy = zeros(size(binnedLocs));
-    for idx=1:4
+    for idx=1:numTargets
         locAccuracy(:,:,idx) = binnedLocs(:,:,idx) ./ sum(binnedLocs,3);
     end
     
@@ -184,8 +194,8 @@ while (1) % a while loop to iterate until earliest cutoff is found
     [mx winnerMask] = max(locAccuracyWithNaNSheet, [], 3);
     winnerMask = winnerMask - 1;
     
-    predictionAccuracy = zeros(4,1);
-    for idx=1:4
+    predictionAccuracy = zeros(numTargets,1);
+    for idx=1:numTargets
         indices = winnerMask == idx;
         currArray = binnedLocs(:,:,idx);
         numer = sum(currArray(indices));
@@ -217,7 +227,11 @@ while (1) % a while loop to iterate until earliest cutoff is found
 end
 
 figure;
-colormap(colors);
+if (numTargets == 3)
+    colormap(colors3);
+elseif (numTargets == 4)
+    colormap(colors4);
+end
 imagesc(flipud(winnerMask));
 %pcolor(winnerMask);  % the grid adds too much visual noise
 
