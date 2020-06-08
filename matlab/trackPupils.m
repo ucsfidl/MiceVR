@@ -36,15 +36,16 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, otsuWeight, crPres
 % seSize = 10 hides whiskers/eye lashes, 5 does not!
 
 % These used to be arguments, but they haven't changed in over a year so pulling inside the function
-pupilSzRangePx = [200 4000];  % 5/28/20 - min 100 is too small and gives false positives on eye blinks for Uranus 90
+pupilSzRangePx = [100 4000];  % 5/28/20 - min 100 is too small and gives false positives on eye blinks for Uranus 90
 seSize = 4;
 paRatio = 1.8;  % 5/28/20 - was 1.7, but changed to 1.8 to help track eccentric pupils in Torque 419
 useGPU = 0;
 fps = 60;  % All videos are 60 fps
 
 % For corneal reflection tracking
-crSzRangePx = [50 300];  % CR is as small as 69 px
-craRatio = 1.5;  % 1.4 is too low, it misses the CR on some frames
+crSzRangePx = [40 200];  % CR is as small as 50 px
+craRatio = 1.6;  % 1.5 is too low, it misses the CR on some frames
+crOtsuWeight = 1.2;  % 1.0 loses CRs near eye boundaries - smaller numbers are more permissive
 
 tic
 disp('Started...');
@@ -75,7 +76,6 @@ if (~isempty(vLeftFileName))
 else
     skip(1) = true;
 end
-
 if (~isempty(vRightFileName))
     % Hack but works
     if (~exist('v'))
@@ -86,7 +86,6 @@ if (~isempty(vRightFileName))
 else
     skip(2) = true;
 end
-
 if (skip(1) && skip(2))
     error('Need to specify at least 1 of 2 video filenames.');
 end
@@ -164,6 +163,8 @@ open(vout);
 
 % 2 RGB images per video frame, RGB despite being grayscale because it is MP4 encoding
 imLR = zeros(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'uint8'); 
+% Save the average frame, for use by the analyzePupils script
+sumImLR = zeros(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'single');
 newImLR = imLR;
 
 if (skip(1))
@@ -186,6 +187,8 @@ while relFrame + frameStart <= frameStop + 1
     %disp(relFrame + frameStart - 1);  %% UNCOMMENT to see status
     for i=startVid:stopVid  % 1 is L, 2 is R
         imLR(:,:,:,i) = readFrame(v(i));
+        % Tracks sum of all images to calculate average image in analyzePupils
+        sumImLR(:,:,:,i) = sumImLR(:,:,:,i) + single(imLR(:,:,:,i));
         
         %%%%% CORE ALGORITHM FOR FINDING PUPIL %%%%%%%%%%%%
         % It is important to to binarize before opening to keep parts of
@@ -212,7 +215,7 @@ while relFrame + frameStart <= frameStop + 1
         
         cc = bwconncomp(subIm);
         % For debugging:
-        if (relFrame == 124 && i == 2)
+        if (relFrame == 1 && i == 2)
             a = 0;
         end
         % end debugging        
@@ -310,12 +313,12 @@ while relFrame + frameStart <= frameStop + 1
             % Don't need to open the image because the CR will be pure white
             % No need to complement, as the CR is already pure white
 
-            subIm = imbinarize(imLR(:,:,:,i), graythresh(imLR(:,:,:,i)));
+            subIm = imbinarize(imLR(:,:,:,i), crOtsuWeight * graythresh(imLR(:,:,:,i)));
             subIm = subIm(:,:,1);  % Take just one layer, otherwise regionprops won't give anything but the centroids
             cc = bwconncomp(subIm);
 
             % For debugging:
-            if (relFrame == 26 && i == 1)
+            if (relFrame == 1 && i == 2)
                 a = 0;
             end
             % end debugging
@@ -413,7 +416,7 @@ save(saveFileName, 'centers', 'areas', 'majorAxisLengths', 'minorAxisLengths', .
     'vLeftFileName', 'vRightFileName', 'frameLim', 'fps', 'otsuWeight', ...
     'pupilSzRangePx', 'seSize', 'paRatio', ...
     'crCenters', 'crAreas', 'crMajorAxisLengths', 'crMinorAxisLengths', ...
-    'crSzRangePx', 'craRatio');
+    'crSzRangePx', 'craRatio', 'sumImLR');
 
 close(vout);
 

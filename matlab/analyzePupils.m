@@ -1,4 +1,5 @@
-function analyzePupils(trackFileName, numStim, frameLim, gRp, pxPerMm, usePupilDiamToCalcRp, slope, yintercept, useCR)
+function analyzePupils(trackFileName, numStim, frameLim, gRp, pxPerMm, usePupilDiamToCalcRp, slope, yintercept, useCR, ...
+                        correctNonFlatCurve)
 % Once trackPupils is done and cleanUpTrialTimes is run, this script is used to analyze the pupil
 % positions and produce many plots.
 
@@ -54,8 +55,8 @@ shadingColorCenter = [0.85 1 0.8]; % dull green
 shadingColorInterTrial = [0.9 0.9 0.9];  % grey
 
 % Used as the full trace plot limits, where this is actually the xmin and xmax for the azimuth plot
-ymin = -50;
-ymax = 50;
+ymin = -45;
+ymax = 45;
 
 % Used for the average plot limits
 avgXMin = -30;
@@ -99,9 +100,52 @@ stimCenter = 20000;
 trialStartOffset = 1;  % Add this much to the recorded trial frame starts - for backwards compatibility
 trialEndOffset = 0;
 
-load(trackFileName, 'centers', 'areas', 'majorAxisLengths', 'minorAxisLengths');
+load(trackFileName, 'vLeftFileName', 'vRightFileName', 'centers', 'areas', 'majorAxisLengths', 'minorAxisLengths');
 if (useCR)
     load(trackFileName, 'crCenters', 'crAreas', 'crMajorAxisLengths', 'crMinorAxisLengths');
+end
+
+% Open the video files, which will be used to generate a graphic of an average image overlaid with pupil positions
+skip = zeros(1,2);
+if (~isempty(vLeftFileName))
+    v(1) = VideoReader(vLeftFileName); % v(1) is the video of the left eye
+    [folder name ext] = fileparts(vLeftFileName);
+else
+    skip(1) = true;
+end
+if (~isempty(vRightFileName))
+    if (~exist('v'))
+        v(1) = VideoReader(vRightFileName);
+    end
+    v(2) = VideoReader(vRightFileName); % v(2) is the video of the right eye
+    [folder name ext] = fileparts(vRightFileName);
+else
+    skip(2) = true;
+end
+if (skip(1) && skip(2))
+    error('Need to specify at least 1 of 2 video filenames.');
+end
+if (isempty(folder))
+    folder = '.';
+end
+outRoot = [folder '\' name(1:end-2)];
+% Set a default video if only 1 video was recorded
+if (skip(1))
+    defVid = 2;
+else
+    defVid = 1;
+end
+relFrame = 1;
+
+if (skip(1))
+    startVid = 2;
+    stopVid = 2;
+elseif (skip(2))
+    startVid = 1;
+    stopVid = 1;
+else
+    startVid = 1;
+    stopVid = 2;
 end
 
 if (~contains(trackFileName, '_part_trk.mat'))
@@ -123,6 +167,92 @@ if frameStop == 0 || frameStop > totalFrames
     frameStop = totalFrames;
 end
 
+% GENERATE average image, to show motion of pupil on top of - WILL MOVE TO TRACKPUPILS
+imLR = zeros(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'uint8');
+minImLR = ones(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'uint8')*255;
+sumImLR = zeros(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'single');
+frameCnt = 0;
+while frameStart + relFrame <= frameStop + 1
+    for i=startVid:stopVid  % 1 is L, 2 is R
+        imLR(:,:,:,i) = read(v(i), frameStart + relFrame);
+        minImLR(:,:,:,i) = min(imLR(:,:,:,i), minImLR(:,:,:,i));
+        sumImLR(:,:,:,i) = sumImLR(:,:,:,i) + single(imLR(:,:,:,i));
+    end
+    
+    if (mod(relFrame, 10000) == 1)
+        disp(['processed frame ' num2str(relFrame)]);
+    end
+    relFrame = relFrame + 1000;  % Subsampling 1/1000 gives average image very close to no subsampling, so do this or larger subsample
+    frameCnt = frameCnt + 1;
+end
+if (correctNonFlatCurve)
+    for i=startVid:stopVid  % 1 is L, 2 is R
+        sumImLR(:,:,:,i) = sumImLR(:,:,:,i) ./ frameCnt;
+        % Show centers over this average image
+        figure;
+        imshow(sumImLR(:,:,:,i)/255, 'InitialMagnification','fit');
+        hold on
+        % Only showing 1% of centers, so it has some texture
+        scatter(centers(1:100:end,1,i), centers(1:100:end,2,i), 4, 'r', 'o', 'filled');
+        if (useCR)
+            scatter(crCenters(1:100:end,1,i), crCenters(1:100:end,2,i), 4, 'b', 'o', 'filled');
+        end
+        % Next, fit a line to the pupil centers, and use the angle of that line to the horizontal to rotate
+        % all of the centers.  These rotated centers will be used for the subsequent analysis.
+        pupX = centers(~isnan(centers(:,1,i)),1,i);
+        pupY = centers(~isnan(centers(:,2,i)),2,i);
+        [c, S] = polyfit(pupX, pupY, 1);
+        m = c(1);
+        b = c(2);
+        %[y_fit,delta] = polyval(c, pupX, S);
+        %figure
+        %scatter(centers(:,1,i), centers(:,2,i), 4, 'r', 'o', 'filled');
+        %hold on
+        %plot(pupX, y_fit, 'k-', 'LineWidth', 2)
+        %set(gca, 'YDir','reverse')
+        R_sq = 1 - (S.normr/norm(pupY - mean(pupY)))^2;
+        rotDeg = atand(m);  % rotation needed to flatten out portion of the ellipse
+        disp(['Rotated centers by ' num2str(round(rotDeg, 2)) ' deg']);
+        % Subtract the mean before rotating.  This isn't absolutely necessary, but it keeps the CR and pupil centers
+        % in the same rough region of the video frame, which makes visualizing slightly more sensible.
+        % The exact mean doesn't matter, as long as the same mean is used both for CR and the pupil centers.
+        if (useCR)
+            mx = nanmean(cat(1, centers(:,1,i), crCenters(:,1,i)));
+            my = nanmean(cat(1, centers(:,2,i), crCenters(:,2,i)));
+        else
+            mx = nanmean(centers(:,1,i));
+            my = nanmean(centers(:,2,i));
+        end
+        centers(:,1,i) = centers(:,1,i) - mx;
+        centers(:,2,i) = centers(:,2,i) - my;
+        if (useCR)
+            crCenters(:,1,i) = crCenters(:,1,i) - mx;
+            crCenters(:,2,i) = crCenters(:,2,i) - my;
+        end
+        rotM = rot2d(-rotDeg); % make the ellipse horizontal by getting its slope to 0
+        centers(:,:,i) = transpose(rotM * centers(:,:,i)');  % now the centers have been rotated!
+        if (useCR)
+            crCenters(:,:,i) = transpose(rotM * crCenters(:,:,i)');
+        end
+        % Add the means back
+        centers(:,1,i) = centers(:,1,i) + mx;
+        centers(:,2,i) = centers(:,2,i) + my;
+        if (useCR)
+            crCenters(:,1,i) = crCenters(:,1,i) + mx;
+            crCenters(:,2,i) = crCenters(:,2,i) + my;
+        end
+        % Plot just to confirm
+        figure;
+        imshow(sumImLR(:,:,:,i)/255, 'InitialMagnification','fit');
+        hold on
+        % Only showing 1% of centers, so it has some texture
+        scatter(centers(1:100:end,1,i), centers(1:100:end,2,i), 4, 'r', 'o', 'filled');
+        if (useCR)
+            scatter(crCenters(1:100:end,1,i), crCenters(1:100:end,2,i), 4, 'b', 'o', 'filled');
+        end
+    end
+end
+
 % Second, record pupil sizes over the duration of the session
 % Take the areas matrix and assume each is an area of a circle (approximation). 
 % Then take the pxPerMM for each eye and 
@@ -134,10 +264,11 @@ majorAxisMm = cat(3, majorAxisLengths(:,:,1) / pxPerMm(1), majorAxisLengths(:,:,
 % Instead of using a static Rp, use one based on pupil size.  So Rp varies during the entire task.
 % For now just use the equation from Stahl 2002.
 if (isempty(slope))
-    slope = -0.142;
-    yintercept = 1.055;
+    slope = [-0.142 -0.142];
+    yintercept = [1.055 1.055];
 end
-Rp = slope*majorAxisMm + yintercept;
+Rp(:,:,1) = slope(1)*majorAxisMm(:,:,1) + yintercept(1);
+Rp(:,:,2) = slope(2)*majorAxisMm(:,:,2) + yintercept(2);
 
 if (usePupilDiamToCalcRp)
     RpL = Rp(:,:,1);
