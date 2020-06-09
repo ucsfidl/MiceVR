@@ -1146,7 +1146,7 @@ elseif (numStim == 3)
 elseif (numStim == 1)
     legend([h;p'], 'left eye', 'right eye', 'straight stim/action', 'inter-trial interval');
 end
-ylim([ymin ymax]);
+ylim([ymin/2 ymax/2]);
 xlim([0 xUnitsTime(end)]);
 dcmObj = datacursormode(gcf);
 set(dcmObj,'UpdateFcn',@dataCursorCallback,'Enable','on');
