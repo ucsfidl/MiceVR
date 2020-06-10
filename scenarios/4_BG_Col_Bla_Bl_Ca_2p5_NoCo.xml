@@ -1,0 +1,23 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>
+			<gameTurnControl>yaw</gameTurnControl>
+			<treesBelowGround>true</treesBelowGround>
+			<correctionTrials>false</correctionTrials>
+			<biasCorrection>false</biasCorrection>
+			<blockSize>40</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+			<catchFreq>0.025</catchFreq>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_4_BG_Col_Bla.xml</includeWorld>
+	</worlds>
+</document>
