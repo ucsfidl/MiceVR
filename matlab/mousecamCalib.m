@@ -109,7 +109,7 @@ for i=1:numCams
     %src.AcquisitionFrameRateMode = 'Basic';  
     %src.AcquisitionFrameRate = 60;
     
-    vw = VideoWriter(strcat(vidFileName, '_', num2str(i), '.mp4'), 'MPEG-4');
+    vw = VideoWriter(strcat(vidFileName, '_', num2str(i), '.avi'), 'Uncompressed AVI');
     vw.FrameRate = 60;
     fps = vw.FrameRate;
     vid{i}.DiskLogger = vw;
@@ -205,7 +205,7 @@ if (numSlaves > 0)
         %s.AcquisitionFrameRateMode = 'Basic';  
         %s.AcquisitionFrameRate = 60;
 
-        vw = VideoWriter(strcat(vidFileName, '_', num2str(cameraID+1), '.mp4'), 'MPEG-4');
+        vw = VideoWriter(strcat(vidFileName, '_', num2str(cameraID+1), '.avi'), 'Uncompressed AVI');
         vw.FrameRate = fps;
         v.DiskLogger = vw;
 
