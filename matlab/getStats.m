@@ -625,18 +625,24 @@ if (sum(sum(sum(results_4choice))) > 0)
             disp('-----------')
             disp('Chi-squared p values:');
             % Do chi-squared test
-            disp(['NEAR LEFT = ' ...
-                    num2str(chisquared(observed(1,1,j), expectedFrac(1) * (observed(1,1,j) + observed(2,1,j)), ...
-                                       observed(2,1,j), (1 - expectedFrac(1)) * (observed(1,1,j) + observed(2,1,j))))]);
-            disp(['NEAR RIGHT = ' ...
-                    num2str(chisquared(observed(1,2,j), expectedFrac(2) * (observed(1,2,j) + observed(2,2,j)), ...
-                                       observed(2,2,j), (1 - expectedFrac(2)) * (observed(1,2,j) + observed(2,2,j))))]);
-            disp(['FAR LEFT = ' ...
-                    num2str(chisquared(observed(1,3,j), expectedFrac(3) * (observed(1,3,j) + observed(2,3,j)), ...
-                                       observed(2,3,j), (1 - expectedFrac(3)) * (observed(1,3,j) + observed(2,3,j))))]);
-            disp(['FAR RIGHT = ' ...
-                    num2str(chisquared(observed(1,4,j), expectedFrac(4) * (observed(1,4,j) + observed(2,4,j)), ...
-                                       observed(2,4,j), (1 - expectedFrac(4)) * (observed(1,4,j) + observed(2,4,j))))]);
+            expected = zeros(2,4);  % First row is correct, second row is incorrect
+            expected(1,1) = expectedFrac(1) * (observed(1,1,j) + observed(2,1,j));
+            expected(2,1) = (1 - expectedFrac(1)) * (observed(1,1,j) + observed(2,1,j));
+            expected(1,2) = expectedFrac(2) * (observed(1,2,j) + observed(2,2,j));
+            expected(2,2) = (1 - expectedFrac(2)) * (observed(1,2,j) + observed(2,2,j));
+            expected(1,3) = expectedFrac(3) * (observed(1,3,j) + observed(2,3,j));
+            expected(2,3) = (1 - expectedFrac(3)) * (observed(1,3,j) + observed(2,3,j));
+            expected(1,4) = expectedFrac(4) * (observed(1,4,j) + observed(2,4,j));
+            expected(2,4) = (1 - expectedFrac(4)) * (observed(1,4,j) + observed(2,4,j));
+            
+            disp(['NEAR LEFT = ' num2str(chisquared(observed(1,1,j), expected(1,1), observed(2,1,j), expected(2,1)))]);
+            disp(['NEAR RIGHT = ' num2str(chisquared(observed(1,2,j), expected(1,2), observed(2,2,j), expected(2,2)))]);
+            disp(['FAR LEFT = ' num2str(chisquared(observed(1,3,j), expected(1,3), observed(2,3,j), expected(2,3)))]);
+            disp(['FAR RIGHT = ' num2str(chisquared(observed(1,4,j), expected(1,4), observed(2,4,j), expected(2,4)))]);
+            disp(['LEFT POOLED = ' num2str(chisquared(observed(1,1,j) + observed(1,3,j), expected(1,1) + expected(1,3), ...
+                                        observed(2,1,j) + observed(2,3,j), expected(2,1) + expected(2,3)))]);
+            disp(['RIGHT POOLED = ' num2str(chisquared(observed(1,2,j) + observed(1,4,j), expected(1,2) + expected(1,4), ...
+                                        observed(2,2,j) + observed(2,4,j), expected(2,2) + expected(2,4)))]);
             disp('================')
         end
     end

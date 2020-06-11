@@ -1,4 +1,5 @@
-function analyzePupils(trackFileName, numStim, frameLim, gRp, pxPerMm, usePupilDiamToCalcRp, slope, yintercept, useCR)
+function analyzePupils(trackFileName, numStim, analFrameLim, gRp, pxPerMm, usePupilDiamToCalcRp, slope, yintercept, useCR, ...
+                        correctNonFlatCurve)
 % Once trackPupils is done and cleanUpTrialTimes is run, this script is used to analyze the pupil
 % positions and produce many plots.
 
@@ -85,8 +86,8 @@ else
     error("Unsupported number of stim.");
 end
 
-frameStart = frameLim(1);
-frameStop = frameLim(2);
+frameStart = analFrameLim(1);
+frameStop = analFrameLim(2);
 
 % Be sure to change these if the x location of the trees changes
 stimLeftNear = 19973;
@@ -99,7 +100,8 @@ stimCenter = 20000;
 trialStartOffset = 1;  % Add this much to the recorded trial frame starts - for backwards compatibility
 trialEndOffset = 0;
 
-load(trackFileName, 'vLeftFileName', 'vRightFileName', 'centers', 'areas', 'majorAxisLengths', 'minorAxisLengths');
+load(trackFileName, 'vLeftFileName', 'vRightFileName', 'centers', 'areas', 'majorAxisLengths', 'minorAxisLengths', ...
+                    'sumImLR', 'frameLim');
 if (useCR)
     load(trackFileName, 'crCenters', 'crAreas', 'crMajorAxisLengths', 'crMinorAxisLengths');
 end
@@ -166,65 +168,99 @@ if frameStop == 0 || frameStop > totalFrames
     frameStop = totalFrames;
 end
 
-% GENERATE average image, to show motion of pupil on top of - WILL MOVE TO TRACKPUPILS
-imLR = zeros(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'uint8');
-minImLR = ones(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'uint8')*255;
-sumImLR = zeros(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'single');
-frameCnt = 0;
-while frameStart + relFrame <= frameStop + 1
-    for i=startVid:stopVid  % 1 is L, 2 is R
-        imLR(:,:,:,i) = read(v(i), frameStart + relFrame);
-        minImLR(:,:,:,i) = min(imLR(:,:,:,i), minImLR(:,:,:,i));
-        sumImLR(:,:,:,i) = sumImLR(:,:,:,i) + single(imLR(:,:,:,i));
+% GENERATE average image, to show motion of pupil on top of, if it doesn't already exist.  
+% trackPupils run prior to 6/7/2020 will not have it exist.
+% trackPupils run after 6/7/2020 will have already generated it
+if (~exist('sumImLR'))
+    imLR = zeros(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'uint8');
+    %minImLR = ones(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'uint8')*255;
+    sumImLR = zeros(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'single');
+    frameCnt = 0;
+    while frameStart + relFrame <= frameStop + 1
+        for i=startVid:stopVid  % 1 is L, 2 is R
+            imLR(:,:,:,i) = read(v(i), frameStart + relFrame);
+            %minImLR(:,:,:,i) = min(imLR(:,:,:,i), minImLR(:,:,:,i));
+            sumImLR(:,:,:,i) = sumImLR(:,:,:,i) + single(imLR(:,:,:,i));
+        end
+
+        if (mod(relFrame, 10000) == 1)
+            disp(['processed frame ' num2str(relFrame)]);
+        end
+        relFrame = relFrame + 1000;  % Subsampling 1/1000 gives average image very close to no subsampling, so do this or larger subsample
+        frameCnt = frameCnt + 1;
     end
+else
+    frameCnt = frameLin
     
-    if (mod(relFrame, 10000) == 1)
-        disp(['processed frame ' num2str(relFrame)]);
-    end
-    relFrame = relFrame + 1000;  % Subsampling 1/1000 gives average image very close to no subsampling, so do this or larger subsample
-    frameCnt = frameCnt + 1;
-end
-for i=startVid:stopVid  % 1 is L, 2 is R
-    sumImLR(:,:,:,i) = sumImLR(:,:,:,i) ./ frameCnt;
-    % Show centers over this average image
-    figure;
-    imshow(sumImLR(:,:,:,i)/255, 'InitialMagnification','fit');
-    hold on
-    % Only showing 1% of centers, so it has some texture
-    scatter(centers(1:100:end,1,i), centers(1:100:end,2,i), 4, 'r', 'o', 'filled');
-    % Next, fit a line to the pupil centers, and use the angle of that line to the horizontal to rotate
-    % all of the centers.  These rotated centers will be used for the subsequent analysis.
-    pupX = centers(~isnan(centers(:,1,i)),1,i);
-    pupY = centers(~isnan(centers(:,2,i)),2,i);
-    [c, S] = polyfit(pupX, pupY, 1);
-    m = c(1);
-    b = c(2);
-    %[y_fit,delta] = polyval(c, pupX, S);
-    %figure
-    %scatter(centers(:,1,i), centers(:,2,i), 4, 'r', 'o', 'filled');
-    %hold on
-    %plot(pupX, y_fit, 'k-', 'LineWidth', 2)
-    %set(gca, 'YDir','reverse')
-    R_sq = 1 - (S.normr/norm(pupY - mean(pupY)))^2;
-    rotDeg = atand(m);  % rotation needed to flatten out portion of the ellipse
-    % need to subtract off the mean before rotating
-    mx = nanmean(centers(:,1,i));
-    my = nanmean(centers(:,2,i));
-    centers(:,1,i) = centers(:,1,i) - mx;
-    centers(:,2,i) = centers(:,2,i) - my;
-    rotM = rot2d(-rotDeg); % make the ellipse horizontal by getting its slope to 0
-    centers(:,:,i) = transpose(rotM * centers(:,:,i)');  % now the centers have been rotated!
-    % Add the means back
-    centers(:,1,i) = centers(:,1,i) + mx;
-    centers(:,2,i) = centers(:,2,i) + my;
-    % Plot just to confirm
-    figure;
-    imshow(sumImLR(:,:,:,i)/255, 'InitialMagnification','fit');
-    hold on
-    % Only showing 1% of centers, so it has some texture
-    scatter(centers(1:100:end,1,i), centers(1:100:end,2,i), 4, 'r', 'o', 'filled');
 end
 
+if (correctNonFlatCurve)
+    for i=startVid:stopVid  % 1 is L, 2 is R
+        sumImLR(:,:,:,i) = sumImLR(:,:,:,i) ./ frameCnt;
+        % Show centers over this average image
+        figure;
+        imshow(sumImLR(:,:,:,i)/255, 'InitialMagnification','fit');
+        hold on
+        % Only showing 1% of centers, so it has some texture
+        scatter(centers(1:100:end,1,i), centers(1:100:end,2,i), 4, 'r', 'o', 'filled');
+        if (useCR)
+            scatter(crCenters(1:100:end,1,i), crCenters(1:100:end,2,i), 4, 'b', 'o', 'filled');
+        end
+        % Next, fit a line to the pupil centers, and use the angle of that line to the horizontal to rotate
+        % all of the centers.  These rotated centers will be used for the subsequent analysis.
+        pupX = centers(~isnan(centers(:,1,i)),1,i);
+        pupY = centers(~isnan(centers(:,2,i)),2,i);
+        [c, S] = polyfit(pupX, pupY, 1);
+        m = c(1);
+        b = c(2);
+        %[y_fit,delta] = polyval(c, pupX, S);
+        %figure
+        %scatter(centers(:,1,i), centers(:,2,i), 4, 'r', 'o', 'filled');
+        %hold on
+        %plot(pupX, y_fit, 'k-', 'LineWidth', 2)
+        %set(gca, 'YDir','reverse')
+        R_sq = 1 - (S.normr/norm(pupY - mean(pupY)))^2;
+        rotDeg = atand(m);  % rotation needed to flatten out portion of the ellipse
+        disp(['Rotated centers by ' num2str(round(rotDeg, 2)) ' deg']);
+        % Subtract the mean before rotating.  This isn't absolutely necessary, but it keeps the CR and pupil centers
+        % in the same rough region of the video frame, which makes visualizing slightly more sensible.
+        % The exact mean doesn't matter, as long as the same mean is used both for CR and the pupil centers.
+        if (useCR)
+            mx = nanmean(cat(1, centers(:,1,i), crCenters(:,1,i)));
+            my = nanmean(cat(1, centers(:,2,i), crCenters(:,2,i)));
+        else
+            mx = nanmean(centers(:,1,i));
+            my = nanmean(centers(:,2,i));
+        end
+        centers(:,1,i) = centers(:,1,i) - mx;
+        centers(:,2,i) = centers(:,2,i) - my;
+        if (useCR)
+            crCenters(:,1,i) = crCenters(:,1,i) - mx;
+            crCenters(:,2,i) = crCenters(:,2,i) - my;
+        end
+        rotM = rot2d(-rotDeg); % make the ellipse horizontal by getting its slope to 0
+        centers(:,:,i) = transpose(rotM * centers(:,:,i)');  % now the centers have been rotated!
+        if (useCR)
+            crCenters(:,:,i) = transpose(rotM * crCenters(:,:,i)');
+        end
+        % Add the means back
+        centers(:,1,i) = centers(:,1,i) + mx;
+        centers(:,2,i) = centers(:,2,i) + my;
+        if (useCR)
+            crCenters(:,1,i) = crCenters(:,1,i) + mx;
+            crCenters(:,2,i) = crCenters(:,2,i) + my;
+        end
+        % Plot just to confirm
+        figure;
+        imshow(sumImLR(:,:,:,i)/255, 'InitialMagnification','fit');
+        hold on
+        % Only showing 1% of centers, so it has some texture
+        scatter(centers(1:100:end,1,i), centers(1:100:end,2,i), 4, 'r', 'o', 'filled');
+        if (useCR)
+            scatter(crCenters(1:100:end,1,i), crCenters(1:100:end,2,i), 4, 'b', 'o', 'filled');
+        end
+    end
+end
 
 % Second, record pupil sizes over the duration of the session
 % Take the areas matrix and assume each is an area of a circle (approximation). 
@@ -1119,7 +1155,7 @@ elseif (numStim == 3)
 elseif (numStim == 1)
     legend([h;p'], 'left eye', 'right eye', 'straight stim/action', 'inter-trial interval');
 end
-ylim([ymin ymax]);
+ylim([ymin/2 ymax/2]);
 xlim([0 xUnitsTime(end)]);
 dcmObj = datacursormode(gcf);
 set(dcmObj,'UpdateFcn',@dataCursorCallback,'Enable','on');

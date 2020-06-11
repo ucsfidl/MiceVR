@@ -36,14 +36,15 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, otsuWeight, crPres
 % seSize = 10 hides whiskers/eye lashes, 5 does not!
 
 % These used to be arguments, but they haven't changed in over a year so pulling inside the function
-pupilSzRangePx = [100 4000];  % 5/28/20 - min 100 is too small and gives false positives on eye blinks for Uranus 90
+pupilSzRangePx = [100 4300];  % 5/28/20 - min 100 is too small and gives false positives on eye blinks for Uranus 90
+                                          % observed max of 4023 Jupiter 205
 seSize = 4;
 paRatio = 1.8;  % 5/28/20 - was 1.7, but changed to 1.8 to help track eccentric pupils in Torque 419
 useGPU = 0;
 fps = 60;  % All videos are 60 fps
 
 % For corneal reflection tracking
-crSzRangePx = [40 200];  % CR is as small as 50 px
+crSzRangePx = [20 175];  % CR is as small as 30 px, or as large as 151 px - this needs to be changed to a physical size
 craRatio = 1.6;  % 1.5 is too low, it misses the CR on some frames
 crOtsuWeight = 1.2;  % 1.0 loses CRs near eye boundaries - smaller numbers are more permissive
 
@@ -61,6 +62,7 @@ maxCRAspectRatio = craRatio;
 sizeWt = 0.25; % Cryo 112 - 0.2 has some occasional failures
 distWt = 10;
 solWt = 1;
+crSolWt = 20;  % Was 1, but that didn't work well when I started initializing the distance to the center point
 distFudge = 0.001;
 
 pupilPosHistLen = 800;  % Keep track of the pupil over N frames - 100 is too little, as observed mouse close eye for 400 frames (Lymph_132_6)
@@ -215,7 +217,7 @@ while relFrame + frameStart <= frameStop + 1
         
         cc = bwconncomp(subIm);
         % For debugging:
-        if (relFrame == 1 && i == 2)
+        if (relFrame == 3 && i == 2)
             a = 0;
         end
         % end debugging        
@@ -318,7 +320,7 @@ while relFrame + frameStart <= frameStop + 1
             cc = bwconncomp(subIm);
 
             % For debugging:
-            if (relFrame == 1 && i == 2)
+            if (relFrame == 1 && i == 1)
                 a = 0;
             end
             % end debugging
@@ -342,16 +344,15 @@ while relFrame + frameStart <= frameStop + 1
                         c = c(~isnan(c));
                         cNoNaN = reshape(c, numel(c)/2, 2);
                         avgPrevPos = mean(cNoNaN, 1);
-                        prevPos = repmat(avgPrevPos, size(curPos, 1), 1);
-                        dist = sqrt(power(curPos(:,1) - prevPos(:,1),2) + power(curPos(:,2) - prevPos(:,2),2))';
                     else
                         % Pupil will tend to be in the center of the screen, so initialize to there.
-                        % This sometimes causes problems, so remove
-                        %avgPrevPos = [v(defVid).Width/2 v(defVid).Height/2];
-                        dist = ones(1,length(s));
+                        % This sometimes causes problems for pupils, but try for CRs
+                        avgPrevPos = [v(defVid).Width/2 v(defVid).Height/2];
                     end
+                    prevPos = repmat(avgPrevPos, size(curPos, 1), 1);
+                    dist = sqrt(power(curPos(:,1) - prevPos(:,1),2) + power(curPos(:,2) - prevPos(:,2),2))';
 
-                    [~,idx] = max( solWt * solidity/max(solidity) + ...
+                    [~,idx] = max( crSolWt * solidity/max(solidity) + ...
                                    distWt * min(dist) ./ (dist+distFudge) + ...
                                    sizeWt * cA/max(cA));
                     % It is important to identify a candidate and then test its ellipticity.  This handles eyeblinks as 
