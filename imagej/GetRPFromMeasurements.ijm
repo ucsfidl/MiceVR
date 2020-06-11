@@ -1,8 +1,7 @@
 macro "GetRP [r]" {
-	area = getResult("Area", 0);
+	area = getResult("Area", nResults-5);
 	diameter = sqrt(area / 3.14) * 2;
-	disp = getResult("X", 1) - getResult("X", 2) + getResult("X", 4) - getResult("X", 3);
+	disp = getResult("X", nResults-4) - getResult("X", nResults-3) + getResult("X", nResults-1) - getResult("X", nResults-2);
 	rp = disp / 0.349;
-	ans = Array.concat(d2s(diameter,2), d2s(rp,2));
-	Array.print(ans);
+	print(d2s(diameter,2), "\t", d2s(rp,2));
 }
