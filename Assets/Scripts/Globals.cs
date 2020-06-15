@@ -490,7 +490,7 @@ public static class Globals
 			} else {  // Analyze the history, as enough time has passed at least
 				int lastPosIdx = Globals.adaptPosIdx[adaptPosIdx.Count - 1];
 				int numTrials = 0;
-				DateTime earliestTrialEnd;
+				DateTime earliestTrialEnd = now;  // dummy initiation to help with compile error, so leave
 
 				tPosIdx = lastPosIdx;
 				Debug.Log ("lastPosIdx=" + lastPosIdx);
