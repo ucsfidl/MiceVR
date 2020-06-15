@@ -36,7 +36,7 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, otsuWeight, crPres
 % seSize = 10 hides whiskers/eye lashes, 5 does not!
 
 % These used to be arguments, but they haven't changed in over a year so pulling inside the function
-pupilSzRangePx = [100 4300];  % 5/28/20 - min 100 is too small and gives false positives on eye blinks for Uranus 90
+pupilSzRangePx = [100 6500];  % 5/28/20 - min 100 is too small and gives false positives on eye blinks for Uranus 90
                                           % observed max of 4023 Jupiter 205
 seSize = 4;
 paRatio = 1.8;  % 5/28/20 - was 1.7, but changed to 1.8 to help track eccentric pupils in Torque 419
@@ -44,8 +44,8 @@ useGPU = 0;
 fps = 60;  % All videos are 60 fps
 
 % For corneal reflection tracking
-crSzRangePx = [20 175];  % CR is as small as 30 px, or as large as 151 px - this needs to be changed to a physical size
-craRatio = 1.6;  % 1.5 is too low, it misses the CR on some frames
+crSzRangePx = [20 250];  % CR is as small as 30 px, or as large as 151 px - this needs to be changed to a physical size
+craRatio = 1.8;  % 1.5 is too low, it misses the CR on some frames
 crOtsuWeight = 1.2;  % 1.0 loses CRs near eye boundaries - smaller numbers are more permissive
 
 tic
