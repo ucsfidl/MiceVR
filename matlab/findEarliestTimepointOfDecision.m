@@ -148,11 +148,6 @@ while (1) % a while loop to iterate until earliest cutoff is found
 
             trialDur = length(repRecs{1}) - numFramesToExcludeAtEnd;
             sampleFrame = round(cutoff * trialDur);
-
-            if (currTrial == 105)
-                a = 0;
-            end
-            
             mouseLocToActLoc(currTrial,1) = repRecs{3}(sampleFrame);  % z Pos
             mouseLocToActLoc(currTrial,2) = repRecs{1}(sampleFrame);  % x Pos
             mouseLocToActLoc(currTrial,3) = actLocX;

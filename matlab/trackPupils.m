@@ -44,7 +44,7 @@ useGPU = 0;
 fps = 60;  % All videos are 60 fps
 
 % For corneal reflection tracking
-crSzRangePx = [20 250];  % CR is as small as 30 px, or as large as 151 px - this needs to be changed to a physical size
+crSzRangePx = [20 300];  % CR is as small as 30 px, or as large as 257 px - this needs to be changed to a physical size
 craRatio = 1.8;  % 1.5 is too low, it misses the CR on some frames
 crOtsuWeight = 1.2;  % 1.0 loses CRs near eye boundaries - smaller numbers are more permissive
 
@@ -320,7 +320,7 @@ while relFrame + frameStart <= frameStop + 1
             cc = bwconncomp(subIm);
 
             % For debugging:
-            if (relFrame == 1 && i == 1)
+            if (relFrame == 1 && i == 2)
                 a = 0;
             end
             % end debugging
