@@ -61,6 +61,8 @@ if (isfile(vrGSdocidFileName) && ~strcmp(mouseName, 'test')) % If the docid file
         prefix = '0';
     end
     vidFileName = [vidFileName '_' prefix lastDay];
+else
+    disp('SPREADSHEET CONFIG NOT FOUND.  Are you running from the correct folder?');
 end
 
 % Second, run in non-parellel mode to get the image previews needed for
