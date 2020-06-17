@@ -309,7 +309,7 @@ if (useCR(1) || useCR(2))
     if (useCR(2))
         cR = crCenters(:,1,2);
     else
-        cR = nanmean(centers(:, 1, 1));
+        cR = nanmean(centers(:, 1, 2));
     end
     
     azimDeg = cat(3, real(asind((cL - centers(:,1,1))/pxPerMm(1)) ./ RpL), ...
