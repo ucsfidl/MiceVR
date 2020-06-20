@@ -556,7 +556,7 @@ if (sum(sum(sum(results_4choice))) > 0)
               num2str(round(results(3,3,j) / sum(results(:,3,j)) * 100), 3) '/' ...
               num2str(round(results(4,4,j) / sum(results(:,4,j)) * 100), 3)]);
         disp('-----------');
-        %{
+        
         disp('===ADJUSTED===');
         denom = results(1,1,j) + results(3,1,j);
         disp(['NL->NL = ' num2str(round(results(1,1,j) / denom * 100), 3) '% (' num2str(results(1,1,j)) '/' num2str(denom) ')']);
@@ -583,7 +583,6 @@ if (sum(sum(sum(results_4choice))) > 0)
               num2str(round(results(3,3,j) / (results(1,3,j) + results(3,3,j)) * 100), 3) '/' ...
               num2str(round(results(4,4,j) / (results(2,4,j) + results(4,4,j)) * 100), 3)]);
         disp('-----------');
-        %}
         disp(results(:,:,j));
         disp(['Total 4-choice trials = ' num2str(sum(sum(sum(results))))]);
         disp('===========');

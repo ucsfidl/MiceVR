@@ -1148,7 +1148,7 @@ if (~isempty(trialStartFrames))
 end
 h = plot(xUnitsTime, elavDeg(1:length(xUnitsTime), 1), leftEyeColor, xUnitsTime, elavDeg(1:length(xUnitsTime), 2), rightEyeColor);
 title([rootFileName ': Pupil Elevation'], 'Interpreter', 'none');
-ylabel('Pupil Elevation (deg');
+ylabel('Pupil Elevation (deg)');
 xlabel(xlab);
 for i = 1:size(allColors, 1)
     p(i) = patch(NaN, NaN, allColors(i,:));
@@ -1177,7 +1177,7 @@ if (~isempty(trialStartFrames))
 end
 h = plot(azimDeg(1:length(xUnitsTime), 1), xUnitsTime, leftEyeColor, azimDeg(1:length(xUnitsTime), 2), xUnitsTime, rightEyeColor);
 title([rootFileName ': Pupil Azimuth'], 'Interpreter', 'none');
-xlabel('Pupil Azimuth (deg');
+xlabel('Pupil Azimuth (deg)');
 ylabel(xlab);
 for i = 1:size(allColors,1)
     p(i) = patch(NaN, NaN, allColors(i,:));
