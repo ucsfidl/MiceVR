@@ -265,27 +265,26 @@ if (correctNonFlatCurve)
         imshow(sumImLR(:,:,:,i)/255, 'InitialMagnification','fit');
         hold on
         if (i == 1)
-            title('Left eye, straightened, censored');
+            title('Left eye, straightened');
         else
-            title('Right eye, straightened, censored');
+            title('Right eye, straightened');
         end
         % Show all centers, so I can see how often it gets it wrong
         % In fact, I can use deviations away from the point cloud as false alarms and censor post-hoc!  TODO.
         % Now, just show points where neither CR nor pupil centers are NaN, as then I can use this image to 
         % check for false positives of CRs and pupil centers.
         if (useCR(i))
-            discard = isnan(centers(1:scatterStepSize:end,1,i)) | isnan(crCenters(1:scatterStepSize:end,1,i));
             newCentersX = centers(1:scatterStepSize:end,1,i);
             newCentersY = centers(1:scatterStepSize:end,2,i);
             newCrCentersX = crCenters(1:scatterStepSize:end,1,i);
             newCrCentersY = crCenters(1:scatterStepSize:end,2,i);
-            newCentersX = newCentersX(~discard);
-            newCentersY = newCentersY(~discard);
-            newCrCentersX = newCrCentersX(~discard);
-            newCrCentersY = newCrCentersY(~discard);
+            newCentersX = newCentersX(~isnan(newCrCentersX));
+            newCentersY = newCentersY(~isnan(newCrCentersY));
+            newCrCentersX = newCrCentersX(~isnan(centers(1:scatterStepSize:end,1,i)));
+            newCrCentersY = newCrCentersY(~isnan(centers(1:scatterStepSize:end,2,i)));
             
-            scatter(newCentersX, newCentersY, 4, 'r', 'o', 'filled');
-            scatter(newCrCentersX, newCrCentersY, 4, 'b', 'o', 'filled');
+            scatter(newCenters(1:scatterStepSize:end,1,i), centers(1:scatterStepSize:end,2,i), 4, 'r', 'o', 'filled');
+            scatter(crCenters(1:scatterStepSize:end,1,i), crCenters(1:scatterStepSize:end,2,i), 4, 'b', 'o', 'filled');
         else
             scatter(centers(1:scatterStepSize:end,1,i), centers(1:scatterStepSize:end,2,i), 4, 'r', 'o', 'filled');
         end

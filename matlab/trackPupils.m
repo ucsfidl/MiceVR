@@ -36,8 +36,8 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, otsuWeight, crPres
 % seSize = 10 hides whiskers/eye lashes, 5 does not!
 
 % These used to be arguments, but they haven't changed in over a year so pulling inside the function
-pupilSzRangePx = [100 6500];  % 5/28/20 - min 100 is too small and gives false positives on eye blinks for Uranus 90
-                                          % observed max of 4023 Jupiter 205
+pupilSzRangePx = [100 7500];  % 5/28/20 - min 100 is too small and gives false positives on eye blinks for Uranus 90
+                                          % observed max of 4023 Jupiter 205 - 6500 too small
 seSize = 4;
 paRatio = 1.8;  % 5/28/20 - was 1.7, but changed to 1.8 to help track eccentric pupils in Torque 419
 useGPU = 0;
@@ -45,7 +45,7 @@ fps = 60;  % All videos are 60 fps
 
 % For corneal reflection tracking
 crSzRangePx = [20 300];  % CR is as small as 30 px, or as large as 257 px - this needs to be changed to a physical size
-craRatio = 1.8;  % 1.5 is too low, it misses the CR on some frames
+craRatio = 2;  % 2.5 is too low, it misses the CR on some frames
 crOtsuWeight = 1.2;  % 1.0 loses CRs near eye boundaries - smaller numbers are more permissive
 
 tic
@@ -217,7 +217,7 @@ while relFrame + frameStart <= frameStop + 1
         
         cc = bwconncomp(subIm);
         % For debugging:
-        if (relFrame == 3 && i == 2)
+        if (relFrame == 1 && i == 2)
             a = 0;
         end
         % end debugging        
@@ -310,6 +310,7 @@ while relFrame + frameStart <= frameStop + 1
         end
     
         %%%%% CORE ALGORITHM FOR FINDING CORNEAL REFLECTION %%%%%%%%%%%%
+        %%% TODO - optimize as the CR is max white, while the pupil on which this code is based is not %%
         if (crPresent(i))
             % No need to weight the graythresh, as the CR is pure white
             % Don't need to open the image because the CR will be pure white
