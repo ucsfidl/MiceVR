@@ -64,11 +64,8 @@ maxCRAspectRatio = craRatio;
 sizeWt = 0.25; % Cryo 112 - 0.2 has some occasional failures
 distWt = 10;
 solWt = 1;
-
-% CR weights
-crSizeWt = 1;
-crDistWt = 1;
-crSolWt = 1;  % Was 1, but that didn't work well when I started initializing the distance to the center point
+crSizeWt = 20;
+crSolWt = 20;  % Was 1, but that didn't work well when I started initializing the distance to the center point
 
 distFudge = 0.001;
 
@@ -323,8 +320,7 @@ while relFrame + frameStart <= frameStop + 1
             cc = bwconncomp(subIm);
 
             % For debugging:
-            %disp(relFrame);
-            if (relFrame == 1 && i == 2)
+            if (relFrame == 1 && i == 1)
                 a = 0;
             end
             % end debugging
@@ -367,22 +363,14 @@ while relFrame + frameStart <= frameStop + 1
 
                     % If we have accumulated enough history, censor CRs that are too far from the historical position
                     % Consider using this for pupil positions too!
-                    idx = 0;
+                    idx = [];
                     if (relFrame > 1 && foundPrevCR)
                         idx = find(distFromLastKnownPos < crMaxAllowedMovement);
-                        if (length(idx) > 1)
-                            % Only analyze those close in distance to the prev known CR
-                            solidity = solidity(idx);
-                            distFromHistPos = distFromHistPos(idx);
-                            cA = cA(idx);
-                            [~,idx2] = max( crSolWt * solidity/max(solidity) + ...
-                                           crDistWt * min(distFromHistPos) ./ (distFromHistPos + distFudge) + ...
-                                           crSizeWt * cA/max(cA));
-                            idx = idx(idx2);
-                        end
-                    else
+                    end
+                    
+                    if (isempty(idx) || length(idx) > 1)
                         [~,idx] = max( crSolWt * solidity/max(solidity) + ...
-                                       crDistWt * min(distFromHistPos) ./ (distFromHistPos + distFudge) + ...
+                                       distWt * min(distFromHistPos) ./ (distFromHistPos + distFudge) + ...
                                        crSizeWt * cA/max(cA));
                     end
                     % It is important to identify a candidate and then test its ellipticity.  This handles eyeblinks as 
@@ -395,7 +383,7 @@ while relFrame + frameStart <= frameStop + 1
                         crAreas(relFrame,:,i) = s(idx).ConvexArea;  % in px - need to calibrate
                         crMajorAxisLengths(relFrame,:,i) = s(idx).MajorAxisLength;
                         crMinorAxisLengths(relFrame,:,i) = s(idx).MinorAxisLength;
-                        %%% DRAW ONTO VIDEO FOR VISUALIZATION %%%
+                        %%% DRAW ONTO VIDEO FOR VALIDATION %%%
                         c = s(idx).Centroid;
                         rMaj = s(idx).MajorAxisLength / 2;
                         rMin = s(idx).MinorAxisLength / 2;
