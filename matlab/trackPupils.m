@@ -48,7 +48,7 @@ fps = 60;  % All videos are 60 fps
 crSzRangePx = [20 300];  % CR is as small as 30 px, or as large as 257 px - this needs to be changed to a physical size
 craRatio = 2;  % 2.5 is too low, it misses the CR on some frames
 crMinVal = 249;  % pixel value used to threshold image for finding CR
-crMaxAllowedMovement = 10;  % px; this is the maximum movement between frames
+crMaxAllowedMovement = 9;  % px; this is the maximum movement between frames; 10 px was too much
 
 tic
 disp('Started...');
@@ -68,7 +68,7 @@ solWt = 1;
 % CR weights
 crSizeWt = 1;
 crDistWt = 1;
-crSolWt = 1;  % Was 1, but that didn't work well when I started initializing the distance to the center point
+crSolWt = 5;  % 1,1,4 was too small
 
 distFudge = 0.001;
 
@@ -324,14 +324,14 @@ while relFrame + frameStart <= frameStop + 1
 
             % For debugging:
             %disp(relFrame);
-            if (relFrame == 1 && i == 2)
+            if (relFrame == 483 && i == 2)
                 a = 0;
             end
             % end debugging
 
             if (~isempty (cc.PixelIdxList))
-                s = regionprops(subIm, {'Centroid', 'MajorAxisLength', 'MinorAxisLength', ...
-                    'Orientation', 'ConvexArea', 'Solidity'});
+                s = regionprops(subIm, {'Centroid', ...
+                    'ConvexArea', 'Solidity'});
                 % First, remove objects that are outside of the allowable size range
                 s = s([s.ConvexArea] > crSzRangePx(1) & [s.ConvexArea] < crSzRangePx(2));
                 if (~isempty(s))
@@ -369,7 +369,7 @@ while relFrame + frameStart <= frameStop + 1
                     % Consider using this for pupil positions too!
                     idx = 0;
                     if (relFrame > 1 && foundPrevCR)
-                        idx = find(distFromLastKnownPos < crMaxAllowedMovement);
+                        idx = find(distFromHistPos < crMaxAllowedMovement);
                         if (length(idx) > 1)
                             % Only analyze those close in distance to the prev known CR
                             solidity = solidity(idx);
@@ -390,13 +390,14 @@ while relFrame + frameStart <= frameStop + 1
                     % elliptical.  This works very well when the contrast between the cornea and the pupil is high, 
                     % but if this is not the case, some jumping of the pupil location occurs due to false positive 
                     % enlargement of the pupil.
-                    if (~isempty(idx) && s(idx).MajorAxisLength / s(idx).MinorAxisLength < maxCRAspectRatio)
+                    if (~isempty(idx))
                         crCenters(relFrame,:,i) = s(idx).Centroid; % raw pixel position
                         crAreas(relFrame,:,i) = s(idx).ConvexArea;  % in px - need to calibrate
-                        crMajorAxisLengths(relFrame,:,i) = s(idx).MajorAxisLength;
-                        crMinorAxisLengths(relFrame,:,i) = s(idx).MinorAxisLength;
+                        %crMajorAxisLengths(relFrame,:,i) = s(idx).MajorAxisLength;
+                        %crMinorAxisLengths(relFrame,:,i) = s(idx).MinorAxisLength;
                         %%% DRAW ONTO VIDEO FOR VISUALIZATION %%%
                         c = s(idx).Centroid;
+                        %{
                         rMaj = s(idx).MajorAxisLength / 2;
                         rMin = s(idx).MinorAxisLength / 2;
                         angle = -s(idx).Orientation;
@@ -408,6 +409,8 @@ while relFrame + frameStart <= frameStop + 1
                                  c(1)-dxMin, c(2)-dyMin, c(1)+dxMin, c(2)+dyMin];
                         newImLR(:,:,:,i) = insertShape(newImLR(:,:,:,i), 'line', lines, ...
                             'LineWidth', 1, 'Color', 'blue');
+                        %}
+                        newImLR(:,:,:,i) = insertShape(newImLR(:,:,:,i), 'FilledCircle', [s(idx).Centroid 3], 'Color', 'blue');
                     else
                         crCenters(relFrame,:,i) = [NaN NaN];
                         crAreas(relFrame,:,i) = [NaN];

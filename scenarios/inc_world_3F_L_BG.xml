@@ -5,7 +5,7 @@
 	<trees>
 		<t> <!-- Front Left tree -->
 			<w>1</w>
-			<pos>19975;-16;20008</pos>
+			<pos>19976;-16;20008</pos>
 			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 			<v>4</v>
 			<h>2</h>
@@ -14,7 +14,7 @@
 		</t>
 		<t> <!-- Back Left tree -->
 			<w>1</w>
-			<pos>19974;-16;20035</pos>
+			<pos>19975;-16;20035</pos>
 			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
 			<v>4</v>
 			<h>2</h>
