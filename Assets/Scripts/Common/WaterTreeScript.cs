@@ -36,6 +36,8 @@ public class WaterTreeScript : MonoBehaviour {
 
 	private float presoFrac;
 
+	private int idx;
+
 	// Use this for initialization
 	void Start ()
     {
@@ -201,12 +203,11 @@ public class WaterTreeScript : MonoBehaviour {
 		float r = UnityEngine.Random.value;
 		int interTrialInterval;
 		Color c;
-		float xPos = this.gameObject.transform.position.x;
 		float adjRewardThreshold = Globals.probReward;
 
 		if (Globals.probReward < 1) {
 			// Get actual reward rate at the location of this tree, and modulate the reward rate in proportion to the distance from this target
-			float actualRewardRate = Globals.GetActualRewardRate(xPos);
+			float actualRewardRate = Globals.GetActualRewardRate(this.idx);
 			if (actualRewardRate < Globals.probReward) {
 				//adjRewardThreshold = 1 - actualRewardRate / Globals.probReward + actualRewardRate;
 				adjRewardThreshold = 1;
@@ -229,7 +230,7 @@ public class WaterTreeScript : MonoBehaviour {
 
 			// If correction trials are enabled and probabilistic reward is enabled, correction trials DO NOT count toward probabilistic reward counts
 			if (!Globals.CurrentlyCorrectionTrial()) {  // Current trial is NOT a correction trial
-				Globals.IncrementRewardAtStimLoc (xPos);
+				Globals.IncrementRewardAtStimIdx (this.idx);
 			}
 		} else {
 			Globals.sizeOfRewardGiven.Add(0);
@@ -243,7 +244,7 @@ public class WaterTreeScript : MonoBehaviour {
 		}
 		// If correction trials are enabled and probabilistic reward is enabled, correction trials DO NOT count toward probabilistic reward counts
 		if (!Globals.CurrentlyCorrectionTrial()) {  // Current trial is NOT a correction trial
-			Globals.IncrementTurnToStimLoc (xPos);
+			Globals.IncrementTurnToStimIdx (this.idx);
 		}
 
 		this.depleted = true;
@@ -256,6 +257,7 @@ public class WaterTreeScript : MonoBehaviour {
 					//Debug.Log ("Added to numCorrectTurns");
 				}
 			}
+			Globals.firstTurnIdx.Add (this.idx);
 			Globals.firstTurnLoc.Add (this.gameObject.transform.position);
 			Globals.firstTurnHFreq.Add (this.gameObject.GetComponent<WaterTreeScript> ().GetShaderHFreq ());
 			Globals.firstTurnVFreq.Add (this.gameObject.GetComponent<WaterTreeScript> ().GetShaderVFreq ());
@@ -287,8 +289,7 @@ public class WaterTreeScript : MonoBehaviour {
 
 	// WithholdReward() is called only on incorrect trials, not correct trials where reward was witheld
     private void WitholdReward() {
-		float xPos = this.gameObject.transform.position.x;
-		Globals.IncrementTurnToStimLoc (xPos);
+		Globals.IncrementTurnToStimIdx (this.idx);
 		Color c = Color.white;
 		int interTrialInterval = incorrectTurnDelay;
 
@@ -304,6 +305,7 @@ public class WaterTreeScript : MonoBehaviour {
 			Globals.lastTrialWasIncorrect = 1;
 		}
         Globals.hasNotTurned = false;
+		Globals.firstTurnIdx.Add(this.idx);
         Globals.firstTurnLoc.Add(this.gameObject.transform.position);
         Globals.firstTurnHFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderHFreq());
         Globals.firstTurnVFreq.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderVFreq());
@@ -499,6 +501,10 @@ public class WaterTreeScript : MonoBehaviour {
 	}
 	public float GetPresoFrac() {
 		return this.presoFrac;
+	}
+
+	public void SetIdx(int idx) {
+		this.idx = idx;
 	}
 
 	public void ChangeShader(String shaderStr) {

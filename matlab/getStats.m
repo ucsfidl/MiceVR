@@ -92,7 +92,7 @@ for i=1:length(fileList)
                     numFilesAnalyzed = numFilesAnalyzed + 1;
                     tline = fgetl(fid); % Throw out the first line, as it is a column header
                     % C is a cell array with each string separated by a space
-                    C = textscan(fid, '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d %d'); 
+                    C = textscan(fid, getActionLineFormat()); 
                     % Figure out if it is 2-choice, 3-choice or 4-choice world for this trial
                     % Prior versions relied on checking the stim location, which won't discriminate now that we
                     % have a 2-choice world identical to the 3-choice world in stim locations.  We could explicitly

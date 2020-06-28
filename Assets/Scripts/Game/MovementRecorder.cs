@@ -49,7 +49,8 @@ public class MovementRecorder : MonoBehaviour {
 			string target2Right = "";
 
 			Vector3 targetLoc = Globals.targetLoc [Globals.targetLoc.Count - 1];
-			if (targetLoc.x != -1) { // If it is not a catch trial, record target location on each trial
+			int targetIdx = Globals.targetIdx [Globals.targetIdx.Count - 1];
+			if (targetIdx != -1) { // If it is not a catch trial, record target location on each trial
 				GameObject targetGO = Globals.GetTreeGameObjectFromXPos (targetLoc.x);
 				GameObject crown = targetGO.GetComponent<WaterTreeScript> ().crown;
 

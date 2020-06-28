@@ -31,11 +31,13 @@ public static class Globals
 	public static bool hasNotTurned;
 	public static List<DateTime> trialStartTime = new List<DateTime>(); // Holds DateTime object of starttime
 	public static List<DateTime> trialEndTime = new List<DateTime>(); // Holds DateTime object of endtime
+	public static List<int> targetIdx = new List<int>();  // NEW 2020-06-26: Added so analysis code need not depend on hard-coded locations
 	public static List<Vector3> targetLoc = new List<Vector3>(); // Full vector coord of tree placed in this list
 	public static List<float> targetHFreq = new List<float>();  // Orientation of target
 	public static List<float> targetVFreq = new List<float>();  // Orientation of target
 	public static List<float> targetAngle = new List<float>();  // Angle of target
 	public static List<float> distractorAngle = new List<float>();  // Angle of distractor
+	public static List<int> firstTurnIdx = new List<int>();  // NEW 2020-06-26: Added so analysis code need not depend on hard-coded locations
 	public static List<Vector3> firstTurnLoc = new List<Vector3>(); // Full vector coord of tree the mouse hit or would have hit is placed in this list
 	public static List<float> firstTurnHFreq = new List<float>();  // Orientation of the tree the mouse chose
 	public static List<float> firstTurnVFreq = new List<float>();  // Orientation of the tree the mouse chose
@@ -44,7 +46,6 @@ public static class Globals
 	public static List<int> optoStates = new List<int>();  // What the state of optogenetics light was for that trial
 	public static int currOptoState = optoOff;
     public static int numCorrectTurns;
-	public static int targetIdx;
 	public static bool hiddenShown = false;
 
 	public static int trialDelay;
@@ -123,6 +124,9 @@ public static class Globals
 	public static int currFrame = 1;
 
 	public static float NULL = 1000000;
+	public const int CATCH_IDX = -1;
+	public const int RANDOM_WORLD = -1;
+	public const int UNRESTRICTED = -1;
 
 	public static bool treesBelowGround = false;  // New position of trees so they project down into the ground, to only present stimuli in the lower portion of the visual field (+20 to -30 degrees)
 
@@ -148,6 +152,7 @@ public static class Globals
 
 	public static float catchFreq = 0;  // This is the frequency at which catch trials, in which no target is visible at all, are presented
 	public static float extinctFreq = 0;  // If >0, this indicates the frequency of trials that will be extinction trials (no center target with a side target) - only valid on det_blind scenarios (3-choice scenarios) - also only if blocks enabled
+
 
 	public struct fov {
 		public float nasalBound;
@@ -271,7 +276,7 @@ public static class Globals
 		if (restrictToCamera != NULL) {
 			t.restrictToCamera = restrictToCamera;
 		} else {
-			t.restrictToCamera = -1;  // -1 means unrestricted
+			t.restrictToCamera = UNRESTRICTED;
 		}
 		if (vFreq != NULL) {
 			t.vFreq = vFreq;
@@ -468,7 +473,7 @@ public static class Globals
 
 	// Re-render the world, which will occur on each trial
 	public static int RenderWorld(int worldNum) {
-		if (worldNum == -1) {  // choose a random world to create
+		if (worldNum == RANDOM_WORLD) {
 			worldNum = UnityEngine.Random.Range(0, worlds.Count);
 		}
 
@@ -557,13 +562,14 @@ public static class Globals
 					go.isStatic = true;
 					go.GetComponent<WaterTreeScript> ().SetOpacity (t.opacity);
 					go.GetComponent<WaterTreeScript> ().SetColors (t.color1, t.color2);
+					go.GetComponent<WaterTreeScript> ().SetIdx (i);
 					// Implements hiding targets until the mouse passes a certain Z position - actually, this really happens in GameControlScript.SetupTreeActivation(), which is called later by Respawn after RenderWorld is called
 					//if (w.hiddenIdx.Count > 0 && w.hiddenIdx.Contains (i)) {
 					//	go.GetComponent<WaterTreeScript>().Hide();
 					//	Debug.Log ("Hid the target");
 					//}
 					// Implements field restriction of a tree to just one side screen
-					if (t.restrictToCamera != -1) {
+					if (t.restrictToCamera != UNRESTRICTED) {
 						if (t.posList[tPosIdx].x == 20000) {
 							Debug.Log (t.restrictToCamera);
 						}
@@ -767,7 +773,7 @@ public static class Globals
         // overwrite any existing file
         StreamWriter turnsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_actions.txt", false);
         // Write file header
-        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetLoc\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)\tWorldNum\tOptoState\tTargetAngle\tTurnAngle\tDistractorAngle\tCorrectionTrial\tExtinctionTrial");
+        turnsFile.WriteLine("#TrialStartTime\tTrialEndTime\tTrialEndFrame\tTrialDur\tTargetIdx\tTargetLoc\tTargetHFreq\tTargetVFreq\tNasalBound\tTemporalBound\tHighBound\tLowBound\tTurnIdx\tTurnLocation\tTurnHFreq\tTurnVFreq\tRewardSize(ul)\tWorldNum\tOptoState\tTargetAngle\tTurnAngle\tDistractorAngle\tCorrectionTrial\tExtinctionTrial");
         turnsFile.Close();
     }
 
@@ -796,31 +802,35 @@ public static class Globals
 					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
 					distractorAngle[distractorAngle.Count - 1] + "\t" +
 					correctionTrialMarks[correctionTrialMarks.Count - 1] + "\t" + 
-					extinctionTrialMarks[extinctionTrialMarks.Count - 1]);
+					extinctionTrialMarks[extinctionTrialMarks.Count - 1] + "\t" + 
+					targetIdx[targetIdx.Count - 1] + "\t" +
+					firstTurnIdx[firstTurnIdx.Count - 1] + "\t");
 
 		turnsFile.WriteLine(trialStartTime[trialStartTime.Count - 1].TimeOfDay + "\t" +
-                    trialEndTime[trialEndTime.Count - 1].TimeOfDay + "\t" +
-					currFrame + "\t" + 
-                    (trialEndTime[trialEndTime.Count - 1]).Subtract(trialStartTime[trialStartTime.Count - 1]) + "\t" +
-					targetLoc[targetLoc.Count - 1].x + ";" + targetLoc[targetLoc.Count - 1].y + ";" + targetLoc[targetLoc.Count - 1].z + "\t" +
-                    targetHFreq[targetHFreq.Count - 1] + "\t" +
-                    targetVFreq[targetVFreq.Count - 1] + "\t" +
-					visibleNasalBoundary + "\t" +
-					visibleTemporalBoundary + "\t" + 
-					visibleHighBoundary + "\t" +
-					visibleLowBoundary + "\t" + 
-					firstTurnLoc[firstTurnLoc.Count - 1].x + ";" + firstTurnLoc[firstTurnLoc.Count - 1].y + ";" + firstTurnLoc[firstTurnLoc.Count - 1].z + ";" + "\t" +
-                    firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
-                    firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
-					(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
-					worldID[worldID.Count - 1] + "\t" + 
-					optoStates[optoStates.Count-1] + "\t" + 
-					targetAngle[targetAngle.Count - 1] + "\t" + 
-					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
-					distractorAngle[distractorAngle.Count - 1] + "\t" +
-					correctionTrialMarks[correctionTrialMarks.Count - 1] + "\t" + 
-					extinctionTrialMarks[extinctionTrialMarks.Count - 1]);
-		
+			trialEndTime[trialEndTime.Count - 1].TimeOfDay + "\t" +
+			currFrame + "\t" + 
+			(trialEndTime[trialEndTime.Count - 1]).Subtract(trialStartTime[trialStartTime.Count - 1]) + "\t" +
+			targetLoc[targetLoc.Count - 1].x + ";" + targetLoc[targetLoc.Count - 1].y + ";" + targetLoc[targetLoc.Count - 1].z + "\t" +
+			targetHFreq[targetHFreq.Count - 1] + "\t" +
+			targetVFreq[targetVFreq.Count - 1] + "\t" +
+			visibleNasalBoundary + "\t" +
+			visibleTemporalBoundary + "\t" + 
+			visibleHighBoundary + "\t" +
+			visibleLowBoundary + "\t" + 
+			firstTurnLoc[firstTurnLoc.Count - 1].x + ";" + firstTurnLoc[firstTurnLoc.Count - 1].y + ";" + firstTurnLoc[firstTurnLoc.Count - 1].z + ";" + "\t" +
+			firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
+			firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
+			(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
+			worldID[worldID.Count - 1] + "\t" + 
+			optoStates[optoStates.Count-1] + "\t" + 
+			targetAngle[targetAngle.Count - 1] + "\t" + 
+			firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
+			distractorAngle[distractorAngle.Count - 1] + "\t" +
+			correctionTrialMarks[correctionTrialMarks.Count - 1] + "\t" + 
+			extinctionTrialMarks[extinctionTrialMarks.Count - 1] + "\t" + 
+			targetIdx[targetIdx.Count - 1] + "\t" +
+			firstTurnIdx[firstTurnIdx.Count - 1] + "\t");
+
         turnsFile.Close();
         WriteStatsFile();
     }
@@ -955,24 +965,20 @@ public static class Globals
 			}
 			World w = worlds [i];
 			int tCount = w.trees.Count;
-			float[] locs = new float[tCount];
 			int[] numCorrTrials = new int[tCount]; 
 			int[] numTrials = new int[tCount]; 
-			for (int j = 0; j < tCount; j++) {
-				locs [j] = w.trees[j].posList[0].x;
-			}
 
 			// With all locations in hand, calculate accuracy for each one, then print it out
 			int idx;
 			for (int j = 0; j < Globals.firstTurnLoc.Count; j++) {
-				idx = Array.IndexOf(locs, Globals.targetLoc[j].x);
+				idx = Globals.targetIdx[j];
 				// Added support for ignoring correction trials
 				// Check for world-matching again here, as results from different worlds will be intermingled in the in-memory logs
 				// Also, don't try to calculate target accuracy for catch trials
-				if (idx != -1 && i == worldID[j] && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[j] == 0))) {
+				if (idx != CATCH_IDX && i == worldID[j] && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[j] == 0))) {
 					numTrials [idx]++;
 					//Debug.Log("this-world trial");
-					if (Globals.targetLoc [j].x == Globals.firstTurnLoc [j].x) {
+					if (Globals.targetIdx [j] == Globals.firstTurnIdx [j]) {
 						numCorrTrials [idx]++;
 						//Debug.Log ("correct trial");
 					}
@@ -1027,7 +1033,7 @@ public static class Globals
 		int turn0 = 0;
 		foreach (int idx in validTrials) {
 			//Debug.Log (firstTurnLoc [idx].x);
-			if (firstTurnLoc [idx].x == gos [treeIndex].transform.position.x) {
+			if (firstTurnIdx [idx] == treeIndex) {
 				turn0++;
 			}
 		}
@@ -1055,8 +1061,8 @@ public static class Globals
 		//if (targetHFreq.Count >= 2) 
 		//	Debug.Log (targetHFreq [targetHFreq.Count - 2]);
 		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 &&
-			(optoSide == optoOff && !GetCurrentWorld().probeIdx.Contains (GetIdxOfStimLoc (targetLoc [firstTurnLoc.Count - 1].x)) || 
-				(optoSide != optoOff && (optoStates[firstTurnLoc.Count - 1] == optoOff || (GetCurrentWorld().probeIdx.Count > 0 && !GetCurrentWorld().probeIdx.Contains (GetIdxOfStimLoc (targetLoc [firstTurnLoc.Count - 1].x))))))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial
+			(optoSide == optoOff && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1]) || 
+				(optoSide != optoOff && (optoStates[firstTurnLoc.Count - 1] == optoOff || (GetCurrentWorld().probeIdx.Count > 0 && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])))))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial
 			return true;
 		} else { 
 			return false;
@@ -1064,7 +1070,7 @@ public static class Globals
 	}
 
 	public static bool CurrentlyCatchTrial() { // Can only be called while State is Running, not before Respawn gets a chance to run
-		return targetHFreq [targetHFreq.Count - 1] == -1;
+		return targetHFreq [targetHFreq.Count - 1] == CATCH_IDX;
 	}
 		
 	// Modified to support multi-worlds in a single scenario
@@ -1087,7 +1093,7 @@ public static class Globals
 		int corr = 0;
 		for (int i = 0; i < validTrials.Count; i++) {
 			curTrial = (int)validTrials [i];
-			if (firstTurnLoc [curTrial].x == targetLoc [curTrial].x)
+			if (firstTurnIdx [curTrial] == targetIdx [curTrial])
 				corr++;
 		}
 
@@ -1310,55 +1316,22 @@ public static class Globals
 
 
 	// Assumes get info for current world - add param if need more control
-	public static float GetActualRewardRate(float xPos) {
-		int idx = GetIdxOfStimLoc (xPos);
+	public static float GetActualRewardRate(int idx) {
 		World w = GetWorld (worldID [worldID.Count - 1]);
-
 		if (w.numTurnsToStimLoc[idx] > 0)
 			return (float)w.numRewardsAtStimLoc [idx] / (float)w.numTurnsToStimLoc [idx];
 		else
 			return 0;
 	}
-		
-	public static float GetNumRewardsAtStimLoc(float xPos) {
-		int idx = GetIdxOfStimLoc (xPos);
+
+	public static void IncrementRewardAtStimIdx(int idx) {
 		World w = GetCurrentWorld ();
-
-		return w.numRewardsAtStimLoc [idx];
-	}
-
-	public static float GetNumTurnsToStimLoc(float xPos) {
-		int idx = GetIdxOfStimLoc (xPos);
-		World w = GetCurrentWorld ();
-
-		return w.numTurnsToStimLoc [idx];
-	}
-
-	public static void IncrementRewardAtStimLoc(float xPos) {
-		int idx = GetIdxOfStimLoc (xPos);
-		World w = GetCurrentWorld ();
-
 		w.numRewardsAtStimLoc [idx] = w.numRewardsAtStimLoc [idx] + 1;
 	}
 
-	public static void IncrementTurnToStimLoc(float xPos) {
-		int idx = GetIdxOfStimLoc (xPos);
+	public static void IncrementTurnToStimIdx(int idx) {
 		World w = GetCurrentWorld ();
-
 		w.numTurnsToStimLoc [idx] = w.numTurnsToStimLoc [idx] + 1;
-	}
-
-	public static int GetIdxOfStimLoc(float xPos) {
-		GameObject[] gos = GetTrees ();
-		int idx = -1;
-		// Find the index for this tree
-		for (int i = 0; i < gos.Length; i++) {
-			if (gos [i].gameObject.transform.position.x == xPos) {
-				idx = i;
-				break;
-			}
-		}
-		return idx;
 	}
 
 	public static GameObject GetTreeGameObjectFromXPos(float xPos) {

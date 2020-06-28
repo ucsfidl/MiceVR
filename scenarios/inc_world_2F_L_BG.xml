@@ -1,5 +1,5 @@
 <world>
-	<gameType>det_blind</gameType>
+	<gameType>detection</gameType>
 	<hiddenIdx>1</hiddenIdx>
 	<revealZPos>20014</revealZPos>
 	<trees>

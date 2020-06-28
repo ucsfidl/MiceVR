@@ -159,7 +159,7 @@ public class GameControlScript : MonoBehaviour
 		// Reveal targets if the mouse reaches the correct ZPos and the target had been hidden
 		if (this.state == "Running" && !Globals.hiddenShown && Globals.GetCurrentWorld().revealZPos.Count > 0 && this.player.transform.position.z >= Globals.GetCurrentWorld ().revealZPos [0]) {  // only pay attention to the first value in the list - expand if support added for target-dependent reveal zpos'
 			GameObject[] gos = Globals.GetTrees ();
-			gos[Globals.targetIdx].GetComponent<WaterTreeScript> ().Show ();
+			gos[Globals.targetIdx[Globals.targetIdx.Count - 1]].GetComponent<WaterTreeScript> ().Show ();
 			Globals.hiddenShown = true;
 		}
 
@@ -564,6 +564,7 @@ public class GameControlScript : MonoBehaviour
         TeleportToBeginning();
 
 		// Declare the important variables needed later for logging
+		int idx;
 		Vector3 loc;
 		float hfreq;
 		float vfreq;
@@ -583,6 +584,7 @@ public class GameControlScript : MonoBehaviour
 		// So if this is not a correction trial, then re-render everything per usual
 		if (Globals.CurrentlyCorrectionTrial ()) {
 			Debug.Log ("in correction trial");
+			idx = Globals.targetIdx [Globals.targetIdx.Count - 1];
 			loc = Globals.targetLoc [Globals.targetLoc.Count - 1];
 			hfreq = Globals.targetHFreq [Globals.targetHFreq.Count - 1];
 			vfreq = Globals.targetVFreq [Globals.targetVFreq.Count - 1];
@@ -592,9 +594,9 @@ public class GameControlScript : MonoBehaviour
 			optoState = Globals.optoStates [Globals.optoStates.Count - 1];
 			Globals.worldID.Add(worldID);  		// Record which world this trial is on - must happen before below
 			// If trees are hidden at the start, rehide the tree
-			if (Globals.GetCurrentWorld ().hiddenIdx.Contains (Globals.GetIdxOfStimLoc (loc.x))) {
+			if (Globals.GetCurrentWorld ().hiddenIdx.Contains (idx)) {
 				GameObject[] gos = Globals.GetTrees ();
-				gos [Globals.GetIdxOfStimLoc (loc.x)].GetComponent<WaterTreeScript> ().Hide ();
+				gos [idx].GetComponent<WaterTreeScript> ().Hide ();
 			}
 		} else {
 			Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again
@@ -608,17 +610,18 @@ public class GameControlScript : MonoBehaviour
 				}
 				worldID = Globals.RenderWorld (nextWorldID);
 			} else {
-				worldID = Globals.RenderWorld (-1); // -1 indicates that the world rendered should be randomly selected, without any bias correction (i.e. worlds in which accuracy is better do not occur less than worlds in which accuracy is worse)
+				worldID = Globals.RenderWorld (Globals.RANDOM_WORLD);
 			}
 			Globals.worldID.Add(worldID);  		// Record which world this trial is on - MUST HAPPEN BEFORE BELOW
 
 			GameObject[] gos = Globals.GetTrees ();
 
 			// Just initial values to catch trial values, to slightly simplify code below
-			loc = new Vector3(-1, -1, -1);
-			hfreq = -1;
-			vfreq = -1;
-			angle = -1;
+			idx = Globals.CATCH_IDX;
+			loc = new Vector3(Globals.CATCH_IDX, Globals.CATCH_IDX, Globals.CATCH_IDX);
+			hfreq = Globals.CATCH_IDX;
+			vfreq = Globals.CATCH_IDX;
+			angle = Globals.CATCH_IDX;
 			distractorAngle = 360;  // we will use 360 as the null value
 
 			int treeToActivate = 0;
@@ -657,7 +660,7 @@ public class GameControlScript : MonoBehaviour
 					}
 				}
 				for (int i = 0; i < maxCatch; i++) {
-					stimLocs.Add (-1);  // We will use -1 to indicate a catch trial, and downstream code will respond appropriately
+					stimLocs.Add (Globals.CATCH_IDX);
 				}
 					
 				// Guarantee that there is a probe trial in each block, regardless of probe probability
@@ -722,12 +725,12 @@ public class GameControlScript : MonoBehaviour
 					}
 
 					// Ensure that the first trial is not a catch trial, that there are never 2 catch trials in a row, and that there is at least 1 catch trial per block.
-					if (precompTrialBlock [0] == -1 || (Globals.catchFreq > 0 && !precompTrialBlock.Contains(-1))) {
+					if (precompTrialBlock [0] == Globals.CATCH_IDX || (Globals.catchFreq > 0 && !precompTrialBlock.Contains(Globals.CATCH_IDX))) {
 						catchPlacementOK = false;
 					} else {
 						int lastId = precompTrialBlock [0];
 						foreach (int id in precompTrialBlock.Skip(1)) {
-							if (id == -1 && id == lastId) {
+							if (id == Globals.CATCH_IDX && id == lastId) {
 								catchPlacementOK = false;
 								break;
 							}
@@ -778,14 +781,14 @@ public class GameControlScript : MonoBehaviour
 
 
 				// Next, if optoAlternation is turned off and this is an opto game, precompute the opto state for each trial
-				if (Globals.optoSide != -1 && !Globals.optoAlternation) { // an optoSide was specified and optoAlternation is turned off
+				if (Globals.optoSide != Globals.optoOff && !Globals.optoAlternation) { // an optoSide was specified and optoAlternation is turned off
 					int[] precompOptoBlock = new int[Globals.blockSize];
 
 					// First, count the number of trials at each stimloc
 					int[] numTrialsPerStimLoc = new int[numTrees];
 					int numCatchTrials = 0;
 					for (int i = 0; i < Globals.blockSize; i++) {
-						if (precompTrialBlock [i] != -1) {  // if not a catch trial
+						if (precompTrialBlock [i] != Globals.CATCH_IDX) {  // if not a catch trial
 							numTrialsPerStimLoc [precompTrialBlock [i]] = numTrialsPerStimLoc [precompTrialBlock [i]] + 1;
 						} else {
 							precompOptoBlock[i] = Globals.optoSide;  // not used for anything yet
@@ -873,12 +876,12 @@ public class GameControlScript : MonoBehaviour
 					rThresh0 = rThresh0 * catchThresh;  // Support catch trials
 					Debug.Log ("Loc: [0, " + rThresh0 + ", " + catchThresh + ", 1] - " + r);
 					// If r is less than rThresh0, enable target #0; if not, if r is less than catchThresh, enable target #1; if not then do a catch trial (no targets enabled)
-					treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : -1;
+					treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : Globals.CATCH_IDX;
 					while (true) {
 						// Don't allow the very first trial to be a catch trial, as that might be more confusing for the mouse
-						if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == -1) || (Globals.numNonCorrectionTrials > 1 && Globals.CurrentlyCatchTrial() && treeToActivate == -1)) {
+						if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.CurrentlyCatchTrial() && treeToActivate == Globals.CATCH_IDX)) {
 							r = UnityEngine.Random.value;
-							treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : -1;
+							treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : Globals.CATCH_IDX;
 						} else {
 							break;
 						}
@@ -887,7 +890,7 @@ public class GameControlScript : MonoBehaviour
 					if (gos.Length == 2) {
 						if (Globals.blockSize > 0) {
 							treeToActivate = Globals.GetTreeToActivateFromBlock ();
-							if (treeToActivate > -1) {
+							if (treeToActivate != Globals.CATCH_IDX) {
 								hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 								vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 								angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
@@ -900,7 +903,7 @@ public class GameControlScript : MonoBehaviour
 						if (Globals.varyOrientation) {
 							float r2 = UnityEngine.Random.value;
 							if (r2 > 0.5) { // Swap orientation of target tree
-								if (treeToActivate > -1) {
+								if (treeToActivate != Globals.CATCH_IDX) {
 									gos [treeToActivate].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
 								}
 								gos [2].GetComponent<WaterTreeScript> ().SetShader (vfreq, hfreq, angle);
@@ -938,7 +941,7 @@ public class GameControlScript : MonoBehaviour
 						}
 						Debug.Log ("Ori: [0, 0.5, 1] - " + r2);
 					}
-					if (treeToActivate > -1) {
+					if (treeToActivate != Globals.CATCH_IDX) {
 						loc = gos [treeToActivate].transform.position;
 						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
@@ -979,18 +982,18 @@ public class GameControlScript : MonoBehaviour
 
 						Debug.Log ("random: " + r + " --- range: [0, " + thresh0 + ", " + thresh1 + ", " + thresh2 + ", " + catchThresh + ", 1]");
 
-						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : r < catchThresh ? 3 : -1;
+						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : r < catchThresh ? 3 : Globals.CATCH_IDX;
 						while (true) {
 							// Don't allow the very first trial to be a catch trial, as that might be more confusing for the mouse
-							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == -1) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] == -1 && treeToActivate == -1)) {
+							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] == Globals.CATCH_IDX && treeToActivate == Globals.CATCH_IDX)) {
 								r = UnityEngine.Random.value;
-								treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : r < catchThresh ? 3 : -1;
+								treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : r < catchThresh ? 3 : Globals.CATCH_IDX;
 							} else {
 								break;
 							}
 						}
 					}
-					if (treeToActivate > -1) {
+					if (treeToActivate != Globals.CATCH_IDX) {
 						loc = gos [treeToActivate].transform.position;
 						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
@@ -1079,12 +1082,12 @@ public class GameControlScript : MonoBehaviour
 						thresh1 = thresh1 * catchThresh;
 
 						Debug.Log ("STIMLOC: [0, " + thresh0 + ", " + thresh1 + ", " + catchThresh + ", 1] - " + r);
-						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < catchThresh ? 2 : -1;
+						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < catchThresh ? 2 : Globals.CATCH_IDX;
 						while (true) {
 							// Don't allow the very first trial to be a catch trial or 2 catch trials in a row, as that might be more confusing for the mouse
-							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == -1) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] == -1 && treeToActivate == -1)) {
+							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] == Globals.CATCH_IDX && treeToActivate == Globals.CATCH_IDX)) {
 								r = UnityEngine.Random.value;
-								treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < catchThresh ? 2 : -1;
+								treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < catchThresh ? 2 : Globals.CATCH_IDX;
 							} else {
 								break;
 							}
@@ -1092,7 +1095,7 @@ public class GameControlScript : MonoBehaviour
 					}
 
 					SetupTreeActivation (gos, treeToActivate, 3);
-					if (treeToActivate > -1) {  // enable the center target only if this is not a catch trial
+					if (treeToActivate != Globals.CATCH_IDX) {  // enable the center target only if this is not a catch trial
 						// If not an extinction trial, show the center target
 						if (!Globals.CurrentlyExtinctionTrial()) {  
 							gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree
@@ -1117,12 +1120,12 @@ public class GameControlScript : MonoBehaviour
 						rThresh0 = rThresh0 * catchThresh;  // Support catch trials
 						Debug.Log ("Loc: [0, " + rThresh0 + ", " + catchThresh + ", 1] - " + r);
 						// If r is less than rThresh0, enable target #0; if not, if r is less than catchThresh, enable target #1; if not then do a catch trial (no targets enabled)
-						treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : -1;
+						treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : Globals.CATCH_IDX;
 						while (true) {
 							// Don't allow the very first trial to be a catch trial, as that might be more confusing for the mouse
-							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == -1) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] == -1 && treeToActivate == -1)) {
+							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] ==Globals.CATCH_IDX && treeToActivate == Globals.CATCH_IDX)) {
 								r = UnityEngine.Random.value;
-								treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : -1;
+								treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : Globals.CATCH_IDX;
 							} else {
 								break;
 							}
@@ -1130,7 +1133,7 @@ public class GameControlScript : MonoBehaviour
 					}
 
 					SetupTreeActivation (gos, treeToActivate, 2);
-					if (treeToActivate > -1) { // On blind test catch trials, even hide the persistent center tree!
+					if (treeToActivate != Globals.CATCH_IDX) { // On blind test catch trials, even hide the persistent center tree!
 						gos [1].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree - only necessary with persistent shadow
 						loc = gos [treeToActivate].transform.position;
 						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
@@ -1288,9 +1291,9 @@ public class GameControlScript : MonoBehaviour
 					}
 				}
 			}
-			Globals.targetIdx = treeToActivate;  // Store so targets can be revealed later when the mouse reaches a certain point in the world
+			idx = treeToActivate;
 
-			if (treeToActivate == -1) { // This is a catch trial
+			if (treeToActivate == Globals.CATCH_IDX) { // This is a catch trial
 				Globals.numCatchTrials++;
 			}
 		}
@@ -1301,6 +1304,7 @@ public class GameControlScript : MonoBehaviour
 			Globals.extinctionTrialMarks.Add (0);
 		}
 
+		Globals.targetIdx.Add (idx);
         Globals.targetLoc.Add(loc);
         Globals.targetHFreq.Add(hfreq);
         Globals.targetVFreq.Add(vfreq);
