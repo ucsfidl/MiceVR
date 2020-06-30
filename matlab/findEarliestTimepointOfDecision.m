@@ -54,8 +54,6 @@ colors3 = [ 1 1 1;   % white, for places on the winnerMask which are not used fo
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
 
-actLineFormat = getActionLineFormat();
-
 successDelay = 2; % sec
 failureDelay = 4; % sec
 
@@ -105,9 +103,9 @@ for d_i=1:length(days)  % Iterate through all of the specified days, collecting 
     if (actionsFileID ~= -1)  % File was opened properly
         firstLine = fgets(actionsFileID); % Throw out the first line, as it is a column header
         if (length(actRecs) == 0)
-            actRecs = textscan(actionsFileID, actLineFormat); 
+            actRecs = textscan(actionsFileID, getActionLineFormat()); 
         else
-            tmpActRecs = textscan(actionsFileID, actLineFormat);
+            tmpActRecs = textscan(actionsFileID, getActionLineFormat());
             for actCol=1:length(actRecs)
                 actRecs{actCol} = [actRecs{actCol}; tmpActRecs{actCol}];
             end
@@ -128,8 +126,8 @@ while (1) % a while loop to iterate until earliest cutoff is found
     % First, find all mouse positions for all trials at the cutoff fraction and group together
     for currTrial = 1:numTrials
         % By default include correction trials, as those are useful info.  Consider excluding if don't get good results.
-        actLocX = getActionLocFromActions(actRecs, currTrial);
-        stimLocX = getStimLocFromActions(actRecs, currTrial);
+        actLocX = getActionLoc(actRecs, currTrial);
+        stimLocX = getStimLoc(actRecs, currTrial);
 
         % Now find the currPercentile position
         replaysFileID = fopen([replaysFolder replaysFileNames{currTrial}]);

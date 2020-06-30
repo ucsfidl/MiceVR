@@ -173,21 +173,21 @@ for d_i=1:length(days)  % Iterate through all of the specified days
     trialIdx = 1;
     while trialIdx <= length(trialsToDo)
         % First, skip this trial if it is a correction trial and we are excluding correction trials
-        if (getCorrectionFromActions(actRecs, trialsToDo(trialIdx)) && ~includeCorrectionTrials)
+        if (getCorrection(actRecs, trialsToDo(trialIdx)) && ~includeCorrectionTrials)
             trialIdx = trialIdx + 1;
             continue;
         end
         
         % Second, find the stimulus location of this trial, and if the user specified which stimLocs to analyze,
         % include or skip as appropriate.
-        stimLocX = getStimLocFromActions(actRecs, trialsToDo(trialIdx));
+        stimLocX = getStimLoc(actRecs, trialsToDo(trialIdx));
         if (~isempty(stimLocsToAnalyze) && isempty(find(stimLocsToAnalyze == stimLocX, 1)))
             trialIdx = trialIdx + 1;
             continue;
         end
         
         % Third, need to determine if this was a correct or incorrect trial
-        actLocX = getActionLocFromActions(actRecs, trialsToDo(trialIdx));
+        actLocX = getActionLoc(actRecs, trialsToDo(trialIdx));
                 
         % Fourth, find the nasal and temporal restrictions for this trial
         nasalBound = actRecs{8}(trialsToDo(trialIdx));

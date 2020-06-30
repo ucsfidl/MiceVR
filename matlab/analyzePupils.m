@@ -208,9 +208,9 @@ if (correctNonFlatCurve)
         imshow(sumImLR(:,:,:,i)/255, 'InitialMagnification','fit');
         hold on
         if (i == 1)
-            title('Left eye, unaltered');
+            title([rootFileName ': Left eye, unaltered'], 'Interpreter', 'none');
         else
-            title('Right eye, unaltered');
+            title([rootFileName ': Right eye, unaltered'], 'Interpreter', 'none');
         end
         scatter(centers(1:scatterStepSize:end,1,i), centers(1:scatterStepSize:end,2,i), 4, 'r', 'o', 'filled');
         if (useCR(i))
@@ -265,9 +265,9 @@ if (correctNonFlatCurve)
         imshow(sumImLR(:,:,:,i)/255, 'InitialMagnification','fit');
         hold on
         if (i == 1)
-            title('Left eye, straightened, censored');
+            title([rootFileName ': Left eye, straightened, censored'], 'Interpreter', 'none');
         else
-            title('Right eye, straightened, censored');
+            title([rootFileName ': Right eye, straightened, censored'], 'Interpreter', 'none');
         end
         % Show all centers, so I can see how often it gets it wrong
         % In fact, I can use deviations away from the point cloud as false alarms and censor post-hoc!  TODO.

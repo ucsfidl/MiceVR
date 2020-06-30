@@ -57,7 +57,7 @@ end
 fid = fopen(actionsFileName);
 if (fid ~= -1)
     fgetl(fid); % Throw out the first line, as it is a column header
-    C = textscan(fid, '%s %s %d %s %s %d %d %d %d %d %d %s %d %d %f %d %d %d %d %d %d %d'); 
+    C = textscan(fid, getActionLineFormat()); 
 
     mdIdx = 1;  % keep a metadata index separate from the lineIdx
     for lineIdx = 1:length(C{1})  % For each line
