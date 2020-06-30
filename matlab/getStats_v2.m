@@ -30,7 +30,6 @@ discLeftX = 19980;
 discRightX = 20020;
 
 catchX = -1;
-catchIdx = -1;
 zCutoff = 20050;  % Used to separate front from rear stimuli in the one-sided 2AFC
 
 % Results are stored for each world separately, and each cell contains a cell which has arrays for 2-, 3- or 4-choice
@@ -38,11 +37,9 @@ zCutoff = 20050;  % Used to separate front from rear stimuli in the one-sided 2A
 % For 3-choice, there is also a results_extinction matrix.
 % Each 2-d array in the matrix is duplicated for non-opto, optoL, optoR and optoBoth.
 % Columns are stim locations, rows are actions.
-worldResults = {};
-worldTypes = [];  % this keeps track of whether the world is 2-, 3- or 4-choice.
-worldTypesStr = {};
+world_results = {};
+world_type = [];  % this keeps track of whether the world is 2-, 3- or 4-choice.
 
-% Templates used below
 results_2choice = zeros(2,2,4);
 results_2choice_catch = zeros(2,1,4);  % No target presented in these results for "catch" trials
 results_3choice = zeros(3,3,4);
@@ -51,7 +48,6 @@ results_3choice_extinction = zeros(3,3,4);
 results_4choice = zeros(4,4,4);
 results_4choice_catch = zeros(4,1,4);
 
-% Haven't tested in a while - might not work any more
 results_disc = zeros(2,2,4);
 results_disc_catch = zeros(2,2,4);
 
@@ -91,46 +87,25 @@ for i=1:length(fileList)
                 if (fid ~= -1)  % File was opened properly
                     numFilesAnalyzed = numFilesAnalyzed + 1;
                     tline = fgetl(fid); % Throw out the first line, as it is a column header
-                    trialRecs = textscan(fid, getActionLineFormat()); 
+                    % C is a cell array with each string separated by a space
+                    C = textscan(fid, getActionLineFormat()); 
+                    levels = zeros(2,1);  % Currently support just 2 levels per world
                     strs = split(fileList(i).name, '-');  % Example filename: Waldo-D100-3_BG_Bl_R_10-S5_actions
                     % Take the 3rd string, and split by underscores to find the number of choices.
                     % In the future, record the level type in the actions file itself at the top.
-                    world_parts = split(strs{3}, '_');
-                    if(~isnan(str2double(world_parts{1}(1))))
-                        worldTypes(end+1) = str2double(world_parts{1}(1));
-                        worldTypesStr{end+1} = world_parts{1};
-                        if (~isnan(str2double(world_parts{2}(1))))
-                            worldTypes(end+1) = str2double(world_parts{2}(1));
-                            worldTypesStr{end+1} = world_parts{2};
+                    level_parts = split(strs{3}, '_');
+                    if(~isnan(str2double(level_parts{1}(1))))
+                        levels(1) = str2double(level_parts{1}(1));
+                        if (~isnan(str2double(level_parts{2}(1))))
+                            levels(2) = str2double(level_parts{2}(1));
                         end
                     end
-                    for (w_i = 1:length(worldTypes))
-                        if (worldTypes(w_i) == 2)
-                           worldResults{w_i} = cell(2,1);
-                           worldResults{w_i}{1} = results_2choice;
-                           worldResults{w_i}{2} = results_2choice_catch;
-                        elseif (worldTypes(w_i) == 3)
-                           worldResults{w_i} = cell(3,1);
-                           worldResults{w_i}{1} = results_3choice;
-                           worldResults{w_i}{2} = results_3choice_catch;
-                           worldResults{w_i}{3} = results_3choice_extinction;
-                        elseif (worldTypes(w_i) == 4)
-                           worldResults{w_i} = cell(2,1);
-                           worldResults{w_i}{1} = results_4choice;
-                           worldResults{w_i}{2} = results_4choice_catch;
-                        else
-                            error('Script currently supports worlds with 2-4 choices, no more.');
-                        end
-                    end
-                    
-                    for trialIdx = 1:length(trialRecs{1})  % For each trial
-                        [stimLocX, ~] = getStimLoc(trialRecs, trialIdx);
-                        [actionLocX, ~] = getActionLoc(trialRecs, trialIdx);
-                        stimIdx = getStimIdx(trialRecs, trialIdx);
-                        actionIdx = getActionIdx(trialRecs, trialIdx);
-                        optoLoc = getOptoLoc(trialRecs, trialIdx);
-                        worldIdx = getWorldIdx(trialRecs, trialIdx);
-                        isCorrectionTrial = getCorrection(trialRecs, trialIdx);
+                    for k = 1:length(C{1})  % For each trial
+                        [stimLocX, ~] = getStimLocFromActions(C, k);
+                        [actionLocX, ~] = getActionLocFromActions(C, k);
+                        optoLoc = getOptoLocFromActions(C, k);
+                        worldNum = getWorldNumFromActions(C, k);
+                        isCorrectionTrial = getCorrectionFromActions(C, k);
                         
                         if (isCorrectionTrial && ~includeCorrectionTrials)
                             continue;
@@ -138,166 +113,119 @@ for i=1:length(fileList)
                         
                         currCatch = 0;
                         
-                        isExtinctionTrial = getExtinction(trialRecs, trialIdx);
+                        isExtinctionTrial = getExtinctionFromActions(C, k);
                         
-                        if (worldTypes(worldIdx+1) == 2) % This is a trial in a 2-choice world
-                            if (~isnan(stimIdx))  % new record format (post 6/29/20)
-                                if (stimIdx == catchIdx)
-                                    currCatch = 1;
-                                else
-                                    col = stimIdx + 1;
-                                end
-                            else  % old record format, for backwards compatibility
-                                if (stimLocX == nearLeftX)
+                        if (levels(worldNum+1) == 2)
+                            trialType = 2;
+                            if (stimLocX == nearLeftX)
+                                col = 1;
+                            elseif (stimLocX == farLeftX)
+                                col = 2;
+                            elseif (stimLocX == nearRightX)
+                                % Hack that assumes that on 2H levels, R
+                                % level always comes second
+                                if (length(levels) == 1)  % Assumes no 2R-only levels
+                                    col = 2;
+                                elseif (length(levels) == 2 && worldNum == 0)
+                                    col = 2;
+                                elseif (length(levels) == 2 && worldNum == 1)
                                     col = 1;
-                                elseif (stimLocX == farLeftX)
-                                    col = 2;
-                                elseif (stimLocX == nearRightX)
-                                    % Hack that assumes that on 2H levels, R
-                                    % level always comes second
-                                    if (length(worldTypes) == 1)  % Assumes no 2R-only levels
-                                        col = 2;
-                                    elseif (length(worldTypes) == 2 && worldIdx == 0)
-                                        col = 2;
-                                    elseif (length(worldTypes) == 2 && worldIdx == 1)
-                                        col = 1;
-                                    end
-                                elseif (stimLocX == farRightX)
-                                    col = 2;
-                                elseif (stimLocX == catchX) % Catch trials!
-                                    currCatch = 1;
-                                else
-                                    error('Unexpected stimLocX');
                                 end
+                            elseif (stimLocX == farRightX)
+                                col = 2;
+                            else % Catch trials!
+                                currCatch = 1;
                             end
-
-                            if (~isnan(actionIdx)) % new record format (post 6/29/20)
-                                row = actionIdx + 1;
-                            else % old record format, for backwards compatibility
-                                if (actionLocX == nearLeftX)
+                            
+                            if (actionLocX == nearLeftX)
+                                row = 1;
+                            elseif (actionLocX == farLeftX)
+                                row = 2;
+                            elseif (actionLocX == nearRightX)
+                                % Hack that assumes that on 2H levels, R
+                                % level always comes second
+                                if (length(levels) == 1)  % Assumes no 2R-only levels
+                                    row = 2;
+                                elseif (length(levels) == 2 && worldNum == 0)
+                                    row = 2;
+                                elseif (length(levels) == 2 && worldNum == 1)
                                     row = 1;
-                                elseif (actionLocX == farLeftX)
-                                    row = 2;
-                                elseif (actionLocX == nearRightX)
-                                    % Hack that assumes that on 2H levels, R
-                                    % level always comes second
-                                    if (length(levels) == 1)  % Assumes no 2R-only levels
-                                        row = 2;
-                                    elseif (length(levels) == 2 && worldIdx == 0)
-                                        row = 2;
-                                    elseif (length(levels) == 2 && worldIdx == 1)
-                                        row = 1;
-                                    end
-                                elseif (actionLocX == farRightX)
-                                    row = 2;
-                                else
-                                    disp('action does not match an expected target location');
                                 end
+                            elseif (actionLocX == farRightX)
+                                row = 2;
+                            else
+                                disp('action does not match an expected target location');
                             end
                             
                             if (~currCatch)
-                                worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) = ...
-                                    worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) + 1;
+                                results_2choice(row, col, optoLoc + 2) = results_2choice(row, col, optoLoc + 2) + 1;
                             else
-                                worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) = ...
-                                    worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) + 1;
+                                results_2choice_catch(row, 1, optoLoc + 2) = results_2choice_catch(row, 1, optoLoc + 2) + 1;
                             end
-                            
-                        elseif (worldTypes(worldIdx+1) == 3)
-                            if (~isnan(stimIdx))  % works with new trialRecs post 6/29/20
-                                if (stimIdx == catchIdx)
-                                    currCatch = 1;
-                                else
-                                    col = stimIdx + 1;
-                                end
-                            else  % compatibility with old trialRecs
-                                if (stimLocX == nearLeftX)
-                                    col = 1;
-                                elseif (stimLocX == nearRightX)
-                                    col = 2;
-                                elseif (stimLocX == centerX)
-                                    col = 3;
-                                elseif (stimLocX == catchX)
-                                    currCatch = 1;
-                                else
-                                    error('Unexpected stimLocX');
-                                end
+                        elseif (levels(worldNum+1) == 3) 
+                            trialType = 3;
+                            if (stimLocX == nearLeftX)
+                                col = 1;
+                            elseif (stimLocX == nearRightX)
+                                col = 2;
+                            elseif (stimLocX == centerX)
+                                col = 3;
+                            else
+                                currCatch = 1;
                             end
-                            
-                            if (~isnan(actionIdx)) % new record format (post 6/29/20)
-                                row = actionIdx + 1;
-                            else % old record format, for backwards compatibility
-                                if (actionLocX == nearLeftX)
-                                    row = 1;
-                                elseif (actionLocX == nearRightX)
-                                    row = 2;
-                                elseif (actionLocX == centerX)
-                                    row = 3;
-                                else
-                                    error('action does not match an expected target location');
-                                end
+
+                            if (actionLocX == nearLeftX)
+                                row = 1;
+                            elseif (actionLocX == nearRightX)
+                                row = 2;
+                            elseif (actionLocX == centerX)
+                                row = 3;
+                            else
+                                disp('action does not match an expected target location');
                             end
                                                         
-                            % Record trial in the correct sheet
+                            % Put trials in correct sheet
                             if (currCatch)
-                                worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) = ...
-                                    worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) + 1;
+                                results_3choice_catch(row, 1, optoLoc + 2) = results_3choice_catch(row, 1, optoLoc + 2) + 1;
                             elseif (isExtinctionTrial)
-                                worldResults{worldIdx+1}{3}(row, col, optoLoc + 2) = ...
-                                    worldResults{worldIdx+1}{3}(row, col, optoLoc + 2) + 1;
+                                results_3choice_extinction(row, col, optoLoc + 2) = results_3choice_extinction(row, col, optoLoc + 2) + 1;
                             else
-                                worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) = ...
-                                    worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) + 1;
+                                results_3choice(row, col, optoLoc + 2) = results_3choice(row, col, optoLoc + 2) + 1;
                             end
-                            
-                        elseif (worldTypes(worldIdx+1) == 4)
-                            if (~isnan(stimIdx))  % works with new trialRecs post 6/29/20
-                                if (stimIdx == catchIdx)
-                                    currCatch = 1;
-                                else
-                                    col = stimIdx + 1;
-                                end
-                            else % backwards compatible
-                                if (stimLocX == nearLeftXDiag)
-                                    col = 1;
-                                elseif (stimLocX == nearRightXDiag)
-                                    col = 2;
-                                elseif (stimLocX == farLeftXDiag)
-                                    col = 3;
-                                elseif (stimLocX == farRightXDiag)
-                                    col = 4;
-                                elseif (stimLocX == catchX)
-                                    currCatch = 1;
-                                else
-                                    error('Unexpected stimLocX');
-                                end
+                        elseif (levels(worldNum+1) == 4)
+                            trialType = 4;
+                            if (stimLocX == nearLeftXDiag)
+                                col = 1;
+                            elseif (stimLocX == nearRightXDiag)
+                                col = 2;
+                            elseif (stimLocX == farLeftXDiag)
+                                col = 3;
+                            elseif (stimLocX == farRightXDiag)
+                                col = 4;
+                            else
+                                currCatch = 1;
                             end
-                            
-                            if (~isnan(actionIdx)) % new record format (post 6/29/20)
-                                row = actionIdx + 1;
-                            else % old record format, for backwards compatibility
-                                if (actionLocX == nearLeftXDiag)
-                                    row = 1;
-                                elseif (actionLocX == nearRightXDiag)
-                                    row = 2;
-                                elseif (actionLocX == farLeftXDiag)
-                                    row = 3;
-                                elseif (actionLocX == farRightXDiag)
-                                    row = 4;
-                                else
-                                    error('action does not match an expected target location');
-                                end
+
+                            if (actionLocX == nearLeftXDiag)
+                                row = 1;
+                            elseif (actionLocX == nearRightXDiag)
+                                row = 2;
+                            elseif (actionLocX == farLeftXDiag)
+                                row = 3;
+                            elseif (actionLocX == farRightXDiag)
+                                row = 4;
+                            else
+                                disp('action does not match an expected target location');
                             end
                             
                             % Put trials in correct sheet
                             if (~currCatch)
-                                worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) = ...
-                                    worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) + 1;
+                                results_4choice(row, col, optoLoc + 2) = results_4choice(row, col, optoLoc + 2) + 1;
                             else
-                                worldResults{worldIdx+1}{1}(row, 1, optoLoc + 2) = ...
-                                    worldResults{worldIdx+1}{1}(row, 1, optoLoc + 2) + 1;
+                                results_4choice_catch(row, 1, optoLoc + 2) = results_4choice_catch(row, 1, optoLoc + 2) + 1;
                             end
-                        elseif (stimLocX == discLeftX || stimLocX == discRightX) % Haven't tested in a while.  Might not work anymore
+                        elseif (stimLocX == discLeftX || stimLocX == discRightX)
+                            trialType = 2;
                             if (stimLocX == discLeftX)
                                 col = 1;
                             elseif (stimLocX == discRightX)
@@ -324,7 +252,7 @@ for i=1:length(fileList)
                         % The following analysis only applies to the
                         % 3-choice task - Not quite sure if this is
                         % relevant any more.
-                        if (worldTypes(worldIdx+1) == 3 && col ~= row)  % error trial
+                        if (trialType == 3 && col ~= row)  % error trial
                             nasal = C{8}(k);
                             temporal = C{9}(k);
                             high = C{10}(k);
@@ -353,111 +281,45 @@ for i=1:length(fileList)
     end
 end
 
-% Iterate through all worlds and print the results separately for each
-% In general right now there will be 1 or 2 world types, but in principle there can be more
-for (worldIdx = 1:length(worldTypes))
-    if (worldTypes(worldIdx) == 2)
-        disp('///////2-CHOICE///////');
-        results = worldResults{worldIdx}{1};  % just a helper
-
-        for j = 1:size(results,3)
-            % Don't display results if none for this opto-type
-            cnt = sum(sum(results));
-            if (cnt(j) == 0)
-                continue;
-            end
-            if (j == 1) 
-                disp('=====Non-Opto======')
-            elseif (j == 2)
-                disp('=====Opto Left======')
-            elseif (j == 3)
-                disp('=====Opto Right======')
-            elseif (j == 4)
-                disp('=====Opto Both======')
-            end
-            numCorrect = results(1,1,j)+results(2,2,j);
-            numTrials = sum(sum(results(:,:,j)));
-            disp(['ACCURACY = ' num2str(numCorrect/numTrials * 100, 2) '%']);
-            
-            if (strcmp(worldTypesStr{worldIdx}, '2F'))
-                if (worldIdx == 1)
-                    disp(['NL->NL = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                        num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                    disp(['NL->FL = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                        num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                    disp('-----------')
-                    disp(['FL->NL = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                        num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-                    disp(['FL->FL = ' num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                        num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-                elseif (worldIdx == 2)
-                    disp(['NR->NR = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                        num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                    disp(['NR->FR = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                        num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                    disp('-----------')
-                    disp(['FR->NR = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                        num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-                    disp(['FR->FR = ' num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                        num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-                end
-            else
-                disp(['L->L = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                    num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                disp(['L->R = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                    num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                disp('-----------')
-                disp(['R->L = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                    num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-                disp(['R->R = ' num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                    num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-            end
-            disp('-----------')
-            disp([num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '/' ...
-                  num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3)]);        
-            disp('-----------')
-            %disp(results(:,:,j));
-            %disp('===========')
-        end
-
-        results = worldResults{worldIdx}{2};  % just a helper - these are the catch trial results
-        if (sum(sum(sum(results))) > 0)
-            disp('///////2-CHOICE CATCH///////');
-            results = results_2choice_catch;
-            for j = 1:size(results,3)
-                % Don't display results if none for this opto-type
-                cnt = sum(results);
-                if (cnt(j) == 0)
-                    continue;
-                end
-                if (j == 1) 
-                    disp('=====Non-Opto======')
-                elseif (j == 2)
-                    disp('=====Opto Left======')
-                elseif (j == 3)
-                    disp('=====Opto Right======')
-                elseif (j == 4)
-                    disp('=====Opto Both======')
-                end
-                numTrials = sum(sum(results(:,:,j)));
-                disp(['LEFT BIAS = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                    num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                disp(['RIGHT BIAS = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                    num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                disp('-----------')
-            end
-        end
-        
-    elseif (worldTypes(worldIdx == 3))
-        
-    elseif (worldTypes(worldIdx == 4))
-        
-    end
-end
-worlds_2choice = find(worldTypes == 2);
+% If there are 2-choice trials, print the results
 if (sum(sum(sum(results_2choice))) > 0)
+    disp('///////2-CHOICE///////');
+    results = results_2choice;  % just a helper
 
-
+    for j = 1:size(results,3)
+        % Don't display results if none for this opto-type
+        cnt = sum(sum(results));
+        if (cnt(j) == 0)
+            continue;
+        end
+        if (j == 1) 
+            disp('=====Non-Opto======')
+        elseif (j == 2)
+            disp('=====Opto Left======')
+        elseif (j == 3)
+            disp('=====Opto Right======')
+        elseif (j == 4)
+            disp('=====Opto Both======')
+        end
+        numCorrect = results(1,1,j)+results(2,2,j);
+        numTrials = sum(sum(results(:,:,j)));
+        disp(['ACCURACY = ' num2str(numCorrect/numTrials * 100, 2) '%']);
+        disp(['L->L = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+            num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+        disp(['L->R = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+            num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+        disp('-----------')
+        disp(['R->L = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
+            num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
+        disp(['R->R = ' num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
+            num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
+        disp('-----------')
+        disp([num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '/' ...
+              num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3)]);        
+        disp('-----------')
+        %disp(results(:,:,j));
+        %disp('===========')
+    end
 
     if (sum(sum(sum(results_2choice_catch))) > 0)
         disp('///////2-CHOICE CATCH///////');

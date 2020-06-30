@@ -1281,8 +1281,9 @@ disp(['Mean saccade size L eye = ' num2str(mean(abs(saccadeAmplitudes{1})))]);
 disp(['Saccade thresh R eye = ' num2str(saccadeThresh(2))]);
 disp(['Mean saccade size R eye = ' num2str(mean(abs(saccadeAmplitudes{2})))]);
 
-disp(['Mean pupil sizes by areas: L = ' num2str(round(sqrt(nanmean(areasMm2(:,1,1))/pi)*2, 2)) ' mm diameter, R = ' ...
-                                num2str(round(sqrt(nanmean(areasMm2(:,1,2))/pi)*2, 2)) ' mm diameter']);
+%disp(['Mean pupil sizes by areas: L = ' num2str(round(sqrt(nanmean(areasMm2(:,1,1))/pi)*2, 2)) ' mm diameter, R = ' ...
+%                                num2str(round(sqrt(nanmean(areasMm2(:,1,2))/pi)*2, 2)) ' mm diameter']);
+
 disp(['Mean pupil sizes by ellipse major axis: L = ' num2str(round(nanmean(majorAxisMm(:,1,1)), 2)) ' mm diameter, R = ' ...
                                 num2str(round(nanmean(majorAxisMm(:,1,2)), 2)) ' mm diameter']);
 

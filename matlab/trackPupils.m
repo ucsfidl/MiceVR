@@ -66,9 +66,9 @@ distWt = 10;
 solWt = 1;
 
 % CR weights
-crSizeWt = 1;
+crSizeWt = 0.5;  % 1 was too large, big CR was getting picked!
 crDistWt = 1;
-crSolWt = 5;  % 1,1,4 was too small
+crSolWt = 5;  % 1,2,4 was too small
 
 distFudge = 0.001;
 
@@ -324,7 +324,7 @@ while relFrame + frameStart <= frameStop + 1
 
             % For debugging:
             %disp(relFrame);
-            if (relFrame == 483 && i == 2)
+            if (relFrame == 1 && i == 2)
                 a = 0;
             end
             % end debugging

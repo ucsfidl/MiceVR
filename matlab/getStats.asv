@@ -379,39 +379,17 @@ for (worldIdx = 1:length(worldTypes))
             numTrials = sum(sum(results(:,:,j)));
             disp(['ACCURACY = ' num2str(numCorrect/numTrials * 100, 2) '%']);
             
-            if (strcmp(worldTypesStr{worldIdx}, '2F'))
-                if (worldIdx == 1)
-                    disp(['NL->NL = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                        num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                    disp(['NL->FL = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                        num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                    disp('-----------')
-                    disp(['FL->NL = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                        num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-                    disp(['FL->FL = ' num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                        num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-                elseif (worldIdx == 2)
-                    disp(['NR->NR = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                        num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                    disp(['NR->FR = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                        num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                    disp('-----------')
-                    disp(['FR->NR = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                        num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-                    disp(['FR->FR = ' num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                        num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-                end
-            else
-                disp(['L->L = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                    num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                disp(['L->R = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                    num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                disp('-----------')
-                disp(['R->L = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                    num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-                disp(['R->R = ' num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
-                    num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
-            end
+            if (strcmp(worldTypesStr{worldIdx} == '2F'
+            
+            disp(['L->L = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+                num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+            disp(['L->R = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
+                num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+            disp('-----------')
+            disp(['R->L = ' num2str(round(results(1,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
+                num2str(results(1,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
+            disp(['R->R = ' num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '% (' ...
+                num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
             disp('-----------')
             disp([num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '/' ...
                   num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3)]);        
@@ -419,35 +397,6 @@ for (worldIdx = 1:length(worldTypes))
             %disp(results(:,:,j));
             %disp('===========')
         end
-
-        results = worldResults{worldIdx}{2};  % just a helper - these are the catch trial results
-        if (sum(sum(sum(results))) > 0)
-            disp('///////2-CHOICE CATCH///////');
-            results = results_2choice_catch;
-            for j = 1:size(results,3)
-                % Don't display results if none for this opto-type
-                cnt = sum(results);
-                if (cnt(j) == 0)
-                    continue;
-                end
-                if (j == 1) 
-                    disp('=====Non-Opto======')
-                elseif (j == 2)
-                    disp('=====Opto Left======')
-                elseif (j == 3)
-                    disp('=====Opto Right======')
-                elseif (j == 4)
-                    disp('=====Opto Both======')
-                end
-                numTrials = sum(sum(results(:,:,j)));
-                disp(['LEFT BIAS = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                    num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                disp(['RIGHT BIAS = ' num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
-                    num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                disp('-----------')
-            end
-        end
-        
     elseif (worldTypes(worldIdx == 3))
         
     elseif (worldTypes(worldIdx == 4))

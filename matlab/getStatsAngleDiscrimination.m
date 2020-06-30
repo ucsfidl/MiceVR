@@ -2,6 +2,10 @@ function results = getStatsAngleDiscrimination(mouseName, days, sessions, distra
 % This function will analyze the relevant actions.txt log files and return
 % a set of statistics useful to analyzing blindness and blindsight.
 
+% USAGE:
+% Make sure you are in the data directory containing the actions files you want to analyze (e.g. UCSF/data)
+% > getStatsAngleDiscrimination('Xochi', [72], [], [45 15 -45 -15], 0)
+
 % distractor N: left correct, right correct, total trials
 centerX = 20000;
 results = zeros(length(distractorAngles),4);
@@ -72,7 +76,12 @@ for i=1:length(fileList)
     end
 end
 
+accuracy_summary_text = [];
 for j = 1:size(results,1)
+    accuracy_summary_text = [accuracy_summary_text num2str((results(j,1) + results(j,3)) / (results(j,2)+results(j,4)) * 100, 2)];
+    if (j < size(results,1))
+        accuracy_summary_text = [accuracy_summary_text '/'];
+    end
     disp(['Condition #' num2str(j) ': ' num2str(distractorAngles(j)) ' degree distractor']);
     disp(['Overall = ' num2str((results(j,1) + results(j,3)) / (results(j,2)+results(j,4)) * 100, 2) '%']);
     disp(['Left = ' num2str(results(j,1) / results(j,2) * 100, 2) '%']);
@@ -82,6 +91,10 @@ for j = 1:size(results,1)
     disp(['d'' = ' num2str(round(1/sqrt(2) * (norminv(results(j,1) /results(j,2)) - norminv((results(j,4)-results(j,3)) / results(j,4))), 2))]);
     disp('-----------')
 end
+
+disp('===========')
+disp(accuracy_summary_text);  
+disp('===========')
 
 disp(['Analyzed ' num2str(numFilesAnalyzed) ' files.']);
 
