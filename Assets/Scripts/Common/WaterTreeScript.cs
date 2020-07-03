@@ -146,7 +146,7 @@ public class WaterTreeScript : MonoBehaviour {
                     // DONE COMPUTING REWARD ENLARGEMENT
 
                     // (2) Actually give or withold reward, depending on the gametype!
-					string gameType = Globals.GetGameType (Globals.worldID[Globals.worldID.Count - 1]);
+					string gameType = Globals.GetGameType (Globals.worldIdxList[Globals.worldIdxList.Count - 1]);
 					if (gameType.Equals ("detection") || gameType.Equals ("det_target")) {
 						if (respawn)
 							GiveReward (rewardDur, true, true);
@@ -269,13 +269,14 @@ public class WaterTreeScript : MonoBehaviour {
 		Globals.numCorrectionTrialsSinceLastCorrectTrial = 0;  // Reset for next bout of corrections
 
         if (respawn) {
+			// Important that extinction trial test be done before numNonCorrectionTrials is incremented
+			if (Globals.CurrentlyExtinctionTrial ()) {
+				Globals.numExtinctionTrials++;
+			}
 			if (!Globals.CurrentlyCorrectionTrial ()) {
 				Globals.numNonCorrectionTrials++;
 			} else {  // Might be off by 1 bug here, as nonCorrectionTrials is the current trial #, but numCorrectionTrials is the total number of correction trials
 				Globals.numCorrectionTrials++;
-			}
-			if (Globals.CurrentlyExtinctionTrial ()) {
-				Globals.numExtinctionTrials++;
 			}
 			Globals.trialDelay = interTrialInterval;
 			GameObject.Find("GameControl").GetComponent<GameControlScript>().ResetScenario(c);
@@ -313,15 +314,16 @@ public class WaterTreeScript : MonoBehaviour {
         Globals.sizeOfRewardGiven.Add(0);
 
         if (respawn) {
+			// Important that extinction trial test be done before numNonCorrectionTrials is incremented
+			if (Globals.CurrentlyExtinctionTrial ()) {
+				Globals.numExtinctionTrials++;
+			}
 			if (!Globals.CurrentlyCorrectionTrial ()) {
 				Globals.numNonCorrectionTrials++;
 				Globals.numCorrectionTrialsSinceLastCorrectTrial = 0;  // Increment for displaying the current count of correction trials in this correction bout
 			} else {  // Might be off by 1 bug here, as nonCorrectionTrials is the current trial #, but numCorrectionTrials is the total number of correction trials
 				Globals.numCorrectionTrials++;
 				Globals.numCorrectionTrialsSinceLastCorrectTrial++;  // Increment for displaying the current count of correction trials in this correction bout
-			}
-			if (Globals.CurrentlyExtinctionTrial ()) {
-				Globals.numExtinctionTrials++;
 			}
 
 			Globals.trialDelay = interTrialInterval;

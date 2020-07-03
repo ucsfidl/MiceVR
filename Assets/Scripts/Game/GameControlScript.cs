@@ -358,7 +358,7 @@ public class GameControlScript : MonoBehaviour
         this.fadeToBlackText.text = "Press SPACE to start";
 		//Debug.Log ("waiting for space bar");
 		if (Input.GetKeyUp (KeyCode.Space)) {
-			Debug.Log ("Running");
+			//Debug.Log ("Running");
 			this.runTime = Time.time;
 			Globals.gameStartTime = DateTime.Now;
 			//Debug.Log("Game started at " + Globals.gameStartTime.ToLongTimeString());
@@ -375,7 +375,6 @@ public class GameControlScript : MonoBehaviour
 			Globals.hasNotTurned = true;
 			Globals.numCorrectTurns = 0;
 			this.characterController.enabled = true;  // Bring back character movement
-			this.state = "Running";
 
 			this.mouseNameText.text = "Name: " + Globals.mouseName;
 			//this.scenarioNameText.text = "Scenario: " + Globals.scenarioName + " (Day " + Globals.trainingDayNumber + ", session #" + Globals.scenarioSessionNumber + ", setting " + Globals.inputDeg + ")";
@@ -386,6 +385,7 @@ public class GameControlScript : MonoBehaviour
 			Globals.trialStartTime.Add (DateTime.Now);
 			lastTrialStartDateTime = DateTime.Now;
 			Respawn ();
+			this.state = "Running";
 		}
 	}
 
@@ -570,8 +570,9 @@ public class GameControlScript : MonoBehaviour
 		float vfreq;
 		float angle;
 		float distractorAngle;  // we will use 360 as the null value
-		int worldID;
+		int worldIdx;
 		int optoState = Globals.optoOff;
+		int blockSize = Globals.blockSize;  // Since this can be different for each world, keep a local variable here to store this difference, if there is one
 
 		// Do this tally early, before optostate might change, which will affect this in the current implementation where the optostate history is not tracked in memory
 		if (Globals.CurrentlyCorrectionTrial()) {
@@ -581,7 +582,6 @@ public class GameControlScript : MonoBehaviour
 		}
 
 		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo, unless it was a catch trial!
-		// So if this is not a correction trial, then re-render everything per usual
 		if (Globals.CurrentlyCorrectionTrial ()) {
 			Debug.Log ("in correction trial");
 			idx = Globals.targetIdx [Globals.targetIdx.Count - 1];
@@ -589,30 +589,127 @@ public class GameControlScript : MonoBehaviour
 			hfreq = Globals.targetHFreq [Globals.targetHFreq.Count - 1];
 			vfreq = Globals.targetVFreq [Globals.targetVFreq.Count - 1];
 			angle = Globals.targetAngle [Globals.targetAngle.Count - 1];
-			worldID = Globals.worldID [Globals.worldID.Count - 1];
+			worldIdx = Globals.worldIdxList [Globals.worldIdxList.Count - 1];
 			distractorAngle = Globals.distractorAngle [Globals.distractorAngle.Count - 1];
 			optoState = Globals.optoStates [Globals.optoStates.Count - 1];
-			Globals.worldID.Add(worldID);  		// Record which world this trial is on - must happen before below
+			Globals.worldIdxList.Add(worldIdx);  		// Record which world this trial is on - must happen before below
 			// If trees are hidden at the start, rehide the tree
 			if (Globals.GetCurrentWorld ().hiddenIdx.Contains (idx)) {
 				GameObject[] gos = Globals.GetTrees ();
 				gos [idx].GetComponent<WaterTreeScript> ().Hide ();
 			}
-		} else {
-			Globals.ClearWorld (); // Wipes out all trees and walls, only to be rendered again
+		} else { 		// So if this is not a correction trial, then re-render everything per usual
+			Globals.ClearWorld (); // Wipes out all targets and walls, only to be rendered again
 
+			int newWorldIdx;  // Need to initialize for the compiler
 			if (Globals.alternateWorlds) {
-				int nextWorldID;
-				if (Globals.worldID.Count < 1) {
-					nextWorldID = 0;
+				if (Globals.worldIdxList.Count < 1) {
+					newWorldIdx = 0;
 				} else {
-					nextWorldID = ((int)Globals.worldID [Globals.worldID.Count - 1] + 1) % Globals.worlds.Count;
+					newWorldIdx = ((int)Globals.worldIdxList [Globals.worldIdxList.Count - 1] + 1) % Globals.worlds.Count;
 				}
-				worldID = Globals.RenderWorld (nextWorldID);
 			} else {
-				worldID = Globals.RenderWorld (Globals.RANDOM_WORLD);
+				if (Globals.worldBlockSize > 0) {  // Using precomputed blocks for picking the world on a trial
+					if (Globals.numNonCorrectionTrials % Globals.worldBlockSize == 1) {
+						// Time to precompute a new block
+						int numWorlds = Globals.worlds.Count;
+						int[] precompWorldBlock = new int[Globals.worldBlockSize];
+						// Fill a bag with worldIdxs in proportion to presentation rates, then pull from the bag randomly to fill the world queue
+						List<int> bagOfWorldIdxs = new List<int> ();
+						int[] worldMaxFreq = new int[numWorlds];  // Max number of each world per block
+						decimal[] worldProb = new decimal[numWorlds];
+
+						// First, setup all the arrays
+						for (int wIdx = 0; wIdx < numWorlds; wIdx++) {
+							worldProb [wIdx] = (decimal)Globals.worlds [wIdx].presoFrac;
+							worldMaxFreq [wIdx] = (int)Math.Ceiling (Globals.worldBlockSize * worldProb [wIdx]);
+						}
+						// Second, fill the bag of worlds
+						for (int i = 0; i < worldMaxFreq.Length; i++) {
+							for (int j = 0; j < worldMaxFreq [i]; j++) {
+								bagOfWorldIdxs.Add (i);
+							}
+						}
+
+						while (true) {
+							List<int> bagOfWorldIdxsCopy = new List<int> (bagOfWorldIdxs);
+							int ran, currWorld;
+							for (int i = 0; i < Globals.worldBlockSize; i++) {
+								ran = UnityEngine.Random.Range (0, bagOfWorldIdxsCopy.Count ());
+								currWorld = bagOfWorldIdxsCopy [ran];
+								precompWorldBlock [i] = currWorld;
+								bagOfWorldIdxsCopy.RemoveAt (ran);
+							}
+
+							// Guarantee that probe worlds, which do not get correction trials, occur in each block
+							bool allProbesFound = false;
+							if (Globals.probeWorldIdx.Count == 0) {
+								allProbesFound = true;
+							} else {
+								foreach (int pIdx in Globals.probeWorldIdx) {
+									if (precompWorldBlock.Contains (pIdx)) {
+										allProbesFound = true;
+									} else {
+										allProbesFound = false;
+										break;
+									}
+								}
+							}
+
+							// Ensure that first trial in each block is not a probe, and that there are never 2 identical probes in a row, for when lesion or light always on - if light is sometimes OFF, repeats are OK
+							bool regenBlock = false;
+							bool testForRepeatProbes = false;  // Flag used to see if repeats should be avoided. We don't avoid repeats if 50% of the trials include probes, only if less than 50% do
+							foreach (int pIdx in Globals.probeWorldIdx) {
+								if (Globals.worlds[pIdx].presoFrac < 0.5) {
+									testForRepeatProbes = true;
+								}
+							}
+							if (testForRepeatProbes) {
+								if (Globals.optoSide == Globals.optoOff || (Globals.optoSide != Globals.optoOff && Globals.optoTrialsPerBlock == blockSize)) {
+									if (Globals.probeWorldIdx.Contains (precompWorldBlock [0])) {  // If first trial in block is a probe, regen block
+										regenBlock = true;
+									} else {
+										int lastId = precompWorldBlock [0];
+										foreach (int id in precompWorldBlock.Skip(1)) {
+											if ((Globals.probeWorldIdx.Contains (id) && id == lastId)) {
+												regenBlock = true;
+												break;
+											}
+											lastId = id;
+										}
+									}
+								}
+							}
+
+							if (allProbesFound && !regenBlock) {
+								break;
+							} else {
+								Debug.Log (String.Join (",", precompWorldBlock.Select (x => x.ToString ()).ToArray ()));
+								Debug.Log ("Violated probe worlds placement policies in world block, so try to generate a new worldBlock");	
+							}
+						}
+						Debug.Log (String.Join (".", bagOfWorldIdxs.Select (x => x.ToString ()).ToArray ()));
+						Debug.Log (String.Join (".", precompWorldBlock.Select (x => x.ToString ()).ToArray ()));
+
+						Globals.precompWorldBlock = precompWorldBlock;
+						newWorldIdx = precompWorldBlock [0];
+
+					} else {
+						newWorldIdx = Globals.GetWorldToActivateFromBlock ();
+					}
+				} else {  // Not using blocks, so just give a random world
+					newWorldIdx = Globals.RANDOM_WORLD;
+				}
 			}
-			Globals.worldID.Add(worldID);  		// Record which world this trial is on - MUST HAPPEN BEFORE BELOW
+			worldIdx = Globals.RenderWorld (newWorldIdx);
+			Globals.worldIdxList.Add(worldIdx);  			// Record which world this trial is on - MUST HAPPEN BEFORE BELOW
+
+			// Now that we know what world we will be rendering, check to see if there is or will be a precomputed blockSize for this world.  Since worldPresoFracs can vary, the blockSize will vary per world
+			if (Globals.GetWorldPresoFrac(worldIdx) != 0) { // initial value is 0 
+				float presoFrac = Globals.GetWorldPresoFrac(worldIdx);
+				blockSize = (int)Math.Round (presoFrac * Globals.worldBlockSize);
+			}
+			Debug.Log (blockSize);
 
 			GameObject[] gos = Globals.GetTrees ();
 
@@ -630,17 +727,19 @@ public class GameControlScript : MonoBehaviour
 			// PRECOMPUTE TRIAL ORDER if BLOCKS ENABLED
 			// Support pre-computing blocks of trials, at the beginning and after each block
 			// Added support for multi-world blocks
+			// Added support for randomly ordered blocks of worlds
 			// Only works with bias-correction disabled
-			//Debug.Log(Math.Ceiling((double)Globals.numNonCorrectionTrials / Globals.worlds.Count) % Globals.blockSize);
-			if (Globals.blockSize > 0 && !Globals.biasCorrection && Math.Ceiling((double)Globals.numNonCorrectionTrials / Globals.worlds.Count) % Globals.blockSize == 1) {
+			if (blockSize > 0 && !Globals.biasCorrection && 
+				(((Globals.worlds.Count == 1 || Globals.alternateWorlds) && Math.Ceiling((double)Globals.numNonCorrectionTrials / Globals.worlds.Count) % blockSize == 1) ||  
+					(Globals.precompWorldBlock != null && Array.IndexOf(Globals.precompWorldBlock, worldIdx) == ((Globals.numNonCorrectionTrials-1) % Globals.worldBlockSize)))) {
 				int numTrees = gos.Count ();
-				int[] precompTrialBlock = new int[Globals.blockSize];
+				int[] precompTrialBlock = new int[blockSize];
 
 				// Algorithm is to generate a list of stimulus locations in proportion to the appearance probabilities, 
 				// and then remove from that List until the block is filled.
 				List<int> stimLocs = new List<int> ();
 				int[] maxFreq = new int[numTrees];  // Max number of each stimulus per block
-				int maxCatch = (int)Math.Round (Globals.blockSize * Globals.catchFreq);  // For some reason Ceiling rounds up 2 to 3...
+				int maxCatch = (int)Math.Round (blockSize * Globals.catchFreq);  // For some reason Ceiling rounds up 2 to 3...
 				decimal[] prob = new decimal[numTrees];
 
 				// First, setup all the arrays
@@ -650,10 +749,10 @@ public class GameControlScript : MonoBehaviour
 					} else {
 						prob [i] = (decimal)(1F / numTrees) - (decimal)(Globals.catchFreq / numTrees);
 					}
-					maxFreq [i] = (int)Math.Ceiling (Globals.blockSize * prob [i]);
+					maxFreq [i] = (int)Math.Ceiling (blockSize * prob [i]);
 				}
-					
-				// Now, build the bag of stim locs
+
+				// Second, fill the bag of stim locs
 				for (int i = 0; i < maxFreq.Length; i++) {
 					for (int j = 0; j < maxFreq [i]; j++) {
 						stimLocs.Add (i);
@@ -668,7 +767,7 @@ public class GameControlScript : MonoBehaviour
 				while (true) {
 					List<int> stimLocsCopy = new List<int> (stimLocs);
 					int ran, currStim;
-					for (int i = 0; i < Globals.blockSize; i++) {
+					for (int i = 0; i < blockSize; i++) {
 						ran = UnityEngine.Random.Range (0, stimLocsCopy.Count ());
 						currStim = stimLocsCopy [ran];
 						precompTrialBlock [i] = stimLocsCopy [ran];
@@ -708,7 +807,7 @@ public class GameControlScript : MonoBehaviour
 					}
 
 					if (testForRepeatProbes) {
-						if (Globals.optoSide == Globals.optoOff || (Globals.optoSide != Globals.optoOff && Globals.optoTrialsPerBlock == Globals.blockSize)) {
+						if (Globals.optoSide == Globals.optoOff || (Globals.optoSide != Globals.optoOff && Globals.optoTrialsPerBlock == blockSize)) {
 							if (Globals.GetCurrentWorld ().probeIdx.Contains (precompTrialBlock [0])) {
 								noRepeatProbes = false;
 							} else {
@@ -752,13 +851,13 @@ public class GameControlScript : MonoBehaviour
 
 				// Next, if extinctionFreq > 0, precomp Extinction Trial Block mask
 				// First, initialize to 0
-				int[] precompExtinctBlock = new int[Globals.blockSize];
-				for (int i = 0; i < Globals.blockSize; i++) {
+				int[] precompExtinctBlock = new int[blockSize];
+				for (int i = 0; i < blockSize; i++) {
 					precompExtinctBlock [i] = 0;
 				}
 				// Next, update values depending on extinctFreq and which trial type, as no extinction trials when only center target is present
 				if (Globals.extinctFreq > 0) {
-					int maxExtinct = (int)Math.Round (Globals.blockSize * Globals.extinctFreq);  // For some reason Ceiling rounds up 2 to 3...
+					int maxExtinct = (int)Math.Round (blockSize * Globals.extinctFreq);  // For some reason Ceiling rounds up 2 to 3...
 					// For left (idx=0) and right (idx=1) trials, randomly pick the trials to get maxExtinct done
 					for (int locIdx = 0; locIdx < 2; locIdx++) {
 						int[] arrIdx = precompTrialBlock.Select((b,i) => b == locIdx ? i : -1).Where(i => i != -1).ToArray();
@@ -782,12 +881,12 @@ public class GameControlScript : MonoBehaviour
 
 				// Next, if optoAlternation is turned off and this is an opto game, precompute the opto state for each trial
 				if (Globals.optoSide != Globals.optoOff && !Globals.optoAlternation) { // an optoSide was specified and optoAlternation is turned off
-					int[] precompOptoBlock = new int[Globals.blockSize];
+					int[] precompOptoBlock = new int[blockSize];
 
 					// First, count the number of trials at each stimloc
 					int[] numTrialsPerStimLoc = new int[numTrees];
 					int numCatchTrials = 0;
-					for (int i = 0; i < Globals.blockSize; i++) {
+					for (int i = 0; i < blockSize; i++) {
 						if (precompTrialBlock [i] != Globals.CATCH_IDX) {  // if not a catch trial
 							numTrialsPerStimLoc [precompTrialBlock [i]] = numTrialsPerStimLoc [precompTrialBlock [i]] + 1;
 						} else {
@@ -846,8 +945,8 @@ public class GameControlScript : MonoBehaviour
 			}
 			// END PRECOMPUTE TRIAL ORDERS FOR BLOCKS
 
-			string gameType = Globals.GetGameType (worldID);
-			//Debug.Log ("World #: " + worldID);
+			string gameType = Globals.GetGameType (worldIdx);
+			//Debug.Log ("World #: " + worldIdx);
 
 			if (gameType.Equals ("detection") || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
 				if (gos.Length == 1) { // Linear track
@@ -888,8 +987,9 @@ public class GameControlScript : MonoBehaviour
 					}						
 
 					if (gos.Length == 2) {
-						if (Globals.blockSize > 0) {
+						if (blockSize > 0) {
 							treeToActivate = Globals.GetTreeToActivateFromBlock ();
+							//Debug.Log (treeToActivate);
 							if (treeToActivate != Globals.CATCH_IDX) {
 								hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 								vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
@@ -948,7 +1048,7 @@ public class GameControlScript : MonoBehaviour
 						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					}
 				} else if (gos.Length == 4) {
-					if (Globals.blockSize > 0) {
+					if (blockSize > 0) {
 						treeToActivate = Globals.GetTreeToActivateFromBlock();
 					} else {
 						float catchThresh = 1 - Globals.catchFreq;
@@ -1003,7 +1103,7 @@ public class GameControlScript : MonoBehaviour
 				}
 			} else if (gameType.Equals ("det_blind")) {
 				if (gos.Length == 3) {
-					if (Globals.blockSize > 0) {
+					if (blockSize > 0) {
 						treeToActivate = Globals.GetTreeToActivateFromBlock();
 					} else {
 						float catchThresh = 1 - Globals.catchFreq;
@@ -1106,7 +1206,7 @@ public class GameControlScript : MonoBehaviour
 						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					}
 				} else if (gos.Length == 2) { // For training lesioned animals who have not been previously trained
-					if (Globals.blockSize > 0) {
+					if (blockSize > 0) {
 						treeToActivate = Globals.GetTreeToActivateFromBlock();
 					} else {
 						float catchThresh = 1 - Globals.catchFreq;
@@ -1277,8 +1377,8 @@ public class GameControlScript : MonoBehaviour
 						}
 					}
 				} else {
-					if (Globals.blockSize > 0) {
-						optoState = Globals.GetCurrentWorld().precompOptoBlock [(int)Math.Ceiling((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize];
+					if (blockSize > 0) {
+						optoState = Globals.GetCurrentWorld().precompOptoBlock [(int)Math.Ceiling((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % blockSize];
 					} else {
 						float rOpto = UnityEngine.Random.value;
 						if (rOpto < Globals.optoFraction) {  // also does not support optoLorR
@@ -1458,7 +1558,7 @@ public class GameControlScript : MonoBehaviour
 
 	private void updateTrialsText() {
 		this.numberOfTrialsText.text = "Trial: #" + Globals.numNonCorrectionTrials.ToString ();
-		if (Globals.CurrentlyCorrectionTrial () && Globals.worldID[Globals.worldID.Count - 1] == Globals.worldID[Globals.worldID.Count - 2])  // Need to make sure current world is same as prev to keep this label up
+		if (Globals.CurrentlyCorrectionTrial () && Globals.worldIdxList[Globals.worldIdxList.Count - 1] == Globals.worldIdxList[Globals.worldIdxList.Count - 2])  // Need to make sure current world is same as prev to keep this label up
 			this.numberOfTrialsText.text += " (CORRECTION #" + Globals.numCorrectionTrialsSinceLastCorrectTrial + ")";
 	}
 

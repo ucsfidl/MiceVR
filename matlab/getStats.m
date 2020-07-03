@@ -96,30 +96,32 @@ for i=1:length(fileList)
                     % Take the 3rd string, and split by underscores to find the number of choices.
                     % In the future, record the level type in the actions file itself at the top.
                     world_parts = split(strs{3}, '_');
-                    if(~isnan(str2double(world_parts{1}(1))))
-                        worldTypes(end+1) = str2double(world_parts{1}(1));
-                        worldTypesStr{end+1} = world_parts{1};
-                        if (~isnan(str2double(world_parts{2}(1))))
-                            worldTypes(end+1) = str2double(world_parts{2}(1));
-                            worldTypesStr{end+1} = world_parts{2};
+                    if (length(worldTypes) == 0)  % only initialize variables once
+                        if(~isnan(str2double(world_parts{1}(1))))
+                            worldTypes(end+1) = str2double(world_parts{1}(1));
+                            worldTypesStr{end+1} = world_parts{1};
+                            if (~isnan(str2double(world_parts{2}(1))))
+                                worldTypes(end+1) = str2double(world_parts{2}(1));
+                                worldTypesStr{end+1} = world_parts{2};
+                            end
                         end
-                    end
-                    for (w_i = 1:length(worldTypes))
-                        if (worldTypes(w_i) == 2)
-                           worldResults{w_i} = cell(2,1);
-                           worldResults{w_i}{1} = results_2choice;
-                           worldResults{w_i}{2} = results_2choice_catch;
-                        elseif (worldTypes(w_i) == 3)
-                           worldResults{w_i} = cell(3,1);
-                           worldResults{w_i}{1} = results_3choice;
-                           worldResults{w_i}{2} = results_3choice_catch;
-                           worldResults{w_i}{3} = results_3choice_extinction;
-                        elseif (worldTypes(w_i) == 4)
-                           worldResults{w_i} = cell(2,1);
-                           worldResults{w_i}{1} = results_4choice;
-                           worldResults{w_i}{2} = results_4choice_catch;
-                        else
-                            error('Script currently supports worlds with 2-4 choices, no more.');
+                        for (w_i = 1:length(worldTypes))
+                            if (worldTypes(w_i) == 2)
+                               worldResults{w_i} = cell(2,1);
+                               worldResults{w_i}{1} = results_2choice;
+                               worldResults{w_i}{2} = results_2choice_catch;
+                            elseif (worldTypes(w_i) == 3)
+                               worldResults{w_i} = cell(3,1);
+                               worldResults{w_i}{1} = results_3choice;
+                               worldResults{w_i}{2} = results_3choice_catch;
+                               worldResults{w_i}{3} = results_3choice_extinction;
+                            elseif (worldTypes(w_i) == 4)
+                               worldResults{w_i} = cell(2,1);
+                               worldResults{w_i}{1} = results_4choice;
+                               worldResults{w_i}{2} = results_4choice_catch;
+                            else
+                                error('Script currently supports worlds with 2-4 choices, no more.');
+                            end
                         end
                     end
                     
@@ -294,8 +296,8 @@ for i=1:length(fileList)
                                 worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) = ...
                                     worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) + 1;
                             else
-                                worldResults{worldIdx+1}{1}(row, 1, optoLoc + 2) = ...
-                                    worldResults{worldIdx+1}{1}(row, 1, optoLoc + 2) + 1;
+                                worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) = ...
+                                    worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) + 1;
                             end
                         elseif (stimLocX == discLeftX || stimLocX == discRightX) % Haven't tested in a while.  Might not work anymore
                             if (stimLocX == discLeftX)

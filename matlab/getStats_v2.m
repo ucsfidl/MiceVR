@@ -101,11 +101,11 @@ for i=1:length(fileList)
                         end
                     end
                     for k = 1:length(C{1})  % For each trial
-                        [stimLocX, ~] = getStimLocFromActions(C, k);
-                        [actionLocX, ~] = getActionLocFromActions(C, k);
-                        optoLoc = getOptoLocFromActions(C, k);
-                        worldNum = getWorldNumFromActions(C, k);
-                        isCorrectionTrial = getCorrectionFromActions(C, k);
+                        [stimLocX, ~] = getStimLoc(C, k);
+                        [actionLocX, ~] = getActionLoc(C, k);
+                        optoLoc = getOptoLoc(C, k);
+                        worldNum = getWorldIdx(C, k);
+                        isCorrectionTrial = getCorrection(C, k);
                         
                         if (isCorrectionTrial && ~includeCorrectionTrials)
                             continue;
@@ -113,7 +113,7 @@ for i=1:length(fileList)
                         
                         currCatch = 0;
                         
-                        isExtinctionTrial = getExtinctionFromActions(C, k);
+                        isExtinctionTrial = getExtinction(C, k);
                         
                         if (levels(worldNum+1) == 2)
                             trialType = 2;

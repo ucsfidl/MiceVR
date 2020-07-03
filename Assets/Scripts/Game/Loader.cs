@@ -272,7 +272,8 @@ public class Loader : MonoBehaviour {
             }
 
             XmlNodeList gameConfigList = xmlDoc.SelectNodes("document/config/gameConfig");
-            foreach (XmlNode xn in gameConfigList) {
+			List<float> worldPresoFracs = new List<float>();  // local variable to store world preso fracs for use later in this method
+			foreach (XmlNode xn in gameConfigList) {
                 if (xn["gameType"] != null) {
                     Globals.gameType = xn["gameType"].InnerText;
                 }
@@ -361,7 +362,6 @@ public class Loader : MonoBehaviour {
 
 				if (xn ["presoRatio"] != null) {
 					float.TryParse (xn ["presoRatio"].InnerText, out Globals.presoRatio);
-					Debug.Log ("Found preso ratio " + Globals.presoRatio);
 				}
 				if (xn ["probeIdx"] != null) {
 					string[] probeIdx = xn ["probeIdx"].InnerText.Split(';');
@@ -369,6 +369,15 @@ public class Loader : MonoBehaviour {
 						int tmp;
 						int.TryParse (probeIdx [i], out tmp);
 						Globals.probeIdx.Add(tmp);
+					}
+				}
+
+				if (xn ["probeWorldIdx"] != null) {
+					string[] probeWorldIdx = xn ["probeWorldIdx"].InnerText.Split(';');
+					for (int i = 0; i < probeWorldIdx.Length; i++) {
+						int tmp;
+						int.TryParse (probeWorldIdx [i], out tmp);
+						Globals.probeWorldIdx.Add(tmp);
 					}
 				}
 
@@ -506,19 +515,35 @@ public class Loader : MonoBehaviour {
 				if (xn ["extinctFreq"] != null) {
 					float.TryParse(xn["extinctFreq"].InnerText, out Globals.extinctFreq);
 				}
+
+				if (xn ["worldBlockSize"] != null) {
+					int.TryParse(xn["worldBlockSize"].InnerText, out Globals.worldBlockSize);
+				}
+				if (xn ["worldPresoFracs"] != null) {
+					string[] worldPresoFracsStr = xn["worldPresoFracs"].InnerText.Split (';');
+					for (int i = 0; i < worldPresoFracsStr.Length; i++) {
+						float tmp;
+						float.TryParse (worldPresoFracsStr [i], out tmp);
+						worldPresoFracs.Add (tmp);
+					}
+				}
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");
-			int worldNum = 0;
+			int worldIdx = 0;
 			foreach (XmlElement world in worldList) {
 				string gameTypeStr = Globals.gameType;  // For backward compatibility with old scenarios which did not specify the gameType on each world
+				float worldPresoFrac = 0;
 
 				XmlNodeList gameTypeNodes = world.GetElementsByTagName ("gameType");
 				if (gameTypeNodes.Count == 1) {
 					gameTypeStr = gameTypeNodes.Item(0).InnerText;
-					Debug.Log (gameTypeStr);
+					//Debug.Log (gameTypeStr);
 				}
- 				Globals.AddGameTypeToWorld (worldNum, gameTypeStr);
+				if (worldPresoFracs.Count >= worldIdx + 1) {
+					worldPresoFrac = worldPresoFracs [worldIdx];
+				}
+				Globals.AddScalarsToWorld (worldIdx, gameTypeStr, worldPresoFrac);
 
 				XmlNodeList probeIdxNodes = world.GetElementsByTagName ("probeIdx");
 				if (probeIdxNodes.Count == 1) {
@@ -526,11 +551,11 @@ public class Loader : MonoBehaviour {
 					for (int i = 0; i < probeIdx.Length; i++) {
 						int tmp;
 						int.TryParse (probeIdx [i], out tmp);
-						Globals.AddProbeIdxToWorld (worldNum, tmp);
+						Globals.AddProbeIdxToWorld (worldIdx, tmp);
 					}
 				} else { // For backward compatibility with old scenarios which did not specify the probeIdx at the world level
 					foreach (int i in Globals.probeIdx) {
-						Globals.AddProbeIdxToWorld (worldNum, i);
+						Globals.AddProbeIdxToWorld (worldIdx, i);
 					}
 				}
 
@@ -540,7 +565,7 @@ public class Loader : MonoBehaviour {
 					for (int i = 0; i < hiddenIdx.Length; i++) {
 						int tmp;
 						int.TryParse (hiddenIdx [i], out tmp);
-						Globals.AddHiddenIdxToWorld (worldNum, tmp);
+						Globals.AddHiddenIdxToWorld (worldIdx, tmp);
 					}
 				}
 
@@ -550,10 +575,12 @@ public class Loader : MonoBehaviour {
 					for (int i = 0; i < revealZPosIdx.Length; i++) {
 						float tmp;
 						float.TryParse (revealZPosIdx [i], out tmp);
-						Globals.AddRevealZPosToWorld (worldNum, tmp);
+						Globals.AddRevealZPosToWorld (worldIdx, tmp);
 					}
 				}
 
+				//Debug.Log (worldIdx);
+				//Debug.Log (Globals.worlds.Count);
 
 				XmlNodeList treeList = world.GetElementsByTagName("t"); // array of the tree nodes
 				foreach (XmlNode node in treeList) {
@@ -660,7 +687,10 @@ public class Loader : MonoBehaviour {
 						}
 					}
 
-					Globals.AddTreeToWorld (worldNum, water, posList, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName, type, presoFrac, opacity, color1, color2);
+					int tIdx = Globals.AddTreeToWorld (worldIdx, water, posList, deg_LS, angle_LS, texture, restrictToCamera, vFreq, hFreq, rewardSize, rewardMulti, respawn, treeRotation, treeScale, rank, materialName, type, presoFrac, opacity, color1, color2);
+					if (Globals.probeWorldIdx.Contains (worldIdx)) { // If worldIdx is specified in this list, ALL targets in this world are to be considered probes and not corrected
+						Globals.AddProbeIdxToWorld (worldIdx, tIdx);
+					}
 				}
 
 				XmlNodeList wallList = world.GetElementsByTagName("wall"); // array of the wall nodes
@@ -704,10 +734,10 @@ public class Loader : MonoBehaviour {
 						}
 					}
 
-					Globals.AddWallToWorld (worldNum, v, wallRotation, wallScale);
+					Globals.AddWallToWorld (worldIdx, v, wallRotation, wallScale);
 				}
 
-				worldNum++;
+				worldIdx++;
 			}
 
 			this.errorText.text = "";

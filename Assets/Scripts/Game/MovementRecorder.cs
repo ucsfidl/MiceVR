@@ -61,8 +61,8 @@ public class MovementRecorder : MonoBehaviour {
 				target1Left = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 0, cameras [0].pixelWidth).ToString ();
 				target1Right = GetOneTargetBoundary (screenPointsL, screenPointsC, screenPointsR, 1, cameras [0].pixelWidth).ToString ();
 
-				int worldID = Globals.worldID [Globals.worldID.Count - 1];  // This may not work until GameControlScript has added the new world - ok for now
-				string gameType = Globals.GetGameType (worldID);
+				int worldIdx = Globals.worldIdxList [Globals.worldIdxList.Count - 1];  // This may not work until GameControlScript has added the new world - ok for now
+				string gameType = Globals.GetGameType (worldIdx);
 				if (gameType.Equals ("det_blind")) {
 					GameObject[] gos = Globals.GetTrees ();
 					GameObject straightTargetGO = gos [2];  // straight tree is always the 3rd target - UPDATE if this changes

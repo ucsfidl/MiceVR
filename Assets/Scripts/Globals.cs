@@ -42,7 +42,7 @@ public static class Globals
 	public static List<float> firstTurnHFreq = new List<float>();  // Orientation of the tree the mouse chose
 	public static List<float> firstTurnVFreq = new List<float>();  // Orientation of the tree the mouse chose
 	public static List<float> firstTurnAngle = new List<float>();  // Angle of target
-	public static List<int> worldID = new List<int>();  // Which world, in a multi-world scenario, was shown on this trial
+	public static List<int> worldIdxList = new List<int>();  // Which world, in a multi-world scenario, was shown on this trial
 	public static List<int> optoStates = new List<int>();  // What the state of optogenetics light was for that trial
 	public static int currOptoState = optoOff;
     public static int numCorrectTurns;
@@ -200,6 +200,7 @@ public static class Globals
 		public List<Tree> trees;
 		public List<Wall> walls;
 		public string gameType;
+		public float presoFrac;
 
 		// Keep track of actual reward rate at each stimulus location
 		public List<int> numRewardsAtStimLoc;
@@ -215,6 +216,9 @@ public static class Globals
 
 	public static List<World> worlds;  // For SDT where there are different worlds per level that vary trial-by-trial
 	public static bool alternateWorlds = false;  // if set, worlds are presented in a fixed sequence (as found in the file) - if unset, worlds are presented at random
+	public static int worldBlockSize = -1;  // Indicates the number of trials over which to allocate the presentation of multiple worlds
+	public static int[] precompWorldBlock;
+	public static List<int> probeWorldIdx = new List<int> ();
 
 	public static GameObject waterTreePrefab = (GameObject)GameObject.Instantiate(Resources.Load("Prefabs/WaterTree"));
 	public static GameObject waterTreeCricketsPrefab = (GameObject)GameObject.Instantiate (Resources.Load ("Prefabs/WaterTreeCrickets"));
@@ -259,9 +263,9 @@ public static class Globals
 
 	public static int numCorrectionTrialsSinceLastCorrectTrial = 0;  // To track which correction trial since the last correct trial, for displaying how long the mouse has been stuck correcting in the current bout of correction trials
 
-	public static void AddTreeToWorld(int worldNum, bool water, List<Vector3> posList, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
+	public static int AddTreeToWorld(int worldIdx, bool water, List<Vector3> posList, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
 		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac, float opacity, Color color1, Color color2) {
-		World w = GetWorld (worldNum);
+		World w = GetWorld (worldIdx);
 
 		Tree t = new Tree();
 		t.water = water;
@@ -310,20 +314,21 @@ public static class Globals
 		w.numRewardsAtStimLoc.Add (0);
 		w.numTurnsToStimLoc.Add (0);
 
-		AddWorldToWorldList (w);
+		AddWorldToWorldList (w, worldIdx);
+
+		return w.trees.Count - 1;  // Return the tree index
 	}
 
-	public static void AddWorldToWorldList(World w) {
-		int idx = worlds.IndexOf (w);
-		if (idx != -1) {
-			worlds [idx] = w;
+	public static void AddWorldToWorldList(World w, int worldIdx) {
+		if (worlds.Count >= worldIdx + 1) {
+			worlds [worldIdx] = w;
 		} else {
 			worlds.Add (w);
 		}
 	}
 
-	public static void AddWallToWorld(int worldNum, Vector3 v, Vector3 rot, Vector3 scale) {
-		World w = GetWorld (worldNum);
+	public static void AddWallToWorld(int worldIdx, Vector3 v, Vector3 rot, Vector3 scale) {
+		World w = GetWorld (worldIdx);
 
 		Wall wall;
 		wall.pos = v;
@@ -331,49 +336,55 @@ public static class Globals
 		wall.scale = scale;
 		w.walls.Add (wall);
 
-		AddWorldToWorldList (w);
+		AddWorldToWorldList (w, worldIdx);
 	}
 
-	public static void AddProbeIdxToWorld(int worldNum, int probeIdx) {
-		World w = GetWorld (worldNum);
+	public static void AddProbeIdxToWorld(int worldIdx, int probeIdx) {
+		World w = GetWorld (worldIdx);
 		w.probeIdx.Add (probeIdx);
-		//Debug.Log ("Added probe " + probeIdx);
-		AddWorldToWorldList (w);
+		AddWorldToWorldList (w, worldIdx);
 	}
 
-	public static void AddHiddenIdxToWorld(int worldNum, int hiddenIdx) {
-		World w = GetWorld (worldNum);
+	public static void AddHiddenIdxToWorld(int worldIdx, int hiddenIdx) {
+		World w = GetWorld (worldIdx);
 		w.hiddenIdx.Add (hiddenIdx);
-		//Debug.Log ("Added hidden " + hiddenIdx);
-		AddWorldToWorldList (w);
+		AddWorldToWorldList (w, worldIdx);
 	}
 
-	public static void AddRevealZPosToWorld(int worldNum, float revealZPos) {
+	public static void AddRevealZPosToWorld(int worldIdx, float revealZPos) {
 		//Debug.Log ("Added revealZPos " + revealZPos);
-		World w = GetWorld (worldNum);
+		World w = GetWorld (worldIdx);
 		w.revealZPos.Add (revealZPos);
-		AddWorldToWorldList (w);
+		AddWorldToWorldList (w, worldIdx);
 	}
 
-	public static void AddGameTypeToWorld(int worldNum, string gameType) {
-		World w = GetWorld (worldNum);
+	// This function must be called only once, when the world is first initialized.  Otherwise it will add a second world if there is an existing first world with thie index.  
+	public static void AddScalarsToWorld(int worldIdx, string gametype, float presoFrac) {
+		World w = GetWorld (worldIdx);
 		w.gameType = gameType;
-		AddWorldToWorldList (w);
+		w.presoFrac = presoFrac;
+		AddWorldToWorldList (w, worldIdx);
+		//Debug.Log (GetWorld(worldIdx).presoFrac);
 	}
 
-	public static string GetGameType(int worldNum) {
-		World w = GetWorld (worldNum);
+	public static string GetGameType(int worldIdx) {
+		World w = GetWorld (worldIdx);
 		return w.gameType;
 	}
 
-	private static World GetWorld(int worldNum) {
+	public static float GetWorldPresoFrac(int worldIdx) {
+		World w = GetWorld (worldIdx);
+		return w.presoFrac;
+	}
+
+	private static World GetWorld(int worldIdx) {
 		if (worlds == null) {
 			worlds = new List<World>();
 		}
 
 		World w = new World();  // creates empty world
-		if (worlds.Count > worldNum) {
-			w = worlds [worldNum];  // overwrite with an existing world
+		if (worlds.Count > worldIdx) {
+			w = worlds [worldIdx];  // overwrite with an existing world
 		} else {  // Init one world object
 			w.trees = new List<Tree> ();
 			w.walls = new List<Wall> ();
@@ -388,25 +399,25 @@ public static class Globals
 	}
 
 	public static World GetCurrentWorld() {
-		return GetWorld (worldID [worldID.Count - 1]);
+		return GetWorld (worldIdxList[worldIdxList.Count - 1]);
 	}
 
 	public static void SetCurrentWorldPrecompTrialBlock(int[] precompTrialBlock) {
-		World w = worlds [worldID [worldID.Count - 1]];
+		World w = worlds [worldIdxList [worldIdxList.Count - 1]];
 		w.precompTrialBlock = precompTrialBlock;
-		worlds [worldID [worldID.Count - 1]] = w;
+		worlds [worldIdxList [worldIdxList.Count - 1]] = w;
 	}
 
 	public static void SetCurrentWorldPrecompExtinctBlock(int[] precompExtinctBlock) {
-		World w = worlds [worldID [worldID.Count - 1]];
+		World w = worlds [worldIdxList [worldIdxList.Count - 1]];
 		w.precompExtinctBlock = precompExtinctBlock;
-		worlds [worldID [worldID.Count - 1]] = w;
+		worlds [worldIdxList [worldIdxList.Count - 1]] = w;
 	}
 
 	public static void SetCurrentWorldPrecompOptoBlock(int[] precompOptoBlock) {
-		World w = worlds [worldID [worldID.Count - 1]];
+		World w = worlds [worldIdxList [worldIdxList.Count - 1]];
 		w.precompOptoBlock = precompOptoBlock;
-		worlds [worldID [worldID.Count - 1]] = w;
+		worlds [worldIdxList [worldIdxList.Count - 1]] = w;
 	}
 
 	public static GameObject[] GetTrees() {
@@ -472,9 +483,10 @@ public static class Globals
 	}
 
 	// Re-render the world, which will occur on each trial
-	public static int RenderWorld(int worldNum) {
-		if (worldNum == RANDOM_WORLD) {
-			worldNum = UnityEngine.Random.Range(0, worlds.Count);
+	// Returns an int, worldIdx, which is needed when the worldIdx == RANDOM_WORLD, as it says which world was picked
+	public static int RenderWorld(int worldIdx) {
+		if (worldIdx == RANDOM_WORLD) {
+			worldIdx = UnityEngine.Random.Range(0, worlds.Count);
 		}
 
 		// Disable the terrain if targets project below ground
@@ -538,7 +550,7 @@ public static class Globals
 			Globals.adaptPosIdx.Add (tPosIdx);
 		}
 
-		World w = worlds [worldNum];
+		World w = worlds [worldIdx];
 		GameObject go;
 		for (int i=0; i < w.trees.Count; i++) {
 			Tree t = w.trees [i];
@@ -707,7 +719,7 @@ public static class Globals
 			*/
 		}
 
-		return worldNum;
+		return worldIdx;
 	}
 
 	// Initializes fovs used for automated perimetry.  There are 4 scales, and the stimuli are presented that fill (or half-fill, for the smallest) scale
@@ -796,7 +808,7 @@ public static class Globals
                     firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
                     firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
                     (float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
-					worldID[worldID.Count - 1] + "\t" + 
+					worldIdxList[worldIdxList.Count - 1] + "\t" + 
 					optoStates[optoStates.Count-1] + "\t" + 
 					targetAngle[targetAngle.Count - 1] + "\t" + 
 					firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
@@ -821,7 +833,7 @@ public static class Globals
 			firstTurnHFreq[firstTurnHFreq.Count - 1] + "\t" +
 			firstTurnVFreq[firstTurnVFreq.Count - 1] + "\t" +
 			(float)System.Convert.ToDouble(sizeOfRewardGiven[sizeOfRewardGiven.Count - 1]) + "\t" + 
-			worldID[worldID.Count - 1] + "\t" + 
+			worldIdxList[worldIdxList.Count - 1] + "\t" + 
 			optoStates[optoStates.Count-1] + "\t" + 
 			targetAngle[targetAngle.Count - 1] + "\t" + 
 			firstTurnAngle[firstTurnAngle.Count - 1] + "\t" +
@@ -960,7 +972,7 @@ public static class Globals
 		string output = " // ";
 
 		for (int i = 0; i < worlds.Count; i++) {
-			if (currWorldOnly && worldID [worldID.Count - 1] != i) {
+			if (currWorldOnly && worldIdxList [worldIdxList.Count - 1] != i) {
 				continue;
 			}
 			World w = worlds [i];
@@ -975,7 +987,7 @@ public static class Globals
 				// Added support for ignoring correction trials
 				// Check for world-matching again here, as results from different worlds will be intermingled in the in-memory logs
 				// Also, don't try to calculate target accuracy for catch trials
-				if (idx != CATCH_IDX && i == worldID[j] && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[j] == 0))) {
+				if (idx != CATCH_IDX && i == worldIdxList[j] && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[j] == 0))) {
 					numTrials [idx]++;
 					//Debug.Log("this-world trial");
 					if (Globals.targetIdx [j] == Globals.firstTurnIdx [j]) {
@@ -1003,14 +1015,14 @@ public static class Globals
 	// If there are multiple worlds in this scenario, then only return the turn bias for that world, returning chance if this world has not been displayed yet.  histLen covers just the current world type, not all worlds.
     public static float GetTurnBias(int histLen, int treeIndex) {
 		GameObject[] gos = GetTrees();
-		int currWorldID = worldID [worldID.Count - 1];
+		int currWorldID = worldIdxList [worldIdxList.Count - 1];
 		List<int> validTrials = new List<int> ();
 
 		//Debug.Log ("currworld=" + currWorldID);
 
 		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected histLen
 		for (int i = firstTurnLoc.Count-1; i >= 0; i--) {  // must be firstTurnLoc.Count!
-			if (worldID [i] == currWorldID && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
+			if (worldIdxList [i] == currWorldID && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
 				validTrials.Add(i);
 			}
 			if (validTrials.Count == histLen) {
@@ -1044,10 +1056,10 @@ public static class Globals
 
 	public static bool CurrentWorldHasAlreadyAppeared() {
 		bool worldSeen = false;
-		if (worldID.Count > 0) {
-			int currWorldID = worldID [worldID.Count - 1];
-			for (int i = 0; i < worldID.Count - 1; i++) {
-				if (worldID [i] == currWorldID) {
+		if (worldIdxList.Count > 0) {
+			int currWorldID = worldIdxList [worldIdxList.Count - 1];
+			for (int i = 0; i < worldIdxList.Count - 1; i++) {
+				if (worldIdxList [i] == currWorldID) {
 					worldSeen = true;
 					break;
 				}
@@ -1058,11 +1070,9 @@ public static class Globals
 
 	// Only enter a correction trial if correction is enabled and last trial was incorrect AND last trial was not the location of the probes AND last trial was not a catch trial
 	public static bool CurrentlyCorrectionTrial() {
-		//if (targetHFreq.Count >= 2) 
-		//	Debug.Log (targetHFreq [targetHFreq.Count - 2]);
 		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 &&
-			(optoSide == optoOff && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1]) || 
-				(optoSide != optoOff && (optoStates[firstTurnLoc.Count - 1] == optoOff || (GetCurrentWorld().probeIdx.Count > 0 && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])))))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial
+			((optoSide == optoOff && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])) || 
+				(optoSide != optoOff && (optoStates[firstTurnLoc.Count - 1] == optoOff || (GetCurrentWorld().probeIdx.Count > 0 && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])))))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial			return true;
 			return true;
 		} else { 
 			return false;
@@ -1075,13 +1085,13 @@ public static class Globals
 		
 	// Modified to support multi-worlds in a single scenario
     public static float GetLastAccuracy(int n) {
-		int currWorld = worldID [worldID.Count - 1];
+		int currWorld = worldIdxList [worldIdxList.Count - 1];
 		List<int> validTrials = new List<int> ();
 
 		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected n
 		for (int i = firstTurnLoc.Count-1; i >= 0; i--) {
 			//Debug.Log (correctionTrialMarks [i]);
-			if (worldID [i] == currWorld && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
+			if (worldIdxList [i] == currWorld && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
 				validTrials.Add(i);
 			}
 			if (validTrials.Count == n) {
@@ -1297,14 +1307,60 @@ public static class Globals
 	}
 
 	public static int GetTreeToActivateFromBlock() {
-		//Debug.Log ("precomp trial index = " + ((int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize));
-		return Globals.GetCurrentWorld ().precompTrialBlock [(int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize];
+		if (Globals.worlds.Count == 1 || Globals.alternateWorlds) {  // If only a single world, or multiple worlds that are alternating
+			return Globals.GetCurrentWorld ().precompTrialBlock [(int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize];
+		} else {  // If multiple worlds that are not alternating
+			int trialIdxAcrossWorlds = (Globals.numNonCorrectionTrials-1) % Globals.worldBlockSize;  // Get index into the worldIdx block of the current trial
+			//Debug.Log (trialIdxAcrossWorlds);
+			// Get all indexes of worldIdx that match the currentWorld's worldIdx
+			int currWorldIdx = Globals.precompWorldBlock[trialIdxAcrossWorlds];
+			//Debug.Log (currWorldIdx);
+			//Debug.Log (trialIdxThisWorld);
+			int trialIdxThisWorld = GetTrialIdxForTheCurrentWorld(currWorldIdx, trialIdxAcrossWorlds);
+			return Globals.GetCurrentWorld ().precompTrialBlock[trialIdxThisWorld];
+		}
+	}
+
+	public static int GetTrialIdxForTheCurrentWorld(int worldIdx, int trialIdxAcrossWorlds) {
+		List<int> trialIdxAcrossWorldsOfThisWorld = new List<int> ();
+		int lastIdxFound = -1;
+		int currIdx = 0;
+		while (true) {
+			if (currIdx >= worldBlockSize) {
+				break;
+			}
+			lastIdxFound = Array.IndexOf (Globals.precompWorldBlock, worldIdx, lastIdxFound+1);
+			//Debug.Log (lastIdxFound);
+			if (lastIdxFound == -1) {
+				break;
+			} else {
+				trialIdxAcrossWorldsOfThisWorld.Add (lastIdxFound);
+			}
+			currIdx++;
+		}
+		return trialIdxAcrossWorldsOfThisWorld.IndexOf(trialIdxAcrossWorlds);
+	}
+
+	public static int GetWorldToActivateFromBlock() {
+		return Globals.precompWorldBlock [(Globals.numNonCorrectionTrials - 1) % Globals.worldBlockSize];
 	}
 
 	public static bool CurrentlyExtinctionTrial() {
 		int val = 0;  // default to not being an extinction trial
-		if (blockSize > -1) {
-			val = Globals.GetCurrentWorld ().precompExtinctBlock [(int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize];
+		if (blockSize != -1 || (Globals.GetCurrentWorld().precompExtinctBlock != null && Globals.GetCurrentWorld().precompExtinctBlock.Length > 0)) {
+			if (Globals.worlds.Count == 1 || Globals.alternateWorlds) {  // If only a single world, or multiple worlds that are alternating
+				val = Globals.GetCurrentWorld ().precompExtinctBlock [(int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize];
+			} else {  // If multiple worlds that are not alternating with worldPresoFrac specified
+				int trialIdxAcrossWorlds = (Globals.numNonCorrectionTrials-1) % Globals.worldBlockSize;  // Get index into the worldIdx block of the current trial
+				Debug.Log (trialIdxAcrossWorlds);
+				// Get all indexes of worldIdx that match the currentWorld's worldIdx
+				int currWorldIdx = Globals.precompWorldBlock[trialIdxAcrossWorlds];
+				Debug.Log (currWorldIdx);
+				int trialIdxThisWorld = GetTrialIdxForTheCurrentWorld(currWorldIdx, trialIdxAcrossWorlds);
+				Debug.Log (trialIdxThisWorld);
+				Debug.Log (Globals.GetCurrentWorld ().precompExtinctBlock.Length);
+				val = Globals.GetCurrentWorld ().precompExtinctBlock[trialIdxThisWorld];
+			}
 		}
 
 		if (val == 1) {
@@ -1314,10 +1370,9 @@ public static class Globals
 		}
 	}
 
-
 	// Assumes get info for current world - add param if need more control
 	public static float GetActualRewardRate(int idx) {
-		World w = GetWorld (worldID [worldID.Count - 1]);
+		World w = GetWorld (worldIdxList [worldIdxList.Count - 1]);
 		if (w.numTurnsToStimLoc[idx] > 0)
 			return (float)w.numRewardsAtStimLoc [idx] / (float)w.numTurnsToStimLoc [idx];
 		else

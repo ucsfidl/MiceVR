@@ -2,7 +2,6 @@
 	<gameType>detection</gameType>
 	<hiddenIdx>1</hiddenIdx>
 	<revealZPos>20014</revealZPos>
-	<presoFrac>0.5</presoFrac>
 	<trees>
 		<t> <!-- Front Left tree -->
 			<w>1</w>
