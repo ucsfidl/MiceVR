@@ -359,12 +359,13 @@ public static class Globals
 	}
 
 	// This function must be called only once, when the world is first initialized.  Otherwise it will add a second world if there is an existing first world with thie index.  
-	public static void AddScalarsToWorld(int worldIdx, string gametype, float presoFrac) {
+	public static void AddScalarsToWorld(int worldIdx, string newGameType, float presoFrac) {
+		//Debug.Log (newGameType);
 		World w = GetWorld (worldIdx);
-		w.gameType = gameType;
+		w.gameType = newGameType;
 		w.presoFrac = presoFrac;
 		AddWorldToWorldList (w, worldIdx);
-		//Debug.Log (GetWorld(worldIdx).presoFrac);
+		//Debug.Log (GetWorld(worldIdx).gameType);
 	}
 
 	public static string GetGameType(int worldIdx) {
@@ -1352,13 +1353,13 @@ public static class Globals
 				val = Globals.GetCurrentWorld ().precompExtinctBlock [(int)Math.Ceiling ((double)Globals.numNonCorrectionTrials / Globals.worlds.Count - 1) % Globals.blockSize];
 			} else {  // If multiple worlds that are not alternating with worldPresoFrac specified
 				int trialIdxAcrossWorlds = (Globals.numNonCorrectionTrials-1) % Globals.worldBlockSize;  // Get index into the worldIdx block of the current trial
-				Debug.Log (trialIdxAcrossWorlds);
+				//Debug.Log (trialIdxAcrossWorlds);
 				// Get all indexes of worldIdx that match the currentWorld's worldIdx
 				int currWorldIdx = Globals.precompWorldBlock[trialIdxAcrossWorlds];
-				Debug.Log (currWorldIdx);
+				//Debug.Log (currWorldIdx);
 				int trialIdxThisWorld = GetTrialIdxForTheCurrentWorld(currWorldIdx, trialIdxAcrossWorlds);
-				Debug.Log (trialIdxThisWorld);
-				Debug.Log (Globals.GetCurrentWorld ().precompExtinctBlock.Length);
+				//Debug.Log (trialIdxThisWorld);
+				//Debug.Log (Globals.GetCurrentWorld ().precompExtinctBlock.Length);
 				val = Globals.GetCurrentWorld ().precompExtinctBlock[trialIdxThisWorld];
 			}
 		}

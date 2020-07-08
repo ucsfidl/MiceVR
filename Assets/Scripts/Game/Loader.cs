@@ -544,6 +544,7 @@ public class Loader : MonoBehaviour {
 					worldPresoFrac = worldPresoFracs [worldIdx];
 				}
 				Globals.AddScalarsToWorld (worldIdx, gameTypeStr, worldPresoFrac);
+				//Debug.Log (gameTypeStr);
 
 				XmlNodeList probeIdxNodes = world.GetElementsByTagName ("probeIdx");
 				if (probeIdxNodes.Count == 1) {

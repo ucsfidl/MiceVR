@@ -709,7 +709,7 @@ public class GameControlScript : MonoBehaviour
 				float presoFrac = Globals.GetWorldPresoFrac(worldIdx);
 				blockSize = (int)Math.Round (presoFrac * Globals.worldBlockSize);
 			}
-			Debug.Log (blockSize);
+			//Debug.Log (blockSize);
 
 			GameObject[] gos = Globals.GetTrees ();
 
@@ -946,6 +946,7 @@ public class GameControlScript : MonoBehaviour
 			// END PRECOMPUTE TRIAL ORDERS FOR BLOCKS
 
 			string gameType = Globals.GetGameType (worldIdx);
+			Debug.Log (gameType);
 			//Debug.Log ("World #: " + worldIdx);
 
 			if (gameType.Equals ("detection") || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
@@ -1195,6 +1196,7 @@ public class GameControlScript : MonoBehaviour
 					}
 
 					SetupTreeActivation (gos, treeToActivate, 3);
+					Debug.Log (treeToActivate);
 					if (treeToActivate != Globals.CATCH_IDX) {  // enable the center target only if this is not a catch trial
 						// If not an extinction trial, show the center target
 						if (!Globals.CurrentlyExtinctionTrial()) {  
