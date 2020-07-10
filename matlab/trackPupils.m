@@ -66,8 +66,8 @@ distWt = 10;
 solWt = 1;
 
 % CR weights
-crSizeWt = 0.5;  % 1 was too large, big CR was getting picked!
-crDistWt = 1;
+crSizeWt = 0.25;  % 1 was too large, big CR was getting picked!
+crDistWt = 2;
 crSolWt = 5;  % 1,2,4 was too small
 
 distFudge = 0.001;

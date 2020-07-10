@@ -1,7 +1,7 @@
 <world>
 	<gameType>detection</gameType>
 	<hiddenIdx>1</hiddenIdx>
-	<revealZPos>20014</revealZPos>
+	<revealZPos>20020</revealZPos>
 	<trees>
 		<t> <!-- Front Right tree -->
 			<w>1</w>
@@ -28,7 +28,6 @@
 			<rot>0;0;0</rot>
 			<scale>2;0;41</scale>
 		</wall>
-		
 		<wall> <!-- Straight right diagonal wall -->
 			<pos>20002;0.5;20038</pos>
 			<rot>0;60;0</rot>
