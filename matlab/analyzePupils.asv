@@ -237,13 +237,11 @@ if (correctNonFlatCurve)
         % The exact mean doesn't matter, as long as the same mean is used both for CR and the pupil centers.
         if (useCR(i))
             mx = nanmedian(cat(1, centers(:,1,i), crCenters(:,1,i)));
-            my = nanmedian(cat(1, centers(:,2,i), crCenters(:,2,i)));
+            my = nanmedi(cat(1, centers(:,2,i), crCenters(:,2,i)));
         else
-            mx = nanmedian(centers(:,1,i));
-            my = nanmedian(centers(:,2,i));
+            mx = nanmean(centers(:,1,i));
+            my = nanmean(centers(:,2,i));
         end
-        %disp(num2str(mx));
-        %disp(num2str(my));
         centers(:,1,i) = centers(:,1,i) - mx;
         centers(:,2,i) = centers(:,2,i) - my;
         if (useCR(i))

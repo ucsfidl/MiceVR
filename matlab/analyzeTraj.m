@@ -191,8 +191,8 @@ for tt_i=1:length(trialTypeStrArr)
         % Next, identify which action records match the specified trial type
         filtRecIDs = [];
         for r_i=1:length(actRecs{1})
-            stimLocX = getStimLocFromActions(actRecs, r_i);  % don't need stimLocZ so drop for now
-            actionLocX = getActionLocFromActions(actRecs, r_i);
+            stimLocX = getStimLoc(actRecs, r_i);  % don't need stimLocZ so drop for now
+            actionLocX = getActionLoc(actRecs, r_i);
             if (trialTypeStrArr(tt_i) == "*->*" || ...
                 (stimLocX == rightX && trialTypeStrArr(tt_i) == "R->*") || ...
                 (stimLocX == rightX && actionLocX == rightX && trialTypeStrArr(tt_i) == "R->R") || ...
@@ -241,11 +241,11 @@ for tt_i=1:length(trialTypeStrArr)
             trialsToDo = trials(trials <= length(filtRecIDs));
         end
         for r_i=trialsToDo 
-            stimLocX = getStimLocFromActions(actRecs, filtRecIDs(r_i));
-            actionLocX = getActionLocFromActions(actRecs, filtRecIDs(r_i));
-            optoLoc = getOptoLocFromActions(actRecs, filtRecIDs(r_i));
-            worldNum = getWorldNumFromActions(actRecs, filtRecIDs(r_i));
-            isCorrectionTrial = getCorrectionFromActions(actRecs, filtRecIDs(r_i));
+            stimLocX = getStimLoc(actRecs, filtRecIDs(r_i));
+            actionLocX = getActionLoc(actRecs, filtRecIDs(r_i));
+            optoLoc = getOptoLoc(actRecs, filtRecIDs(r_i));
+            worldNum = getWorldIdx(actRecs, filtRecIDs(r_i));
+            isCorrectionTrial = getCorrection(actRecs, filtRecIDs(r_i));
 
             if (isCorrectionTrial && ~includeCorrectionTrials)
                 continue;
