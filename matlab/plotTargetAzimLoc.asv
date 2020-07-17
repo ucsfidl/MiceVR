@@ -169,19 +169,19 @@ for d_i=1:length(days)  % Iterate through all of the specified days
         trialsToDo = trials(1):lastTrial;
     end
     
-    % Before iterating through all trials, remove those that don't match the stimLocsToAnalyze arg
     newTrialsToDo = [];
     if (isempty(stimLocsToAnalyze))
         newTrialsToDo = trialsToDo;
     else
-        for t_i=1:length(trialsToDo)
-            stimLocX = getStimLoc(actRecs, trialsToDo(t_i));
-            if (~isempty(find(stimLocsToAnalyze == stimLocX, 1)))
-                newTrialsToDo = [newTrialsToDo trialsToDo(t_i)];
-            end
+    for t_i=1:length(trialsToDo)
+        stimLocX = getStimLoc(actRecs, trialsToDo(t_i));
+        if (~isempty(stimLocsToAnalyze) && isempty(find(stimLocsToAnalyze == stimLocX, 1)))
+            
+        else
+            
         end
+        
     end
-    trialsToDo = newTrialsToDo;
 
     % Iterate through each trial, drawing the angular bounds of the target
     trialIdx = 1;
@@ -583,7 +583,7 @@ ylim([-0.1 1.1]);
 set(gca, 'YColor', 'k');
 % Plot 0 degree  dotted line
 plot([0 0], ylim, 'k--');
-title([mouseName ', ' whichEye ' eye, D' num2str(days) ': n_L=' num2str(length(nasalExtremaL)) ' (' num2str(pctAnalyzed(1)*100,2) ...
+title([mouseName ' D' num2str(days) ': n_L=' num2str(length(nasalExtremaL)) ' (' num2str(pctAnalyzed(1)*100,2) ...
         '% kept), n_R=' num2str(length(nasalExtremaR)) ' (' num2str(pctAnalyzed(2)*100,2) '% kept)']);
 
 if (~interactive && outputNewActionsFile && newActionsFileID ~= -1)

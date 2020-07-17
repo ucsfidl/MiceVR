@@ -1,5 +1,5 @@
 function analyzePupils(trackFileName, numStim, analFrameLim, gRp, pxPerMm, usePupilDiamToCalcRp, slope, yintercept, ...
-                        useCR, correctNonFlatCurve)
+                        useCR)
 % Once trackPupils is done and cleanUpTrialTimes is run, this script is used to analyze the pupil
 % positions and produce many plots.
 
@@ -28,6 +28,8 @@ function analyzePupils(trackFileName, numStim, analFrameLim, gRp, pxPerMm, usePu
 
 %leftColor = [1 1 0.79];  % off-yellow
 %rightColor = [0.81 1 0.81];  % off-green
+
+correctNonFlatCurve = 1;  % Used to be an argument, but never changed, so hard-coding here
 
 fps = 60;
 timeInSec = 0;

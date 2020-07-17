@@ -1,7 +1,7 @@
 <world>
 	<gameType>det_blind</gameType>
 	<hiddenIdx>1</hiddenIdx>
-	<revealZPos>20014</revealZPos>
+	<revealZPos>20020</revealZPos>
 	<trees>
 		<t> <!-- Front Left tree -->
 			<w>1</w>
