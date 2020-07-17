@@ -1275,6 +1275,16 @@ for i=1:size(azimDeg,2) % for each eye, fill in the NaNs
     end
     xlabel('Saccade size (degrees)');
     ylabel('Count');
+    % Also just plot the distribution of all saccade positions
+    figure;
+    histogram(azimDegNoNaN(:,i), -40:2:40);
+    if (i == 1)
+        title([rootFileName ': Pupil position (left eye)'], 'Interpreter', 'none');
+    elseif (i == 2)
+        title([rootFileName ': Pupil position (right eye)'], 'Interpreter', 'none');
+    end
+    xlabel('Azimuth (degrees)');
+    ylabel('Count');
 end
 
 % Save it all for posterity
@@ -1289,10 +1299,12 @@ disp(['L Eye: Saccade threshold = ' num2str(saccadeThresh(1))]);
 disp(['L Eye: Mean saccade amplitude = ' num2str(mean(abs(saccadeAmplitudes{1})))]);
 disp(['L Eye: Num saccades into left field = ' num2str(saccadeCountsIntoField(1,1))]);
 disp(['L Eye: Num saccades into right field= ' num2str(saccadeCountsIntoField(1,2))]);
+disp(['Ratio of R/L = ' num2str(saccadeCountsIntoField(1,2) / saccadeCountsIntoField(1,1))]);
 disp(['R Eye: Saccade threshold = ' num2str(saccadeThresh(2))]);
 disp(['R Eye: Mean saccade amplitude = ' num2str(mean(abs(saccadeAmplitudes{2})))]);
 disp(['R Eye: Num saccades into left field = ' num2str(saccadeCountsIntoField(2,1))]);
 disp(['R Eye: Num saccades into right field= ' num2str(saccadeCountsIntoField(2,2))]);
+disp(['Ratio of R/L = ' num2str(saccadeCountsIntoField(2,2) / saccadeCountsIntoField(2,1))]);
 
 %disp(['Mean pupil sizes by areas: L = ' num2str(round(sqrt(nanmean(areasMm2(:,1,1))/pi)*2, 2)) ' mm diameter, R = ' ...
 %                                num2str(round(sqrt(nanmean(areasMm2(:,1,2))/pi)*2, 2)) ' mm diameter']);

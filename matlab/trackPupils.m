@@ -45,13 +45,12 @@ fps = 60;  % All videos are 60 fps
 
 % For corneal reflection tracking
 % CRs move very little, so if it has moved more than distThresh, filter away
-crSzRangePx = [20 300];  % CR is as small as 30 px, or as large as 257 px - this needs to be changed to a physical size
+crSzRangePx = [20 250];  % CR is as small as 30 px, or as large as 257 px (before crMinVal implemented) - this needs to be changed to a physical size
 craRatio = 2;  % 2.5 is too low, it misses the CR on some frames
 crMinVal = 249;  % pixel value used to threshold image for finding CR
 crMaxAllowedMovement = 12;  % px; this is the maximum movement between frames; 10 px was too much
 
 tic
-disp('Started...');
 
 maxPupilAspectRatio = paRatio;  % 1.437; 1.45 lets some through, so go smaller, but not less than 1.4; motion blur causes 1.4326
                             % Quasar had one eye > 2.2!  2.45 bad for Umpa.
@@ -192,12 +191,17 @@ if (length(otsuWeight) == 1)
     otsuWeight = [otsuWeight; otsuWeight];
 end
 
+fprintf(['Processing ' num2str(relFrame + frameStart - 1, '%06d')]);
 while relFrame + frameStart <= frameStop + 1
     %disp(relFrame + frameStart - 1);  %% UNCOMMENT to see status
     for i=startVid:stopVid  % 1 is L, 2 is R
         imLR(:,:,:,i) = readFrame(v(i));
         % Tracks sum of all images to calculate average image in analyzePupils
         sumImLR(:,:,:,i) = sumImLR(:,:,:,i) + single(imLR(:,:,:,i));
+        
+        if (mod(relFrame + frameStart, 1000) == 0)
+            fprintf(['\b\b\b\b\b\b' num2str(relFrame + frameStart, '%06d')]);
+        end
         
         %%%%% CORE ALGORITHM FOR FINDING PUPIL %%%%%%%%%%%%
         % It is important to to binarize before opening to keep parts of
@@ -454,6 +458,7 @@ save(saveFileName, 'centers', 'areas', 'majorAxisLengths', 'minorAxisLengths', .
 
 close(vout);
 
+fprintf('\n');
 t = toc;  % seconds
 disp([num2str(round(t/60)) ' min elapsed.']);
 disp([num2str(round(t/(numFrames/fps), 1)) 'x realtime']);
