@@ -32,6 +32,11 @@ newTrialEnds = struct([]);
 
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 
+% If file no longer exists, it is because it was already analyzed by this script and renamed.  So just return.
+if (~isfile(videoMetadataFileName))
+    return;
+end
+
 load(videoMetadataFileName, 'trialStarts', 'trialEnds', 'framesAcquiredLogged');
 % Generate a consolidated array of all trialStarts and trialEnds in chronological order, to simplify later processing
 allTrialMarkers = [trialStarts(1:length(trialEnds)); trialEnds];

@@ -1,4 +1,4 @@
-function analyzePupils(trackFileName, pxPerMm, useCR)
+function analyzePupils(trackFileName, analFrameLim, pxPerMm, slope, yintercept, useCR)
 % Once trackPupils is done this script is used to analyze the pupil positions and produce many plots.
 
 % It now also keeps track of eye blink times, based on when the centroid is lost.  This is VERY rough and should be 
@@ -25,16 +25,12 @@ function analyzePupils(trackFileName, pxPerMm, useCR)
 correctNonFlatCurve = 1;  % Used to be an argument, but never changed, so hard-coding here
 gRP = [];
 usePupilDiamToCalcRp = 1;
-analFrameLim = [1 0];
 
 fps = 60;
 timeInSec = 0;
 scatterStepSize = 1;  % >= 1; e.g. 100 means 1 in 100 frames are used to plot pupil and CR positions (or 1% sampling).
 
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
-
-eyeMeasureFileName = 'UCB_mouse_eye_measurements.m';
-run(eyeMeasureFileName);  % Bring those variables into the current workspace
 
 leftEyeColor = 'b'; 
 rightEyeColor = 'r';
@@ -145,7 +141,7 @@ end
 skip = zeros(1,2);
 if (~isempty(vLeftFileName))
     v(1) = VideoReader(vLeftFileName); % v(1) is the video of the left eye
-    [folder, name, ~] = fileparts(vLeftFileName);
+    [folder, name, ext] = fileparts(vLeftFileName);
 else
     skip(1) = true;
 end
@@ -154,7 +150,7 @@ if (~isempty(vRightFileName))
         v(1) = VideoReader(vRightFileName);
     end
     v(2) = VideoReader(vRightFileName); % v(2) is the video of the right eye
-    [folder, name, ~] = fileparts(vRightFileName);
+    [folder, name, ext] = fileparts(vRightFileName);
 else
     skip(2) = true;
 end
@@ -231,8 +227,7 @@ end
 if (correctNonFlatCurve)
     for i=startVid:stopVid  % 1 is L, 2 is R
         sumImLR(:,:,:,i) = sumImLR(:,:,:,i) ./ frameCnt;
-        % Show centers over this average image - commented out for now
-        %{
+        % Show centers over this average image
         figure;
         imshow(sumImLR(:,:,:,i)/255, 'InitialMagnification','fit');
         hold on
@@ -245,7 +240,6 @@ if (correctNonFlatCurve)
         if (useCR(i))
             scatter(crCenters(1:scatterStepSize:end,1,i), crCenters(1:scatterStepSize:end,2,i), 4, 'b', 'o', 'filled');
         end
-        %}
         % Next, fit a line to the pupil centers, and use the angle of that line to the horizontal to rotate
         % all of the centers.  These rotated centers will be used for the subsequent analysis.
         pupX = centers(~isnan(centers(:,1,i)),1,i);
@@ -335,17 +329,9 @@ majorAxisMm = cat(3, majorAxisLengths(:,:,1) / pxPerMm(1), majorAxisLengths(:,:,
 
 % Instead of using a static Rp, use one based on pupil size.  So Rp varies during the entire task.
 % For now just use the equation from Stahl 2002.
-% First, lookup the slope and intercept in the data file:
-if (isKey(mouseToRpLine, mouseName))
-    rpline = mouseToRpLine(mouseName);
-    slope = [rpline(1,1) rpline(2,1)];
-    yintercept = [rpline(1,2) rpline(2,2)];
-    disp(['slope = ' num2str(slope)]);
-    disp(['yintercept = ' num2str(yintercept)]);
-else
+if (isempty(slope))
     slope = [-0.142 -0.142];
-    yint = [1.055 1.055];
-    disp('Eye measurements NOT FOUND, so using default values');
+    yintercept = [1.055 1.055];
 end
 Rp(:,:,1) = slope(1)*majorAxisMm(:,:,1) + yintercept(1);
 Rp(:,:,2) = slope(2)*majorAxisMm(:,:,2) + yintercept(2);
@@ -397,23 +383,51 @@ optoStates = [];
 actionsFile = fopen(actionsFileName);
 if (actionsFile ~= -1) % File found
     fgetl(actionsFile);  % First line is a header so ignore
-    trialRecs = textscan(actionsFile, getActionLineFormat()); 
     % Special processing here since I changed the format of the log files
     % to make them not backwards compatible after June 4, 2018.  All future
     % changes should be backwards compatible.
-    for i=1:length(trialRecs{1})
-        %disp(i);
-        if (i == 94)
+    [~, str] = dos(['dir ' actionsFileName]);
+    c = textscan(str,'%s');
+    createdate = c{1}{15};
+    cd = datetime(createdate, 'InputFormat', 'MM/dd/yyyy');
+    sd = datetime('06/04/2018', 'InputFormat', 'MM/dd/yyyy');
+    if (cd <= sd)  % For backwards compatibility
+        expr = '.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t(.*?)\t'; % The last frame of each trial is in the 3rd column in the actions file
+    else
+        expr = '.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t.*?\t.*?\t.*?\t.*?\t(.*?)\t.*?\t.*?\t.*?\t.*?\t([^\s]*)\t*';
+    end
+    k=0;
+    while(true)
+        if (k == 94)
             %disp(m);
         end
-        stimLocX = getStimLoc(trialRecs, i);
-        stimLocs = [stimLocs stimLocX];
-
-        actLocX = getActionLoc(trialRecs, i);
-        actionLocs = [actionLocs actLocX];
-
-        optoState = getOptoLoc(trialRecs, i);
-        optoStates = [optoStates optoState];
+        k = k+1;
+        line = fgetl(actionsFile);
+        if (line ~= -1) % The file is not finished
+            tokens = regexp(line, expr, 'tokens');
+            
+            if (length(tokens{1}{1}) == 1)  % maintain backward compatibility with old format
+                stimLocs = [stimLocs tokens{1}{1}];
+            else
+                tmp = split(tokens{1}{1}, ';');
+                stimLocs = [stimLocs str2double(tmp{1})];
+            end
+            
+            if (length(tokens{1}{2}) == 1) % maintain backward compatibility with old log files
+                actionLocs = [actionLocs tokens{1}{2}];
+            else
+                tmp = split(tokens{1}{2}, ';');
+                actionLocs = [actionLocs str2double(tmp{1})];
+            end
+            
+            if (length(tokens{1}) > 2)
+                optoStates = [optoStates str2num(tokens{1}{3})];
+            else
+                optoStates = [optoStates optoNone];  % Populate with the value of no opto
+            end
+        else
+            break;
+        end
     end
 else
     error('No actions file found.  Be sure the name matches the track file name.');
@@ -630,7 +644,7 @@ resampledStimEye = cell(size(stimEyeMoveTrials));
 m = cell(size(stimEyeMoveTrials));
 sem = cell(size(stimEyeMoveTrials));
 ySem = cell(size(stimEyeMoveTrials));
-for eye=1:2  % For each eye2
+for eye=1:2  % For each eye
     h = [];
     n = 0;
     stimEyeLengths = [];
@@ -1290,8 +1304,7 @@ end
 % Save it all for posterity
 save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', ...
     'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates', 'eyeblinkStartFrames', ...
-    'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes', 'saccadeThresh', 'areasMm2', 'Rp', ...
-    'slope', 'yintercept');
+    'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes', 'saccadeThresh', 'areasMm2', 'Rp');
 
 saccadeAmplitudesLEye = saccadeAmplitudes{1};
 saccadeAmplitudesREye = saccadeAmplitudes{2};
