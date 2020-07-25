@@ -1264,8 +1264,8 @@ for i=1:size(azimDeg,2) % for each eye, fill in the NaNs
     % For now, assume the saccade start and end frames are the largest swing, but this might not be true so later examine the full range for min and max locations
     saccadeAmplitudes{i} = azimDegNoNaN(saccadeEndFrames{i},i) - azimDegNoNaN(saccadeStartFrames{i},i);
     % Also, if the endFrame ends in the left or right field, count it as being into the left or right field.
-    saccadeCountsIntoField(i, 1) = length(find(azimDegNoNaN(saccadeEndFrames{i}) < -saccadeThresh(i)));
-    saccadeCountsIntoField(i, 2) = length(find(azimDegNoNaN(saccadeEndFrames{i}) > saccadeThresh(i)));
+    saccadeCountsIntoField(i, 1) = length(find(azimDegNoNaN(saccadeEndFrames{i}, i) < -saccadeThresh(i)));
+    saccadeCountsIntoField(i, 2) = length(find(azimDegNoNaN(saccadeEndFrames{i}, i) > saccadeThresh(i)));
     figure;
     histogram(saccadeAmplitudes{i}, -40:2:40);
     if (i == 1)

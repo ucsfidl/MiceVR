@@ -33,7 +33,7 @@ trialTypeStrArr = [];
 scenariosFolder = 'C:\Users\nikhi\Documents\GitHub\MiceVR\scenarios\';
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
-eyevideosFolder = 'C:\Users\nikhi\UCB\data-eyevideos\';
+eyevideosFolder = [pwd '\'];
 
 actLineFormat = getActionLineFormat();
 
@@ -485,8 +485,8 @@ for d_i=1:length(days)  % Iterate through all of the specified days
 
                 % Plot the initial period where the mouse is frozen at the start
                 patch([-90 90 90 -90], [0 0 immobilePeriod immobilePeriod], grayShade, 'LineStyle', 'None');
-                % Plot the actual size of the targe
-                patch([targetLeftBound' flip(targetRightBound')],[x flip(x)], shade, 'LineStyle', 'None');
+                % Plot the actual size of the target
+                patch([targetLeftBound' flip(targetRightBound')],[x flip(x)], shade, 'LineStyle', '-', 'EdgeColor', 'k');
                 % Plot top boundary when trial ends explicitly, as not visible on a white figure background otherwise
                 plot([-90 90], [x(end) x(end)], 'k');
                 % Plot 0 degree  dotted line

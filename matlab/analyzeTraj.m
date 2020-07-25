@@ -103,7 +103,7 @@ shadingColorLeft = [0.84 0.89 0.99];  % dull blue
 shadingColorLeftFar = [0.84 0.98 0.99]; % dull cyan
 shadingColorRight = [1 0.87 0.71]; % dull orange
 shadingColorRightFar = [0.9 0.9 0.69];  % dull yellow
-shadingColorCenter = [0.85 1 0.8]; % dull green
+shadingColorCenter = [0.85 .99 0.84]; % dull green
 
 correctDelay = 2;
 incorrectDelay = 4;

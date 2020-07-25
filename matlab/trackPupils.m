@@ -39,7 +39,7 @@ function trackPupils(vLeftFileName, vRightFileName, frameLim, otsuWeight, crPres
 pupilSzRangePx = [100 7500];  % 5/28/20 - min 100 is too small and gives false positives on eye blinks for Uranus 90
                                           % observed max of 4023 Jupiter 205 - 6500 too small
 seSize = 4;
-paRatio = 1.8;  % 5/28/20 - was 1.7, but changed to 1.8 to help track eccentric pupils in Torque 419
+paRatio = 1.9;  % 5/28/20 - was 1.7, but changed to 1.8 to help track eccentric pupils in Torque 419
 useGPU = 0;
 fps = 60;  % All videos are 60 fps
 
