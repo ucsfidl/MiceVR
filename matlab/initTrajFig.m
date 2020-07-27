@@ -13,7 +13,7 @@ set (gcf, 'Color', 'white')
 axis off;
 
 if (~useSubPlot)
-    set(f, 'Position', [68+(mod(figN-1,4))*448 634-mod(floor((figN-1)/4),2)*420 448 420])
+    set(f, 'Position', [68+(mod(figN-1,4))*448 600-mod(floor((figN-1)/4),2)*420 448 420])
 
     %set(f, 'MenuBar', 'none');
     set(f, 'ToolBar', 'none');

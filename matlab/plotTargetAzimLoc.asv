@@ -1,7 +1,7 @@
 function [nasalExtremaL, nasalExtremaR, accuracyPerExtremaL, accuracyPerExtremaR] = ... 
-    plotTargetAzimLoc(mouseName, days, trials, stimLocsToAnalyze, useFieldRestriction, whichEye, ...
-    includeCorrectionTrials, includeCatchTrials, includeExtinctionTrials, ...
-    targetAzimLimit, fractionOfRun, censorOnlyIfCorrect, outputNewActionsFile, writeOutOnlyIfCensored, interactive)
+    plotTargetAzimLoc(mouseName, days, trials, stimLocsToAnalyze, useFieldRestriction, useEyeTracking, whichEye, ...
+    includeCorrectionTrials, includeCatchTrials, includeExtinctionTrials, outputNewActionsFile, ...
+    targetAzimLimit, fractionOfRun, censorOnlyIfCorrect, writeOutOnlyIfCensored, interactive)
 % This function takes as inputs the replay files for a session as well as the mouse's eye movements 
 % during that session.  It outputs several plots:
 % 1) For the specified trialType, a plot for each trial showing the 
@@ -153,7 +153,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
     end
     
     % If using eye tracking to find center of gaze, load the relevant variables generated from analyzePupils.m
-    if (~isempty(whichEye))
+    if (useEyeTracking)
         load([eyevideosFolder mouseName '_' prepDayStr '_trk_an.mat'], 'azimDeg', 'trialStartFrames', 'trialEndFrames');
     end
     
@@ -175,16 +175,17 @@ for d_i=1:length(days)  % Iterate through all of the specified days
     % 3) Excluding catch trials
     % 4) Excluding extinction trials
     newTrialsToDo = [];
-    for t_i=1:length(trialsToDo)
-        stimLocX = getStimLoc(actRecs, trialsToDo(t_i));
-        if (isempty(stimLocsToAnalyze) || ~isempty(find(stimLocsToAnalyze == stimLocX, 1)))
-            % Exclude this trial if it is a correction trial and we are excluding correction trials
-            if (includeCorrectionTrials || (~includeCorrectionTrials && ~getCorrection(actRecs, trialsToDo(t_i))))
-                if (includeCatchTrials || (~includeCatchTrials && ~getCatch(actRecs, trialsToDo(t_i))))
-                    if (includeExtinctionTrials || (~includeExtinctionTrials && ~getExtinction(actRecs, trialsToDo(t_i))))
-                        newTrialsToDo = [newTrialsToDo trialsToDo(t_i)];
-                    end
-                end                       
+    if (isempty(stimLocsToAnalyze))
+        newTrialsToDo = trialsToDo;
+    else
+        for t_i=1:length(trialsToDo)
+            stimLocX = getStimLoc(actRecs, trialsToDo(t_i));
+            if (~isempty(find(stimLocsToAnalyze == stimLocX, 1)))
+                % Exclude this trial if it is a correction trial and we are excluding correction trials
+                if (includeCorrectionTrials || (~includeCorrectionTrials && ~getCorrection(actRecs, trialsToDo(trialIdx)))
+                    if (excludeCatchTrials && 
+                    newTrialsToDo = [newTrialsToDo trialsToDo(t_i)];
+                end
             end
         end
     end
@@ -254,10 +255,10 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             end
                         
             % Second, adjust target bounds for when the target is not displayed on any monitor, so it isn't plotted
-            relevantIdx = targetLeftBound == -91 & targetRightBound == 91;
+            targetLeftBoundPrev = targetLeftBound;
             % Just needs to be the same value; Inf does not work
-            targetLeftBound(relevantIdx) = nasalBound;
-            targetRightBound(relevantIdx) = nasalBound; 
+            targetLeftBound(targetLeftBound == -91 & targetRightBound == 91) = nasalBound;
+            targetRightBound(targetLeftBoundPrev == -91 & targetRightBound == 91) = nasalBound; 
             
             % Third, account for field restriction to set the ACTUAL VISIBLE bounds of the target
             if (useFieldRestriction)
@@ -272,13 +273,14 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                     targetRightBound(targetRightBound > temporalBound) = temporalBound;
                     targetRightBound(targetRightBound < nasalBound) = nasalBound;
                 end
+                % If both bounds are equal, set to NaN so patch borders won't be plotted here, to clean up the figure
             end
             
             % Fourth and finally, adjust the 0 point to be the center of the field of view without assuming
             % the mouse is just staring straight ahead and not moving her eyes.  Use eye tracking data to do this correction.
             % If both bounds were off-screen, since it was corrected to the same value, shifting it won't alter
             % the display in an irreparable way.
-            if (~isempty(whichEye))
+            if (useEyeTracking)
                 if (whichEye == 'L')
                     whichEyeIdx = 1;
                 elseif (whichEye == 'R')
@@ -410,7 +412,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             end
             
             fr = '';
-            if (~isempty(whichEye))
+            if (useEyeTracking)
                 fr = ['fr=' num2str(trialStartFrames(trialsToDo(trialIdx)))];
             end
                 

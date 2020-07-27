@@ -1233,6 +1233,10 @@ saccadeAmplitudes = cell(1,2);
 saccadeCountsIntoField = zeros(2,2);  % First row is left eye, second row is right eye; first column is left field, second column is right field
 saccadeThresh = zeros(1,2);
 for i=1:size(azimDeg,2) % for each eye, fill in the NaNs
+    % if 1 eye is not visible, skip it!
+    if (sum(isnan(azimDeg(:,i))) == length(azimDeg(:,i)))
+        continue;
+    end
     nanAz = isnan(azimDeg(:,i));
     t = 1:numel(azimDeg(:,i));
     azimDegNoNaN(nanAz,i) = interp1(t(~nanAz), azimDegNoNaN(~nanAz,i), t(nanAz));
