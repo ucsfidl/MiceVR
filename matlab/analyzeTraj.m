@@ -16,6 +16,8 @@ function f = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, inc
 % your machine) to extract the target and wall locations so that an
 % appropriate map can be drawn.
 %
+% TODO: Option to plot the average path in addition to individual trial paths
+%
 % trialTypeStrArr specifies which trial types should be analyzed:
 %   "*->*" - all targets, all actions
 %   "R->*" - right target, all actions
@@ -141,6 +143,7 @@ for tt_i=1:length(trialTypeStrArr)
         f = initTrajFig(figN, useSubPlot);
     end
     
+    totalTrials = 0;
     for d_i=1:length(days)  % Iterate through all of the specified days
         dayNum = num2str(days(d_i));
         if (~isempty(sessions))
@@ -246,8 +249,11 @@ for tt_i=1:length(trialTypeStrArr)
             optoLoc = getOptoLoc(actRecs, filtRecIDs(r_i));
             worldNum = getWorldIdx(actRecs, filtRecIDs(r_i));
             isCorrectionTrial = getCorrection(actRecs, filtRecIDs(r_i));
+            isCatchTrial = getCatch(actRecs, filtRecIDs(r_i));
+            isExtinctionTrial = getExtinction(actRecs, filtRecIDs(r_i));
 
             if (isCorrectionTrial && ~includeCorrectionTrials)
+                totalTrials = totalTrials - 1;
                 continue;
             end
 
@@ -298,8 +304,10 @@ for tt_i=1:length(trialTypeStrArr)
                     treePosStr = worldNode.trees.t{t_i}.pos.Text;
                     treePosXYZ = split(treePosStr, ';');
                     if (length(worldNode.trees.t) == 3)
-                        if (t_i == 3)  % For 3-choice, always plot 3rd tree
-                            plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', shadingColorCenter);
+                        if (t_i == 3)  % For 3-choice, always plot 3rd tree, unless it is a catch trial!
+                            if (~isCatchTrial && ~isExtinctionTrial)
+                                plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', shadingColorCenter);
+                            end
                         elseif (str2double(treePosXYZ{1}) == stimLocX)
                             markerColor = [1 1 1];
                             if (stimLocX == leftX)
@@ -360,6 +368,7 @@ for tt_i=1:length(trialTypeStrArr)
             numReplaysInFig = numReplaysInFig + length(filtRecIDs);
         end
         clear wall;
+        totalTrials = totalTrials + length(trialsToDo);
     end
     
     % Plot title for all days of this trial type
@@ -368,7 +377,7 @@ for tt_i=1:length(trialTypeStrArr)
         if (daysPlotted > 1)
             dayLabel = 'days';
         end
-        tit = [upper(mouseName) ' (' dayLabel ' ' dayStr  '), ' trialTypeStrArr{tt_i} ', n=' num2str(length(trialsToDo)) ', ' corrTxt];
+        tit = [upper(mouseName) ' (' dayLabel ' ' dayStr  '), ' trialTypeStrArr{tt_i} ', n=' num2str(totalTrials) ', ' corrTxt];
         title(tit);
     else % If not trajs plotted, close figure and reuse that position on the screen for the next figure
         close(f);
@@ -378,7 +387,7 @@ for tt_i=1:length(trialTypeStrArr)
 end
 
 if (drawOneFig)
-    disp(['Total trials analyzed = ' num2str(length(trialsToDo))]);
+    disp(['Total trials analyzed = ' num2str(totalTrials)]);
 end
 
 fclose('all');

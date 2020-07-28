@@ -798,10 +798,11 @@ for (worldIdx = 1:length(worldTypes))
                 
                 % Print pooled expected values
                 %disp(['Expected left = ' num2str(expected(1,1) + expected(1,1) + sightRate * (totalNL + totalFL))])
-                disp(['Expected right correct by chance = ' num2str(round(expected(1,2) + expected(1,4) + sightRate * (totalNR + totalFR)))])
+                expectedCorrectByChance = round(expected(1,2) + expected(1,4) + sightRate * (totalNR + totalFR));
+                disp(['Expected right correct by chance = ' num2str(expectedCorrectByChance)])
                 disp(['Observed right correct = ' num2str(observed(1,2,j) + observed(1,4,j))]);
-                disp(['Chi-squared p = ' num2str(chisquared(observed(1,2,j) + observed(1,4,j), expected(1,2) + expected(1,4), ...
-                                            observed(2,2,j) + observed(2,4,j), expected(2,2) + expected(2,4)))]);
+                disp(['Chi-squared p = ' num2str(chisquared(observed(1,2,j) + observed(1,4,j), expectedCorrectByChance, ...
+                                            observed(2,2,j) + observed(2,4,j), expected(2,2) + expected(2,4) - sightRate * (totalNR + totalFR)))]);
                 disp('---------------');
                 
                 %{

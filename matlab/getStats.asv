@@ -709,7 +709,7 @@ for (worldIdx = 1:length(worldTypes))
             disp(['FR->NL = ' num2str(round(results(1,4,j) / totalFR * 100), 3) '% (' num2str(results(1,4,j)) '/' num2str(totalFR) ')']);
             disp(['FR->NR = ' num2str(round(results(2,4,j) / totalFR * 100), 3) '% (' num2str(results(2,4,j)) '/' num2str(totalFR) ')']);
             disp(['FR->FL = ' num2str(round(results(3,4,j) / totalFR * 100), 3) '% (' num2str(results(3,4,j)) '/' num2str(totalFR) ')']);
-            disp(['FR->FR = ' num2str(round(correctFR / totalFR * 100), 3) '% (' num2str(results(4,4,j)) '/' num2str(totalFR) ')']);
+            disp(['FR->FR = ' num2str(round(results(4,4,j) / totalFR * 100), 3) '% (' num2str(results(4,4,j)) '/' num2str(totalFR) ')']);
             disp('-----------');
             disp([num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '/' ...
                   num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '/' ...
@@ -798,6 +798,7 @@ for (worldIdx = 1:length(worldTypes))
                 
                 % Print pooled expected values
                 %disp(['Expected left = ' num2str(expected(1,1) + expected(1,1) + sightRate * (totalNL + totalFL))])
+                expectedByChance = 
                 disp(['Expected right correct by chance = ' num2str(round(expected(1,2) + expected(1,4) + sightRate * (totalNR + totalFR)))])
                 disp(['Observed right correct = ' num2str(observed(1,2,j) + observed(1,4,j))]);
                 disp(['Chi-squared p = ' num2str(chisquared(observed(1,2,j) + observed(1,4,j), expected(1,2) + expected(1,4), ...
