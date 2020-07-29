@@ -1,5 +1,5 @@
 function f = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, includeCorrectionTrials, ...
-                         drawOneFig, markSize, markAlpha, lastTrial, useSubPlot)
+                         drawOneFig, markSize, markAlpha, lastTrial, useSubPlot, hideStraightTarget)
 % SAMPLE USAGE
 % // MANY Tracks on one plot
 % > analyzeTraj('Mania', [120:124], [], [], ["R->R"], 0, 1, 4, 0.1, 0, 0)
@@ -303,7 +303,15 @@ for tt_i=1:length(trialTypeStrArr)
         end
         for r_i=trialsToDo 
             stimIdx = getStimIdx(actRecs, filtRecIDs(r_i));
+            if (isnan(stimIdx))  % Data is before I started recording stim indexes in the actions file, so figure it out
+                stimLocX = getStimLoc(actRecs, filtRecIDs(r_i));
+                stimIdx = mapLocXToIdx(stimLocX);
+            end
             actionIdx = getActionIdx(actRecs, filtRecIDs(r_i));
+            if (isnan(actionIdx))  % Data is before I started recording stim indexes in the actions file, so figure it out
+                actionLocX = getActionLoc(actRecs, filtRecIDs(r_i));
+                actionIdx = mapLocXToIdx(actionLocX);
+            end
             optoLoc = getOptoLoc(actRecs, filtRecIDs(r_i));
             worldIdx = getWorldIdx(actRecs, filtRecIDs(r_i));
             isExtinctionTrial = getExtinction(actRecs, filtRecIDs(r_i));
@@ -368,7 +376,7 @@ for tt_i=1:length(trialTypeStrArr)
                             markerColor = shadingColorRight;
                             plotTarget = 1;
                         elseif (t_i == 3)
-                            if (~isCatchTrial && ~isExtinctionTrial)
+                            if (~isCatchTrial && ~isExtinctionTrial && ~hideStraightTarget)
                                 markerColor = shadingColorStraight;
                                 plotTarget = 1;
                             end

@@ -524,7 +524,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 % Also plot the animal's trajectory on that trial
                 subplot(1,2,1);
                 set(gca, 'Position', [0.04 0.05 0.44 0.9]);
-                analyzeTraj(mouseName, days(d_i), [], trialsToDo(trialIdx), trialTypeStrArr, 1, 0, 8, 1, lastTrial, 1);
+                analyzeTraj(mouseName, days(d_i), [], trialsToDo(trialIdx), trialTypeStrArr, 1, 0, 8, 1, lastTrial, 1, 1);
 
                 % Logic to only keep open the figs that you hit 'k' for 'keep' on
                 closeFig = 1;

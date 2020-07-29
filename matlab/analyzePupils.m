@@ -483,11 +483,11 @@ if (numStim == 4)
         if (stimLocs(i) == stimLeftNear)
             stimColors(1,i,:) = shadingColorLeft;
             idx = 1;
-        elseif (stimLocs(i) == stimLeftFar)
-            stimColors(1,i,:) = shadingColorLeftFar;
-            idx = 2;
         elseif (stimLocs(i) == stimRightNear)
             stimColors(1,i,:) = shadingColorRight;
+            idx = 2;
+        elseif (stimLocs(i) == stimLeftFar)
+            stimColors(1,i,:) = shadingColorLeftFar;
             idx = 3;
         elseif (stimLocs(i) == stimRightFar)
             stimColors(1,i,:) = shadingColorRightFar;            
@@ -497,11 +497,11 @@ if (numStim == 4)
         if (actionLocs(i) == stimLeftNear)
             actionColors(1,i,:) = shadingColorLeft;
             idx = 1;
-        elseif (actionLocs(i) == stimLeftFar)
-            actionColors(1,i,:) = shadingColorLeftFar;
-            idx = 2;
         elseif (actionLocs(i) == stimRightNear)
             actionColors(1,i,:) = shadingColorRight;
+            idx = 2;
+        elseif (actionLocs(i) == stimLeftFar)
+            actionColors(1,i,:) = shadingColorLeftFar;
             idx = 3;
         elseif (actionLocs(i) == stimRightFar)
             actionColors(1,i,:) = shadingColorRightFar;
@@ -558,9 +558,9 @@ for i=1:length(trimmedStimLocs)
     if (numStim == 4)
         if (trimmedStimLocs(i) == stimLeftNear)
             idx1 = 1;
-        elseif (trimmedStimLocs(i) == stimLeftFar)
-            idx1 = 2;
         elseif (trimmedStimLocs(i) == stimRightNear)
+            idx1 = 2;
+        elseif (trimmedStimLocs(i) == stimLeftFar)
             idx1 = 3;
         elseif (trimmedStimLocs(i) == stimRightFar)
             idx1 = 4;
@@ -585,9 +585,9 @@ for i=1:length(trimmedStimLocs)
     if (numStim == 4)
         if (trimmedActionLocs(i) == stimLeftNear)
             idx2 = 1;
-        elseif (trimmedActionLocs(i) == stimLeftFar)
-            idx2 = 2;
         elseif (trimmedActionLocs(i) == stimRightNear)
+            idx2 = 2;
+        elseif (trimmedActionLocs(i) == stimLeftFar)
             idx2 = 3;
         elseif (trimmedActionLocs(i) == stimRightFar)
             idx2 = 4;
@@ -635,16 +635,20 @@ for eye=1:2  % For each eye2
     n = 0;
     stimEyeLengths = [];
     for stimIdx=1:numStim
-        stimEyeLengths = [stimEyeLengths cellfun(@(x) length(x), stimEyeMoveTrials{stimIdx,eye})];
-        n = n + length(stimEyeMoveTrials{stimIdx,eye});
+        if (~isempty(stimEyeMoveTrials{stimIdx, eye})) % Prevents error if there are no stim of a type in a session
+            stimEyeLengths = [stimEyeLengths cellfun(@(x) length(x), stimEyeMoveTrials{stimIdx,eye})];
+            n = n + length(stimEyeMoveTrials{stimIdx,eye});
+        end
     end
     minLengths(eye) = min(stimEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
     
     for stimIdx=1:numStim
-        resampledStimEye{stimIdx,eye} = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimEyeMoveTrials{stimIdx,eye}, 'UniformOutput', false);
-        d = cell2mat(resampledStimEye{stimIdx,eye}(:)');
-        m{stimIdx,eye} = nanmean(d, 2);
-        sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
+        if (~isempty(stimEyeMoveTrials{stimIdx,eye}))
+            resampledStimEye{stimIdx,eye} = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimEyeMoveTrials{stimIdx,eye}, 'UniformOutput', false);
+            d = cell2mat(resampledStimEye{stimIdx,eye}(:)');
+            m{stimIdx,eye} = nanmean(d, 2);
+            sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
+        end
     end
 
     for stimIdx=1:numStim
@@ -671,19 +675,19 @@ for eye=1:2  % For each eye2
                 sLoc = 'Center';
             end
         elseif (numStim == 4)
-            if (stimIdx==1)
+            if (stimIdx == 1)
                 curColor = colorLeft;
                 curShadingColor = shadingColorLeft;
                 sLoc = 'Left Near';
-            elseif (stimIdx==2)
-                curColor = colorLeftFar;
-                curShadingColor = shadingColorLeftFar;
-                sLoc = 'Left Far';
-            elseif (stimIdx==3)
+            elseif (stimIdx == 2)
                 curColor = colorRight;
                 curShadingColor = shadingColorRight;
                 sLoc = 'Right Near';
-            elseif (stimIdx==4)
+            elseif (stimIdx == 3)
+                curColor = colorLeftFar;
+                curShadingColor = shadingColorLeftFar;
+                sLoc = 'Left Far';
+            elseif (stimIdx == 4)
                 curColor = colorRightFar;
                 curShadingColor = shadingColorRightFar;
                 sLoc = 'Right Far';
@@ -693,9 +697,11 @@ for eye=1:2  % For each eye2
             curShadingColor = [0.5 0.5 0.5];
             sLoc = 'Straight';
         end
-        patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
-        alpha(varianceAlpha);
-        h = [h plot(m{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
+        if (~isempty(ySem{stimIdx, eye}))
+            patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
+            alpha(varianceAlpha);
+            h = [h plot(m{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
+        end
     end
     if (eye == 1)
         eyeName = 'Left';
@@ -708,7 +714,7 @@ for eye=1:2  % For each eye2
     if (numStim == 3)
         legend(h, 'left stim', 'right stim', 'center stim');
     elseif (numStim == 4)
-        legend(h, 'left near stim', 'left far stim', 'right near stim', 'right far stim');
+        legend(h, 'left near stim', 'right near stim', 'left far stim', 'right far stim');
     elseif (numStim == 1)
         legend(h, 'straight');
     end
@@ -777,19 +783,19 @@ for eye=1:2  % For each eye
                     sLoc = 'Center';
                 end
             elseif (numStim == 4)
-                if (stimIdx==1)
+                if (stimIdx == 1)
                     curColor = colorLeft;
                     curShadingColor = shadingColorLeft;
                     sLoc = 'Left Near';
-                elseif (stimIdx==2)
-                    curColor = colorLeftFar;
-                    curShadingColor = shadingColorLeftFar;
-                    sLoc = 'Left Far';
-                elseif (stimIdx==3)
+                elseif (stimIdx == 2)
                     curColor = colorRight;
                     curShadingColor = shadingColorRight;
                     sLoc = 'Right Near';
-                elseif (stimIdx==4)
+                elseif (stimIdx == 3)
+                    curColor = colorLeftFar;
+                    curShadingColor = shadingColorLeftFar;
+                    sLoc = 'Left Far';
+                elseif (stimIdx == 4)
                     curColor = colorRightFar;
                     curShadingColor = shadingColorRightFar;
                     sLoc = 'Right Far';
@@ -817,7 +823,7 @@ for eye=1:2  % For each eye
     if (numStim == 3)
         standardLegend = {'left stim'; 'right stim'; 'center stim'};
     elseif (numStim == 4)
-        standardLegend = {'left near stim'; 'left far stim'; 'right near stim'; 'right far stim'};
+        standardLegend = {'left near stim'; 'right near stim'; 'left far stim'; 'right far stim'};
     elseif (numStim == 1)
         standardLegend = {'straight'};
     end
@@ -910,19 +916,19 @@ for eye=1:2  % For each eye
                     sLoc = 'Center';
                 end
             elseif (numStim == 4)
-                if (stimIdx==1)
+                if (stimIdx == 1)
                     curColor = colorLeft;
                     curShadingColor = shadingColorLeft;
                     sLoc = 'Left Near';
-                elseif (stimIdx==2)
-                    curColor = colorLeftFar;
-                    curShadingColor = shadingColorLeftFar;
-                    sLoc = 'Left Far';
-                elseif (stimIdx==3)
+                elseif (stimIdx == 2)
                     curColor = colorRight;
                     curShadingColor = shadingColorRight;
                     sLoc = 'Right Near';
-                elseif (stimIdx==4)
+                elseif (stimIdx == 3)
+                    curColor = colorLeftFar;
+                    curShadingColor = shadingColorLeftFar;
+                    sLoc = 'Left Far';
+                elseif (stimIdx == 4)
                     curColor = colorRightFar;
                     curShadingColor = shadingColorRightFar;
                     sLoc = 'Right Far';
@@ -951,7 +957,7 @@ for eye=1:2  % For each eye
     if (numStim == 3)
         standardLegend = {'left stim'; 'right stim'; 'center stim'};
     elseif (numStim == 4)
-        standardLegend = {'left near stim'; 'left far stim'; 'right near stim'; 'right far stim'};
+        standardLegend = {'left near stim'; 'right near stim'; 'left far stim'; 'right far stim'};
     elseif (numStim == 1)
         standardLegend = {'straight'};
     end
@@ -1182,7 +1188,7 @@ for i = 1:size(allColors, 1)
     p(i) = patch(NaN, NaN, allColors(i,:));
 end
 if (numStim == 4)
-    legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'left far stim/action', 'right near stim/action', 'right far stim/action', 'inter-trial interval');
+    legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'right near stim/action', 'left far stim/action', 'right far stim/action', 'inter-trial interval');
 elseif (numStim == 3)
     legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'center stim/action', 'inter-trial interval');
 elseif (numStim == 1)
@@ -1211,7 +1217,7 @@ for i = 1:size(allColors,1)
     p(i) = patch(NaN, NaN, allColors(i,:));
 end
 if (numStim == 4)
-    legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'left far stim/action', 'right near stim/action', 'right far stim/action', 'inter-trial interval');
+    legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'right near stim/action', 'left far stim/action', 'right far stim/action', 'inter-trial interval');
 elseif (numStim == 3)
     legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'center stim/action', 'inter-trial interval');
 elseif (numStim == 1)
