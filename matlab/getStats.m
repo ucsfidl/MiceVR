@@ -384,20 +384,20 @@ for (worldIdx = 1:length(worldTypes))
             disp(['ACCURACY = ' num2str(numCorrect/numTrials * 100, 2) '%']);
             
             if (strcmp(worldTypesStr{worldIdx}, '2L'))
-                label1 = 'NL->NL';
-                label2 = 'NL->FL';
-                label3 = 'FL->NL';
-                label4 = 'FL->FL';
+                label1 = 'NL-NL';
+                label2 = 'NL-FL';
+                label3 = 'FL-NL';
+                label4 = 'FL-FL';
             elseif (strcmp(worldTypesStr{worldIdx}, '2R'))
-                label1 = 'NR->NR';
-                label2 = 'NR->FR';
-                label3 = 'FR->NR';
-                label4 = 'FR->FR';
+                label1 = 'NR-NR';
+                label2 = 'NR-FR';
+                label3 = 'FR-NR';
+                label4 = 'FR-FR';
             else
-                label1 = 'L->L';
-                label2 = 'L->R';
-                label3 = 'R->L';
-                label4 = 'R->R';
+                label1 = 'L-L';
+                label2 = 'L-R';
+                label3 = 'R-L';
+                label4 = 'R-R';
             end
             disp([label1 ' = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
                 num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
@@ -478,35 +478,35 @@ for (worldIdx = 1:length(worldTypes))
             disp(['ACCURACY = ' num2str(numCorrect/numTrials * 100, 2) '%']);
             
             if (strcmp(worldTypesStr{worldIdx}, '3L'))
-                label1 = 'NL->NL';
-                label2 = 'NL->FL';
-                label3 = 'NL->C';
-                label4 = 'FL->NL';
-                label5 = 'FL->FL';
-                label6 = 'FL->C';
-                label7 = 'C->NL';
-                label8 = 'C->FL';
-                label9 = 'C->C';
+                label1 = 'NL-NL';
+                label2 = 'NL-FL';
+                label3 = 'NL-S';
+                label4 = 'FL-NL';
+                label5 = 'FL-FL';
+                label6 = 'FL-S';
+                label7 = 'S-NL';
+                label8 = 'S-FL';
+                label9 = 'S-S';
             elseif (strcmp(worldTypesStr{worldIdx}, '3R'))
-                label1 = 'NR->NR';
-                label2 = 'NR->FR';
-                label3 = 'NR->C';
-                label4 = 'FR->NR';
-                label5 = 'FR->FR';
-                label6 = 'FR->C';
-                label7 = 'C->NR';
-                label8 = 'C->FR';
-                label9 = 'C->C';
+                label1 = 'NR-NR';
+                label2 = 'NR-FR';
+                label3 = 'NR-S';
+                label4 = 'FR-NR';
+                label5 = 'FR-FR';
+                label6 = 'FR-S';
+                label7 = 'S-NR';
+                label8 = 'S-FR';
+                label9 = 'S-S';
             else
-                label1 = 'L->L';
-                label2 = 'L->R';
-                label3 = 'L->C';
-                label4 = 'R->L';
-                label5 = 'R->R';
-                label6 = 'R->C';
-                label7 = 'C->L';
-                label8 = 'C->R';
-                label9 = 'C->C';
+                label1 = 'L-L';
+                label2 = 'L-R';
+                label3 = 'L-S';
+                label4 = 'R-L';
+                label5 = 'R-R';
+                label6 = 'R-S';
+                label7 = 'S-L';
+                label8 = 'S-R';
+                label9 = 'S-S';
             end
             disp([label1 ' = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
                 num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
@@ -565,15 +565,15 @@ for (worldIdx = 1:length(worldTypes))
                 if (strcmp(worldTypesStr{worldIdx}, '3L'))
                     label1 = 'NEAR LEFT';
                     label2 = 'FAR LEFT';
-                    label3 = 'CENTER';
+                    label3 = 'STRAIGHT';
                 elseif (strcmp(worldTypesStr{worldIdx}, '3R'))
                     label1 = 'NEAR RIGHT';
                     label2 = 'FAR RIGHT';
-                    label3 = 'CENTER';
+                    label3 = 'STRAIGHT';
                 else
                     label1 = 'LEFT';
                     label2 = 'RIGHT';
-                    label3 = 'CENTER';
+                    label3 = 'STRAIGHT';
                 end
                 
                 disp([label1 ' BIAS = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
@@ -609,26 +609,26 @@ for (worldIdx = 1:length(worldTypes))
                 numTrials = sum(sum(results(:,:,j)));
                 
                 if (strcmp(worldTypesStr{worldIdx}, '3L'))
-                    label1 = 'NLE->NL';
-                    label2 = 'NLE->FL';
-                    label3 = 'NLE->C';
-                    label4 = 'FLE->NL';
-                    label5 = 'FLE->FL';
-                    label6 = 'FLE->C';
+                    label1 = 'NLO-NL';
+                    label2 = 'NLO-FL';
+                    label3 = 'NLO-C';
+                    label4 = 'FLO-NL';
+                    label5 = 'FLO-FL';
+                    label6 = 'FLO-C';
                 elseif (strcmp(worldTypesStr{worldIdx}, '3R'))
-                    label1 = 'NRE->NR';
-                    label2 = 'NRE->FR';
-                    label3 = 'NRE->C';
-                    label4 = 'FRE->NR';
-                    label5 = 'FRE->FR';
-                    label6 = 'FRE->C';
+                    label1 = 'NRO-NR';
+                    label2 = 'NRO-FR';
+                    label3 = 'NRO-C';
+                    label4 = 'FRO-NR';
+                    label5 = 'FRO-FR';
+                    label6 = 'FRO-C';
                 else
-                    label1 = 'LE->L';
-                    label2 = 'LE->R';
-                    label3 = 'LE->C';
-                    label4 = 'RE->L';
-                    label5 = 'RE->R';
-                    label6 = 'RE->C';
+                    label1 = 'LO-L';
+                    label2 = 'LO-R';
+                    label3 = 'LO-C';
+                    label4 = 'RO-L';
+                    label5 = 'RO-R';
+                    label6 = 'RO-C';
                 end
                 
                 disp([label1 ' = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...
@@ -682,34 +682,34 @@ for (worldIdx = 1:length(worldTypes))
             totalNL = sum(results(:,1,j));
             observed(1,1,j) = results(1,1,j);
             observed(2,1,j) = totalNL - results(1,1,j);
-            disp(['NL->NL = ' num2str(round(results(1,1,j) / totalNL * 100), 3) '% (' num2str(results(1,1,j)) '/' num2str(totalNL) ')']);
-            disp(['NL->NR = ' num2str(round(results(2,1,j) / totalNL * 100), 3) '% (' num2str(results(2,1,j)) '/' num2str(totalNL) ')']);
-            disp(['NL->FL = ' num2str(round(results(3,1,j) / totalNL * 100), 3) '% (' num2str(results(3,1,j)) '/' num2str(totalNL) ')']);
-            disp(['NL->FR = ' num2str(round(results(4,1,j) / totalNL * 100), 3) '% (' num2str(results(4,1,j)) '/' num2str(totalNL) ')']);
+            disp(['NL-NL = ' num2str(round(results(1,1,j) / totalNL * 100), 3) '% (' num2str(results(1,1,j)) '/' num2str(totalNL) ')']);
+            disp(['NL-NR = ' num2str(round(results(2,1,j) / totalNL * 100), 3) '% (' num2str(results(2,1,j)) '/' num2str(totalNL) ')']);
+            disp(['NL-FL = ' num2str(round(results(3,1,j) / totalNL * 100), 3) '% (' num2str(results(3,1,j)) '/' num2str(totalNL) ')']);
+            disp(['NL-FR = ' num2str(round(results(4,1,j) / totalNL * 100), 3) '% (' num2str(results(4,1,j)) '/' num2str(totalNL) ')']);
             disp('-----------')
             totalNR = sum(results(:,2,j));
             observed(1,2,j) = results(2,2,j);
             observed(2,2,j) = totalNR - results(2,2,j);
-            disp(['NR->NL = ' num2str(round(results(1,2,j) / totalNR * 100), 3) '% (' num2str(results(1,2,j)) '/' num2str(totalNR) ')']);
-            disp(['NR->NR = ' num2str(round(results(2,2,j) / totalNR * 100), 3) '% (' num2str(results(2,2,j)) '/' num2str(totalNR) ')']);
-            disp(['NR->FL = ' num2str(round(results(3,2,j) / totalNR * 100), 3) '% (' num2str(results(3,2,j)) '/' num2str(totalNR) ')']);
-            disp(['NR->FR = ' num2str(round(results(4,2,j) / totalNR * 100), 3) '% (' num2str(results(4,2,j)) '/' num2str(totalNR) ')']);
+            disp(['NR-NL = ' num2str(round(results(1,2,j) / totalNR * 100), 3) '% (' num2str(results(1,2,j)) '/' num2str(totalNR) ')']);
+            disp(['NR-NR = ' num2str(round(results(2,2,j) / totalNR * 100), 3) '% (' num2str(results(2,2,j)) '/' num2str(totalNR) ')']);
+            disp(['NR-FL = ' num2str(round(results(3,2,j) / totalNR * 100), 3) '% (' num2str(results(3,2,j)) '/' num2str(totalNR) ')']);
+            disp(['NR-FR = ' num2str(round(results(4,2,j) / totalNR * 100), 3) '% (' num2str(results(4,2,j)) '/' num2str(totalNR) ')']);
             disp('-----------')
             totalFL = sum(results(:,3,j));        
             observed(1,3,j) = results(2,2,j);
             observed(2,3,j) = totalFL - results(2,2,j);
-            disp(['FL->NL = ' num2str(round(results(1,3,j) / totalFL * 100), 3) '% (' num2str(results(1,3,j)) '/' num2str(totalFL) ')']);
-            disp(['FL->NR = ' num2str(round(results(2,3,j) / totalFL * 100), 3) '% (' num2str(results(2,3,j)) '/' num2str(totalFL) ')']);
-            disp(['FL->FL = ' num2str(round(results(3,3,j) / totalFL * 100), 3) '% (' num2str(results(3,3,j)) '/' num2str(totalFL) ')']);
-            disp(['FL->FR = ' num2str(round(results(4,3,j) / totalFL * 100), 3) '% (' num2str(results(4,3,j)) '/' num2str(totalFL) ')']);
+            disp(['FL-NL = ' num2str(round(results(1,3,j) / totalFL * 100), 3) '% (' num2str(results(1,3,j)) '/' num2str(totalFL) ')']);
+            disp(['FL-NR = ' num2str(round(results(2,3,j) / totalFL * 100), 3) '% (' num2str(results(2,3,j)) '/' num2str(totalFL) ')']);
+            disp(['FL-FL = ' num2str(round(results(3,3,j) / totalFL * 100), 3) '% (' num2str(results(3,3,j)) '/' num2str(totalFL) ')']);
+            disp(['FL-FR = ' num2str(round(results(4,3,j) / totalFL * 100), 3) '% (' num2str(results(4,3,j)) '/' num2str(totalFL) ')']);
             disp('-----------')
             totalFR = sum(results(:,4,j));
             observed(1,4,j) = results(4,4,j);
             observed(2,4,j) = totalFR - results(4,4,j);
-            disp(['FR->NL = ' num2str(round(results(1,4,j) / totalFR * 100), 3) '% (' num2str(results(1,4,j)) '/' num2str(totalFR) ')']);
-            disp(['FR->NR = ' num2str(round(results(2,4,j) / totalFR * 100), 3) '% (' num2str(results(2,4,j)) '/' num2str(totalFR) ')']);
-            disp(['FR->FL = ' num2str(round(results(3,4,j) / totalFR * 100), 3) '% (' num2str(results(3,4,j)) '/' num2str(totalFR) ')']);
-            disp(['FR->FR = ' num2str(round(results(4,4,j) / totalFR * 100), 3) '% (' num2str(results(4,4,j)) '/' num2str(totalFR) ')']);
+            disp(['FR-NL = ' num2str(round(results(1,4,j) / totalFR * 100), 3) '% (' num2str(results(1,4,j)) '/' num2str(totalFR) ')']);
+            disp(['FR-NR = ' num2str(round(results(2,4,j) / totalFR * 100), 3) '% (' num2str(results(2,4,j)) '/' num2str(totalFR) ')']);
+            disp(['FR-FL = ' num2str(round(results(3,4,j) / totalFR * 100), 3) '% (' num2str(results(3,4,j)) '/' num2str(totalFR) ')']);
+            disp(['FR-FR = ' num2str(round(results(4,4,j) / totalFR * 100), 3) '% (' num2str(results(4,4,j)) '/' num2str(totalFR) ')']);
             disp('-----------');
             disp([num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '/' ...
                   num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '/' ...
@@ -798,7 +798,7 @@ for (worldIdx = 1:length(worldTypes))
                 
                 % Print pooled expected values
                 %disp(['Expected left = ' num2str(expected(1,1) + expected(1,1) + sightRate * (totalNL + totalFL))])
-                expectedCorrectByChance = round(expected(1,2) + expected(1,4) + sightRate * (totalNR + totalFR));
+                expectedCorrectByChance = expected(1,2) + expected(1,4) + sightRate * (totalNR + totalFR);
                 disp(['Expected right correct by chance = ' num2str(expectedCorrectByChance)])
                 disp(['Observed right correct = ' num2str(observed(1,2,j) + observed(1,4,j))]);
                 disp(['Chi-squared p = ' num2str(chisquared(observed(1,2,j) + observed(1,4,j), expectedCorrectByChance, ...

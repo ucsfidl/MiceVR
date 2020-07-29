@@ -222,7 +222,15 @@ for tt_i=1:length(trialTypeStrArr)
         filtRecIDs = [];
         for r_i=1:length(actRecs{1})
             stimIdx = getStimIdx(actRecs, r_i);
+            if (isnan(stimIdx))  % Data is before I started recording stim indexes in the actions file, so figure it out
+                stimLocX = getStimLoc(actRecs, r_i);
+                stimIdx = mapLocXToIdx(stimLocX);
+            end
             actionIdx = getActionIdx(actRecs, r_i);
+            if (isnan(actionIdx))  % Data is before I started recording stim indexes in the actions file, so figure it out
+                actionLocX = getActionLoc(actRecs, r_i);
+                actionIdx = mapLocXToIdx(actionLocX);
+            end
             isExtinctionTrial = getExtinction(actRecs, r_i);
             isCatchTrial = getCatch(actRecs, r_i);
             isCorrectionTrial = getCorrection(actRecs, r_i);
@@ -349,6 +357,8 @@ for tt_i=1:length(trialTypeStrArr)
                 for t_i=1:length(worldNode.trees.t)
                     treePosStr = worldNode.trees.t{t_i}.pos.Text;
                     treePosXYZ = split(treePosStr, ';');
+                    treeScaleStr = worldNode.trees.t{t_i}.scale.Text;
+                    treeScaleXYZ = split(treeScaleStr, ';'); 
                     plotTarget = 0;
                     if (length(worldNode.trees.t) == 3)
                         if (t_i == 1 && stimIdx == 0)
@@ -365,8 +375,20 @@ for tt_i=1:length(trialTypeStrArr)
                         end
                         
                         if (plotTarget)
-                            plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', ...
-                                 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
+                            % Simple code for plotting an ellipse
+                            rx = (str2double(treeScaleXYZ{1}) + 1) * 4.5;  % For some reason the Unity code adds 1 - not how I would have done it!
+                            rz = (str2double(treeScaleXYZ{3}) + 1) * 4.5;
+                            x0 = str2double(treePosXYZ{1});
+                            z0 = str2double(treePosXYZ{3});
+                            t = -pi:0.01:pi;
+                            x = x0 + rx*cos(t);
+                            z = z0 + rz*sin(t);
+                            patch(x, z, 'ok', 'LineWidth', 4, 'FaceColor', markerColor);
+                            %if (treeScaleXYZ{1} == 0 && treeScaleXYZ{3} == 0)
+                                % By default we plot targets as circles, unless specified otherwise
+                            %    plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', ...
+                            %         'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
+                            %end
                         end
                     elseif (length(worldNode.trees.t) == 4)
                         if (t_i == 1 && stimIdx == 0)
@@ -404,8 +426,8 @@ for tt_i=1:length(trialTypeStrArr)
                 C = textscan(replaysFileID, getReplayLineFormat(), 'Delimiter', {';', ','});
                 % Sometimes the replay file has an x coord but no z coord, not sure why.
                 scatter(C{1}(1:length(C{3})-cutFromEnd), C{3}(1:end-cutFromEnd), markSize, ...
-                    jet(length(C{3}(1:end-cutFromEnd))), 'MarkerFaceAlpha', markAlpha, 'MarkerEdgeAlpha', markAlpha);
-                plot(startX, startZ, 'o', 'MarkerSize', markSize, 'MarkerEdgeColor', 'w', 'MarkerFaceColor', 'b');
+                    jet(length(C{3}(1:end-cutFromEnd))), 'filled', 'MarkerFaceAlpha', markAlpha, 'MarkerEdgeAlpha', markAlpha);
+                plot(startX, startZ, 'o', 'MarkerSize', markSize, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'w');
                 fclose(replaysFileID);
             end
         end

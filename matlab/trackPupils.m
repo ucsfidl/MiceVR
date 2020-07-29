@@ -48,7 +48,7 @@ fps = 60;  % All videos are 60 fps
 crSzRangePx = [20 250];  % CR is as small as 30 px, or as large as 257 px (before crMinVal implemented) - this needs to be changed to a physical size
 craRatio = 2;  % 2.5 is too low, it misses the CR on some frames
 crMinVal = 249;  % pixel value used to threshold image for finding CR
-crMaxAllowedMovement = 12;  % px; this is the maximum movement between frames; 10 px was too much
+crMaxAllowedMovement = 16;  % px; this is the maximum movement between frames; 10 px was too much
 
 tic
 
@@ -65,9 +65,9 @@ distWt = 10;
 solWt = 1;
 
 % CR weights
-crSizeWt = 0.25;  % 1 was too large, big CR was getting picked!
-crDistWt = 2;
-crSolWt = 5;  % 1,2,4 was too small
+crSizeWt = 1;  % 1 was too large, big CR was getting picked! 0.25 was too small for videos where CR was way off center
+crDistWt = 0.75;   % 2 was too large
+crSolWt = 10;  % 1,2,4 was too small - 5 was good except for a couple videos
 
 distFudge = 0.001;
 
