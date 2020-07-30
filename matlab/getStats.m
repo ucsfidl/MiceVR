@@ -611,24 +611,24 @@ for (worldIdx = 1:length(worldTypes))
                 if (strcmp(worldTypesStr{worldIdx}, '3L'))
                     label1 = 'NLO-NL';
                     label2 = 'NLO-FL';
-                    label3 = 'NLO-C';
+                    label3 = 'NLO-S';
                     label4 = 'FLO-NL';
                     label5 = 'FLO-FL';
-                    label6 = 'FLO-C';
+                    label6 = 'FLO-S';
                 elseif (strcmp(worldTypesStr{worldIdx}, '3R'))
                     label1 = 'NRO-NR';
                     label2 = 'NRO-FR';
-                    label3 = 'NRO-C';
+                    label3 = 'NRO-S';
                     label4 = 'FRO-NR';
                     label5 = 'FRO-FR';
-                    label6 = 'FRO-C';
+                    label6 = 'FRO-S';
                 else
                     label1 = 'LO-L';
                     label2 = 'LO-R';
-                    label3 = 'LO-C';
+                    label3 = 'LO-S';
                     label4 = 'RO-L';
                     label5 = 'RO-R';
-                    label6 = 'RO-C';
+                    label6 = 'RO-S';
                 end
                 
                 disp([label1 ' = ' num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '% (' ...

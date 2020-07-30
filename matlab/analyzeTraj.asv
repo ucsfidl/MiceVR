@@ -171,7 +171,6 @@ for tt_i=1:length(trialTypeStrArr)
     end
     
     totalTrials = 0;
-    trajectories = {};  % used to store each replay so I can plot the average
     for d_i=1:length(days)  % Iterate through all of the specified days
         dayNum = num2str(days(d_i));
         if (~isempty(sessions))
@@ -302,6 +301,7 @@ for tt_i=1:length(trialTypeStrArr)
         else
             trialsToDo = trials(trials <= length(filtRecIDs));
         end
+        replays = cell(1, length(trialsToDo));  % used to store each replay so I can plot the average
         for r_i=trialsToDo 
             stimIdx = getStimIdx(actRecs, filtRecIDs(r_i));
             if (isnan(stimIdx))  % Data is before I started recording stim indexes in the actions file, so figure it out
@@ -436,7 +436,7 @@ for tt_i=1:length(trialTypeStrArr)
             replaysFileID = fopen([replaysFileList(filtRecIDs(r_i)).folder '\' replaysFileNames{filtRecIDs(r_i)}]);
             if (replaysFileID ~= -1)  % File was opened properly
                 C = textscan(replaysFileID, getReplayLineFormat(), 'Delimiter', {';', ','});
-                trajectories{end+1} = cat(2, C{1}(1:length(C{3}) - cutFromEnd), C{3}(1:end-cutFromEnd));
+                replays{r_i} = [C{1}(1:length(C{3}) - cutFromEnd)'; C{3}(1:end-cutFromEnd)];
                 % Sometimes the replay file has an x coord but no z coord, not sure why.
                 scatter(C{1}(1:length(C{3})-cutFromEnd), C{3}(1:end-cutFromEnd), markSize, ...
                     jet(length(C{3}(1:end-cutFromEnd))), 'filled', 'MarkerFaceAlpha', markAlpha, 'MarkerEdgeAlpha', markAlpha);
@@ -455,8 +455,6 @@ for tt_i=1:length(trialTypeStrArr)
         clear wall;
         totalTrials = totalTrials + length(trialsToDo);
     end
-    
-    % Now that I've collected all the trajectories for the trials of interest, let me average them and plot the avg
     
     % Plot title for all days of this trial type
     if(numReplaysInFig > 0)
