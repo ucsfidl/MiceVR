@@ -1,5 +1,5 @@
-function f = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, includeCorrectionTrials, ...
-                         drawOneFig, markSize, markAlpha, lastTrial, useSubPlot, hideStraightTarget)
+function [f, mX, mZ, xCI95, zCI95] = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, includeCorrectionTrials, ...
+                         drawOneFig, markSize, markAlpha, lastTrial, useSubPlot, hideStraightTarget, plotIndivTrials)
 % SAMPLE USAGE
 % // MANY Tracks on one plot
 % > analyzeTraj('Mania', [120:124], [], [], ["R->R"], 0, 1, 4, 0.1, 0, 0)
@@ -171,6 +171,9 @@ for tt_i=1:length(trialTypeStrArr)
     end
     
     totalTrials = 0;
+    trajX = {};  % used to store each replay so I can plot the average
+    trajZ = {};  % used to store each replay so I can plot the average
+    minTrajLength = Inf;
     for d_i=1:length(days)  % Iterate through all of the specified days
         dayNum = num2str(days(d_i));
         if (~isempty(sessions))
@@ -301,7 +304,6 @@ for tt_i=1:length(trialTypeStrArr)
         else
             trialsToDo = trials(trials <= length(filtRecIDs));
         end
-        replays = cell(1, length(trialsToDo));  % used to store each replay so I can plot the average
         for r_i=trialsToDo 
             stimIdx = getStimIdx(actRecs, filtRecIDs(r_i));
             if (isnan(stimIdx))  % Data is before I started recording stim indexes in the actions file, so figure it out
@@ -420,14 +422,16 @@ for tt_i=1:length(trialTypeStrArr)
                 end
             end
 
+            % Without cutting an extra 2 frames, the interpolation doesn't look right because the mouse is 
+            % teleported back to the start before the trial ends            
             if (~lastTrial)
                 if (stimIdx == actionIdx)
-                    cutFromEnd = correctDelay * fps;
+                    cutFromEnd = correctDelay * fps + 2; 
                 else
-                    cutFromEnd = incorrectDelay * fps;
+                    cutFromEnd = incorrectDelay * fps + 2;
                 end
             else
-                cutFromEnd = 0;
+                cutFromEnd = 2;
             end
             
             %disp(['Processed replay #' num2str(filtRecIDs(r_i))]);
@@ -436,10 +440,19 @@ for tt_i=1:length(trialTypeStrArr)
             replaysFileID = fopen([replaysFileList(filtRecIDs(r_i)).folder '\' replaysFileNames{filtRecIDs(r_i)}]);
             if (replaysFileID ~= -1)  % File was opened properly
                 C = textscan(replaysFileID, getReplayLineFormat(), 'Delimiter', {';', ','});
-                replays{r_i} = [C{1}(1:length(C{3}) - cutFromEnd)'; C{3}(1:end-cutFromEnd)];
+                trajX{end+1} = C{1}(1:length(C{3})-cutFromEnd);
+                trajZ{end+1} = C{3}(1:end-cutFromEnd);
+                if (length(trajX{end}) < minTrajLength)
+                    minTrajLength = length(trajX{end}); % Store for resampling all trajectories later
+                end
+                
                 % Sometimes the replay file has an x coord but no z coord, not sure why.
-                scatter(C{1}(1:length(C{3})-cutFromEnd), C{3}(1:end-cutFromEnd), markSize, ...
-                    jet(length(C{3}(1:end-cutFromEnd))), 'filled', 'MarkerFaceAlpha', markAlpha, 'MarkerEdgeAlpha', markAlpha);
+                % TODO: plotFilledEllipses(C{1}(1:length(C{3})-cutFromEnd), C{3}(1:end-cutFromEnd), markSize, markSize, 
+                if (plotIndivTrials)
+                    scatter(C{1}(1:length(C{3})-cutFromEnd), C{3}(1:end-cutFromEnd), markSize, ...
+                        jet(length(C{3}(1:end-cutFromEnd))), 'filled', 'MarkerFaceAlpha', markAlpha, 'MarkerEdgeAlpha', markAlpha);
+                end
+                % Plot start
                 plot(startX, startZ, 'o', 'MarkerSize', markSize, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'w');
                 fclose(replaysFileID);
             end
@@ -455,6 +468,25 @@ for tt_i=1:length(trialTypeStrArr)
         clear wall;
         totalTrials = totalTrials + length(trialsToDo);
     end
+    
+    % Now that I've collected all the trajectories for the trials of interest, let me average them and plot the avg
+    resizedTrajX = cellfun(@(x) interp1(1:length(x), x, 1:length(x)/minTrajLength:length(x))', trajX, 'UniformOutput', false);
+    resizedTrajZ = cellfun(@(x) interp1(1:length(x), x, 1:length(x)/minTrajLength:length(x))', trajZ, 'UniformOutput', false);
+    N = length(resizedTrajX);
+    matX = cell2mat(resizedTrajX(:)');
+    matZ = cell2mat(resizedTrajZ(:)');
+    mX = nanmean(matX, 2);
+    semX = std(matX, 0, 2)/sqrt(N);
+    mZ = nanmean(matZ, 2);
+    semZ = std(matZ, 0, 2)/sqrt(N);
+    
+    CI95 = tinv([0.025 0.975], N-1);
+    xCI95 = bsxfun(@times, semX', CI95(:));
+    zCI95 = bsxfun(@times, semZ', CI95(:));
+    
+    % plotFilledEllipses is a good replacement for scatter as it is size invariant
+    plotFilledEllipses(mX, mZ, xCI95(2,:), zCI95(2,:), 'k');
+    %scatter(mX, mZ, markSize, 'k', 'filled');
     
     % Plot title for all days of this trial type
     if(numReplaysInFig > 0)

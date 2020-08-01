@@ -644,8 +644,7 @@ for eye=1:2  % For each eye2
     
     for stimIdx=1:numStim
         if (~isempty(stimEyeMoveTrials{stimIdx,eye}))
-            resizedStimEye{stimIdx,eye} = cellfun(@(x) interp1(1:length(x), x, 1:length(x)/minLengths(eye):length(x))',...
-                                                    stimEyeMoveTrials{stimIdx,eye}, 'UniformOutput', false);
+            resizedStimEye{stimIdx,eye} = cellfun(@(x) interp1(1:length(x), x, 1:length(x)/minTrajLength:length(x))', trajX(x, minLengths(eye) / length(x)), stimEyeMoveTrials{stimIdx,eye}, 'UniformOutput', false);
             d = cell2mat(resizedStimEye{stimIdx,eye}(:)');
             m{stimIdx,eye} = nanmean(d, 2);
             sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
