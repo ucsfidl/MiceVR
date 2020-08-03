@@ -603,7 +603,7 @@ for (worldIdx = 1:length(worldTypes))
                 end
                 
                 res1 = str2double(num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3));
-                disp([label1 ' = ' num2str(res1) '% (' num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+                disp([label1 ' = ' res1 '% (' num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
                 
                 res2 = str2double(num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3));
                 disp([label2 ' = ' num2str(res2) '% (' num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
@@ -738,7 +738,7 @@ for (worldIdx = 1:length(worldTypes))
             res9 = str2double(num2str(round(results(1,3,j) / totalFL * 100), 3));
             disp(['FL-NL = ' num2str(res9) '% (' num2str(results(1,3,j)) '/' num2str(totalFL) ')']);
             res10 = str2double(num2str(round(results(2,3,j) / totalFL * 100), 3));
-            disp(['FL-NR = ' num2str(res10) '% (' num2str(results(2,3,j)) '/' num2str(totalFL) ')']);
+            disp(['FL-NR = ' num2str(res10), 3) '% (' num2str(results(2,3,j)) '/' num2str(totalFL) ')']);
             res11 = str2double(num2str(round(results(3,3,j) / totalFL * 100), 3));
             disp(['FL-FL = ' num2str(res11) '% (' num2str(results(3,3,j)) '/' num2str(totalFL) ')']);
             res12 = str2double(num2str(round(results(4,3,j) / totalFL * 100), 3));
@@ -765,8 +765,6 @@ for (worldIdx = 1:length(worldTypes))
             disp(results(:,:,j));
             disp(['Total 4-choice trials = ' num2str(sum(sum(sum(results))))]);
             disp('===========');
-            
-            graphPad = [graphPad res1 res2 res3 res4 res5 res6 res7 res8 res9 res10 res11 res12 res13 res14 res15 res16];
         end
         
         results = worldResults{worldIdx}{2};  % just a helper - these are the catch trials
@@ -794,14 +792,14 @@ for (worldIdx = 1:length(worldTypes))
                 expectedFrac(3) = results(3,1,j) / sum(results(:,1,j));
                 expectedFrac(4) = results(4,1,j) / sum(results(:,1,j));
 
-                res1 = str2double(num2str(round(expectedFrac(1) * 100), 3));
-                disp(['NEAR LEFT BIAS = ' num2str(res1) '% (' num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                res2 = str2double(num2str(round(expectedFrac(2) * 100), 3));
-                disp(['NEAR RIGHT BIAS = ' num2str(res2) '% (' num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                res3 = str2double(num2str(round(expectedFrac(3) * 100), 3));
-                disp(['FAR LEFT BIAS = ' num2str(res3) '% (' num2str(results(3,1,j)) '/' num2str(sum(results(:,1,j))) ')']);            
-                res4 = str2double(num2str(round(expectedFrac(4) * 100), 3));
-                disp(['FAR RIGHT BIAS = ' num2str(res4) '% (' num2str(results(4,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+                disp(['NEAR LEFT BIAS = ' num2str(round(expectedFrac(1) * 100), 3) '% (' ...
+                    num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+                disp(['NEAR RIGHT BIAS = ' num2str(round(expectedFrac(2) * 100), 3) '% (' ...
+                    num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+                disp(['FAR LEFT BIAS = ' num2str(round(expectedFrac(3) * 100), 3) '% (' ...
+                    num2str(results(3,1,j)) '/' num2str(sum(results(:,1,j))) ')']);            
+                disp(['FAR RIGHT BIAS = ' num2str(round(expectedFrac(4) * 100), 3) '% (' ...
+                    num2str(results(4,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
                 disp('-----------')
                 
                 % Do chi-squared test, adjusted for the sight rate!  Assumes right blindness for now
@@ -825,10 +823,6 @@ for (worldIdx = 1:length(worldTypes))
                 disp('---------------');
                 
                 disp('================')
-                
-                graphPad = [graphPad res1 res2 res3 res4];
-
-                disp(graphPad);
             end
         end        
     end
