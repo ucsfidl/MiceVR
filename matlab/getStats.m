@@ -675,13 +675,14 @@ for (worldIdx = 1:length(worldTypes))
                 
                 graphPad = [graphPad res1 res2 res3];
             end
+            
+            % Summary stats to cut and paste into the sheet
+            % BLINDNESS // SIGHT // EXT/BS
+            extOrBSRate = rExtRate - rCatchRate;
+            disp(['SUMMARY: ' num2str(blindRate, 3) '//' num2str(sightRate, 3) '//' num2str(extOrBSRate, 3)]);
+            disp('===========')
         end
         
-        % Summary stats to cut and paste into the sheet
-        % BLINDNESS // SIGHT // EXT/BS
-        extOrBSRate = rExtRate - rCatchRate;
-        disp(['SUMMARY: ' num2str(blindRate, 3) '//' num2str(sightRate, 3) '//' num2str(extOrBSRate, 3)]);
-        disp('===========')
         
         disp(graphPad);
 
