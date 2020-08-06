@@ -339,16 +339,16 @@ majorAxisMm = cat(3, majorAxisLengths(:,:,1) / pxPerMm(1), majorAxisLengths(:,:,
 if (isKey(mouseToRpLine, mouseName))
     rpline = mouseToRpLine(mouseName);
     slope = [rpline(1,1) rpline(2,1)];
-    yintercept = [rpline(1,2) rpline(2,2)];
+    yint = [rpline(1,2) rpline(2,2)];
     disp(['slope = ' num2str(slope)]);
-    disp(['yintercept = ' num2str(yintercept)]);
+    disp(['yintercept = ' num2str(yint)]);
 else
     slope = [-0.142 -0.142];
     yint = [1.055 1.055];
     disp('Eye measurements NOT FOUND, so using default values');
 end
-Rp(:,:,1) = slope(1)*majorAxisMm(:,:,1) + yintercept(1);
-Rp(:,:,2) = slope(2)*majorAxisMm(:,:,2) + yintercept(2);
+Rp(:,:,1) = slope(1)*majorAxisMm(:,:,1) + yint(1);
+Rp(:,:,2) = slope(2)*majorAxisMm(:,:,2) + yint(2);
 
 if (usePupilDiamToCalcRp)
     RpL = Rp(:,:,1);
@@ -1302,7 +1302,7 @@ end
 save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', ...
     'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates', 'eyeblinkStartFrames', ...
     'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes', 'saccadeThresh', 'areasMm2', 'Rp', ...
-    'slope', 'yintercept');
+    'slope', 'yint');
 
 saccadeAmplitudesLEye = saccadeAmplitudes{1};
 saccadeAmplitudesREye = saccadeAmplitudes{2};

@@ -620,7 +620,7 @@ for (worldIdx = 1:length(worldTypes))
                 disp([label5 ' = ' num2str(res5) '% (' num2str(results(2,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
                 
                 res6 = str2double(num2str(round(results(3,2,j) / sum(results(:,2,j)) * 100), 3));
-                disp([label6 ' = ' res6 '% (' ...
+                disp([label6 ' = ' num2str(res6) '% (' ...
                                  num2str(results(3,2,j)) '/' num2str(sum(results(:,2,j))) ')']);
                 disp('-----------')
                 
