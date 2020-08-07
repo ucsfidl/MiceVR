@@ -1,7 +1,5 @@
-function [f, mX, mZ, xCI95, zCI95] = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, ...
-                                                includeCorrectionTrials, drawOneFig, markSize, markAlpha, ...
-                                                lastTrial, useSubPlot, hideStraightTarget, plotIndivTrials, ...
-                                                avgTrajColor)
+function [f, mX, mZ, xCI95, zCI95] = analyzeTraj(mouseName, days, sessions, trials, trialTypeStrArr, includeCorrectionTrials, ...
+                         drawOneFig, markSize, markAlpha, lastTrial, useSubPlot, hideStraightTarget, plotIndivTrials)
 % SAMPLE USAGE
 % // MANY Tracks on one plot
 % > analyzeTraj('Mania', [120:124], [], [], ["R->R"], 0, 1, 4, 0.1, 0, 0)
@@ -424,17 +422,16 @@ for tt_i=1:length(trialTypeStrArr)
                 end
             end
 
-            % Without cutting an extra 3 frames, the interpolation doesn't look right because the mouse is 
-            % teleported back to the start before the trial ends           
-            framesExtra = 3;
+            % Without cutting an extra 2 frames, the interpolation doesn't look right because the mouse is 
+            % teleported back to the start before the trial ends            
             if (~lastTrial)
                 if (stimIdx == actionIdx)
-                    cutFromEnd = correctDelay * fps + framesExtra; 
+                    cutFromEnd = correctDelay * fps + 2; 
                 else
-                    cutFromEnd = incorrectDelay * fps + framesExtra;
+                    cutFromEnd = incorrectDelay * fps + 2;
                 end
             else
-                cutFromEnd = framesExtra;
+                cutFromEnd = 2;
             end
             
             %disp(['Processed replay #' num2str(filtRecIDs(r_i))]);
@@ -455,7 +452,7 @@ for tt_i=1:length(trialTypeStrArr)
                     scatter(C{1}(1:length(C{3})-cutFromEnd), C{3}(1:end-cutFromEnd), markSize, ...
                         jet(length(C{3}(1:end-cutFromEnd))), 'filled', 'MarkerFaceAlpha', markAlpha, 'MarkerEdgeAlpha', markAlpha);
                 end
-                % Plot starting point (blue dot)
+                % Plot start
                 plot(startX, startZ, 'o', 'MarkerSize', markSize, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'w');
                 fclose(replaysFileID);
             end
@@ -488,9 +485,7 @@ for tt_i=1:length(trialTypeStrArr)
     zCI95 = bsxfun(@times, semZ', CI95(:));
     
     % plotFilledEllipses is a good replacement for scatter as it is size invariant
-    if (~isempty(avgTrajColor))
-        plotFilledEllipses(mX, mZ, xCI95(2,:), zCI95(2,:), avgTrajColor);
-    end
+    plotFilledEllipses(mX, mZ, xCI95(2,:), zCI95(2,:), 'k');
     %scatter(mX, mZ, markSize, 'k', 'filled');
     
     % Plot title for all days of this trial type

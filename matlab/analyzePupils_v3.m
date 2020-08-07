@@ -339,16 +339,16 @@ majorAxisMm = cat(3, majorAxisLengths(:,:,1) / pxPerMm(1), majorAxisLengths(:,:,
 if (isKey(mouseToRpLine, mouseName))
     rpline = mouseToRpLine(mouseName);
     slope = [rpline(1,1) rpline(2,1)];
-    yint = [rpline(1,2) rpline(2,2)];
+    yintercept = [rpline(1,2) rpline(2,2)];
     disp(['slope = ' num2str(slope)]);
-    disp(['yintercept = ' num2str(yint)]);
+    disp(['yintercept = ' num2str(yintercept)]);
 else
     slope = [-0.142 -0.142];
     yint = [1.055 1.055];
     disp('Eye measurements NOT FOUND, so using default values');
 end
-Rp(:,:,1) = slope(1)*majorAxisMm(:,:,1) + yint(1);
-Rp(:,:,2) = slope(2)*majorAxisMm(:,:,2) + yint(2);
+Rp(:,:,1) = slope(1)*majorAxisMm(:,:,1) + yintercept(1);
+Rp(:,:,2) = slope(2)*majorAxisMm(:,:,2) + yintercept(2);
 
 if (usePupilDiamToCalcRp)
     RpL = Rp(:,:,1);
@@ -626,7 +626,7 @@ end
 % First, plot the stimulus average of the eye movements
 % Normalize by resampling, and then plot the average of the resampled eye movements.
 minLengths = zeros(2, 1);  % One for each eye
-resizedStimEye = cell(size(stimEyeMoveTrials));
+resampledStimEye = cell(size(stimEyeMoveTrials));
 m = cell(size(stimEyeMoveTrials));
 sem = cell(size(stimEyeMoveTrials));
 ySem = cell(size(stimEyeMoveTrials));
@@ -644,9 +644,8 @@ for eye=1:2  % For each eye2
     
     for stimIdx=1:numStim
         if (~isempty(stimEyeMoveTrials{stimIdx,eye}))
-            resizedStimEye{stimIdx,eye} = cellfun(@(x) interp1(1:length(x), x, 1:length(x)/minLengths(eye):length(x))',...
-                                                    stimEyeMoveTrials{stimIdx,eye}, 'UniformOutput', false);
-            d = cell2mat(resizedStimEye{stimIdx,eye}(:)');
+            resampledStimEye{stimIdx,eye} = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimEyeMoveTrials{stimIdx,eye}, 'UniformOutput', false);
+            d = cell2mat(resampledStimEye{stimIdx,eye}(:)');
             m{stimIdx,eye} = nanmean(d, 2);
             sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
         end
@@ -727,7 +726,7 @@ end
 
 % Second, plot the stimulus average of the eye movements for only CORRECT trials
 minLengths = zeros(2, 1);  % One for each eye
-resizedStimEye = cell(size(stimEyeMoveTrials));
+resampledStimEye = cell(size(stimEyeMoveTrials));
 mu = cell(size(stimEyeMoveTrials));
 sem = cell(size(stimEyeMoveTrials));
 ySem = cell(size(stimEyeMoveTrials));
@@ -748,8 +747,8 @@ for eye=1:2  % For each eye
     minLengths(eye) = min(stimCorrectEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
     for stimIdx=1:numStim
         if (~isempty(stimActionEyeMoveTrials{stimIdx,stimIdx,eye}))
-            resizedStimEye{stimIdx,eye} = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimActionEyeMoveTrials{stimIdx,stimIdx,eye}, 'UniformOutput', false);
-            d = cell2mat(resizedStimEye{stimIdx,eye}(:)');
+            resampledStimEye{stimIdx,eye} = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimActionEyeMoveTrials{stimIdx,stimIdx,eye}, 'UniformOutput', false);
+            d = cell2mat(resampledStimEye{stimIdx,eye}(:)');
             mu{stimIdx,eye} = nanmean(d, 2);
             sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
         end
@@ -846,7 +845,7 @@ end
 % Suppress warnings related to extra legend entries
 warning('off','MATLAB:legend:IgnoringExtraEntries')
 minLengths = zeros(2, 1);  % One for each eye
-resizedStimEye = cell(size(stimEyeMoveTrials));
+resampledStimEye = cell(size(stimEyeMoveTrials));
 mu = cell(size(stimEyeMoveTrials));
 sem = cell(size(stimEyeMoveTrials));
 ySem = cell(size(stimEyeMoveTrials));
@@ -875,11 +874,11 @@ for eye=1:2  % For each eye
         for actIdx=1:numStim
            if (stimIdx ~= actIdx && ~isempty(stimActionEyeMoveTrials{stimIdx,actIdx,eye}))
                cTmp = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimActionEyeMoveTrials{stimIdx,actIdx,eye}, 'UniformOutput', false);
-               resizedStimEye{stimIdx,eye} = cat(2,resizedStimEye{stimIdx,eye}, cTmp);
+               resampledStimEye{stimIdx,eye} = cat(2,resampledStimEye{stimIdx,eye}, cTmp);
            end
         end
-        if (~isempty(resizedStimEye{stimIdx,eye}))
-            d = cell2mat(resizedStimEye{stimIdx,eye}(:)');
+        if (~isempty(resampledStimEye{stimIdx,eye}))
+            d = cell2mat(resampledStimEye{stimIdx,eye}(:)');
             mu{stimIdx,eye} = nanmean(d, 2);
             sem{stimIdx,eye} = nanstd(d, [], 2) ./ sqrt(size(d, 1));
         end
@@ -1302,7 +1301,7 @@ end
 save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', ...
     'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates', 'eyeblinkStartFrames', ...
     'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes', 'saccadeThresh', 'areasMm2', 'Rp', ...
-    'slope', 'yint');
+    'slope', 'yintercept');
 
 saccadeAmplitudesLEye = saccadeAmplitudes{1};
 saccadeAmplitudesREye = saccadeAmplitudes{2};
