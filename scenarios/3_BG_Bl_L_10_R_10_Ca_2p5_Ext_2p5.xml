@@ -19,6 +19,6 @@
 		</gameConfig>
 	</config>
 	<worlds>
-		<includeWorld>inc_world_3_BG_L_5_R_5.xml</includeWorld>
+		<includeWorld>inc_world_3_BG_L_10_R_10.xml</includeWorld>
 	</worlds>
 </document>
