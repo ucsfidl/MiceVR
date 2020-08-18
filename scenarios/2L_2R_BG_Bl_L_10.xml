@@ -12,9 +12,9 @@
 			<treesBelowGround>true</treesBelowGround>
 			<biasCorrection>false</biasCorrection>
 			<correctionTrials>true</correctionTrials>
-			<blockSize>20</blockSize>
 			<worldBlockSize>40</worldBlockSize> <!-- worldBlockSize must be N x blockSize, where N is the number of worlds (so in this case, 2x) -->
 			<worldPresoFracs>0.1;0.9</worldPresoFracs>
+			<probeWorldIdx>0</probeWorldIdx>
 		</gameConfig>
 	</config>
 	<worlds>

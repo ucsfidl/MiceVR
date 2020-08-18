@@ -65,9 +65,9 @@ distWt = 10;
 solWt = 1;
 
 % CR weights
-crSizeWt = 1;  % 1 was too large, big CR was getting picked! 0.25 was too small for videos where CR was way off center
-crDistWt = 0.75;   % 2 was too large
-crSolWt = 10;  % 1,2,4 was too small - 5 was good except for a couple videos
+crSizeWt = 0.5;  % 1 was too large, big CR was getting picked! 0.25 was too small for videos where CR was way off center
+crDistWt = 0.95;   % 2 was too large
+crSolWt = 5;  % 1,2,4 was too small - 5 was good except for a couple videos
 
 distFudge = 0.001;
 
@@ -228,7 +228,7 @@ while relFrame + frameStart <= frameStop + 1
         
         cc = bwconncomp(subIm);
         % For debugging:
-        if (relFrame == 1 && i == 2)
+        if (relFrame == 5 && i == 2)
             a = 0;
         end
         % end debugging        
@@ -245,7 +245,7 @@ while relFrame + frameStart <= frameStop + 1
             %s = s([s.MajorAxisLength] ./ [s.MinorAxisLength] < maxPupilAspectRatio);
             if (~isempty(s))
                 cA = [s.ConvexArea];
-                solidity = [s.Solidity];
+                solidity = [s.Solidity]; 
                 curPos = cat(1, s.Centroid);
                 if (relFrame > 1)
                     if (relFrame-1 > pupilPosHistLen)
@@ -328,7 +328,7 @@ while relFrame + frameStart <= frameStop + 1
 
             % For debugging:
             %disp(relFrame);
-            if (relFrame == 801 && i == 2)
+            if (relFrame == 4 && i == 2)
                 a = 0;
             end
             % end debugging
