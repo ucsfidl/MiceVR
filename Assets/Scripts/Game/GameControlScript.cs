@@ -159,7 +159,10 @@ public class GameControlScript : MonoBehaviour
 		// Reveal targets if the mouse reaches the correct ZPos and the target had been hidden
 		if (this.state == "Running" && !Globals.hiddenShown && Globals.GetCurrentWorld().revealZPos.Count > 0 && this.player.transform.position.z >= Globals.GetCurrentWorld ().revealZPos [0]) {  // only pay attention to the first value in the list - expand if support added for target-dependent reveal zpos'
 			GameObject[] gos = Globals.GetTrees ();
-			gos[Globals.targetIdx[Globals.targetIdx.Count - 1]].GetComponent<WaterTreeScript> ().Show ();
+			int targetIdx = Globals.targetIdx [Globals.targetIdx.Count - 1];
+			if (targetIdx != Globals.CATCH_IDX) {
+				gos [targetIdx].GetComponent<WaterTreeScript> ().Show ();
+			}
 			Globals.hiddenShown = true;
 		}
 
@@ -516,6 +519,7 @@ public class GameControlScript : MonoBehaviour
 		// Only proceed if elapsed time is greater than or equal to trialDelay
 		te = DateTime.Now.Subtract(pauseStartTime);
 		if (te.TotalMilliseconds >= Globals.trialDelay * 1000) {
+			Debug.Log ("Ending Pause()");
 			float totalEarnedRewardSize = 0;
 			float totalRewardSize = 0;
 			for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++) {
@@ -709,7 +713,7 @@ public class GameControlScript : MonoBehaviour
 				float presoFrac = Globals.GetWorldPresoFrac(worldIdx);
 				blockSize = (int)Math.Round (presoFrac * Globals.worldBlockSize);
 			}
-			//Debug.Log (blockSize);
+			Debug.Log (blockSize);
 
 			GameObject[] gos = Globals.GetTrees ();
 
@@ -740,6 +744,10 @@ public class GameControlScript : MonoBehaviour
 				List<int> stimLocs = new List<int> ();
 				int[] maxFreq = new int[numTrees];  // Max number of each stimulus per block
 				int maxCatch = (int)Math.Round (blockSize * Globals.catchFreq);  // For some reason Ceiling rounds up 2 to 3...
+				// If catchFreq is non-zero but maxCatch is 0, force it to be 1 (for 2L_2R_R_10 and 3L_3R_R_10)
+				if (Globals.catchFreq != 0 && maxCatch == 0) {
+					maxCatch = 1;
+				}
 				decimal[] prob = new decimal[numTrees];
 
 				// First, setup all the arrays
@@ -858,6 +866,9 @@ public class GameControlScript : MonoBehaviour
 				// Next, update values depending on extinctFreq and which trial type, as no extinction trials when only center target is present
 				if (Globals.extinctFreq > 0) {
 					int maxExtinct = (int)Math.Round (blockSize * Globals.extinctFreq);  // For some reason Ceiling rounds up 2 to 3...
+					if (maxExtinct == 0) {
+						maxExtinct = 1;  // Do this so that on 3L_3R levels, will get some extinction trials on probe side
+					}
 					// For left (idx=0) and right (idx=1) trials, randomly pick the trials to get maxExtinct done
 					for (int locIdx = 0; locIdx < 2; locIdx++) {
 						int[] arrIdx = precompTrialBlock.Select((b,i) => b == locIdx ? i : -1).Where(i => i != -1).ToArray();

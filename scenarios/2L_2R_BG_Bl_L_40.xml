@@ -15,6 +15,7 @@
 			<blockSize>20</blockSize>
 			<worldBlockSize>40</worldBlockSize> <!-- worldBlockSize must be N x blockSize, where N is the number of worlds (so in this case, 2x) -->
 			<worldPresoFracs>0.4;0.6</worldPresoFracs>
+			<!-- <probeWorldIdx>0</probeWorldIdx> causes crash -->
 		</gameConfig>
 	</config>
 	<worlds>
