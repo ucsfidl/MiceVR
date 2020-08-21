@@ -55,7 +55,6 @@ shadingColorRight = [1 0.87 0.71]; % dull orange
 shadingColorRightFar = [1 1 0.79];  % dull yellow
 shadingColorCenter = [0.85 1 0.8]; % dull green
 shadingColorInterTrial = [0.9 0.9 0.9];  % grey
-shadingColorCatch = [0.5 0.5 0.5];  % light grey
 
 numWorlds = 1;  % This gets updated if we find more worldnames in the actions file name, and multiple sets of plots get shown
 
@@ -80,8 +79,6 @@ optoNone = -1;
 optoLeft = 0;
 optoRight = 1;
 optoBoth = 2;
-
-stimCenter = 20000;
 
 % Determine numStim by taking the trackFileName and finding the associated actions file and parsing its filename
 if (~contains(trackFileName, '_part_trk.mat'))
@@ -117,25 +114,24 @@ end
 
 % Might need to do something smarter if there are multiple worlds (e.g. separate plots)
 if (numStim(1) == 4 || sum(numStim) == 4)
-    legendColors = [shadingColorLeft; shadingColorLeftFar; shadingColorRight; shadingColorRightFar; shadingColorCatch; ...
-                    shadingColorInterTrial];
+    allColors = [shadingColorLeft; shadingColorLeftFar; shadingColorRight; shadingColorRightFar; shadingColorInterTrial];
 elseif (numStim(1) == 3)
     if (length(numStim) > 1 && numStim(2) == 3)  % This is a multiworld scenario, so keep 2 sets of colors
         numWorlds = length(numStim);
-        legendColors = [shadingColorLeftNear; shadingColorLeftFar; shadingColorRightNear; shadingColorRightFar; ...
-                        shadingColorCenter; shadingColorCatch; shadingColorInterTrial];
+        allColors = [shadingColorLeftNear; shadingColorLeftFar; shadingColorCenter; shadingColorInterTrial; ...
+                     shadingColorRightNear; shadingColorRightFar; shadingColorCenter; shadingColorInterTrial];
     else
-        legendColors = [shadingColorLeft; shadingColorRight; shadingColorCenter; shadingColorCatch; shadingColorInterTrial];
+        allColors = [shadingColorLeft; shadingColorRight; shadingColorCenter; shadingColorInterTrial];
     end
 elseif (numStim(1) == 1)
-    legendColors = [1 1 1];
+    allColors = [1 1 1];
 elseif (numStim(1) == 2)
     if (length(numStim) > 1 && numStim(2) == 2)  % This is a multiworld scenario, so keep 2 sets of colors
         numWorlds = length(numStim);
-        legendColors = [shadingColorLeftNear; shadingColorLeftFar; shadingColorRightNear; shadingColorRightFar; ...
-                        shadingColorCatch; shadingColorInterTrial];
+        allColors = [shadingColorLeftNear; shadingColorLeftFar; shadingColorInterTrial; ...
+                     shadingColorRightNear; shadingColorRightFar; shadingColorInterTrial];
     else
-        legendColors = [shadingColorLeft; shadingColorRight; shadingColorCatch; shadingColorInterTrial];
+        allColors = [shadingColorLeft; shadingColorRight; shadingColorInterTrial];
     end
 else
     error("Unsupported number of stim.");
@@ -143,6 +139,14 @@ end
 
 frameStart = analFrameLim(1);
 frameStop = analFrameLim(2);
+
+% Be sure to change these if the x location of the trees changes
+stimLeftNear = 19973;
+stimLeftFar = 19972;
+stimRightNear = 20027;
+stimRightFar = 20028;
+
+stimCenter = 20000;
 
 trialStartOffset = 1;  % Add this much to the recorded trial frame starts - for backwards compatibility
 trialEndOffset = 0;
@@ -402,27 +406,30 @@ end
 azimDeg = reshape(azimDeg, size(azimDeg, 1), size(azimDeg, 3));
 
 % Read the actions file so the graph can be properly annotated
-stimIdxs = [];
-actionIdxs = [];
+stimLocs = [];
+actionLocs = [];
 optoStates = [];
-worldIdxs = [];  % Need this for shading the elevation and azimuth plots properly
 
 actionsFile = fopen(actionsFileName);
 if (actionsFile ~= -1) % File found
     fgetl(actionsFile);  % First line is a header so ignore
     trialRecs = textscan(actionsFile, getActionLineFormat()); 
+    % Special processing here since I changed the format of the log files
+    % to make them not backwards compatible after June 4, 2018.  All future
+    % changes should be backwards compatible.
     for i=1:length(trialRecs{1})
-        stimIdx = getStimIdx(trialRecs, i);
-        stimIdxs = [stimIdxs stimIdx];
+        %disp(i);
+        if (i == 94)
+            %disp(m);
+        end
+        stimLocX = getStimLoc(trialRecs, i);
+        stimLocs = [stimLocs stimLocX];
 
-        actIdx = getActionIdx(trialRecs, i);
-        actionIdxs = [actionIdxs actIdx];
+        actLocX = getActionLoc(trialRecs, i);
+        actionLocs = [actionLocs actLocX];
 
         optoState = getOptoLoc(trialRecs, i);
         optoStates = [optoStates optoState];
-        
-        worldIdx = getWorldIdx(trialRecs, i);
-        worldIdxs = [worldIdxs worldIdx];
     end
 else
     error('No actions file found.  Be sure the name matches the track file name.');
@@ -446,7 +453,7 @@ else
     trialEndFrames = [trialStartFrames(2:end) totalFrames];
 end
 
-numCompletedTrials = length(stimIdxs);
+numCompletedTrials = length(stimLocs);
 
 % If game ended mid-trial, don't color the final trial
 if (length(trialStartFrames) > numCompletedTrials)
@@ -483,166 +490,87 @@ xPause = cat(1, xPause, flipud(xPause));
 yPause = [ymax; ymax; ymin; ymin];
 yPause = repmat(yPause, 1, size(xPause,2));
 
-stimPatchColors = zeros(1, numCompletedTrials, 3);  % Stim location colors to to use when plotting
-actionPatchColors = zeros(1, numCompletedTrials, 3);
+stimColors = zeros(1, numCompletedTrials, 3);  % Stim location colors to to use when plotting
+actionColors = zeros(1, numCompletedTrials, 3);
 optoColors = zeros(1, numCompletedTrials, 3);
 
-% Determine colors to use to shade the elevation and azimuth plots.
-% Even if there are multiple worlds, this shading should be in a single color array that is the length of the number of trials
-for i=1:numCompletedTrials
-    currWorldIdx = worldIdxs(i) + 1;
-    currWorldNumStim = numStim(currWorldIdx);
-    if (currWorldNumStim == 4)
-        if (stimIdxs(i) == 0)
-            stimPatchColors(1,i,:) = shadingColorLeft;
-        elseif (stimIdxs(i) == 1)
-            stimPatchColors(1,i,:) = shadingColorRight;
-        elseif (stimIdxs(i) == 2)
-            stimPatchColors(1,i,:) = shadingColorLeftFar;
-        elseif (stimIdxs(i) == 3)
-            stimPatchColors(1,i,:) = shadingColorRightFar;
-        elseif (stimIdxs(i) == -1)
-            stimPatchColors(1,i,:) = shadingColorCatch;
+if (numStim == 4)
+    for i=1:numCompletedTrials
+        if (stimLocs(i) == stimLeftNear)
+            stimColors(1,i,:) = shadingColorLeft;
+            idx = 1;
+        elseif (stimLocs(i) == stimRightNear)
+            stimColors(1,i,:) = shadingColorRight;
+            idx = 2;
+        elseif (stimLocs(i) == stimLeftFar)
+            stimColors(1,i,:) = shadingColorLeftFar;
+            idx = 3;
+        elseif (stimLocs(i) == stimRightFar)
+            stimColors(1,i,:) = shadingColorRightFar;            
+            idx = 4;
         end
         
-        if (actionIdxs(i) == 0)
-            actionPatchColors(1,i,:) = shadingColorLeft;
-        elseif (actionIdxs(i) == 1)
-            actionPatchColors(1,i,:) = shadingColorRight;
-        elseif (actionIdxs(i) == 2)
-            actionPatchColors(1,i,:) = shadingColorLeftFar;
-        elseif (actionIdxs(i) == 3)
-            actionPatchColors(1,i,:) = shadingColorRightFar;
+        if (actionLocs(i) == stimLeftNear)
+            actionColors(1,i,:) = shadingColorLeft;
+            idx = 1;
+        elseif (actionLocs(i) == stimRightNear)
+            actionColors(1,i,:) = shadingColorRight;
+            idx = 2;
+        elseif (actionLocs(i) == stimLeftFar)
+            actionColors(1,i,:) = shadingColorLeftFar;
+            idx = 3;
+        elseif (actionLocs(i) == stimRightFar)
+            actionColors(1,i,:) = shadingColorRightFar;
+            idx = 4;
         end
         
         optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
-    elseif (currWorldNumStim == 3)
-        if (length(levelName{currWorldIdx}) == 1)  % It is the normal 3 level
-            if (stimIdxs(i) == 0)
-                stimPatchColors(1,i,:) = shadingColorLeft;
-            elseif (stimIdxs(i) == 1)
-                stimPatchColors(1,i,:) = shadingColorRight;
-            elseif (stimIdxs(i) == 2)
-                stimPatchColors(1,i,:) = shadingColorCenter;
-            elseif (stimIdxs(i) == -1)
-                stimPatchColors(1,i,:) = shadingColorCatch;
-            end
-            
-            if (actionIdxs(i) == 0)
-                actionPatchColors(1,i,:) = shadingColorLeft;
-            elseif (actionLocs(i) == 1)
-                actionPatchColors(1,i,:) = shadingColorRight;
-            else
-                actionPatchColors(1,i,:) = shadingColorCenter;
-            end
-        elseif (levelName{currWorldIdx}(2) == 'L')
-            if (stimIdxs(i) == 0)
-                stimPatchColors(1,i,:) = shadingColorLeft;
-            elseif (stimIdxs(i) == 1)
-                stimPatchColors(1,i,:) = shadingColorLeftFar;
-            elseif (stimIdxs(i) == 2)
-                stimPatchColors(1,i,:) = shadingColorCenter;
-            elseif (stimIdxs(i) == -1)
-                stimPatchColors(1,i,:) = shadingColorCatch;
-            end
-            
-            if (actionIdxs(i) == 0)
-                actionPatchColors(1,i,:) = shadingColorLeft;
-            elseif (actionLocs(i) == 1)
-                actionPatchColors(1,i,:) = shadingColorLeftFar;
-            else
-                actionPatchColors(1,i,:) = shadingColorCenter;
-            end
-        elseif (levelName{currWorldIdx}(2) == 'R')
-            if (stimIdxs(i) == 0)
-                stimPatchColors(1,i,:) = shadingColorRight;
-            elseif (stimIdxs(i) == 1)
-                stimPatchColors(1,i,:) = shadingColorRightFar;
-            elseif (stimIdxs(i) == 2)
-                stimPatchColors(1,i,:) = shadingColorCenter;
-            elseif (stimIdxs(i) == -1)
-                stimPatchColors(1,i,:) = shadingColorCatch;
-            end
-
-            if (actionIdxs(i) == 0)
-                actionPatchColors(1,i,:) = shadingColorRight;
-            elseif (actionLocs(i) == 1)
-                actionPatchColors(1,i,:) = shadingColorRightFar;
-            else
-                actionPatchColors(1,i,:) = shadingColorCenter;
-            end
+    end
+elseif (numStim == 3)
+    for i=1:numCompletedTrials
+        if (stimLocs(i) < stimCenter)
+            stimColors(1,i,:) = shadingColorLeft;
+            idx = 1;
+        elseif (stimLocs(i) > stimCenter)
+            stimColors(1,i,:) = shadingColorRight;
+            idx = 2;
         else
-            error('unexpected 3-choice level based on levelName!');
+            stimColors(1,i,:) = shadingColorCenter;
+            idx = 3;
         end
         
-        optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
-    elseif (currWorldNumStim == 2)
-        if (length(levelName{currWorldIdx}) == 1)  % It is the normal 3 level
-            if (stimIdxs(i) == 0)
-                stimPatchColors(1,i,:) = shadingColorLeft;
-            elseif (stimIdxs(i) == 1)
-                stimPatchColors(1,i,:) = shadingColorRight;
-            elseif (stimIdxs(i) == -1)
-                stimPatchColors(1,i,:) = shadingColorCatch;
-            end
-            
-            if (actionIdxs(i) == 0)
-                actionPatchColors(1,i,:) = shadingColorLeft;
-            elseif (actionLocs(i) == 1)
-                actionPatchColors(1,i,:) = shadingColorRight;
-            end
-        elseif (levelName{currWorldIdx}(2) == 'L')
-            if (stimIdxs(i) == 0)
-                stimPatchColors(1,i,:) = shadingColorLeft;
-            elseif (stimIdxs(i) == 1)
-                stimPatchColors(1,i,:) = shadingColorLeftFar;
-            elseif (stimIdxs(i) == -1)
-                stimPatchColors(1,i,:) = shadingColorCatch;
-            end
-            
-            if (actionIdxs(i) == 0)
-                actionPatchColors(1,i,:) = shadingColorLeft;
-            elseif (actionIdxs(i) == 1)
-                actionPatchColors(1,i,:) = shadingColorLeftFar;
-            end
-        elseif (levelName{currWorldIdx}(2) == 'R')
-            if (stimIdxs(i) == 0)
-                stimPatchColors(1,i,:) = shadingColorRight;
-            elseif (stimIdxs(i) == 1)
-                stimPatchColors(1,i,:) = shadingColorRightFar;
-            elseif (stimIdxs(i) == -1)
-                stimPatchColors(1,i,:) = shadingColorCatch;
-            end
-
-            if (actionIdxs(i) == 0)
-                actionPatchColors(1,i,:) = shadingColorRight;
-            elseif (actionIdxs(i) == 1)
-                actionPatchColors(1,i,:) = shadingColorRightFar;
-            end
+        if (actionLocs(i) < stimCenter)
+            actionColors(1,i,:) = shadingColorLeft;
+            idx = 1;
+        elseif (actionLocs(i) > stimCenter)
+            actionColors(1,i,:) = shadingColorRight;
+            idx = 2;
         else
-            error('unexpected 2-choice level based on levelName!');
+            actionColors(1,i,:) = shadingColorCenter;
+            idx = 3;
         end
         
         optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
-    elseif (currWorldNumStim == 1)
-        stimPatchColors(1,i,:) = [1 1 1];
-        actionPatchColors(1,i,:) = [1 1 1];
+    end
+elseif (numStim == 1)
+    for i=1:numCompletedTrials
+        stimColors(1,i,:) = [1 1 1];
+        actionColors(1,i,:) = [1 1 1];
         optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
-    end    
+    end
 end
 
-stimPatchColors = stimPatchColors(1, 1+numTruncatedStart:end-numTruncatedEnd, :);
-actionPatchColors = actionPatchColors(1, 1+numTruncatedStart:end-numTruncatedEnd, :);
+stimColors = stimColors(1, 1+numTruncatedStart:end-numTruncatedEnd, :);
+actionColors = actionColors(1, 1+numTruncatedStart:end-numTruncatedEnd, :);
 
 % Collect data for averaging...
-totalNumStim = sum(numStim);
-trimmedStimIdxs = stimIdxs(1+numTruncatedStart:end-numTruncatedEnd);
-trimmedActionIdxs = actionIdxs(1+numTruncatedStart:end-numTruncatedEnd);
-stimEyeMoveTrials = cell(totalNumStim, 2);  % 2, one for each eye
-actionEyeMoveTrials = cell(totalNumStim, 2); % 2, one for each eye
-stimActionEyeMoveTrials = cell(totalNumStim, totalNumStim, 2);  % first axis is stimLoc, second is actionLoc, third is left/right eye
-stimOptoEyeMoveTrials = cell(totalNumStim, 4, 2); % first axis is stimLoc, second is optoState (OFF, LEFT, RIGHT, or BOTH), third is left/right eye
-for i=1:length(trimmedStimIdxs)
+trimmedStimLocs = stimLocs(1+numTruncatedStart:end-numTruncatedEnd);
+trimmedActionLocs = actionLocs(1+numTruncatedStart:end-numTruncatedEnd);
+stimEyeMoveTrials = cell(numStim, 2);
+actionEyeMoveTrials = cell(numStim, 2);
+stimActionEyeMoveTrials = cell(numStim, numStim, 2);  % first axis is stimLoc, second is actionLoc, third is left/right eye
+stimOptoEyeMoveTrials = cell(numStim, 4, 2); % first axis is stimLoc, second is optoState (OFF, LEFT, RIGHT, or BOTH), third is left/right eye
+for i=1:length(trimmedStimLocs)
     if (numStim == 4)
         if (trimmedStimLocs(i) == stimLeftNear)
             idx1 = 1;
@@ -1261,8 +1189,8 @@ end
 
 % ELEVATION PLOT
 figure; hold on
-patch(xTrialsUnitsTime, yStim, stimPatchColors, 'EdgeColor', 'none');
-patch(xTrialsUnitsTime, yAction, actionPatchColors, 'EdgeColor', 'none');
+patch(xTrialsUnitsTime, yStim, stimColors, 'EdgeColor', 'none');
+patch(xTrialsUnitsTime, yAction, actionColors, 'EdgeColor', 'none');
 if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, mark optostate on the graph
     patch(xTrialsUnitsTime, yOpto, optoColors, 'EdgeColor', 'none');
 end
@@ -1273,8 +1201,8 @@ h = plot(xUnitsTime, elavDeg(1:length(xUnitsTime), 1), leftEyeColor, xUnitsTime,
 title([rootFileName ': Pupil Elevation'], 'Interpreter', 'none');
 ylabel('Pupil Elevation (deg)');
 xlabel(xlab);
-for i = 1:size(legendColors, 1)
-    p(i) = patch(NaN, NaN, legendColors(i,:));
+for i = 1:size(allColors, 1)
+    p(i) = patch(NaN, NaN, allColors(i,:));
 end
 if (numStim == 4)
     legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'right near stim/action', 'left far stim/action', 'right far stim/action', 'inter-trial interval');
@@ -1290,8 +1218,8 @@ set(dcmObj,'UpdateFcn',@dataCursorCallback,'Enable','on');
 
 % AZIMUTH PLOT
 figure; hold on
-patch(-yStim, xTrialsUnitsTime, stimPatchColors, 'EdgeColor', 'none');
-patch(-yAction, xTrialsUnitsTime, actionPatchColors, 'EdgeColor', 'none');
+patch(-yStim, xTrialsUnitsTime, stimColors, 'EdgeColor', 'none');
+patch(-yAction, xTrialsUnitsTime, actionColors, 'EdgeColor', 'none');
 if(~isempty(find(optoStates > optoNone, 1))) % If opto experiment data, mark optostate on the graph
     patch(yOpto, xTrialsUnitsTime, optoColors, 'EdgeColor', 'none');
 end
@@ -1302,8 +1230,8 @@ h = plot(azimDeg(1:length(xUnitsTime), 1), xUnitsTime, leftEyeColor, azimDeg(1:l
 title([rootFileName ': Pupil Azimuth'], 'Interpreter', 'none');
 xlabel('Pupil Azimuth (deg)');
 ylabel(xlab);
-for i = 1:size(legendColors,1)
-    p(i) = patch(NaN, NaN, legendColors(i,:));
+for i = 1:size(allColors,1)
+    p(i) = patch(NaN, NaN, allColors(i,:));
 end
 if (numStim == 4)
     legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'right near stim/action', 'left far stim/action', 'right far stim/action', 'inter-trial interval');
