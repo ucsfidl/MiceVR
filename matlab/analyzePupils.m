@@ -122,7 +122,7 @@ if (numStim(1) == 4 || sum(numStim) == 4)
 elseif (numStim(1) == 3)
     if (length(numStim) > 1 && numStim(2) == 3)  % This is a multiworld scenario, so keep 2 sets of colors
         numWorlds = length(numStim);
-        legendColors = [shadingColorLeftNear; shadingColorLeftFar; shadingColorRightNear; shadingColorRightFar; ...
+        legendColors = [shadingColorLeft; shadingColorLeftFar; shadingColorRight; shadingColorRightFar; ...
                         shadingColorCenter; shadingColorCatch; shadingColorInterTrial];
     else
         legendColors = [shadingColorLeft; shadingColorRight; shadingColorCenter; shadingColorCatch; shadingColorInterTrial];
@@ -516,8 +516,8 @@ for i=1:numCompletedTrials
         end
         
         optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
-    elseif (currWorldNumStim == 3)
-        if (length(levelName{currWorldIdx}) == 1)  % It is the normal 3 level
+    elseif (currWorldNumStim == 2 || currWorldNumStim == 3)
+        if (length(levelName{currWorldIdx}) == 1)  % It is the normal 2-choice or 3-choice level
             if (stimIdxs(i) == 0)
                 stimPatchColors(1,i,:) = shadingColorLeft;
             elseif (stimIdxs(i) == 1)
@@ -548,7 +548,7 @@ for i=1:numCompletedTrials
             
             if (actionIdxs(i) == 0)
                 actionPatchColors(1,i,:) = shadingColorLeft;
-            elseif (actionLocs(i) == 1)
+            elseif (actionIdxs(i) == 1)
                 actionPatchColors(1,i,:) = shadingColorLeftFar;
             else
                 actionPatchColors(1,i,:) = shadingColorCenter;
@@ -566,61 +566,13 @@ for i=1:numCompletedTrials
 
             if (actionIdxs(i) == 0)
                 actionPatchColors(1,i,:) = shadingColorRight;
-            elseif (actionLocs(i) == 1)
+            elseif (actionIdxs(i) == 1)
                 actionPatchColors(1,i,:) = shadingColorRightFar;
             else
                 actionPatchColors(1,i,:) = shadingColorCenter;
             end
         else
-            error('unexpected 3-choice level based on levelName!');
-        end
-        
-        optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
-    elseif (currWorldNumStim == 2)
-        if (length(levelName{currWorldIdx}) == 1)  % It is the normal 3 level
-            if (stimIdxs(i) == 0)
-                stimPatchColors(1,i,:) = shadingColorLeft;
-            elseif (stimIdxs(i) == 1)
-                stimPatchColors(1,i,:) = shadingColorRight;
-            elseif (stimIdxs(i) == -1)
-                stimPatchColors(1,i,:) = shadingColorCatch;
-            end
-            
-            if (actionIdxs(i) == 0)
-                actionPatchColors(1,i,:) = shadingColorLeft;
-            elseif (actionLocs(i) == 1)
-                actionPatchColors(1,i,:) = shadingColorRight;
-            end
-        elseif (levelName{currWorldIdx}(2) == 'L')
-            if (stimIdxs(i) == 0)
-                stimPatchColors(1,i,:) = shadingColorLeft;
-            elseif (stimIdxs(i) == 1)
-                stimPatchColors(1,i,:) = shadingColorLeftFar;
-            elseif (stimIdxs(i) == -1)
-                stimPatchColors(1,i,:) = shadingColorCatch;
-            end
-            
-            if (actionIdxs(i) == 0)
-                actionPatchColors(1,i,:) = shadingColorLeft;
-            elseif (actionIdxs(i) == 1)
-                actionPatchColors(1,i,:) = shadingColorLeftFar;
-            end
-        elseif (levelName{currWorldIdx}(2) == 'R')
-            if (stimIdxs(i) == 0)
-                stimPatchColors(1,i,:) = shadingColorRight;
-            elseif (stimIdxs(i) == 1)
-                stimPatchColors(1,i,:) = shadingColorRightFar;
-            elseif (stimIdxs(i) == -1)
-                stimPatchColors(1,i,:) = shadingColorCatch;
-            end
-
-            if (actionIdxs(i) == 0)
-                actionPatchColors(1,i,:) = shadingColorRight;
-            elseif (actionIdxs(i) == 1)
-                actionPatchColors(1,i,:) = shadingColorRightFar;
-            end
-        else
-            error('unexpected 2-choice level based on levelName!');
+            error('unexpected 2-choice or 3-choice level based on levelName!');
         end
         
         optoColors(1,i,:) = colorOpto(optoStates(i) + 2,:);
@@ -638,76 +590,43 @@ actionPatchColors = actionPatchColors(1, 1+numTruncatedStart:end-numTruncatedEnd
 totalNumStim = sum(numStim);
 trimmedStimIdxs = stimIdxs(1+numTruncatedStart:end-numTruncatedEnd);
 trimmedActionIdxs = actionIdxs(1+numTruncatedStart:end-numTruncatedEnd);
+trimmedWorldIdxs = worldIdxs(1+numTruncatedStart:end-numTruncatedEnd);
 stimEyeMoveTrials = cell(totalNumStim, 2);  % 2, one for each eye
 actionEyeMoveTrials = cell(totalNumStim, 2); % 2, one for each eye
-stimActionEyeMoveTrials = cell(totalNumStim, totalNumStim, 2);  % first axis is stimLoc, second is actionLoc, third is left/right eye
+stimActionEyeMoveTrials = cell(totalNumStim, totalNumStim, 2);  % first axis is stimIdx, second is actionIdx, third is left/right eye
 stimOptoEyeMoveTrials = cell(totalNumStim, 4, 2); % first axis is stimLoc, second is optoState (OFF, LEFT, RIGHT, or BOTH), third is left/right eye
 for i=1:length(trimmedStimIdxs)
-    if (numStim == 4)
-        if (trimmedStimLocs(i) == stimLeftNear)
-            idx1 = 1;
-        elseif (trimmedStimLocs(i) == stimRightNear)
-            idx1 = 2;
-        elseif (trimmedStimLocs(i) == stimLeftFar)
-            idx1 = 3;
-        elseif (trimmedStimLocs(i) == stimRightFar)
-            idx1 = 4;
-        end
-    elseif (numStim == 3)
-        if (trimmedStimLocs(i) < stimCenter)
-            idx1 = 1;
-        elseif (trimmedStimLocs(i) > stimCenter)
-            idx1 = 2;
-        elseif (trimmedStimLocs(i) == stimCenter)
-            idx1 = 3;
-        end
-    elseif (numStim == 1)
-        idx1 = 1;
+    if (trimmedWorldIdxs(i) == 0)
+        stimNum = trimmedStimIdxs(i) + 1;
+        actionNum = trimmedActionIdxs(i) + 1;
+    elseif (trimmedWorldIdxs(i) == 1)
+        stimNum = numStim(1) + trimmedStimIdxs(i) + 1;
+        actionNum = numStim(1) + trimmedActionIdxs(i) + 1;
+    else
+        error('only supports levels with a maximum of 2 worlds - edit code to support more.');
     end
+    
+    if (stimNum == 0) % catch trial
+        continue;
+    end
+    
     for j=1:2
-        s = stimEyeMoveTrials{idx1, j};
+        s = stimEyeMoveTrials{stimNum, j};
         s{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
-        stimEyeMoveTrials{idx1, j} = s;
-    end
+        stimEyeMoveTrials{stimNum, j} = s;
 
-    if (numStim == 4)
-        if (trimmedActionLocs(i) == stimLeftNear)
-            idx2 = 1;
-        elseif (trimmedActionLocs(i) == stimRightNear)
-            idx2 = 2;
-        elseif (trimmedActionLocs(i) == stimLeftFar)
-            idx2 = 3;
-        elseif (trimmedActionLocs(i) == stimRightFar)
-            idx2 = 4;
-        end
-    elseif (numStim == 3)
-        if (trimmedActionLocs(i) < stimCenter)
-            idx2 = 1;
-        elseif (trimmedActionLocs(i) > stimCenter)
-            idx2 = 2;
-        elseif (trimmedActionLocs(i) == stimCenter)
-            idx2 = 3;
-        end
-    elseif (numStim == 1)
-        idx2 = 1;
-    end
-    for j=1:2
-        a = actionEyeMoveTrials{idx2, j};
+        a = actionEyeMoveTrials{actionNum, j};
         a{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
-        actionEyeMoveTrials{idx2, j} = a;
-    end
-    
-    for j=1:2
-        sa = stimActionEyeMoveTrials{idx1, idx2, j};
+        actionEyeMoveTrials{actionNum, j} = a;
+
+        sa = stimActionEyeMoveTrials{stimNum, actionNum, j};
         sa{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
-        stimActionEyeMoveTrials{idx1, idx2, j} = sa;
-    end
-    
-    for j=1:2
+        stimActionEyeMoveTrials{stimNum, actionNum, j} = sa;
+
         osIdx = optoStates(i) + 2;  % Shift from the read value {-1,2) to the index (1,4)
-        so = stimOptoEyeMoveTrials{idx1, osIdx, j};
+        so = stimOptoEyeMoveTrials{stimNum, osIdx, j};
         so{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
-        stimOptoEyeMoveTrials{idx1, osIdx, j} = so;
+        stimOptoEyeMoveTrials{stimNum, osIdx, j} = so;
     end
 end
 
@@ -718,11 +637,11 @@ resizedStimEye = cell(size(stimEyeMoveTrials));
 m = cell(size(stimEyeMoveTrials));
 sem = cell(size(stimEyeMoveTrials));
 ySem = cell(size(stimEyeMoveTrials));
-for eye=1:2  % For each eye2
+for eye=1:2  % For each eye
     h = [];
     n = 0;
     stimEyeLengths = [];
-    for stimIdx=1:numStim
+    for stimIdx=1:totalNumStim
         if (~isempty(stimEyeMoveTrials{stimIdx, eye})) % Prevents error if there are no stim of a type in a session
             stimEyeLengths = [stimEyeLengths cellfun(@(x) length(x), stimEyeMoveTrials{stimIdx,eye})];
             n = n + length(stimEyeMoveTrials{stimIdx,eye});
@@ -730,7 +649,7 @@ for eye=1:2  % For each eye2
     end
     minLengths(eye) = min(stimEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
     
-    for stimIdx=1:numStim
+    for stimIdx=1:totalNumStim
         if (~isempty(stimEyeMoveTrials{stimIdx,eye}))
             resizedStimEye{stimIdx,eye} = cellfun(@(x) interp1(1:length(x), x, 1:length(x)/minLengths(eye):length(x))',...
                                                     stimEyeMoveTrials{stimIdx,eye}, 'UniformOutput', false);
@@ -740,52 +659,90 @@ for eye=1:2  % For each eye2
         end
     end
 
-    for stimIdx=1:numStim
+    for stimIdx=1:totalNumStim
         ySem{stimIdx,eye} = [m{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(m{stimIdx,eye}'+sem{stimIdx,eye}')];
     end
     
     figure; hold on;
     x = 1:length(m{1,eye}); % All the lengths are the same for each stim for 1 eye, so just pull from 1
-    plot(zeros(1,length(m{1,eye})), x, 'k--');
+    plot(zeros(1,length(m{1,eye})), x, 'k--');  % First plot dashed 0 line to indicate the center
     xSem = cat(2, x, fliplr(x));
-    for stimIdx=1:numStim
-        if (numStim == 3)
-            if (stimIdx==1)
-                curColor = colorLeft;
-                curShadingColor = shadingColorLeft;
-                sLoc = 'Left';
-            elseif (stimIdx==2)
-                curColor = colorRight;
-                curShadingColor = shadingColorRight;
-                sLoc = 'Right';
-            elseif (stimIdx==3)
-                curColor = colorCenter;
-                curShadingColor = shadingColorCenter;
-                sLoc = 'Center';
+    for stimIdx=1:totalNumStim
+        adjStimIdx = stimIdx;
+        worldIdx = 1;
+        if (stimIdx > numStim(1))
+            adjStimIdx = stimIdx - numStim(1);
+            worldIdx = 2;
+        end
+        
+        if (numStim(worldIdx) == 2 || numStim(worldIdx) == 3)
+            if (length(levelName{worldIdx}) == 1)  % Regular 2-choice or 3-choice level
+                if (adjStimIdx == 1)
+                    curColor = colorLeft;
+                    curShadingColor = shadingColorLeft;
+                    sLoc = 'Left';
+                elseif (adjStimIdx == 2)
+                    curColor = colorRight;
+                    curShadingColor = shadingColorRight;
+                    sLoc = 'Right';
+                elseif (adjStimIdx == 3)
+                    curColor = colorCenter;
+                    curShadingColor = shadingColorCenter;
+                    sLoc = 'Center';
+                end
+            elseif (levelName{worldIdx}(2) == 'L')
+                if (adjStimIdx == 1)
+                    curColor = colorLeft;
+                    curShadingColor = shadingColorLeft;
+                    sLoc = 'Left Near';
+                elseif (adjStimIdx == 2)
+                    curColor = colorLeftFar;
+                    curShadingColor = shadingColorLeftFar;
+                    sLoc = 'Left Far';
+                elseif (adjStimIdx == 3)
+                    curColor = colorCenter;
+                    curShadingColor = shadingColorCenter;
+                    sLoc = 'Center';
+                end
+            elseif (levelName{worldIdx}(2) == 'R')
+                if (adjStimIdx == 1)
+                    curColor = colorRight;
+                    curShadingColor = shadingColorRight;
+                    sLoc = 'Right Near';
+                elseif (adjStimIdx == 2)
+                    curColor = colorRightFar;
+                    curShadingColor = shadingColorRightFar;
+                    sLoc = 'Right Far';
+                elseif (adjStimIdx == 3)
+                    curColor = colorCenter;
+                    curShadingColor = shadingColorCenter;
+                    sLoc = 'Center';
+                end
             end
-        elseif (numStim == 4)
-            if (stimIdx == 1)
+        elseif (numStim(1) == 4)
+            if (adjStimIdx == 1)
                 curColor = colorLeft;
                 curShadingColor = shadingColorLeft;
                 sLoc = 'Left Near';
-            elseif (stimIdx == 2)
+            elseif (adjStimIdx == 2)
                 curColor = colorRight;
                 curShadingColor = shadingColorRight;
                 sLoc = 'Right Near';
-            elseif (stimIdx == 3)
+            elseif (adjStimIdx == 3)
                 curColor = colorLeftFar;
                 curShadingColor = shadingColorLeftFar;
                 sLoc = 'Left Far';
-            elseif (stimIdx == 4)
+            elseif (adjStimIdx == 4)
                 curColor = colorRightFar;
                 curShadingColor = shadingColorRightFar;
                 sLoc = 'Right Far';
             end
-        elseif (numStim == 1)
+        elseif (numStim(1) == 1)
             curColor = [0 0 0];
             curShadingColor = [0.5 0.5 0.5];
             sLoc = 'Straight';
         end
+        
         if (~isempty(ySem{stimIdx, eye}))
             patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
             alpha(varianceAlpha);
@@ -800,12 +757,28 @@ for eye=1:2  % For each eye2
 
     title([rootFileName ': ' eyeName ' eye, Correct & Incorrect Trials'], 'Interpreter', 'none');
     annotation('textbox', [.8 0 .2 .2], 'String', ['n=' num2str(n)], 'FitBoxToText', 'on', 'EdgeColor', 'white');  
-    if (numStim == 3)
-        legend(h, 'left stim', 'right stim', 'center stim');
-    elseif (numStim == 4)
-        legend(h, 'left near stim', 'right near stim', 'left far stim', 'right far stim');
-    elseif (numStim == 1)
-        legend(h, 'straight');
+    if (length(numStim) == 1)
+        if (numStim(1) == 3)
+            legend(h, 'left stim', 'right stim', 'center stim');
+        elseif (numStim(1) == 4)
+            legend(h, 'left near stim', 'right near stim', 'left far stim', 'right far stim');
+        elseif (numStim(1) == 1)
+            legend(h, 'straight');
+        elseif (numStim(1) == 2)
+            legend(h, 'left stim', 'right stim');
+        end
+    elseif (length(numStim) == 2)
+        if (numStim(1) == 3)
+            if (numStim(2) == 3)
+                legend(h, 'near left stim', 'far left stim', 'center stim', 'near right stim', 'far right stim', 'center stim');
+            end
+        elseif (numStim(1) == 2)
+            if (numStim(2) == 2)
+                legend(h, 'near left stim', 'far left stim', 'near right stim', 'far right stim');
+            end
+        end
+    else
+        error('too many stim');
     end
     xlim([avgXMin avgXMax]);
     ylim([0 length(x)]);
@@ -824,7 +797,7 @@ for eye=1:2  % For each eye
     n = 0;
     stimCorrectEyeLengths = [];
     % First collect all the trial lengths for the correct trials, to assist with normalizing trial duration
-    for stimIdx=1:numStim
+    for stimIdx=1:totalNumStim
         % Account for some sessions where the mouse always gets a specific stim location wrong
         if (~isempty(stimActionEyeMoveTrials{stimIdx,stimIdx,eye}))
             stimCorrectEyeLengths = [stimCorrectEyeLengths cellfun(@(x) length(x), stimActionEyeMoveTrials{stimIdx,stimIdx,eye})];
@@ -834,7 +807,7 @@ for eye=1:2  % For each eye
 
     % Next, resample the longer trials to the length of the shortest trial, because all 4 trial types will be plotted on the same axis
     minLengths(eye) = min(stimCorrectEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
-    for stimIdx=1:numStim
+    for stimIdx=1:totalNumStim
         if (~isempty(stimActionEyeMoveTrials{stimIdx,stimIdx,eye}))
             resizedStimEye{stimIdx,eye} = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimActionEyeMoveTrials{stimIdx,stimIdx,eye}, 'UniformOutput', false);
             d = cell2mat(resizedStimEye{stimIdx,eye}(:)');
@@ -843,57 +816,95 @@ for eye=1:2  % For each eye
         end
     end
     
-    for stimIdx=1:numStim
+    for stimIdx=1:totalNumStim
         if (~isempty(mu{stimIdx,eye}))
             ySem{stimIdx,eye} = [mu{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(mu{stimIdx,eye}'+sem{stimIdx,eye}')];
         end
     end
 
     figure; hold on;
-    skipLegend = zeros(1,numStim);
-    for stimIdx=1:numStim
+    skipLegend = zeros(1,totalNumStim);
+    for stimIdx=1:totalNumStim
         if (~isempty(mu{stimIdx,eye}))
             x = 1:length(mu{stimIdx,eye});
             plot(zeros(1,length(mu{stimIdx,eye})), x, 'k--');  % This is replotted each time - no biggie
             xSem = cat(2, x, fliplr(x));
 
-            if (numStim == 3)
-                if (stimIdx==1)
-                    curColor = colorLeft;
-                    curShadingColor = shadingColorLeft;
-                    sLoc = 'Left';
-                elseif (stimIdx==2)
-                    curColor = colorRight;
-                    curShadingColor = shadingColorRight;
-                    sLoc = 'Right';
-                elseif (stimIdx==3)
-                    curColor = colorCenter;
-                    curShadingColor = shadingColorCenter;
-                    sLoc = 'Center';
+            adjStimIdx = stimIdx;
+            worldIdx = 1;
+            if (stimIdx > numStim(1))
+                adjStimIdx = stimIdx - numStim(1);
+                worldIdx = 2;
+            end
+
+            if (numStim(worldIdx) == 2 || numStim(worldIdx) == 3)
+                if (length(levelName{worldIdx}) == 1)  % Regular 2-choice or 3-choice level
+                    if (adjStimIdx == 1)
+                        curColor = colorLeft;
+                        curShadingColor = shadingColorLeft;
+                        sLoc = 'Left';
+                    elseif (adjStimIdx == 2)
+                        curColor = colorRight;
+                        curShadingColor = shadingColorRight;
+                        sLoc = 'Right';
+                    elseif (adjStimIdx == 3)
+                        curColor = colorCenter;
+                        curShadingColor = shadingColorCenter;
+                        sLoc = 'Center';
+                    end
+                elseif (levelName{worldIdx}(2) == 'L')
+                    if (adjStimIdx == 1)
+                        curColor = colorLeft;
+                        curShadingColor = shadingColorLeft;
+                        sLoc = 'Left Near';
+                    elseif (adjStimIdx == 2)
+                        curColor = colorLeftFar;
+                        curShadingColor = shadingColorLeftFar;
+                        sLoc = 'Left Far';
+                    elseif (adjStimIdx == 3)
+                        curColor = colorCenter;
+                        curShadingColor = shadingColorCenter;
+                        sLoc = 'Center';
+                    end
+                elseif (levelName{worldIdx}(2) == 'R')
+                    if (adjStimIdx == 1)
+                        curColor = colorRight;
+                        curShadingColor = shadingColorRight;
+                        sLoc = 'Right Near';
+                    elseif (adjStimIdx == 2)
+                        curColor = colorRightFar;
+                        curShadingColor = shadingColorRightFar;
+                        sLoc = 'Right Far';
+                    elseif (adjStimIdx == 3)
+                        curColor = colorCenter;
+                        curShadingColor = shadingColorCenter;
+                        sLoc = 'Center';
+                    end
                 end
-            elseif (numStim == 4)
-                if (stimIdx == 1)
+            elseif (numStim(1) == 4)
+                if (adjStimIdx == 1)
                     curColor = colorLeft;
                     curShadingColor = shadingColorLeft;
                     sLoc = 'Left Near';
-                elseif (stimIdx == 2)
+                elseif (adjStimIdx == 2)
                     curColor = colorRight;
                     curShadingColor = shadingColorRight;
                     sLoc = 'Right Near';
-                elseif (stimIdx == 3)
+                elseif (adjStimIdx == 3)
                     curColor = colorLeftFar;
                     curShadingColor = shadingColorLeftFar;
                     sLoc = 'Left Far';
-                elseif (stimIdx == 4)
+                elseif (adjStimIdx == 4)
                     curColor = colorRightFar;
                     curShadingColor = shadingColorRightFar;
                     sLoc = 'Right Far';
                 end
-            elseif (numStim == 1)
+            elseif (numStim(1) == 1)
                 curColor = [0 0 0];
                 curShadingColor = [0.5 0.5 0.5];
                 sLoc = 'Straight';
             end
+        
             patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
             alpha(varianceAlpha);
             h = [h plot(mu{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
@@ -909,12 +920,28 @@ for eye=1:2  % For each eye
 
     title([rootFileName ': ' eyeName ' eye, CORRECT trials only'], 'Interpreter', 'none');
     annotation('textbox', [.8 0 .2 .2], 'String', ['n=' num2str(n)], 'FitBoxToText', 'on', 'EdgeColor', 'white');  
-    if (numStim == 3)
-        standardLegend = {'left stim'; 'right stim'; 'center stim'};
-    elseif (numStim == 4)
-        standardLegend = {'left near stim'; 'right near stim'; 'left far stim'; 'right far stim'};
-    elseif (numStim == 1)
-        standardLegend = {'straight'};
+    if (length(numStim) == 1)
+        if (numStim(1) == 3)
+            standardLegend = {'left stim', 'right stim', 'center stim'};
+        elseif (numStim(1) == 4)
+            standardLegend = {'left near stim', 'right near stim', 'left far stim', 'right far stim'};
+        elseif (numStim(1) == 1)
+            standardLegend = {'straight'};
+        elseif (numStim(1) == 2)
+            standardLegend = {'left stim', 'right stim'};
+        end
+    elseif (length(numStim) == 2)
+        if (numStim(1) == 3)
+            if (numStim(2) == 3)
+                standardLegend = {'near left stim', 'far left stim', 'center stim', 'near right stim', 'far right stim', 'center stim'};
+            end
+        elseif (numStim(1) == 2)
+            if (numStim(2) == 2)
+                standardLegend = {'near left stim', 'far left stim', 'near right stim', 'far right stim'};
+            end
+        end
+    else
+        error('too many stim');
     end
     currLeg = {};
     for i=1:length(standardLegend)
@@ -943,8 +970,8 @@ for eye=1:2  % For each eye
     n = 0;
     stimIncorrectEyeLengths = [];
     % First collect all the trial lengths for the correct trials, to assist with normalizing trial duration
-    for stimIdx=1:numStim
-        for actIdx=1:numStim
+    for stimIdx=1:totalNumStim
+        for actIdx=1:totalNumStim
             if (stimIdx ~= actIdx && ~isempty(stimActionEyeMoveTrials{stimIdx,actIdx,eye}))
                 stimIncorrectEyeLengths = [stimIncorrectEyeLengths cellfun(@(x) length(x), stimActionEyeMoveTrials{stimIdx,actIdx,eye})];
                 n = n + length(stimActionEyeMoveTrials{stimIdx,actIdx,eye});
@@ -959,8 +986,8 @@ for eye=1:2  % For each eye
 
     % Next, resample the longer trials to the length of the shortest trial, because all 4 trial types will be plotted on the same axis
     minLengths(eye) = min(stimIncorrectEyeLengths);  % Use min instead of max, as max adds some artifacts at the end, and both give the same shape
-    for stimIdx=1:numStim
-        for actIdx=1:numStim
+    for stimIdx=1:totalNumStim
+        for actIdx=1:totalNumStim
            if (stimIdx ~= actIdx && ~isempty(stimActionEyeMoveTrials{stimIdx,actIdx,eye}))
                cTmp = cellfun(@(x) resample(x, minLengths(eye), length(x)), stimActionEyeMoveTrials{stimIdx,actIdx,eye}, 'UniformOutput', false);
                resizedStimEye{stimIdx,eye} = cat(2,resizedStimEye{stimIdx,eye}, cTmp);
@@ -973,14 +1000,14 @@ for eye=1:2  % For each eye
         end
     end
     
-    for stimIdx=1:numStim
+    for stimIdx=1:totalNumStim
         ySem{stimIdx,eye} = [mu{stimIdx,eye}'-sem{stimIdx,eye}', fliplr(mu{stimIdx,eye}'+sem{stimIdx,eye}')];
     end
 
     figure; hold on;
-    skipLegend = zeros(1,numStim);
+    skipLegend = zeros(1,totalNumStim);
     % All the lengths are NOT the same for each stim for 1 eye (some are empty), so pull from 1 that has data
-    for stimIdx=1:numStim
+    for stimIdx=1:totalNumStim
         if (~isempty(mu{stimIdx,eye}))
             x = 1:length(mu{stimIdx,eye}); 
             plot(zeros(1,length(mu{stimIdx,eye})), x, 'k--');
@@ -988,45 +1015,83 @@ for eye=1:2  % For each eye
             break;
         end
     end
-    for stimIdx=1:numStim
+    for stimIdx=1:totalNumStim
         if (~isempty(mu{stimIdx,eye}))
-            if (numStim == 3)
-                if (stimIdx==1)
-                    curColor = colorLeft;
-                    curShadingColor = shadingColorLeft;
-                    sLoc = 'Left';
-                elseif (stimIdx==2)
-                    curColor = colorRight;
-                    curShadingColor = shadingColorRight;
-                    sLoc = 'Right';
-                elseif (stimIdx==3)
-                    curColor = colorCenter;
-                    curShadingColor = shadingColorCenter;
-                    sLoc = 'Center';
+            adjStimIdx = stimIdx;
+            worldIdx = 1;
+            if (stimIdx > numStim(1))
+                adjStimIdx = stimIdx - numStim(1);
+                worldIdx = 2;
+            end
+
+            if (numStim(worldIdx) == 2 || numStim(worldIdx) == 3)
+                if (length(levelName{worldIdx}) == 1)  % Regular 2-choice or 3-choice level
+                    if (adjStimIdx == 1)
+                        curColor = colorLeft;
+                        curShadingColor = shadingColorLeft;
+                        sLoc = 'Left';
+                    elseif (adjStimIdx == 2)
+                        curColor = colorRight;
+                        curShadingColor = shadingColorRight;
+                        sLoc = 'Right';
+                    elseif (adjStimIdx == 3)
+                        curColor = colorCenter;
+                        curShadingColor = shadingColorCenter;
+                        sLoc = 'Center';
+                    end
+                elseif (levelName{worldIdx}(2) == 'L')
+                    if (adjStimIdx == 1)
+                        curColor = colorLeft;
+                        curShadingColor = shadingColorLeft;
+                        sLoc = 'Left Near';
+                    elseif (adjStimIdx == 2)
+                        curColor = colorLeftFar;
+                        curShadingColor = shadingColorLeftFar;
+                        sLoc = 'Left Far';
+                    elseif (adjStimIdx == 3)
+                        curColor = colorCenter;
+                        curShadingColor = shadingColorCenter;
+                        sLoc = 'Center';
+                    end
+                elseif (levelName{worldIdx}(2) == 'R')
+                    if (adjStimIdx == 1)
+                        curColor = colorRight;
+                        curShadingColor = shadingColorRight;
+                        sLoc = 'Right Near';
+                    elseif (adjStimIdx == 2)
+                        curColor = colorRightFar;
+                        curShadingColor = shadingColorRightFar;
+                        sLoc = 'Right Far';
+                    elseif (adjStimIdx == 3)
+                        curColor = colorCenter;
+                        curShadingColor = shadingColorCenter;
+                        sLoc = 'Center';
+                    end
                 end
-            elseif (numStim == 4)
-                if (stimIdx == 1)
+            elseif (numStim(1) == 4)
+                if (adjStimIdx == 1)
                     curColor = colorLeft;
                     curShadingColor = shadingColorLeft;
                     sLoc = 'Left Near';
-                elseif (stimIdx == 2)
+                elseif (adjStimIdx == 2)
                     curColor = colorRight;
                     curShadingColor = shadingColorRight;
                     sLoc = 'Right Near';
-                elseif (stimIdx == 3)
+                elseif (adjStimIdx == 3)
                     curColor = colorLeftFar;
                     curShadingColor = shadingColorLeftFar;
                     sLoc = 'Left Far';
-                elseif (stimIdx == 4)
+                elseif (adjStimIdx == 4)
                     curColor = colorRightFar;
                     curShadingColor = shadingColorRightFar;
                     sLoc = 'Right Far';
                 end
-            elseif (numStim == 1)
+            elseif (numStim(1) == 1)
                 curColor = [0 0 0];
                 curShadingColor = [0.5 0.5 0.5];
                 sLoc = 'Straight';
             end
+            
             patch(ySem{stimIdx,eye}, xSem, curShadingColor, 'EdgeColor', 'none');
             alpha(varianceAlpha);
             h = [h plot(mu{stimIdx,eye}, x, 'Color', curColor, 'LineWidth', lw)];
@@ -1043,12 +1108,28 @@ for eye=1:2  % For each eye
 
     title([rootFileName ': ' eyeName ' eye, INCORRECT trials only'], 'Interpreter', 'none');
     annotation('textbox', [.8 0 .2 .2], 'String', ['n=' num2str(n)], 'FitBoxToText', 'on', 'EdgeColor', 'white');  
-    if (numStim == 3)
-        standardLegend = {'left stim'; 'right stim'; 'center stim'};
-    elseif (numStim == 4)
-        standardLegend = {'left near stim'; 'right near stim'; 'left far stim'; 'right far stim'};
-    elseif (numStim == 1)
-        standardLegend = {'straight'};
+    if (length(numStim) == 1)
+        if (numStim(1) == 3)
+            standardLegend = {'left stim', 'right stim', 'center stim'};
+        elseif (numStim(1) == 4)
+            standardLegend = {'left near stim', 'right near stim', 'left far stim', 'right far stim'};
+        elseif (numStim(1) == 1)
+            standardLegend = {'straight'};
+        elseif (numStim(1) == 2)
+            standardLegend = {'left stim', 'right stim'};
+        end
+    elseif (length(numStim) == 2)
+        if (numStim(1) == 3)
+            if (numStim(2) == 3)
+                standardLegend = {'near left stim', 'far left stim', 'center stim', 'near right stim', 'far right stim', 'center stim'};
+            end
+        elseif (numStim(1) == 2)
+            if (numStim(2) == 2)
+                standardLegend = {'near left stim', 'far left stim', 'near right stim', 'far right stim'};
+            end
+        end
+    else
+        error('too many stim');
     end
     currLeg = {};
     for i=1:length(standardLegend)
@@ -1276,13 +1357,33 @@ xlabel(xlab);
 for i = 1:size(legendColors, 1)
     p(i) = patch(NaN, NaN, legendColors(i,:));
 end
-if (numStim == 4)
-    legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'right near stim/action', 'left far stim/action', 'right far stim/action', 'inter-trial interval');
-elseif (numStim == 3)
-    legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'center stim/action', 'inter-trial interval');
-elseif (numStim == 1)
-    legend([h;p'], 'left eye', 'right eye', 'straight stim/action', 'inter-trial interval');
+if (length(numStim) == 1)
+    if (numStim(1) == 1)
+        legend([h;p'], 'left eye', 'right eye', 'straight stim/action', 'catch trial', 'inter-trial interval');
+    elseif (numStim(1) == 2)
+        legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'catch trial', 'inter-trial interval');
+    elseif (numStim(1) == 3)
+        legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'straight stim/action', ...
+                        'catch trial', 'inter-trial interval');
+    elseif (numStim(1) == 4)
+        legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'right near stim/action', 'left far stim/action', ...
+                        'catch trial', 'right far stim/action', 'inter-trial interval');
+    end
+elseif (length(numStim) == 2)
+    if (numStim(1) == 3)
+        if (numStim(2) == 3)
+            legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'left far stim/action', ...
+                           'right near stim/action', 'right far stim/action', 'straight stim/action', ...
+                           'catch trial', 'inter-trial interval');
+        end
+    elseif (numStim(1) == 2)
+        if (numStim(2) == 2)
+            legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'left far stim/action', ...
+                           'right near stim/action', 'right far stim/action', 'catch trial', 'inter-trial interval');
+        end
+    end
 end
+% Add catch to legends above?
 ylim([ymin/2 ymax/2]);
 xlim([0 xUnitsTime(end)]);
 dcmObj = datacursormode(gcf);
@@ -1305,13 +1406,33 @@ ylabel(xlab);
 for i = 1:size(legendColors,1)
     p(i) = patch(NaN, NaN, legendColors(i,:));
 end
-if (numStim == 4)
-    legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'right near stim/action', 'left far stim/action', 'right far stim/action', 'inter-trial interval');
-elseif (numStim == 3)
-    legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'center stim/action', 'inter-trial interval');
-elseif (numStim == 1)
-    legend([h;p'], 'left eye', 'right eye', 'straight stim/action', 'inter-trial interval');
+if (length(numStim) == 1)
+    if (numStim(1) == 1)
+        legend([h;p'], 'left eye', 'right eye', 'straight stim/action', 'catch trial', 'inter-trial interval');
+    elseif (numStim(1) == 2)
+        legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'catch trial', 'inter-trial interval');
+    elseif (numStim(1) == 3)
+        legend([h;p'], 'left eye', 'right eye', 'left stim/action', 'right stim/action', 'straight stim/action', ...
+                        'catch trial', 'inter-trial interval');
+    elseif (numStim(1) == 4)
+        legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'right near stim/action', 'left far stim/action', ...
+                        'catch trial', 'right far stim/action', 'inter-trial interval');
+    end
+elseif (length(numStim) == 2)
+    if (numStim(1) == 3)
+        if (numStim(2) == 3)
+            legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'left far stim/action', ...
+                           'right near stim/action', 'right far stim/action', 'straight stim/action', ...
+                           'catch trial', 'inter-trial interval');
+        end
+    elseif (numStim(1) == 2)
+        if (numStim(2) == 2)
+            legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'left far stim/action', ...
+                           'right near stim/action', 'right far stim/action', 'catch trial', 'inter-trial interval');
+        end
+    end
 end
+% Add catch to legends above?
 xlim([ymin ymax]);
 ylim([0 xUnitsTime(end)]);
 dcmObj = datacursormode(gcf);
@@ -1388,7 +1509,7 @@ end
 
 % Save it all for posterity
 save([trackFileName(1:end-4) '_an.mat'], 'centers', 'areas', 'elavDeg', 'azimDeg', 'trialStartFrames', ...
-    'trialEndFrames', 'stimLocs', 'actionLocs', 'optoStates', 'eyeblinkStartFrames', ...
+    'trialEndFrames', 'stimIdxs', 'actionIdxs', 'optoStates', 'worldIdxs', 'eyeblinkStartFrames', ...
     'azimDegNoNaN', 'saccadeStartFrames', 'saccadeEndFrames', 'saccadeAmplitudes', 'saccadeThresh', 'areasMm2', 'Rp', ...
     'slope', 'yint');
 
