@@ -530,7 +530,7 @@ for i=1:numCompletedTrials
             
             if (actionIdxs(i) == 0)
                 actionPatchColors(1,i,:) = shadingColorLeft;
-            elseif (actionLocs(i) == 1)
+            elseif (actionIdxs(i) == 1)
                 actionPatchColors(1,i,:) = shadingColorRight;
             else
                 actionPatchColors(1,i,:) = shadingColorCenter;
