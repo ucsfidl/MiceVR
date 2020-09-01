@@ -632,6 +632,8 @@ end
 
 % First, plot the stimulus average of the eye movements
 % Normalize by resampling, and then plot the average of the resampled eye movements.
+% COMMENTED OUT TO REDUCE NUMBER OF FIGURES DISPLAYED
+%{
 minLengths = zeros(2, 1);  % One for each eye
 resizedStimEye = cell(size(stimEyeMoveTrials));
 m = cell(size(stimEyeMoveTrials));
@@ -785,6 +787,7 @@ for eye=1:2  % For each eye
     ylabel('Frame (normalized)')
     xlabel('Pupil Azimuth (deg)');
 end
+%}
 
 % Second, plot the stimulus average of the eye movements for only CORRECT trials
 minLengths = zeros(2, 1);  % One for each eye
@@ -957,6 +960,8 @@ for eye=1:2  % For each eye
     xlabel('Pupil Azimuth (deg)');
 end
 
+% COMMENTED OUT TO REDUCE NUMBER OF FIGURES DISPLAYED
+%{
 % Third, plot the stimulus average of the eye movements only for incorrect trials
 % Suppress warnings related to extra legend entries
 warning('off','MATLAB:legend:IgnoringExtraEntries')
@@ -1148,8 +1153,6 @@ end
 % Fourth, plot the stimulus x action average of the eye movements
 % This helps assess whether the eyes follow the stim, or the eyes follow
 % the navigation!
-% COMMENTED OUT FOR NOW!
-%{
 minLengths = zeros(size(stimActionEyeMoveTrials,1), size(stimActionEyeMoveTrials,2), 1);
 resampledStimActionEye = cell(size(stimActionEyeMoveTrials));
 m = cell(size(stimActionEyeMoveTrials));
