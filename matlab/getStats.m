@@ -679,7 +679,8 @@ for (worldIdx = 1:length(worldTypes))
             % Summary stats to cut and paste into the sheet
             % BLINDNESS // SIGHT // EXT/BS
             extOrBSRate = rExtRate - rCatchRate;
-            disp(['SUMMARY: ' num2str(blindRate, 3) '//' num2str(sightRate, 3) '//' num2str(extOrBSRate, 3)]);
+            normExtOrBSRate = round(extOrBSRate / (100 - rCatchRate) * 100);
+            disp(['SUMMARY: ' num2str(blindRate, 3) '//' num2str(sightRate, 3) '//' num2str(extOrBSRate, 3) '//' num2str(normExtOrBSRate, 3)]);
             disp('===========')
         end
         
@@ -734,8 +735,8 @@ for (worldIdx = 1:length(worldTypes))
             disp(['NR-FR = ' num2str(res8) '% (' num2str(results(4,2,j)) '/' num2str(totalNR) ')']);
             disp('-----------')
             totalFL = sum(results(:,3,j));        
-            observed(1,3,j) = results(2,2,j);
-            observed(2,3,j) = totalFL - results(2,2,j);
+            observed(1,3,j) = results(3,3,j);
+            observed(2,3,j) = totalFL - results(3,3,j);
             res9 = str2double(num2str(round(results(1,3,j) / totalFL * 100), 3));
             disp(['FL-NL = ' num2str(res9) '% (' num2str(results(1,3,j)) '/' num2str(totalFL) ')']);
             res10 = str2double(num2str(round(results(2,3,j) / totalFL * 100), 3));
@@ -823,6 +824,12 @@ for (worldIdx = 1:length(worldTypes))
                 disp(['Observed right correct = ' num2str(observed(1,2,j) + observed(1,4,j))]);
                 disp(['Chi-squared p = ' num2str(chisquared(observed(1,2,j) + observed(1,4,j), expectedCorrectByChance, ...
                                             observed(2,2,j) + observed(2,4,j), expected(2,2) + expected(2,4) - sightRate * (totalNR + totalFR)))]);
+                disp('---------------');
+                expectedCorrectByChance = expected(1,1) + expected(1,3) + sightRate * (totalNL + totalFL);
+                disp(['Expected left correct by chance = ' num2str(expectedCorrectByChance)])
+                disp(['Observed left correct = ' num2str(observed(1,1,j) + observed(1,3,j))]);
+                disp(['Chi-squared p = ' num2str(chisquared(observed(1,1,j) + observed(1,3,j), expectedCorrectByChance, ...
+                                            observed(2,1,j) + observed(2,3,j), expected(2,1) + expected(2,3) - sightRate * (totalNL + totalFL)))]);
                 disp('---------------');
                 
                 disp('================')
