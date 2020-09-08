@@ -151,7 +151,7 @@ public class WaterTreeScript : MonoBehaviour {
 						if (respawn)
 							GiveReward (rewardDur, true, true);
 					} else if (gameType.Equals ("det_blind")) {
-						if (this.GetShaderVFreq () == 0) {  // The mouse ran into the special center tree - give reward only if no other trees displayed, unless this is a test game
+						if (this.idx == 2) {  // The mouse ran into the special center tree - give reward only if no other trees displayed, unless this is a test game
 							bool alone = true;
 							float otherActiveTreeLocX = float.NaN;
 							for (int i = 0; i < gos.Length - 1; i++) {  // This special tree is always listed last
