@@ -148,8 +148,13 @@ public class WaterTreeScript : MonoBehaviour {
                     // (2) Actually give or withold reward, depending on the gametype!
 					string gameType = Globals.GetGameType (Globals.worldIdxList[Globals.worldIdxList.Count - 1]);
 					if (gameType.Equals ("detection") || gameType.Equals ("det_target")) {
-						if (respawn)
-							GiveReward (rewardDur, true, true);
+						if (respawn) {
+							if (correctTree) {
+								GiveReward (rewardDur, true, true);
+							} else {
+								WitholdReward ();
+							}
+						}
 					} else if (gameType.Equals ("det_blind")) {
 						if (this.idx == 2) {  // The mouse ran into the special center tree - give reward only if no other trees displayed, unless this is a test game
 							bool alone = true;
@@ -300,7 +305,8 @@ public class WaterTreeScript : MonoBehaviour {
 			interTrialInterval = correctTurnDelay;
 		}
 
-		if (Globals.CurrentlyCatchTrial() || Globals.CurrentlyExtinctionTrial()) {
+		// Don't do correction trials on catch and extinction trials, but allow corrections on extinction trials if 4-choice and still training mice
+		if (Globals.CurrentlyCatchTrial() || (Globals.CurrentlyExtinctionTrial() && Globals.correctExtinction == false)) {
 			Globals.lastTrialWasIncorrect = 0;
 		} else {
 			Globals.lastTrialWasIncorrect = 1;

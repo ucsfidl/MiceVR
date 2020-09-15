@@ -152,7 +152,7 @@ public static class Globals
 
 	public static float catchFreq = 0;  // This is the frequency at which catch trials, in which no target is visible at all, are presented
 	public static float extinctFreq = 0;  // If >0, this indicates the frequency of trials that will be extinction trials (no center target with a side target) - only valid on det_blind scenarios (3-choice scenarios) - also only if blocks enabled
-
+	public static bool correctExtinction = false;  // Set to true when training mice on 4-choice with corrections
 
 	public struct fov {
 		public float nasalBound;

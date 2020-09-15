@@ -519,7 +519,7 @@ public class GameControlScript : MonoBehaviour
 		// Only proceed if elapsed time is greater than or equal to trialDelay
 		te = DateTime.Now.Subtract(pauseStartTime);
 		if (te.TotalMilliseconds >= Globals.trialDelay * 1000) {
-			Debug.Log ("Ending Pause()");
+			//Debug.Log ("Ending Pause()");
 			float totalEarnedRewardSize = 0;
 			float totalRewardSize = 0;
 			for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++) {
@@ -713,7 +713,7 @@ public class GameControlScript : MonoBehaviour
 				float presoFrac = Globals.GetWorldPresoFrac(worldIdx);
 				blockSize = (int)Math.Round (presoFrac * Globals.worldBlockSize);
 			}
-			Debug.Log (blockSize);
+			//Debug.Log (blockSize);
 
 			GameObject[] gos = Globals.GetTrees ();
 
@@ -889,7 +889,6 @@ public class GameControlScript : MonoBehaviour
 				Debug.Log (String.Join (",", precompExtinctBlock.Select (x => x.ToString ()).ToArray ()));
 				Globals.SetCurrentWorldPrecompExtinctBlock(precompExtinctBlock);
 
-
 				// Next, if optoAlternation is turned off and this is an opto game, precompute the opto state for each trial
 				if (Globals.optoSide != Globals.optoOff && !Globals.optoAlternation) { // an optoSide was specified and optoAlternation is turned off
 					int[] precompOptoBlock = new int[blockSize];
@@ -957,7 +956,7 @@ public class GameControlScript : MonoBehaviour
 			// END PRECOMPUTE TRIAL ORDERS FOR BLOCKS
 
 			string gameType = Globals.GetGameType (worldIdx);
-			Debug.Log (gameType);
+			//Debug.Log (gameType);
 			//Debug.Log ("World #: " + worldIdx);
 
 			if (gameType.Equals ("detection") || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
@@ -1105,13 +1104,18 @@ public class GameControlScript : MonoBehaviour
 							}
 						}
 					}
+					SetupTreeActivation (gos, treeToActivate, 4); // it is important that this happens before the following clause as the following clause might activate more targets to test for extinction
 					if (treeToActivate != Globals.CATCH_IDX) {
+						// If is an extinction trial, show the rear target
+						if (Globals.CurrentlyExtinctionTrial()) {  
+							gos [treeToActivate+2].GetComponent<WaterTreeScript> ().Show ();  // Activate rear left or rear right tree
+							Debug.Log("in extinction trial");
+						}
 						loc = gos [treeToActivate].transform.position;
 						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					}
-					SetupTreeActivation (gos, treeToActivate, 4);
 				}
 			} else if (gameType.Equals ("det_blind")) {
 				if (gos.Length == 3) {
@@ -1454,7 +1458,9 @@ public class GameControlScript : MonoBehaviour
     private void SetupTreeActivation(GameObject[] gos, int treeToActivate, int maxTrees) {
 		for (int i = 0; i < maxTrees; i++) {
             gos[i].SetActive(true);
+			gos [i].GetComponent<WaterTreeScript> ().SetCorrect (false);
 			if (i == treeToActivate) {
+				gos [i].GetComponent<WaterTreeScript> ().SetCorrect (true);
 				List<int> hiddenIdx = Globals.GetCurrentWorld ().hiddenIdx;
 				if (hiddenIdx.Count > 0 && hiddenIdx.Contains (treeToActivate)) {
 					gos [i].GetComponent<WaterTreeScript> ().Hide ();

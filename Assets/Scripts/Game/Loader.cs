@@ -515,6 +515,13 @@ public class Loader : MonoBehaviour {
 				if (xn ["extinctFreq"] != null) {
 					float.TryParse(xn["extinctFreq"].InnerText, out Globals.extinctFreq);
 				}
+				if (xn ["correctExtinction"] != null) {
+					string xml = xn["correctExtinction"].InnerText;
+					if (xml.Equals("true"))
+						Globals.correctExtinction = true;
+					else
+						Globals.correctExtinction = false;
+				}
 
 				if (xn ["worldBlockSize"] != null) {
 					int.TryParse(xn["worldBlockSize"].InnerText, out Globals.worldBlockSize);
