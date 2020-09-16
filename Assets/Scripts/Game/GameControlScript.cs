@@ -974,6 +974,7 @@ public class GameControlScript : MonoBehaviour
 						vfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 						angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					}
+					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (true);
 				} else if (gos.Length == 2 || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
 					float catchThresh = 1 - Globals.catchFreq;
 					float rThresh0 = 0.5F;
