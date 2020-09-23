@@ -403,6 +403,10 @@ public static class Globals
 		return GetWorld (worldIdxList[worldIdxList.Count - 1]);
 	}
 
+	public static int GetCurrentWorldIdx() {
+		return worldIdxList[worldIdxList.Count - 1];
+	}
+
 	public static void SetCurrentWorldPrecompTrialBlock(int[] precompTrialBlock) {
 		World w = worlds [worldIdxList [worldIdxList.Count - 1]];
 		w.precompTrialBlock = precompTrialBlock;
@@ -1073,7 +1077,8 @@ public static class Globals
 	public static bool CurrentlyCorrectionTrial() {
 		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 &&
 			((optoSide == optoOff && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])) || 
-				(optoSide != optoOff && (optoStates[firstTurnLoc.Count - 1] == optoOff || (GetCurrentWorld().probeIdx.Count > 0 && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])))))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial			return true;
+				(optoSide != optoOff && (optoStates[firstTurnLoc.Count - 1] == optoOff || (Globals.probeWorldIdx.Count > 0 && !Globals.probeWorldIdx.Contains(Globals.GetCurrentWorldIdx())) ||
+					(GetCurrentWorld().probeIdx.Count > 0 && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])))))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial
 			return true;
 		} else { 
 			return false;

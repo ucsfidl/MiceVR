@@ -1,0 +1,89 @@
+<world>
+	<gameType>detection</gameType>
+	<hiddenIdx>1</hiddenIdx>
+	<probeIdx>0;1</probeIdx>
+	<revealZPos>20020</revealZPos>
+	<trees>
+		<t> <!-- Front Right tree -->
+			<w>1</w>
+			<pos>20024;-16;20008</pos>
+			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>2</h>
+			<d>0</d>
+			<r>2</r>
+		</t>
+		<t> <!-- Back Right tree -->
+			<w>1</w>
+			<pos>20025;-16;20035</pos>
+			<scale>2;0;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>2</h>
+			<d>0</d>
+			<r>2</r>
+		</t>
+	</trees>
+	<walls>
+		<wall> <!-- Midway left straight wall -->
+			<pos>19993;0.5;20013</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;41</scale>
+		</wall>
+		<wall> <!-- Straight right diagonal wall -->
+			<pos>20002;0.5;20038</pos>
+			<rot>0;60;0</rot>
+			<scale>2;0;19</scale>
+		</wall>
+		<wall> <!-- Right Back wall -->
+			<pos>20018;0.5;20042</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;15.1</scale>
+		</wall>		
+		<wall> <!-- Back Right closing wall -->
+			<pos>20024;0.5;20035</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;15.1</scale>
+		</wall>
+		<wall> <!-- Back Right front wall -->
+			<pos>20018;0.5;20028</pos>
+			<rot>0;-90;0</rot>
+			<scale>2;0;14</scale>
+		</wall>
+		<wall> <!-- Midway back right diagonal wall -->
+			<pos>20009;0.5;20025</pos>
+			<rot>0;30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+
+		<wall> <!-- Midway front right diagonal wall -->
+			<pos>20009;0.5;20018</pos>
+			<rot>0;-30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Right Back wall -->
+			<pos>20018;0.5;20015</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;15.1</scale>
+		</wall>
+		<wall> <!-- Right Closing wall -->
+			<pos>20024;0.5;20008</pos>
+			<rot>0;0;0</rot>
+			<scale>2;0;15.1</scale>
+		</wall>
+		<wall> <!-- Right front wall -->
+			<pos>20018;0.5;20001</pos>
+			<rot>0;270;0</rot>
+			<scale>2;0;14</scale>
+		</wall>
+		<wall> <!-- Right diagonal wall -->
+			<pos>20009;0.5;19998</pos>
+			<rot>0;30;0</rot>
+			<scale>2;0;9</scale>
+		</wall>
+		<wall> <!-- Front wall -->
+			<pos>20000;0.5;19994</pos>
+			<rot>0;90.00003;0</rot>
+			<scale>2;0;15</scale>
+		</wall>
+	</walls>
+</world>
