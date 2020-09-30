@@ -585,6 +585,11 @@ public class GameControlScript : MonoBehaviour
 			Globals.correctionTrialMarks.Add (0);
 		}
 
+		// If VR turned off, hide all world elements except for targets
+		if (Globals.staticGraphics) {
+
+		}
+
 		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo, unless it was a catch trial!
 		if (Globals.CurrentlyCorrectionTrial ()) {
 			Debug.Log ("in correction trial");

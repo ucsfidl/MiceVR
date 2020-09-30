@@ -263,6 +263,8 @@ public static class Globals
 
 	public static int numCorrectionTrialsSinceLastCorrectTrial = 0;  // To track which correction trial since the last correct trial, for displaying how long the mouse has been stuck correcting in the current bout of correction trials
 
+	public static bool staticGraphics = false;
+
 	public static int AddTreeToWorld(int worldIdx, bool water, List<Vector3> posList, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
 		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac, float opacity, Color color1, Color color2) {
 		World w = GetWorld (worldIdx);
@@ -497,6 +499,20 @@ public static class Globals
 		// Disable the terrain if targets project below ground
 		if (Globals.treesBelowGround) {
 			GameObject.FindObjectOfType<Terrain>().enabled = false; 
+		}
+
+		// If VR turned off, hide all world elements except for targets
+		if (Globals.staticGraphics) {
+			GameObject.FindObjectOfType<Terrain>().enabled = false; 
+			Camera camL = GameObject.Find ("CameraL").GetComponent<Camera> ();
+			camL.clearFlags = CameraClearFlags.SolidColor;
+			camL.backgroundColor = Color.gray;
+			Camera camC = GameObject.Find ("FirstPersonCharacter").GetComponent<Camera> ();
+			camC.clearFlags = CameraClearFlags.SolidColor;
+			camC.backgroundColor = Color.gray;
+			Camera camR = GameObject.Find ("CameraR").GetComponent<Camera> ();
+			camR.clearFlags = CameraClearFlags.SolidColor;
+			camR.backgroundColor = Color.gray;
 		}
 
 		// If adaptive tree positioning is enabled, adapt it!

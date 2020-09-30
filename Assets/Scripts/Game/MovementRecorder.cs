@@ -31,7 +31,7 @@ public class MovementRecorder : MonoBehaviour {
 		lastReward = -1;
 		cameras = new List<Camera> ();
 		cameras.Add(GameObject.Find ("CameraL").GetComponent<Camera> ());
-		cameras.Add (GameObject.Find ("FirstPersonCharacter").GetComponent<Camera> ());
+		cameras.Add(GameObject.Find ("FirstPersonCharacter").GetComponent<Camera> ());
 		cameras.Add(GameObject.Find ("CameraR").GetComponent<Camera> ());
 	}
 	

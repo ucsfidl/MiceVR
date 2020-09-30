@@ -534,6 +534,14 @@ public class Loader : MonoBehaviour {
 						worldPresoFracs.Add (tmp);
 					}
 				}
+
+				if (xn ["staticGraphics"] != null) {
+					string xml = xn["staticGraphics"].InnerText;
+					if (xml.Equals("true"))
+						Globals.staticGraphics = true;
+					else
+						Globals.staticGraphics = false;
+				}
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");
