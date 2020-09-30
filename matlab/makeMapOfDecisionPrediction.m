@@ -254,6 +254,10 @@ for currTrial = 1:numTrials
                 break;
             end
         end
+        % If no predictive frame found, set frame to be the last frame for that trial
+        if (trialFirstFrame(currTrial) == 0)
+            trialFirstFrame(currTrial) = numFrames;
+        end
     end
 end
 

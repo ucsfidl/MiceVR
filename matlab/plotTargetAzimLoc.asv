@@ -365,8 +365,8 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             end
             if (left == 1 || left == 0)
                 if (left == 1)
-                    if (maxFrame > length(targetRightBound))
-                        maxFrame = length(targetRightBound);
+                    if (trialsToDo(trialIdx) > 166)
+                        a = 0;
                     end
                     limitedRightBound = targetRightBound(1:maxFrame);
                     extreme = max(limitedRightBound(targetLeftBound(1:maxFrame) ~= limitedRightBound));
@@ -374,9 +374,6 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                     m = 'L';
                     extremeFrame = find(targetRightBound(targetLeftBound ~= targetRightBound) == extreme,1);
                 elseif (left == 0)
-                    if (maxFrame > length(targetLeftBound))
-                        maxFrame = length(targetLeftBound);
-                    end
                     limitedLeftBound = targetLeftBound(1:maxFrame);
                     extreme = min(limitedLeftBound(limitedLeftBound ~= targetRightBound(1:maxFrame)));
                     nasalExtremaR(end+1) = extreme;
