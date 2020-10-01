@@ -542,6 +542,14 @@ public class Loader : MonoBehaviour {
 					else
 						Globals.staticGraphics = false;
 				}
+
+				if (xn ["rewardAtStart"] != null) {
+					string xml = xn["rewardAtStart"].InnerText;
+					if (xml.Equals("true"))
+						Globals.rewardAtStart = true;
+					else
+						Globals.rewardAtStart = false;
+				}
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");

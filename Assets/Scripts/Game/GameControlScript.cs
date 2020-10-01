@@ -66,6 +66,8 @@ public class GameControlScript : MonoBehaviour
 
 	private GameObject bb;
 
+	private Transform playerRecordedTransform;  // This is for the new static version of the game where we record where the mouse is but do not actually move them in the virtual world
+
 	// Use this for initialization
     void Start() {
 		//Application.targetFrameRate = 60;
@@ -332,6 +334,10 @@ public class GameControlScript : MonoBehaviour
 						Globals.currOptoState = Globals.optoSide;
 					}
 				}
+				// Now, map keys used to emulate ball movements for the staticGraphics game
+			} else if (Input.GetKeyUp (KeyCode.I)) { // Advance recorded location by 1 unit
+				if (Globals.staticGraphics) 
+					Debug.Log("got Q");
 			}
         }
     }
@@ -567,6 +573,10 @@ public class GameControlScript : MonoBehaviour
 		// Is this teleportation needed? I think not.  Remove at some point.
         TeleportToBeginning();
 
+		if (Globals.staticGraphics) {  // Player won't actually be moved in the game, but their position will be recorded nonetheless
+			this.playerRecordedTransform = this.player.transform;
+		}
+
 		// Declare the important variables needed later for logging
 		int idx;
 		Vector3 loc;
@@ -584,12 +594,7 @@ public class GameControlScript : MonoBehaviour
 		} else {
 			Globals.correctionTrialMarks.Add (0);
 		}
-
-		// If VR turned off, hide all world elements except for targets
-		if (Globals.staticGraphics) {
-
-		}
-
+			
 		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo, unless it was a catch trial!
 		if (Globals.CurrentlyCorrectionTrial ()) {
 			Debug.Log ("in correction trial");
@@ -1123,6 +1128,7 @@ public class GameControlScript : MonoBehaviour
 						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					}
 				}
+				idx = treeToActivate;
 			} else if (gameType.Equals ("det_blind")) {
 				if (gos.Length == 3) {
 					if (blockSize > 0) {
@@ -1264,6 +1270,7 @@ public class GameControlScript : MonoBehaviour
 						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					}
 				}
+				idx = treeToActivate;
 			} else if (gameType.Equals ("discrimination")) {  // No concept of catch trials yet for the discrimination task
 				// Randomize orientations
 				float rThresh0 = 0.5F;
@@ -1291,6 +1298,7 @@ public class GameControlScript : MonoBehaviour
 					angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (true);
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (false);
+					idx = 0;
 				} else {
 					gos [0].GetComponent<WaterTreeScript> ().SetShader (Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, distractorAngle);
 					gos [1].GetComponent<WaterTreeScript> ().SetShader (Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle);
@@ -1300,6 +1308,7 @@ public class GameControlScript : MonoBehaviour
 					angle = gos [1].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (false);
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (true);
+					idx = 1;
 				}
 				Debug.Log ("[0, " + rThresh0 + ", 1] - " + r);
 			} else if (gameType.Equals ("match") || gameType.Equals ("nonmatch")) { // No concept of catch trials yet for this task
@@ -1338,6 +1347,7 @@ public class GameControlScript : MonoBehaviour
 						vfreq = targetHFreq;
 						angle = targetAngle;
 					}
+					idx = 0;
 				} else { // Set the right tree to match
 					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (false);
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (true);
@@ -1355,6 +1365,7 @@ public class GameControlScript : MonoBehaviour
 						vfreq = targetHFreq;
 						angle = targetAngle;
 					}
+					idx = 1;
 				}
 				Debug.Log ("[0, " + rThresh0 + ", 1] - " + rSide);
 			}
@@ -1414,7 +1425,6 @@ public class GameControlScript : MonoBehaviour
 					}
 				}
 			}
-			idx = treeToActivate;
 
 			if (treeToActivate == Globals.CATCH_IDX) { // This is a catch trial
 				Globals.numCatchTrials++;
@@ -1428,6 +1438,7 @@ public class GameControlScript : MonoBehaviour
 		}
 
 		Globals.targetIdx.Add (idx);
+		Debug.Log ("Adding target " + idx);
         Globals.targetLoc.Add(loc);
         Globals.targetHFreq.Add(hfreq);
         Globals.targetVFreq.Add(vfreq);
@@ -1561,14 +1572,16 @@ public class GameControlScript : MonoBehaviour
 			//print("lost packets: " + this.frameCounter + "/" + this.previousFrameCounter);
 			this.previousFrameCounter = this.frameCounter;
 
-			this.player.transform.Rotate(Vector3.up, Mathf.Rad2Deg * (this.last5Mouse1Y.Average()) / this.rawRotationDivider);
-            
-			Vector3 rel = this.player.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
-			//this.player.transform.position = this.player.transform.position + rel;
-			this.characterController.Move (rel);
-			this.udpSender.SendMousePos (this.player.transform.position);
-			this.udpSender.SendMouseRot (this.player.transform.rotation.eulerAngles.y);
+			if (Globals.staticGraphics) {
 
+			} else {
+				this.player.transform.Rotate (Vector3.up, Mathf.Rad2Deg * (this.last5Mouse1Y.Average ()) / this.rawRotationDivider);
+				Vector3 rel = this.player.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
+				//this.player.transform.position = this.player.transform.position + rel;
+				this.characterController.Move (rel);
+				this.udpSender.SendMousePos (this.player.transform.position);
+				this.udpSender.SendMouseRot (this.player.transform.rotation.eulerAngles.y);
+			}
 
 			// Send UDP msg out
 			//this.udpSender.SendPlayerState(this.player.transform.position, this.player.transform.rotation.eulerAngles.y, Globals.playerInWaterTree, Globals.playerInDryTree);
