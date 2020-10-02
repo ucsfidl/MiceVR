@@ -1718,7 +1718,6 @@ public class GameControlScript : MonoBehaviour
 		GameObject[] gos = Globals.GetTrees ();
 		int targetIdx = Globals.targetIdx [Globals.targetIdx.Count - 1];
 		float heading = this.virtualPlayer.transform.rotation.eulerAngles.y;
-		int virtualHit;
 		if (gameType.Equals ("detection")) {
 			if (gos.Length == 4) {
 				if (heading >= 270) {  // left turn, so top targets should be rewarded
