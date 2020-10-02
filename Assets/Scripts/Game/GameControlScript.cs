@@ -71,9 +71,10 @@ public class GameControlScript : MonoBehaviour
 	private int stillDurationBeforeTrialStart = 1;  // The mouse must be still on the ball for 1 sec before each trial starts
 	private int trialMaxDuration = 4;  // Have 2 options - have the mouse move for a certain amount of time and then check location in world to decide decision, or have them move a certain distance. For now, try certain time.  Mouse must be moving for this whole time.
 	private int numFramesMovingSinceTrialStart;  // tracks how many frames of movement the mouse has made since starting the trial
-	private float minMovementToCount = 0;  // Threshold for movement on the ball to count as a "moving" frame.  Empirically, might want to try 0.7 later...
+	private float minMovementToCount = 0.02f;  // Threshold for movement on the ball to count as a "moving" frame.  Empirically, might want to try 0.7 later...
 	private DateTime preTrialStartTime;
 	private bool inTrial = false;
+	private float lastHeading;
 
 	// Use this for initialization
     void Start() {
@@ -415,7 +416,8 @@ public class GameControlScript : MonoBehaviour
 		this.player.transform.rotation = this.startingRot;
 		this.virtualPlayer.transform.position = this.startingPos;
 		this.virtualPlayer.transform.rotation = this.startingRot;
-    }
+		this.lastHeading = this.startingRot.eulerAngles.y;
+	}
 
     /*
      * Waits until a tree config is loaded
@@ -511,16 +513,8 @@ public class GameControlScript : MonoBehaviour
         }
 
 		TimeSpan te = DateTime.Now.Subtract(lastTrialStartDateTime);
-		if (te.TotalMilliseconds >= visiblePauseAtTrialStart * 1000) {
+		if (Globals.staticGraphics || (!Globals.staticGraphics && te.TotalMilliseconds >= visiblePauseAtTrialStart * 1000)) {
 			MovePlayer ();
-		} else if (Globals.staticGraphics) {
-			if (this.inTrial) {
-				if (te.TotalMilliseconds >= trialMaxDuration * 1000) {
-
-				}
-			} else {
-				MovePlayer ();
-			}
 		}
 
 		if (this.udpSender.CheckReward ()) {
@@ -1652,35 +1646,40 @@ public class GameControlScript : MonoBehaviour
 					this.last5Mouse2Y.Enqueue (this.last5Mouse2Y.Average ());
 				}
 
-				Debug.Log (Mathf.Rad2Deg * Globals.sphereInput.mouse1Y / this.rawRotationDivider);
-				Debug.Log (Globals.sphereInput.mouse1X / (this.rawSpeedDivider / Globals.speedAdjustment));
+				//Debug.Log (Mathf.Rad2Deg * Globals.sphereInput.mouse1Y / this.rawRotationDivider);
+				//Debug.Log (Globals.sphereInput.mouse1X / (this.rawSpeedDivider / Globals.speedAdjustment));
 			}
 		
-			// transform sphere data into unity movement
-			//if (this.frameCounter - this.previousFrameCounter > 1)
-			//print("lost packets: " + this.frameCounter + "/" + this.previousFrameCounter);
 			this.previousFrameCounter = this.frameCounter;
 
-			Vector3 translation = this.player.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
-			if (Globals.staticGraphics && translation.magnitude >= this.minMovementToCount) {
-				if (this.inTrial) {
-					this.virtualPlayer.transform.position += translation;
-					this.virtualPlayer.transform.Rotate (Vector3.up, Mathf.Rad2Deg * (this.last5Mouse1Y.Average ()) / this.rawRotationDivider);
-					// Limit the amount of rotation to [-90, 90] so that if the mouse spins on the ball endlessly it doesn't actually spin in the virtual position
-					if (this.virtualPlayer.transform.rotation.eulerAngles.y < 270) {
-						this.virtualPlayer.transform.rotation = Quaternion.Euler (this.virtualPlayer.transform.rotation.eulerAngles.x, 270, this.virtualPlayer.transform.rotation.eulerAngles.z);
-					} else if (this.virtualPlayer.transform.rotation.eulerAngles.y > 90) {
-						this.virtualPlayer.transform.rotation = Quaternion.Euler (this.virtualPlayer.transform.rotation.eulerAngles.x, 90, this.virtualPlayer.transform.rotation.eulerAngles.z);
+			if (Globals.staticGraphics) {
+				Vector3 translation = this.player.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
+				//Debug.Log ("Translation magnitude = " + translation.magnitude);
+				if (translation.magnitude >= this.minMovementToCount) {
+					if (this.inTrial) {
+						this.virtualPlayer.transform.position += translation;
+						this.virtualPlayer.transform.Rotate (Vector3.up, Mathf.Rad2Deg * (this.last5Mouse1Y.Average ()) / this.rawRotationDivider);
+						// Limit the amount of rotation to [-90, 90] so that if the mouse spins on the ball endlessly it doesn't actually spin in the virtual position
+						float heading = this.virtualPlayer.transform.rotation.eulerAngles.y;
+						if (heading < 270 && heading > 90) {
+							if (Math.Abs (this.lastHeading - 270) < Math.Abs (this.lastHeading - 90)) {
+								this.virtualPlayer.transform.rotation = Quaternion.Euler (this.virtualPlayer.transform.rotation.eulerAngles.x, 270, this.virtualPlayer.transform.rotation.eulerAngles.z);
+							} else {
+								this.virtualPlayer.transform.rotation = Quaternion.Euler (this.virtualPlayer.transform.rotation.eulerAngles.x, 90, this.virtualPlayer.transform.rotation.eulerAngles.z);
+							}
+						}
+						this.lastHeading = heading;
+						Debug.Log (this.virtualPlayer.transform.position + "; " + this.virtualPlayer.transform.rotation.eulerAngles.y);
+						this.numFramesMovingSinceTrialStart += 1;  // Add this frame as counted to making the decision
+						if (this.numFramesMovingSinceTrialStart >= this.trialMaxDuration * 1.0f / Time.deltaTime) {  // Full time for movement is done!  Let's decide whether to reward or not.
+							DetermineMouseDecision ();
+						}
+					} else {  // If moving but not in trial, reset pretrial counter
+						preTrialStartTime = DateTime.Now;  // record time so we can render the stimuli when the mouse is not moving for 1 second
 					}
-					Debug.Log (this.virtualPlayer.transform.position + "; " + this.virtualPlayer.transform.rotation.eulerAngles.y);
-					this.numFramesMovingSinceTrialStart += 1;  // Add this frame as counted to making the decision
-					if (this.numFramesMovingSinceTrialStart >= this.trialMaxDuration * 1.0f / Time.deltaTime) {  // Full time for movement is done!  Let's decide whether to reward or not.
-						DetermineMouseDecision ();
-					}
-				} else {  // If moving but not in trial, reset pretrial counter
-					preTrialStartTime = DateTime.Now;  // record time so we can render the stimuli when the mouse is not moving for 1 second
 				}
 			} else {
+				Vector3 translation = this.player.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
 				this.characterController.Move (translation);
 				this.player.transform.Rotate (Vector3.up, Mathf.Rad2Deg * (this.last5Mouse1Y.Average ()) / this.rawRotationDivider);
 				// I don't think the below is used for anything
