@@ -501,21 +501,7 @@ public static class Globals
 		if (Globals.treesBelowGround) {
 			GameObject.FindObjectOfType<Terrain>().enabled = false; 
 		}
-
-		// If VR turned off, hide all world elements except for targets
-		if (Globals.staticGraphics) {
-			GameObject.FindObjectOfType<Terrain>().enabled = false; 
-			Camera camL = GameObject.Find ("CameraL").GetComponent<Camera> ();
-			camL.clearFlags = CameraClearFlags.SolidColor;
-			camL.backgroundColor = Color.gray;
-			Camera camC = GameObject.Find ("FirstPersonCharacter").GetComponent<Camera> ();
-			camC.clearFlags = CameraClearFlags.SolidColor;
-			camC.backgroundColor = Color.gray;
-			Camera camR = GameObject.Find ("CameraR").GetComponent<Camera> ();
-			camR.clearFlags = CameraClearFlags.SolidColor;
-			camR.backgroundColor = Color.gray;
-		}
-
+			
 		// If adaptive tree positioning is enabled, adapt it!
 		int tPosIdx = 0;
 		if (Globals.adaptPos) {
@@ -739,6 +725,20 @@ public static class Globals
 			go.GetComponent<MeshRenderer> ().material.color = c;
 			Debug.Log (go.GetComponent<MeshRenderer> ().material.color.a);
 			*/
+		}
+
+		// If VR turned off, hide all terrain and sky and targets (until the mandatory wait time is up)
+		if (Globals.staticGraphics) {
+			GameObject.FindObjectOfType<Terrain>().enabled = false; 
+			Camera camL = GameObject.Find ("CameraL").GetComponent<Camera> ();
+			camL.clearFlags = CameraClearFlags.SolidColor;
+			camL.backgroundColor = Color.gray;
+			Camera camC = GameObject.Find ("FirstPersonCharacter").GetComponent<Camera> ();
+			camC.clearFlags = CameraClearFlags.SolidColor;
+			camC.backgroundColor = Color.gray;
+			Camera camR = GameObject.Find ("CameraR").GetComponent<Camera> ();
+			camR.clearFlags = CameraClearFlags.SolidColor;
+			camR.backgroundColor = Color.gray;
 		}
 
 		return worldIdx;

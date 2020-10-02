@@ -148,7 +148,7 @@ public class WaterTreeScript : MonoBehaviour {
                     // (2) Actually give or withold reward, depending on the gametype!
 					string gameType = Globals.GetGameType (Globals.worldIdxList[Globals.worldIdxList.Count - 1]);
 					if (gameType.Equals ("detection") || gameType.Equals ("det_target")) {
-						if (respawn) {
+						if (this.respawn) {
 							if (correctTree) {
 								GiveReward (rewardDur, true, true);
 							} else {
@@ -181,14 +181,14 @@ public class WaterTreeScript : MonoBehaviour {
 						else
 							WitholdReward ();                        
 					} else if (gameType.Equals ("disc_target")) {
-						if (respawn) {
+						if (this.respawn) {
 							if (correctTree)
 								GiveReward (rewardDur, true, true);
 							else
 								WitholdReward ();
 						}
 					} else if (gameType.Equals("match") || gameType.Equals("nonmatch")) { // There are three trees - a central initial tree, and 1 on left and 1 on right
-						if (!respawn) { // This is the starting central tree
+						if (!this.respawn) { // This is the starting central tree
 							GiveReward(rewardDur, false, false);
                         } else if (correctTree) {
 							GiveReward(rewardDur, true, true);
@@ -203,7 +203,7 @@ public class WaterTreeScript : MonoBehaviour {
 		}
     }
 
-	private void GiveReward(int rewardDur, bool addToTurns, bool trueCorrect) {
+	public void GiveReward(int rewardDur, bool addToTurns, bool trueCorrect) {
 		// If probabilistic reward, give appropriately, depending on history of reward! (not just simple random number compared to target as before)
 		float r = UnityEngine.Random.value;
 		int interTrialInterval;
@@ -273,7 +273,7 @@ public class WaterTreeScript : MonoBehaviour {
 		Globals.lastTrialWasIncorrect = 0;
 		Globals.numCorrectionTrialsSinceLastCorrectTrial = 0;  // Reset for next bout of corrections
 
-        if (respawn) {
+        if (this.respawn) {
 			// Important that extinction trial test be done before numNonCorrectionTrials is incremented
 			if (Globals.CurrentlyExtinctionTrial ()) {
 				Globals.numExtinctionTrials++;
@@ -294,7 +294,7 @@ public class WaterTreeScript : MonoBehaviour {
 	}
 
 	// WithholdReward() is called only on incorrect trials, not correct trials where reward was witheld
-    private void WitholdReward() {
+    public void WitholdReward() {
 		Globals.IncrementTurnToStimIdx (this.idx);
 		Color c = Color.white;
 		int interTrialInterval = incorrectTurnDelay;
@@ -319,7 +319,7 @@ public class WaterTreeScript : MonoBehaviour {
 		Globals.firstTurnAngle.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderRotation());
         Globals.sizeOfRewardGiven.Add(0);
 
-        if (respawn) {
+        if (this.respawn) {
 			// Important that extinction trial test be done before numNonCorrectionTrials is incremented
 			if (Globals.CurrentlyExtinctionTrial ()) {
 				Globals.numExtinctionTrials++;
