@@ -1653,7 +1653,7 @@ public class GameControlScript : MonoBehaviour
 			this.previousFrameCounter = this.frameCounter;
 
 			if (Globals.staticGraphics) {
-				Vector3 translation = this.player.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
+				Vector3 translation = this.virtualPlayer.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
 				//Debug.Log ("Translation magnitude = " + translation.magnitude);
 				if (translation.magnitude >= this.minMovementToCount) {
 					if (this.inTrial) {
