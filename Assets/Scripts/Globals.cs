@@ -137,7 +137,7 @@ public static class Globals
 	public static float speedAdjustment = 1;  // Used to adjust speed on a per scenario basis instead of a per-rig basis, so I can have multiple speed mice running at the same time
 
 	public static bool correctionTrialsEnabled = true;  // As of 1/19/19, correction trials are on by default, just like bias correction
-	public static int lastTrialWasIncorrect = 0;  // Indicates that the current trial will be a correction trial, if correction trials are enabled
+	public static bool lastTrialWasIncorrect = false;  // Indicates that the current trial will be a correction trial, if correction trials are enabled
 	public static List<int> correctionTrialMarks = new List<int>();  // For each trial, holds a bool which tracks whether that trial was a correction trial or not
 	public static List<int> extinctionTrialMarks = new List<int>();  // For each trial, holds a bool which tracks whether that trial was a trial to test for unilateral extinction or not
 
@@ -1096,7 +1096,7 @@ public static class Globals
 
 	// Only enter a correction trial if correction is enabled and last trial was incorrect AND last trial was not the location of the probes AND last trial was not a catch trial
 	public static bool CurrentlyCorrectionTrial() {
-		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 &&
+		if (correctionTrialsEnabled && lastTrialWasIncorrect &&
 			((optoSide == optoOff && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])) || 
 				(optoSide != optoOff && (optoStates[firstTurnLoc.Count - 1] == optoOff || (Globals.probeWorldIdx.Count > 0 && !Globals.probeWorldIdx.Contains(Globals.GetCurrentWorldIdx())) ||
 					(GetCurrentWorld().probeIdx.Count > 0 && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])))))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial

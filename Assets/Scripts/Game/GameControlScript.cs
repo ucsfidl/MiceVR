@@ -632,7 +632,7 @@ public class GameControlScript : MonoBehaviour
 		}
         this.debugControlScript.enabled = false;
 
-		if (!Globals.persistTargetPostCorrectAction) {
+		if (Globals.lastTrialWasIncorrect || !Globals.persistTargetPostCorrectAction) {
 			this.fadeToBlack.gameObject.SetActive (true);
 			this.fadeToBlack.color = c;
 		}

@@ -265,7 +265,7 @@ public class WaterTreeScript : MonoBehaviour {
 	        }
 
 		// Must come after in-memory log is updated above
-		Globals.lastTrialWasIncorrect = 0;
+		Globals.lastTrialWasIncorrect = false;
 		Globals.numCorrectionTrialsSinceLastCorrectTrial = 0;  // Reset for next bout of corrections
 
         if (this.respawn) {
@@ -302,9 +302,9 @@ public class WaterTreeScript : MonoBehaviour {
 
 		// Don't do correction trials on catch and extinction trials, but allow corrections on extinction trials if 4-choice and still training mice
 		if (Globals.CurrentlyCatchTrial() || (Globals.CurrentlyExtinctionTrial() && Globals.correctExtinction == false)) {
-			Globals.lastTrialWasIncorrect = 0;
+			Globals.lastTrialWasIncorrect = false;
 		} else {
-			Globals.lastTrialWasIncorrect = 1;
+			Globals.lastTrialWasIncorrect = true;
 		}
         Globals.hasNotTurned = false;
 		Globals.firstTurnIdx.Add(this.idx);
