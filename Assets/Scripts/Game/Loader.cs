@@ -558,6 +558,15 @@ public class Loader : MonoBehaviour {
 					else
 						Globals.persistTargetPostCorrectAction = false;
 				}
+
+				if (xn["correctTurnDelay"] != null) {
+					float.TryParse(xn["correctTurnDelay"].InnerText, out Globals.correctTurnDelay);
+				}
+				if (xn["incorrectTurnDelay"] != null) {
+					float.TryParse(xn["incorrectTurnDelay"].InnerText, out Globals.incorrectTurnDelay);
+				}
+
+			
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");

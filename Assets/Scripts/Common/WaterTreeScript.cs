@@ -23,9 +23,6 @@ public class WaterTreeScript : MonoBehaviour {
 
     public bool texture, gradient, angular;
 
-	private int incorrectTurnDelay = 4;  // sec
-	private int correctTurnDelay = 2;  // sec
-
     private int rewardDur;  // amount of reward to dispense for this tree, in ms
     private bool respawn;
     private bool correctTree;
@@ -204,7 +201,7 @@ public class WaterTreeScript : MonoBehaviour {
 	public void GiveReward(int rewardDur, bool addToTurns, bool trueCorrect) {
 		// If probabilistic reward, give appropriately, depending on history of reward! (not just simple random number compared to target as before)
 		float r = UnityEngine.Random.value;
-		int interTrialInterval;
+		float interTrialInterval;
 		Color c;
 		float adjRewardThreshold = Globals.probReward;
 
@@ -228,7 +225,7 @@ public class WaterTreeScript : MonoBehaviour {
 			this.mouseObject = GameObject.FindGameObjectWithTag("MainCamera");
 			this.mouseObject.GetComponent<AudioSource>().Play();
 
-			interTrialInterval = correctTurnDelay;
+			interTrialInterval = Globals.correctTurnDelay;
 			c = Color.black;
 
 			// If correction trials are enabled and probabilistic reward is enabled, correction trials DO NOT count toward probabilistic reward counts
@@ -238,10 +235,10 @@ public class WaterTreeScript : MonoBehaviour {
 		} else {
 			Globals.sizeOfRewardGiven.Add(0);
 			if (Globals.probabilisticWhiteNoiseWhenNoReward) {
-				interTrialInterval = incorrectTurnDelay;
+				interTrialInterval = Globals.incorrectTurnDelay;
 				c = Color.white;
 			} else {
-				interTrialInterval = correctTurnDelay;
+				interTrialInterval = Globals.correctTurnDelay;
 				c = Color.black;
 			}
 		}
@@ -295,12 +292,12 @@ public class WaterTreeScript : MonoBehaviour {
     public void WitholdReward() {
 		Globals.IncrementTurnToStimIdx (this.idx);
 		Color c = Color.white;
-		int interTrialInterval = incorrectTurnDelay;
+		float interTrialInterval = Globals.incorrectTurnDelay;
 
 		// If probabilistic rewards given, make the visual cue and trial delay of an error the same as a correct trial, to discourage learning during testing.
 		if (Globals.probReward < 1 && !Globals.probabilisticWhiteNoiseWhenNoReward) {
 			c = Color.black;
-			interTrialInterval = correctTurnDelay;
+			interTrialInterval = Globals.correctTurnDelay;
 		}
 
 		// Don't do correction trials on catch and extinction trials, but allow corrections on extinction trials if 4-choice and still training mice

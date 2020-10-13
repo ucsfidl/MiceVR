@@ -48,7 +48,7 @@ public static class Globals
     public static int numCorrectTurns;
 	public static bool hiddenShown = false;
 
-	public static int trialDelay;
+	public static float trialDelay;
 
 	public static float centralViewVisibleShift; // Set in gameconfig file
 
@@ -266,6 +266,9 @@ public static class Globals
 	public static bool staticGraphics = false;
 	public static bool rewardAtStart = false; // Used in static game to give a drop of reward when the mouse stops spinning the ball to initiate a trial
 	public static bool persistTargetPostCorrectAction = false;  // Used to keep the target visible after the mouse has made a correct decision, instead of displaying a black screen
+
+	public static float incorrectTurnDelay = 4;  // sec - can be modified by the game scenario file
+	public static float correctTurnDelay = 2;  // sec
 
 	public static int AddTreeToWorld(int worldIdx, bool water, List<Vector3> posList, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
 		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac, float opacity, Color color1, Color color2) {
