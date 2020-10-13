@@ -550,6 +550,14 @@ public class Loader : MonoBehaviour {
 					else
 						Globals.rewardAtStart = false;
 				}
+
+				if (xn ["persistTargetPostCorrectAction"] != null) {
+					string xml = xn["persistTargetPostCorrectAction"].InnerText;
+					if (xml.Equals("true"))
+						Globals.persistTargetPostCorrectAction = true;
+					else
+						Globals.persistTargetPostCorrectAction = false;
+				}
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");

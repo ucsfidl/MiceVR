@@ -39,14 +39,12 @@ public class WaterTreeScript : MonoBehaviour {
 	private int idx;
 
 	// Use this for initialization
-	void Start ()
-    {
+	void Start () {
         this.depleted = false;
         this.rewardLevel = 1;
 	}
 
-    public void Init()
-    {
+    public void Init() {
         Shader unlitTex = Shader.Find("Unlit/Texture");
         Shader gradientTex = Shader.Find("Custom/Gradient");
         

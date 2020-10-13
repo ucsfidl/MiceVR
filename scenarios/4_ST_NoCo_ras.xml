@@ -13,6 +13,7 @@
 			<correctionTrials>false</correctionTrials>
 			<staticGraphics>true</staticGraphics>
 			<rewardAtStart>true</rewardAtStart>
+			<persistTargetPostCorrectAction>true</persistTargetPostCorrectAction>
 		</gameConfig>
 	</config>
 	<worlds>

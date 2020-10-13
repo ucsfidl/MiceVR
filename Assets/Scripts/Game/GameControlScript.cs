@@ -632,8 +632,10 @@ public class GameControlScript : MonoBehaviour
 		}
         this.debugControlScript.enabled = false;
 
-		this.fadeToBlack.gameObject.SetActive(true);
-		this.fadeToBlack.color = c;
+		if (!Globals.persistTargetPostCorrectAction) {
+			this.fadeToBlack.gameObject.SetActive (true);
+			this.fadeToBlack.color = c;
+		}
 		this.state = "Paused";
 
 		this.pauseStartTime = DateTime.Now;
