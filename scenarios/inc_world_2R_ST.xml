@@ -1,0 +1,25 @@
+<world> <!-- 4-choice -->
+	<gameType>detection</gameType>          
+	<trees>
+		<t> <!-- Right front tree -->
+			<w>1</w>
+			<pos>20080;-90;20045</pos>
+			<rot>0;60;0</rot>
+			<scale>3.2;2.4;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>3.25</h>
+			<d>0</d>
+			<type>flat</type>
+		</t>
+		<t> <!-- Right back tree -->
+			<w>1</w>
+			<pos>20080;0;20045</pos>
+			<rot>0;60;0</rot>
+			<scale>3.2;2.4;0</scale> <!-- added to existing scale values, which are 1,1,1 -->
+			<v>4</v>
+			<h>3.25</h>
+			<d>0</d>
+			<type>flat</type>
+		</t>
+	</trees>
+</world>

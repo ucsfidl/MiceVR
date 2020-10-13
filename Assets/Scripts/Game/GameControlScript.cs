@@ -1046,7 +1046,7 @@ public class GameControlScript : MonoBehaviour
 			// END PRECOMPUTE TRIAL ORDERS FOR BLOCKS
 
 			string gameType = Globals.GetGameType (worldIdx);
-			//Debug.Log (gameType);
+			Debug.Log (gameType);
 			//Debug.Log ("World #: " + worldIdx);
 
 			if (gameType.Equals ("detection") || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
@@ -1542,13 +1542,13 @@ public class GameControlScript : MonoBehaviour
 		Globals.hasNotTurned = true;
 		Globals.hiddenShown = false;  // Flag to keep track of whether the hidden target have been shown on this trial
 
-		if (!Globals.staticGraphics) {  // If VR, record timestamps now.  If staticGame, record them later when the mouse is actually still for 1 second
-			Globals.trialStartTime.Add (DateTime.Now);
-			lastTrialStartDateTime = DateTime.Now;
-		} else {
+		if (Globals.staticGraphics) {  // If VR, record timestamps now.  If staticGame, record them later when the mouse is actually still for 1 second
 			preTrialStartTime = DateTime.Now;  // record time so we can render the stimuli when the mouse is not moving for 1 second
 			SetupTreeActivation(Globals.GetTrees(), -1, Globals.GetTrees().Length);
 			Debug.Log ("inactivate all trees");
+		} else {
+			Globals.trialStartTime.Add (DateTime.Now);
+			lastTrialStartDateTime = DateTime.Now;
 		}
 
 		// Update again after the pause, as the world might have changed between trials
@@ -1697,6 +1697,10 @@ public class GameControlScript : MonoBehaviour
 			if (Globals.staticGraphics && !this.inTrial) {
 				TimeSpan ts = DateTime.Now.Subtract (preTrialStartTime);
 				if (ts.TotalMilliseconds >= stillDurationBeforeTrialStart * 1000) {
+					int worldIdx = Globals.worldIdxList [Globals.worldIdxList.Count - 1];
+					string gameType = Globals.GetGameType (worldIdx);
+					GameObject[] gos = Globals.GetTrees ();
+
 					if (Globals.rewardAtStart) {
 						this.udpSender.SendWaterReward (Globals.rewardDur);
 						Globals.numberOfUnearnedRewards++;
@@ -1704,7 +1708,14 @@ public class GameControlScript : MonoBehaviour
 						updateRewardAmountText ();
 						Debug.Log ("gave reward = " + Globals.rewardAmountSoFar);
 					}
-					SetupTreeActivation (Globals.GetTrees (), Globals.targetIdx [Globals.targetIdx.Count - 1], Globals.GetTrees ().Length);
+
+					SetupTreeActivation (gos, Globals.targetIdx [Globals.targetIdx.Count - 1], gos.Length);
+					if (gameType.Equals("det_blind")) {
+						if (!Globals.CurrentlyExtinctionTrial()) {  
+							gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree
+						}
+					}
+
 					Globals.trialStartTime.Add (DateTime.Now);
 					lastTrialStartDateTime = DateTime.Now;
 					this.inTrial = true;
@@ -1722,7 +1733,27 @@ public class GameControlScript : MonoBehaviour
 		int targetIdx = Globals.targetIdx [Globals.targetIdx.Count - 1];
 		float heading = this.virtualPlayer.transform.rotation.eulerAngles.y;
 		if (gameType.Equals ("detection")) {
-			if (gos.Length == 4) {
+			if (gos.Length == 1) {
+				if (heading >= 330 || heading <= 90) {
+					gos [0].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
+				} else {
+					gos [0].GetComponent<WaterTreeScript> ().WitholdReward ();
+				}
+			} else if (gos.Length == 2) {
+				if (heading >= 270) {  // left turn, so top targets should be rewarded
+					if (targetIdx == 1) {
+						gos [targetIdx].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
+					} else {	// gos idx here could be 2 or 3.  I just picked one.
+						gos [1].GetComponent<WaterTreeScript> ().WitholdReward ();
+					}
+				} else {  // right turn, so bottom targets should be rewarded
+					if (targetIdx == 0 ) {
+						gos [targetIdx].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
+					} else {	// gos idx here could be 0 or 1.  I just picked one.
+						gos [0].GetComponent<WaterTreeScript> ().WitholdReward ();
+					}
+				}
+			} else if (gos.Length == 4) {
 				if (heading >= 270) {  // left turn, so top targets should be rewarded
 					if (targetIdx == 2 || targetIdx == 3) {
 						gos [targetIdx].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
