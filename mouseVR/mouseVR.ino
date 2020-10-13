@@ -108,6 +108,8 @@ void recvWithEndMarker() {
 
 void takeAction() {
   if (newData == true) {
+    //Serial.println("got new data");
+    newData = false;
     int data = atoi(receivedChars);
     if ( data == 0 ) {  // sync msg - inherited, not sure what this was used for but it is not currently used
       //Serial.println("Ard:Synced!");

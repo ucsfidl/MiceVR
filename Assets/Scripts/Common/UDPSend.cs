@@ -169,7 +169,8 @@ public class UDPSend : MonoBehaviour
 				this.usbWriter.Open();
 
 			this.usbWriter.Write(msg.ToString() + msgTerminator);
-			//Debug.Log(msg.ToString());
+			if (msg > 0)
+				Debug.Log(msg.ToString());
 		} catch (Exception err) {
 			//Debug.Log(err.ToString());  // fills up debug log when no cameras connected
 		}

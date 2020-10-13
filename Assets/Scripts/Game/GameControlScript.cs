@@ -1674,6 +1674,7 @@ public class GameControlScript : MonoBehaviour
 						if (this.numFramesMovingSinceTrialStart >= this.trialMaxDuration * 1.0f / Time.deltaTime) {  // Full time for movement is done!  Let's decide whether to reward or not.
 							DetermineMouseDecision ();
 						}
+						Debug.Log ("NumFramesMovingSinceTrialStart = " + this.numFramesMovingSinceTrialStart);
 					} else {  // If moving but not in trial, reset pretrial counter
 						preTrialStartTime = DateTime.Now;  // record time so we can render the stimuli when the mouse is not moving for 1 second
 					}
