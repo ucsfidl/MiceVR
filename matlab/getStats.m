@@ -1,14 +1,15 @@
 function getStats(loc, mouseName, days, sessions, sightRate, includeCorrectionTrials, analyzeCensored)
-% This function will analyze the relevant actions.txt log files and return
-% a set of statistics useful to analyzing blindness and blindsight, as well
-% as a 2AFC stimulus discrimination task.
+% This function will analyze the relevant actions.txt log files and return a set of statistics useful to analyzing 
+% blindness and blindsight, as well as a 2AFC stimulus discrimination task.
 %
 % It supports 2-choice levels, 3-choice levels, 4-choice levels, and mixed levels for blindness/blindsight.  The
 % world-type is determined by the filename, though in the future it should be embedded in the trial record itself.
 %
-% It also supports 2 alternative forced choice (2AFC) for visual discrimination. It calculates accuracy as well as d' for these experiments. 
+% It also supports 2 alternative forced choice (2AFC) for visual discrimination. It calculates accuracy as well as d' 
+% for these experiments. 
 %
-% It also supports a separate category of catch trials, looking for the catch entry for a trial to be true, or -1,-1,-1 stim location.
+% It also supports a separate category of catch trials, looking for the catch entry for a trial to be true, 
+% or -1,-1,-1 stim location.
 %
 % sightRate is a rate from 0 to 1 for how often the mouse was sighted on 3-choice, to calculate chance rates on 4-choice
 
@@ -47,11 +48,16 @@ worldTypesStr = {};
 % Templates used below
 results_2choice = zeros(2,2,4);
 results_2choice_catch = zeros(2,1,4);  % No target presented in these results for "catch" trials
+durations_2choice = cell(2,2,4);
+
 results_3choice = zeros(3,3,4);
 results_3choice_catch = zeros(3,1,4);
 results_3choice_extinction = zeros(3,3,4);
+durations_3choice = cell(3,3,4);
+
 results_4choice = zeros(4,4,4);
 results_4choice_catch = zeros(4,1,4);
+durations_4choice = cell(4,4,4);
 
 % Haven't tested in a while - might not work any more
 results_disc = zeros(2,2,4);
@@ -112,17 +118,20 @@ for i=1:length(fileList)
                                worldResults{w_i} = cell(2,1);
                                worldResults{w_i}{1} = results_2choice;
                                worldResults{w_i}{2} = results_2choice_catch;
+                               worldResults{w_i}{3} = durations_2choice;
                             elseif (worldTypes(w_i) == 3)
-                               worldResults{w_i} = cell(3,1);
+                               worldResults{w_i} = cell(4,1);
                                worldResults{w_i}{1} = results_3choice;
                                worldResults{w_i}{2} = results_3choice_catch;
                                worldResults{w_i}{3} = results_3choice_extinction;
+                               worldResults{w_i}{4} = durations_3choice;
                             elseif (worldTypes(w_i) == 4)
                                worldResults{w_i} = cell(2,1);
                                worldResults{w_i}{1} = results_4choice;
                                worldResults{w_i}{2} = results_4choice_catch;
+                               worldResults{w_i}{3} = durations_4choice;
                             else
-                                error('Script currently supports worlds with 2-4 choices, no more.');
+                               error('Script currently supports worlds with 2-4 choices, no more.');
                             end
                         end
                     end
@@ -135,6 +144,7 @@ for i=1:length(fileList)
                         optoLoc = getOptoLoc(trialRecs, trialIdx);
                         worldIdx = getWorldIdx(trialRecs, trialIdx);
                         isCorrectionTrial = getCorrection(trialRecs, trialIdx);
+                        dur = getDuration(trialRecs, trialIdx);  % returns in seconds
                         
                         if (isCorrectionTrial && ~includeCorrectionTrials)
                             continue;
@@ -202,6 +212,8 @@ for i=1:length(fileList)
                             if (~currCatch)
                                 worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) = ...
                                     worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) + 1;
+                                worldResults{worldIdx+1}{3}{row, col, optoLoc + 2} = ...
+                                    [worldResults{worldIdx+1}{3}{row, col, optoLoc + 2} dur];
                             else
                                 worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) = ...
                                     worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) + 1;
@@ -252,6 +264,8 @@ for i=1:length(fileList)
                             else
                                 worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) = ...
                                     worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) + 1;
+                                worldResults{worldIdx+1}{4}{row, col, optoLoc + 2} = ...
+                                    [worldResults{worldIdx+1}{4}{row, col, optoLoc + 2} dur];
                             end
                             
                         elseif (worldTypes(worldIdx+1) == 4)
@@ -297,6 +311,8 @@ for i=1:length(fileList)
                             if (~currCatch)
                                 worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) = ...
                                     worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) + 1;
+                                worldResults{worldIdx+1}{3}{row, col, optoLoc + 2} = ...
+                                    [worldResults{worldIdx+1}{3}{row, col, optoLoc + 2} dur];
                             else
                                 worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) = ...
                                     worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) + 1;
