@@ -30,8 +30,8 @@ public class GameControlScript : MonoBehaviour
     public UDPSend udpSender;
     public MovementRecorder movementRecorder;
 
-	private float rawSpeedDivider;  // Normally 60f; previously 200f
-	private float rawRotationDivider;  // Normally 500f; previously -4000f
+	private float rawSpeedDivider;
+	private float rawRotationDivider;
     private int respawnAmplitude = 2000;
     private int runNumber;
     private float runTime;
@@ -66,6 +66,16 @@ public class GameControlScript : MonoBehaviour
 
 	private GameObject bb;
 
+	// Static graphics game variables
+	private GameObject virtualPlayer;  // This is for the new static version of the game where we record where the mouse is but do not actually move them in the virtual world
+	private int stillDurationBeforeTrialStart = 1;  // The mouse must be still on the ball for 1 sec before each trial starts
+	private int trialMaxDuration = 4;  // Have 2 options - have the mouse move for a certain amount of time and then check location in world to decide decision, or have them move a certain distance. For now, try certain time.  Mouse must be moving for this whole time.
+	private int numFramesMovingSinceTrialStart;  // tracks how many frames of movement the mouse has made since starting the trial
+	private float minMovementToCount = 0.02f;  // Threshold for movement on the ball to count as a "moving" frame.  Empirically, might want to try 0.7 later...
+	private DateTime preTrialStartTime;
+	private bool inTrial = false;
+	private float lastHeading;
+
 	// Use this for initialization
     void Start() {
 		//Application.targetFrameRate = 60;
@@ -94,6 +104,8 @@ public class GameControlScript : MonoBehaviour
 
 		// Will this fix the issue where rarely colliding with a wall causes mouse to fly above the wall?  No.
 		this.characterController.enableOverlapRecovery = false;  
+
+		this.virtualPlayer = new GameObject ();
 
 		/*
 		GameObject ifld = GameObject.Find ("ScenarioInput");
@@ -332,14 +344,80 @@ public class GameControlScript : MonoBehaviour
 						Globals.currOptoState = Globals.optoSide;
 					}
 				}
+				// Now, map keys used to emulate ball movements for the staticGraphics game
+			} else if (Input.GetKey (KeyCode.I)) { // Advance recorded location by 1 unit
+				if (Globals.staticGraphics) {
+					if (this.inTrial) {
+						Vector3 translation = this.virtualPlayer.transform.forward * 1;
+						this.virtualPlayer.transform.position += translation;
+						this.numFramesMovingSinceTrialStart += 1;
+						if (this.numFramesMovingSinceTrialStart >= this.trialMaxDuration * 1.0f / Time.deltaTime) {  // Full time for movement is done!  Let's decide whether to reward or not.
+							DetermineMouseDecision ();
+						}
+						Debug.Log ("Virtual mouse at " + this.virtualPlayer.transform.position.x + ',' + this.virtualPlayer.transform.position.z + " facing " + this.virtualPlayer.transform.rotation.eulerAngles.y);
+					} else {
+						preTrialStartTime = DateTime.Now;  // record time so we can render the stimuli when the mouse is not moving for 1 second
+					}
+				}
+			} else if (Input.GetKey (KeyCode.K)) {
+				if (Globals.staticGraphics) {
+					if (this.inTrial) {
+						Vector3 translation = this.virtualPlayer.transform.forward * -1;
+						this.virtualPlayer.transform.position += translation;
+						this.numFramesMovingSinceTrialStart += 1;
+						if (this.numFramesMovingSinceTrialStart >= this.trialMaxDuration * 1.0f / Time.deltaTime) {  // Full time for movement is done!  Let's decide whether to reward or not.
+							DetermineMouseDecision();
+						}
+						Debug.Log ("Virtual mouse at " + this.virtualPlayer.transform.position.x + ',' + this.virtualPlayer.transform.position.z + " facing " + this.virtualPlayer.transform.rotation.eulerAngles.y);
+					} else {
+						preTrialStartTime = DateTime.Now;  // record time so we can render the stimuli when the mouse is not moving for 1 second
+					}
+				}
+			} else if (Input.GetKey (KeyCode.J)) {
+				if (Globals.staticGraphics) {
+					if (this.inTrial) {
+						this.virtualPlayer.transform.Rotate (Vector3.up, -1);
+						float heading = this.virtualPlayer.transform.rotation.eulerAngles.y;
+						if (heading < 270 && heading > 90) {
+							this.virtualPlayer.transform.rotation = Quaternion.Euler(this.virtualPlayer.transform.rotation.eulerAngles.x, 270, this.virtualPlayer.transform.rotation.eulerAngles.z);
+						}
+						this.numFramesMovingSinceTrialStart += 1;
+						if (this.numFramesMovingSinceTrialStart >= this.trialMaxDuration * 1.0f / Time.deltaTime) {  // Full time for movement is done!  Let's decide whether to reward or not.
+							DetermineMouseDecision();
+						}
+						Debug.Log ("Virtual mouse at " + this.virtualPlayer.transform.position.x + ',' + this.virtualPlayer.transform.position.z + " facing " + this.virtualPlayer.transform.rotation.eulerAngles.y);
+					} else {
+						preTrialStartTime = DateTime.Now;  // record time so we can render the stimuli when the mouse is not moving for 1 second
+					}
+				}
+			} else if (Input.GetKey (KeyCode.L)) {
+				if (Globals.staticGraphics) {
+					if (this.inTrial) {
+						this.virtualPlayer.transform.Rotate (Vector3.up, 1);
+						float heading = this.virtualPlayer.transform.rotation.eulerAngles.y;
+						if (heading > 90 && heading < 270) {
+							this.virtualPlayer.transform.rotation = Quaternion.Euler(this.virtualPlayer.transform.rotation.eulerAngles.x, 90, this.virtualPlayer.transform.rotation.eulerAngles.z);
+						}
+						this.numFramesMovingSinceTrialStart += 1;
+						if (this.numFramesMovingSinceTrialStart >= this.trialMaxDuration * 1.0f / Time.deltaTime) {  // Full time for movement is done!  Let's decide whether to reward or not.
+							DetermineMouseDecision();
+						}
+						Debug.Log ("Virtual mouse at " + this.virtualPlayer.transform.position.x + ',' + this.virtualPlayer.transform.position.z + " facing " + this.virtualPlayer.transform.rotation.eulerAngles.y);
+					} else {
+						preTrialStartTime = DateTime.Now;  // record time so we can render the stimuli when the mouse is not moving for 1 second
+					}
+				}
 			}
         }
     }
 
     private void TeleportToBeginning() {
-        this.player.transform.position = this.startingPos;
-        this.player.transform.rotation = this.startingRot;
-    }
+		this.player.transform.position = this.startingPos;
+		this.player.transform.rotation = this.startingRot;
+		this.virtualPlayer.transform.position = this.startingPos;
+		this.virtualPlayer.transform.rotation = this.startingRot;
+		this.lastHeading = this.startingRot.eulerAngles.y;
+	}
 
     /*
      * Waits until a tree config is loaded
@@ -382,13 +460,11 @@ public class GameControlScript : MonoBehaviour
 			this.mouseNameText.text = "Name: " + Globals.mouseName;
 			//this.scenarioNameText.text = "Scenario: " + Globals.scenarioName + " (Day " + Globals.trainingDayNumber + ", session #" + Globals.scenarioSessionNumber + ", setting " + Globals.inputDeg + ")";
 			this.scenarioNameText.text = "Scenario: " + Globals.scenarioName + " (Day " + Globals.trainingDayNumber + ", session #" + Globals.scenarioSessionNumber + ", fov " + Globals.visibleNasalBoundary + ", "
-			+ Globals.visibleTemporalBoundary + ", " + Globals.visibleHighBoundary + ", " + Globals.visibleLowBoundary + ")";
+				+ Globals.visibleTemporalBoundary + ", " + Globals.visibleHighBoundary + ", " + Globals.visibleLowBoundary + ")";
 
 			Globals.InitLogFiles ();
-			Globals.trialStartTime.Add (DateTime.Now);
-			lastTrialStartDateTime = DateTime.Now;
+
 			Respawn ();
-			this.state = "Running";
 		}
 	}
 
@@ -437,17 +513,24 @@ public class GameControlScript : MonoBehaviour
         }
 
 		TimeSpan te = DateTime.Now.Subtract(lastTrialStartDateTime);
-		if (te.TotalMilliseconds >= visiblePauseAtTrialStart * 1000) {
-			MovePlayer();
+		if (Globals.staticGraphics || (!Globals.staticGraphics && te.TotalMilliseconds >= visiblePauseAtTrialStart * 1000)) {
+			MovePlayer ();
 		}
 
-		if (this.udpSender.CheckReward ())
-			this.movementRecorder.logReward(false, true);
+		if (this.udpSender.CheckReward ()) {
+			this.movementRecorder.logReward (false, true);
+		}
 		updateTrialsText();
 		updateRewardAmountText ();
 
         te = DateTime.Now.Subtract(Globals.gameStartTime);
-		TimeSpan te2 = DateTime.Now.Subtract (Globals.trialStartTime[Globals.trialStartTime.Count - 1]);
+		TimeSpan te2;
+		if (Globals.staticGraphics && !this.inTrial) {
+			te2 = DateTime.Now.Subtract (DateTime.Now);
+		} else {
+			te2 = DateTime.Now.Subtract (Globals.trialStartTime [Globals.trialStartTime.Count - 1]);
+		}
+
 		this.timeElapsedText.text = "Time elapsed: " + string.Format("{0:D3}:{1:D2}:{2:00.00}:{3}", te.Hours * 60 + te.Minutes, te.Seconds, Time.deltaTime * 1000, frameCounter++) + " - " + 
 			string.Format("{0:D2}:{1:D2}", te2.Hours*60 + te2.Minutes, te2.Seconds);
 		
@@ -519,7 +602,7 @@ public class GameControlScript : MonoBehaviour
 		// Only proceed if elapsed time is greater than or equal to trialDelay
 		te = DateTime.Now.Subtract(pauseStartTime);
 		if (te.TotalMilliseconds >= Globals.trialDelay * 1000) {
-			Debug.Log ("Ending Pause()");
+			//Debug.Log ("Ending Pause()");
 			float totalEarnedRewardSize = 0;
 			float totalRewardSize = 0;
 			for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++) {
@@ -549,8 +632,10 @@ public class GameControlScript : MonoBehaviour
 		}
         this.debugControlScript.enabled = false;
 
-		this.fadeToBlack.gameObject.SetActive(true);
-		this.fadeToBlack.color = c;
+		if (Globals.lastTrialWasIncorrect || !Globals.persistTargetPostCorrectAction) {
+			this.fadeToBlack.gameObject.SetActive (true);
+			this.fadeToBlack.color = c;
+		}
 		this.state = "Paused";
 
 		this.pauseStartTime = DateTime.Now;
@@ -560,6 +645,11 @@ public class GameControlScript : MonoBehaviour
         // if the player is not moved.
         TeleportToBeginning();
 		//Debug.Log ("Moved player to beginning");
+
+		if (Globals.staticGraphics) {
+			this.inTrial = false;
+			this.numFramesMovingSinceTrialStart = 0;
+		}
     }
 
     private void Respawn() {
@@ -584,7 +674,7 @@ public class GameControlScript : MonoBehaviour
 		} else {
 			Globals.correctionTrialMarks.Add (0);
 		}
-
+			
 		// If the last trial was an error and correction trials are enabled in the scenario, just do a redo, unless it was a catch trial!
 		if (Globals.CurrentlyCorrectionTrial ()) {
 			Debug.Log ("in correction trial");
@@ -597,7 +687,7 @@ public class GameControlScript : MonoBehaviour
 			distractorAngle = Globals.distractorAngle [Globals.distractorAngle.Count - 1];
 			optoState = Globals.optoStates [Globals.optoStates.Count - 1];
 			Globals.worldIdxList.Add(worldIdx);  		// Record which world this trial is on - must happen before below
-			// If trees are hidden at the start, rehide the tree
+			// If trees are hidden at the star, rehide the tree
 			if (Globals.GetCurrentWorld ().hiddenIdx.Contains (idx)) {
 				GameObject[] gos = Globals.GetTrees ();
 				gos [idx].GetComponent<WaterTreeScript> ().Hide ();
@@ -713,7 +803,7 @@ public class GameControlScript : MonoBehaviour
 				float presoFrac = Globals.GetWorldPresoFrac(worldIdx);
 				blockSize = (int)Math.Round (presoFrac * Globals.worldBlockSize);
 			}
-			Debug.Log (blockSize);
+			//Debug.Log (blockSize);
 
 			GameObject[] gos = Globals.GetTrees ();
 
@@ -889,7 +979,6 @@ public class GameControlScript : MonoBehaviour
 				Debug.Log (String.Join (",", precompExtinctBlock.Select (x => x.ToString ()).ToArray ()));
 				Globals.SetCurrentWorldPrecompExtinctBlock(precompExtinctBlock);
 
-
 				// Next, if optoAlternation is turned off and this is an opto game, precompute the opto state for each trial
 				if (Globals.optoSide != Globals.optoOff && !Globals.optoAlternation) { // an optoSide was specified and optoAlternation is turned off
 					int[] precompOptoBlock = new int[blockSize];
@@ -975,6 +1064,7 @@ public class GameControlScript : MonoBehaviour
 						vfreq = gos [0].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 						angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					}
+					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (true);
 				} else if (gos.Length == 2 || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
 					float catchThresh = 1 - Globals.catchFreq;
 					float rThresh0 = 0.5F;
@@ -1105,14 +1195,20 @@ public class GameControlScript : MonoBehaviour
 							}
 						}
 					}
+					SetupTreeActivation (gos, treeToActivate, 4); // it is important that this happens before the following clause as the following clause might activate more targets to test for extinction
 					if (treeToActivate != Globals.CATCH_IDX) {
+						// If is an extinction trial, show the rear target
+						if (Globals.CurrentlyExtinctionTrial()) {  
+							gos [treeToActivate+2].GetComponent<WaterTreeScript> ().Show ();  // Activate rear left or rear right tree
+							Debug.Log("in extinction trial");
+						}
 						loc = gos [treeToActivate].transform.position;
 						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
 						vfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderVFreq ();
 						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					}
-					SetupTreeActivation (gos, treeToActivate, 4);
 				}
+				idx = treeToActivate;
 			} else if (gameType.Equals ("det_blind")) {
 				if (gos.Length == 3) {
 					if (blockSize > 0) {
@@ -1254,6 +1350,7 @@ public class GameControlScript : MonoBehaviour
 						angle = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					}
 				}
+				idx = treeToActivate;
 			} else if (gameType.Equals ("discrimination")) {  // No concept of catch trials yet for the discrimination task
 				// Randomize orientations
 				float rThresh0 = 0.5F;
@@ -1281,6 +1378,7 @@ public class GameControlScript : MonoBehaviour
 					angle = gos [0].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (true);
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (false);
+					idx = 0;
 				} else {
 					gos [0].GetComponent<WaterTreeScript> ().SetShader (Globals.distractorHFreq, distractorHPhase, Globals.distractorVFreq, distractorVPhase, distractorAngle);
 					gos [1].GetComponent<WaterTreeScript> ().SetShader (Globals.rewardedHFreq, rewardedHPhase, Globals.rewardedVFreq, rewardedVPhase, Globals.rewardedAngle);
@@ -1290,6 +1388,7 @@ public class GameControlScript : MonoBehaviour
 					angle = gos [1].GetComponent<WaterTreeScript> ().GetShaderRotation ();
 					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (false);
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (true);
+					idx = 1;
 				}
 				Debug.Log ("[0, " + rThresh0 + ", 1] - " + r);
 			} else if (gameType.Equals ("match") || gameType.Equals ("nonmatch")) { // No concept of catch trials yet for this task
@@ -1328,6 +1427,7 @@ public class GameControlScript : MonoBehaviour
 						vfreq = targetHFreq;
 						angle = targetAngle;
 					}
+					idx = 0;
 				} else { // Set the right tree to match
 					gos [0].GetComponent<WaterTreeScript> ().SetCorrect (false);
 					gos [1].GetComponent<WaterTreeScript> ().SetCorrect (true);
@@ -1345,6 +1445,7 @@ public class GameControlScript : MonoBehaviour
 						vfreq = targetHFreq;
 						angle = targetAngle;
 					}
+					idx = 1;
 				}
 				Debug.Log ("[0, " + rThresh0 + ", 1] - " + rSide);
 			}
@@ -1404,7 +1505,6 @@ public class GameControlScript : MonoBehaviour
 					}
 				}
 			}
-			idx = treeToActivate;
 
 			if (treeToActivate == Globals.CATCH_IDX) { // This is a catch trial
 				Globals.numCatchTrials++;
@@ -1417,7 +1517,7 @@ public class GameControlScript : MonoBehaviour
 			Globals.extinctionTrialMarks.Add (0);
 		}
 
-		Globals.targetIdx.Add (idx);
+		Globals.targetIdx.Add(idx);
         Globals.targetLoc.Add(loc);
         Globals.targetHFreq.Add(hfreq);
         Globals.targetVFreq.Add(vfreq);
@@ -1442,8 +1542,14 @@ public class GameControlScript : MonoBehaviour
 		Globals.hasNotTurned = true;
 		Globals.hiddenShown = false;  // Flag to keep track of whether the hidden target have been shown on this trial
 
-        Globals.trialStartTime.Add(DateTime.Now);
-		lastTrialStartDateTime = DateTime.Now;
+		if (Globals.staticGraphics) {  // If VR, record timestamps now.  If staticGame, record them later when the mouse is actually still for 1 second
+			preTrialStartTime = DateTime.Now;  // record time so we can render the stimuli when the mouse is not moving for 1 second
+			SetupTreeActivation(Globals.GetTrees(), -1, Globals.GetTrees().Length);
+			Debug.Log ("inactivate all trees");
+		} else {
+			Globals.trialStartTime.Add (DateTime.Now);
+			lastTrialStartDateTime = DateTime.Now;
+		}
 
 		// Update again after the pause, as the world might have changed between trials
 		updateCorrectTurnsText();
@@ -1454,7 +1560,9 @@ public class GameControlScript : MonoBehaviour
     private void SetupTreeActivation(GameObject[] gos, int treeToActivate, int maxTrees) {
 		for (int i = 0; i < maxTrees; i++) {
             gos[i].SetActive(true);
+			gos [i].GetComponent<WaterTreeScript> ().SetCorrect (false);
 			if (i == treeToActivate) {
+				gos [i].GetComponent<WaterTreeScript> ().SetCorrect (true);
 				List<int> hiddenIdx = Globals.GetCurrentWorld ().hiddenIdx;
 				if (hiddenIdx.Count > 0 && hiddenIdx.Contains (treeToActivate)) {
 					gos [i].GetComponent<WaterTreeScript> ().Hide ();
@@ -1540,30 +1648,152 @@ public class GameControlScript : MonoBehaviour
 					this.last5Mouse2Y.Enqueue (this.last5Mouse2Y.Average ());
 				}
 
-				Debug.Log (Mathf.Rad2Deg * Globals.sphereInput.mouse1Y / this.rawRotationDivider);
-				Debug.Log (Globals.sphereInput.mouse1X / (this.rawSpeedDivider / Globals.speedAdjustment));
+				//Debug.Log (Mathf.Rad2Deg * Globals.sphereInput.mouse1Y / this.rawRotationDivider);
+				//Debug.Log (Globals.sphereInput.mouse1X / (this.rawSpeedDivider / Globals.speedAdjustment));
 			}
 		
-			// transform sphere data into unity movement
-			//if (this.frameCounter - this.previousFrameCounter > 1)
-			//print("lost packets: " + this.frameCounter + "/" + this.previousFrameCounter);
 			this.previousFrameCounter = this.frameCounter;
 
-			this.player.transform.Rotate(Vector3.up, Mathf.Rad2Deg * (this.last5Mouse1Y.Average()) / this.rawRotationDivider);
-            
-			Vector3 rel = this.player.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
-			//this.player.transform.position = this.player.transform.position + rel;
-			this.characterController.Move (rel);
-			this.udpSender.SendMousePos (this.player.transform.position);
-			this.udpSender.SendMouseRot (this.player.transform.rotation.eulerAngles.y);
-
+			if (Globals.staticGraphics) {
+				Vector3 translation = this.virtualPlayer.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
+				//Debug.Log ("Translation magnitude = " + translation.magnitude);
+				if (translation.magnitude >= this.minMovementToCount) {
+					if (this.inTrial) {
+						this.virtualPlayer.transform.position += translation;
+						this.virtualPlayer.transform.Rotate (Vector3.up, Mathf.Rad2Deg * (this.last5Mouse1Y.Average ()) / this.rawRotationDivider);
+						// Limit the amount of rotation to [-90, 90] so that if the mouse spins on the ball endlessly it doesn't actually spin in the virtual position
+						float heading = this.virtualPlayer.transform.rotation.eulerAngles.y;
+						if (heading < 270 && heading > 90) {
+							if (Math.Abs (this.lastHeading - 270) < Math.Abs (this.lastHeading - 90)) {
+								this.virtualPlayer.transform.rotation = Quaternion.Euler (this.virtualPlayer.transform.rotation.eulerAngles.x, 270, this.virtualPlayer.transform.rotation.eulerAngles.z);
+							} else {
+								this.virtualPlayer.transform.rotation = Quaternion.Euler (this.virtualPlayer.transform.rotation.eulerAngles.x, 90, this.virtualPlayer.transform.rotation.eulerAngles.z);
+							}
+						}
+						this.lastHeading = heading;
+						Debug.Log (this.virtualPlayer.transform.position + "; " + this.virtualPlayer.transform.rotation.eulerAngles.y);
+						this.numFramesMovingSinceTrialStart += 1;  // Add this frame as counted to making the decision
+						if (this.numFramesMovingSinceTrialStart >= this.trialMaxDuration * 1.0f / Time.deltaTime) {  // Full time for movement is done!  Let's decide whether to reward or not.
+							DetermineMouseDecision ();
+						}
+						Debug.Log ("NumFramesMovingSinceTrialStart = " + this.numFramesMovingSinceTrialStart);
+					} else {  // If moving but not in trial, reset pretrial counter
+						preTrialStartTime = DateTime.Now;  // record time so we can render the stimuli when the mouse is not moving for 1 second
+					}
+				}
+			} else {
+				Vector3 translation = this.player.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
+				this.characterController.Move (translation);
+				this.player.transform.Rotate (Vector3.up, Mathf.Rad2Deg * (this.last5Mouse1Y.Average ()) / this.rawRotationDivider);
+				// I don't think the below is used for anything
+				this.udpSender.SendMousePos (this.player.transform.position);
+				this.udpSender.SendMouseRot (this.player.transform.rotation.eulerAngles.y);
+			}
 
 			// Send UDP msg out
 			//this.udpSender.SendPlayerState(this.player.transform.position, this.player.transform.rotation.eulerAngles.y, Globals.playerInWaterTree, Globals.playerInDryTree);
 		} else {
 			//Debug.Log ("no new data");
+			if (Globals.staticGraphics && !this.inTrial) {
+				TimeSpan ts = DateTime.Now.Subtract (preTrialStartTime);
+				if (ts.TotalMilliseconds >= stillDurationBeforeTrialStart * 1000) {
+					int worldIdx = Globals.worldIdxList [Globals.worldIdxList.Count - 1];
+					string gameType = Globals.GetGameType (worldIdx);
+					GameObject[] gos = Globals.GetTrees ();
+
+					if (Globals.rewardAtStart) {
+						this.udpSender.SendWaterReward (Globals.rewardDur);
+						Globals.numberOfUnearnedRewards++;
+						Globals.rewardAmountSoFar += Globals.rewardSize;
+						updateRewardAmountText ();
+						Debug.Log ("gave reward = " + Globals.rewardAmountSoFar);
+					}
+
+					SetupTreeActivation (gos, Globals.targetIdx [Globals.targetIdx.Count - 1], gos.Length);
+					if (gameType.Equals("det_blind")) {
+						if (!Globals.CurrentlyExtinctionTrial()) {  
+							gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree
+						}
+					}
+
+					Globals.trialStartTime.Add (DateTime.Now);
+					lastTrialStartDateTime = DateTime.Now;
+					this.inTrial = true;
+					Debug.Log ("activating tree at idx " + Globals.targetIdx[Globals.targetIdx.Count - 1]);
+				}
+			}
 		}
     }
+
+	// This function runs for the staticGraphics game and dispenses water or not depending on where the mouse ended up with its virtual location
+	private void DetermineMouseDecision () {
+		int worldIdx = Globals.worldIdxList [Globals.worldIdxList.Count - 1];
+		string gameType = Globals.GetGameType (worldIdx);
+		GameObject[] gos = Globals.GetTrees ();
+		int targetIdx = Globals.targetIdx [Globals.targetIdx.Count - 1];
+		float heading = this.virtualPlayer.transform.rotation.eulerAngles.y;
+		if (gameType.Equals ("detection")) {
+			if (gos.Length == 1) {
+				if (heading >= 330 || heading <= 90) {
+					gos [0].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
+				} else {
+					gos [0].GetComponent<WaterTreeScript> ().WitholdReward ();
+				}
+			} else if (gos.Length == 2) {
+				if (heading >= 270) {  // left turn, so top targets should be rewarded
+					if (targetIdx == 1) {
+						gos [targetIdx].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
+					} else {	// gos idx here could be 2 or 3.  I just picked one.
+						gos [1].GetComponent<WaterTreeScript> ().WitholdReward ();
+					}
+				} else {  // right turn, so bottom targets should be rewarded
+					if (targetIdx == 0 ) {
+						gos [targetIdx].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
+					} else {	// gos idx here could be 0 or 1.  I just picked one.
+						gos [0].GetComponent<WaterTreeScript> ().WitholdReward ();
+					}
+				}
+			} else if (gos.Length == 4) {
+				if (heading >= 270) {  // left turn, so top targets should be rewarded
+					if (targetIdx == 2 || targetIdx == 3) {
+						gos [targetIdx].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
+					} else {	// gos idx here could be 2 or 3.  I just picked one.
+						gos [2].GetComponent<WaterTreeScript> ().WitholdReward ();
+					}
+				} else {  // right turn, so bottom targets should be rewarded
+					if (targetIdx == 0 || targetIdx == 1) {
+						gos [targetIdx].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
+					} else {	// gos idx here could be 0 or 1.  I just picked one.
+						gos [0].GetComponent<WaterTreeScript> ().WitholdReward ();
+					}
+				}
+			}
+		} else if (gameType.Equals ("det_blind")) {
+			if (gos.Length == 3) {
+				if (heading >= 270 && heading < 330) {  // left turn, so top left target should be rewarded (idx=0)
+					if (targetIdx == 0) {
+						gos [0].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
+					} else {  // gos idx here could be 1 or 2.  I just picked one.
+						gos [0].GetComponent<WaterTreeScript> ().WitholdReward ();
+					}
+				} else if (heading <= 90 && heading > 30) {  // right turn, so bottom right target should be rewarded (idx=1)
+					if (targetIdx == 1) {
+						gos [1].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
+					} else {
+						// gos idx here could be 0 or 2.  I just picked one.
+						gos [1].GetComponent<WaterTreeScript> ().WitholdReward ();
+					}
+				} else {  // ran straight, so central target should be rewarded (idx=2)
+					if (targetIdx == 2) {
+						gos [2].GetComponent<WaterTreeScript> ().GiveReward (Globals.rewardDur, true, true);
+					} else {
+						// gos idx here could be 2 or 3.  I just picked one.
+						gos [2].GetComponent<WaterTreeScript> ().WitholdReward ();
+					}
+				}
+			}
+		}
+	}
 
     public void FlushWater() {
         this.udpSender.FlushWater();

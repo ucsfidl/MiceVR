@@ -112,23 +112,16 @@ end
 
 relFrame = 1;
 
-% With an update to the Arduino code on rig 1 (10/2020), one camera might have one extra frame than the other.
-% This is OK and allowed, so account for it.
+% With an update to the Arduino code on rig 1 (10/2020), one camera might have o
 if (defVid == 2)
     totalFrames = v(defVid).NumberOfFrames;
 else
-    if (v(1).NumberOfFrames >= v(2).NumberOfFrames)
-        totalFrames = v(2).NumberOfFrames;
-    else
-        totalFrames = v(1).NumberOfFrames;
-    end
+    
 end
 
 % Check a bunch of things to make sure both videos match, else exit with error
 if (~skip(1) && ~skip(2))
-    % Allow the video frame counts to differ by at most 1 frame, which rig 1 has started doing (10/2020)
-    if (~(v(1).NumberOfFrames == v(2).NumberOfFrames || v(1).NumberOfFrames + 1 == v(2).NumberOfFrames || ...
-        v(1).NumberOfFrames == v(2).NumberOfFrames + 1))
+    if (totalFrames ~= v(2).NumberOfFrames)
         error('The number of frames in each video does not match. Were frames dropped or is the video corrupt?');
     end
     if (v(1).Height ~= v(2).Height)

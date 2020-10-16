@@ -515,6 +515,13 @@ public class Loader : MonoBehaviour {
 				if (xn ["extinctFreq"] != null) {
 					float.TryParse(xn["extinctFreq"].InnerText, out Globals.extinctFreq);
 				}
+				if (xn ["correctExtinction"] != null) {
+					string xml = xn["correctExtinction"].InnerText;
+					if (xml.Equals("true"))
+						Globals.correctExtinction = true;
+					else
+						Globals.correctExtinction = false;
+				}
 
 				if (xn ["worldBlockSize"] != null) {
 					int.TryParse(xn["worldBlockSize"].InnerText, out Globals.worldBlockSize);
@@ -527,6 +534,39 @@ public class Loader : MonoBehaviour {
 						worldPresoFracs.Add (tmp);
 					}
 				}
+
+				if (xn ["staticGraphics"] != null) {
+					string xml = xn["staticGraphics"].InnerText;
+					if (xml.Equals("true"))
+						Globals.staticGraphics = true;
+					else
+						Globals.staticGraphics = false;
+				}
+
+				if (xn ["rewardAtStart"] != null) {
+					string xml = xn["rewardAtStart"].InnerText;
+					if (xml.Equals("true"))
+						Globals.rewardAtStart = true;
+					else
+						Globals.rewardAtStart = false;
+				}
+
+				if (xn ["persistTargetPostCorrectAction"] != null) {
+					string xml = xn["persistTargetPostCorrectAction"].InnerText;
+					if (xml.Equals("true"))
+						Globals.persistTargetPostCorrectAction = true;
+					else
+						Globals.persistTargetPostCorrectAction = false;
+				}
+
+				if (xn["correctTurnDelay"] != null) {
+					float.TryParse(xn["correctTurnDelay"].InnerText, out Globals.correctTurnDelay);
+				}
+				if (xn["incorrectTurnDelay"] != null) {
+					float.TryParse(xn["incorrectTurnDelay"].InnerText, out Globals.incorrectTurnDelay);
+				}
+
+			
 			}
 
 			XmlNodeList worldList = xmlDoc.GetElementsByTagName("world");

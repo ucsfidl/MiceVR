@@ -1,0 +1,29 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameTurnControl>yaw</gameTurnControl>
+			<treesBelowGround>true</treesBelowGround>
+			<biasCorrection>false</biasCorrection>
+			<correctionTrials>true</correctionTrials>
+			<worldBlockSize>40</worldBlockSize> <!-- worldBlockSize must be N x blockSize, where N is the number of worlds (so in this case, 2x) -->
+			<worldPresoFracs>0.9;0.1</worldPresoFracs>
+			<probeWorldIdx>1</probeWorldIdx>
+			<catchFreq>0.025</catchFreq>
+			<optoSide>L</optoSide>
+			<optoAlternation>false</optoAlternation>
+			<optoTrialsPerBlock>20</optoTrialsPerBlock>
+			<lightOnDuringITI>true</lightOnDuringITI>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_2F_L_BG.xml</includeWorld>
+		<includeWorld>inc_world_2F_R_BG.xml</includeWorld>
+	</worlds>
+</document>

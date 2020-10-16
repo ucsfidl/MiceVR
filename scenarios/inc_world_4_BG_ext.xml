@@ -10,6 +10,7 @@
 			<h>2</h>
 			<d>0</d>
 			<r>0</r>
+			<presoFrac>0.25</presoFrac>
 		</t>
 		<t> <!-- Right front tree -->
 			<w>1</w>
@@ -20,6 +21,7 @@
 			<h>2</h>
 			<d>0</d>
 			<r>2</r>
+			<presoFrac>0.25</presoFrac>
 		</t>
 		<t> <!-- Left back tree -->
 			<w>1</w>
@@ -30,6 +32,7 @@
 			<h>2</h>
 			<d>0</d>
 			<r>0</r>
+			<presoFrac>0.25</presoFrac>
 		</t>
 		<t> <!-- Right back tree -->
 			<w>1</w>
@@ -40,6 +43,7 @@
 			<h>2</h>
 			<d>0</d>
 			<r>2</r>
+			<presoFrac>0.25</presoFrac>
 		</t>
 	</trees>
 	<walls> <!-- Walls listed in clockwise order -->

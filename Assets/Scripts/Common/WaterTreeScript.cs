@@ -23,9 +23,6 @@ public class WaterTreeScript : MonoBehaviour {
 
     public bool texture, gradient, angular;
 
-	private int incorrectTurnDelay = 4;  // sec
-	private int correctTurnDelay = 2;  // sec
-
     private int rewardDur;  // amount of reward to dispense for this tree, in ms
     private bool respawn;
     private bool correctTree;
@@ -39,14 +36,12 @@ public class WaterTreeScript : MonoBehaviour {
 	private int idx;
 
 	// Use this for initialization
-	void Start ()
-    {
+	void Start () {
         this.depleted = false;
         this.rewardLevel = 1;
 	}
 
-    public void Init()
-    {
+    public void Init() {
         Shader unlitTex = Shader.Find("Unlit/Texture");
         Shader gradientTex = Shader.Find("Custom/Gradient");
         
@@ -148,8 +143,13 @@ public class WaterTreeScript : MonoBehaviour {
                     // (2) Actually give or withold reward, depending on the gametype!
 					string gameType = Globals.GetGameType (Globals.worldIdxList[Globals.worldIdxList.Count - 1]);
 					if (gameType.Equals ("detection") || gameType.Equals ("det_target")) {
-						if (respawn)
-							GiveReward (rewardDur, true, true);
+						if (this.respawn) {
+							if (correctTree) {
+								GiveReward (rewardDur, true, true);
+							} else {
+								WitholdReward ();
+							}
+						}
 					} else if (gameType.Equals ("det_blind")) {
 						if (this.idx == 2) {  // The mouse ran into the special center tree - give reward only if no other trees displayed, unless this is a test game
 							bool alone = true;
@@ -176,14 +176,14 @@ public class WaterTreeScript : MonoBehaviour {
 						else
 							WitholdReward ();                        
 					} else if (gameType.Equals ("disc_target")) {
-						if (respawn) {
+						if (this.respawn) {
 							if (correctTree)
 								GiveReward (rewardDur, true, true);
 							else
 								WitholdReward ();
 						}
 					} else if (gameType.Equals("match") || gameType.Equals("nonmatch")) { // There are three trees - a central initial tree, and 1 on left and 1 on right
-						if (!respawn) { // This is the starting central tree
+						if (!this.respawn) { // This is the starting central tree
 							GiveReward(rewardDur, false, false);
                         } else if (correctTree) {
 							GiveReward(rewardDur, true, true);
@@ -198,10 +198,10 @@ public class WaterTreeScript : MonoBehaviour {
 		}
     }
 
-	private void GiveReward(int rewardDur, bool addToTurns, bool trueCorrect) {
+	public void GiveReward(int rewardDur, bool addToTurns, bool trueCorrect) {
 		// If probabilistic reward, give appropriately, depending on history of reward! (not just simple random number compared to target as before)
 		float r = UnityEngine.Random.value;
-		int interTrialInterval;
+		float interTrialInterval;
 		Color c;
 		float adjRewardThreshold = Globals.probReward;
 
@@ -225,7 +225,7 @@ public class WaterTreeScript : MonoBehaviour {
 			this.mouseObject = GameObject.FindGameObjectWithTag("MainCamera");
 			this.mouseObject.GetComponent<AudioSource>().Play();
 
-			interTrialInterval = correctTurnDelay;
+			interTrialInterval = Globals.correctTurnDelay;
 			c = Color.black;
 
 			// If correction trials are enabled and probabilistic reward is enabled, correction trials DO NOT count toward probabilistic reward counts
@@ -235,10 +235,10 @@ public class WaterTreeScript : MonoBehaviour {
 		} else {
 			Globals.sizeOfRewardGiven.Add(0);
 			if (Globals.probabilisticWhiteNoiseWhenNoReward) {
-				interTrialInterval = incorrectTurnDelay;
+				interTrialInterval = Globals.incorrectTurnDelay;
 				c = Color.white;
 			} else {
-				interTrialInterval = correctTurnDelay;
+				interTrialInterval = Globals.correctTurnDelay;
 				c = Color.black;
 			}
 		}
@@ -265,10 +265,10 @@ public class WaterTreeScript : MonoBehaviour {
 	        }
 
 		// Must come after in-memory log is updated above
-		Globals.lastTrialWasIncorrect = 0;
+		Globals.lastTrialWasIncorrect = false;
 		Globals.numCorrectionTrialsSinceLastCorrectTrial = 0;  // Reset for next bout of corrections
 
-        if (respawn) {
+        if (this.respawn) {
 			// Important that extinction trial test be done before numNonCorrectionTrials is incremented
 			if (Globals.CurrentlyExtinctionTrial ()) {
 				Globals.numExtinctionTrials++;
@@ -289,21 +289,22 @@ public class WaterTreeScript : MonoBehaviour {
 	}
 
 	// WithholdReward() is called only on incorrect trials, not correct trials where reward was witheld
-    private void WitholdReward() {
+    public void WitholdReward() {
 		Globals.IncrementTurnToStimIdx (this.idx);
 		Color c = Color.white;
-		int interTrialInterval = incorrectTurnDelay;
+		float interTrialInterval = Globals.incorrectTurnDelay;
 
 		// If probabilistic rewards given, make the visual cue and trial delay of an error the same as a correct trial, to discourage learning during testing.
 		if (Globals.probReward < 1 && !Globals.probabilisticWhiteNoiseWhenNoReward) {
 			c = Color.black;
-			interTrialInterval = correctTurnDelay;
+			interTrialInterval = Globals.correctTurnDelay;
 		}
 
-		if (Globals.CurrentlyCatchTrial() || Globals.CurrentlyExtinctionTrial()) {
-			Globals.lastTrialWasIncorrect = 0;
+		// Don't do correction trials on catch and extinction trials, but allow corrections on extinction trials if 4-choice and still training mice
+		if (Globals.CurrentlyCatchTrial() || (Globals.CurrentlyExtinctionTrial() && Globals.correctExtinction == false)) {
+			Globals.lastTrialWasIncorrect = false;
 		} else {
-			Globals.lastTrialWasIncorrect = 1;
+			Globals.lastTrialWasIncorrect = true;
 		}
         Globals.hasNotTurned = false;
 		Globals.firstTurnIdx.Add(this.idx);
@@ -313,7 +314,7 @@ public class WaterTreeScript : MonoBehaviour {
 		Globals.firstTurnAngle.Add(this.gameObject.GetComponent<WaterTreeScript>().GetShaderRotation());
         Globals.sizeOfRewardGiven.Add(0);
 
-        if (respawn) {
+        if (this.respawn) {
 			// Important that extinction trial test be done before numNonCorrectionTrials is incremented
 			if (Globals.CurrentlyExtinctionTrial ()) {
 				Globals.numExtinctionTrials++;

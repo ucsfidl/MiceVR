@@ -20,6 +20,12 @@ unsigned long startDimTime;
 int whichLED = -1;  // -1 indicates leds are already off
 int ledPower = 255;  // max 255
 
+// For receiving data with a terminator - allow a maximum of 32 chars in a string
+const char numChars = 32;
+char receivedChars[numChars];
+
+boolean newData = false;
+
 void setup() {
   Serial.begin(2000000);
   //while(!Serial);  // Wait on serial to be running
@@ -49,22 +55,25 @@ void setup() {
 }
 
 void loop() {
+  dimOptoLED();
+  recvWithEndMarker();
+  takeAction();
+}
+
+// One paper dims the optoLED on trials when it is off instead of just abruptly disabling it.  The thinking is that you will get less rebound activity.
+// So far this does not seem to make a difference in my experiments, but leave it in as it doesn't cost us much.
+void dimOptoLED() {
   // Always check to dim LEDs if powering down slowly
   if (powerDownLeft > 0) {
     powerDownLeft = dimDur - (millis() - startDimTime);
-    //Serial.println(millis());
-    //Serial.println(startDimTime);
-    //Serial.println(powerDownLeft);
     
     if (powerDownLeft <= 0) {
       powerDownLeft = 0;
       whichLED = -1;
-      //Serial.println(whichLED);
     }
     int ledVal = ledPower * ((float)powerDownLeft / dimDur);
     if (whichLED == LEFT_LED) {
       analogWrite(optoLeftPin, ledVal);
-      //Serial.println(ledVal);
     } else if (whichLED == RIGHT_LED) {
       analogWrite(optoRightPin, ledVal);
     } else if (whichLED == BOTH_LEDS) {
@@ -72,51 +81,73 @@ void loop() {
       analogWrite(optoRightPin, ledVal);
     }
   }
-  
-  if (Serial.available() > 0) {
-    int data = Serial.parseInt();
-    //Serial.println(data);
-    if ( data != '\n') {
-      if ( data == 0 ) {            // sync msg
-        Serial.println("Ard:Synced!");
-        digitalWrite(syncPin, HIGH);
-        //digitalWrite(camTrigPin2, HIGH);
-      } else if ( data == -1 ) {    // wall collision
-        digitalWrite(wallPin, HIGH);
-      } else if (data == -2) {      // ForceStopSolenoid
-        Serial.println("ForceStopped!");       
-        digitalWrite(waterPin, LOW);
-        digitalWrite(ledPin, LOW);
-      } else if (data == -3) {      // Trigger the cameras
-        //Serial.println("Sent trigger");
-        digitalWrite(camTrigPin, HIGH);
-        digitalWrite(camTrigPin, LOW);
-      } else if (data == -4) {    // Turn on optoLeft LED
-        //Serial.println("LeftLED!");
-        analogWrite(optoLeftPin, ledPower);
-        whichLED = LEFT_LED;
-      } else if (data == -5) {    // Turn on optoRight LED
-        //Serial.println("RightLED!");
-        analogWrite(optoRightPin, ledPower);
-        whichLED = RIGHT_LED;
-      } else if (data == -6) {    // Turn on both opto LEDs
-        //Serial.println("BothLEDs!");
-        analogWrite(optoLeftPin, ledPower);
-        analogWrite(optoRightPin, ledPower);
-        whichLED = BOTH_LEDS;
-      } else if (data == -7) {    // Turn OFF both LEDs
-        //Serial.println("OffLEDs!");
-        if (whichLED >= LEFT_LED) {
-          powerDownLeft = dimDur;
-          startDimTime = millis();          
-        }
-      } else if (data > 0) {        // Water
-        digitalWrite(waterPin, HIGH);
-        digitalWrite(ledPin, HIGH);
-        delay(data); // 40ms = 2.8ul, 25ms = ~2 ul
-        digitalWrite(waterPin, LOW);
-        digitalWrite(ledPin, LOW);
+}
+
+// Non-blocking reading of serial line taken from here: https://forum.arduino.cc/index.php?topic=396450.0
+void recvWithEndMarker() {
+  static byte ndx = 0;
+  char endMarker = '\n';
+  char rc;
+   
+  while (Serial.available() > 0 && newData == false) {
+    rc = Serial.read();
+
+    if (rc != endMarker) {
+      receivedChars[ndx] = rc;
+      ndx++;
+      if (ndx >= numChars) {
+        ndx = numChars - 1;  // If the buffer is overrun, all excess chars will be lost except for the very last one
       }
+    } else {
+      receivedChars[ndx] = '\0'; // terminate the string
+      ndx = 0;
+      newData = true;
+    }
+  }
+}
+
+void takeAction() {
+  if (newData == true) {
+    //Serial.println("got new data");
+    newData = false;
+    int data = atoi(receivedChars);
+    if ( data == 0 ) {  // sync msg - inherited, not sure what this was used for but it is not currently used
+      //Serial.println("Ard:Synced!");
+      digitalWrite(syncPin, HIGH);
+    } else if ( data == -1 ) {    // wall collision - not used
+      digitalWrite(wallPin, HIGH);
+    } else if (data == -2) {      // ForceStopSolenoid - not used
+      //Serial.println("ForceStopped!");       
+      digitalWrite(waterPin, LOW);
+      digitalWrite(ledPin, LOW);
+    } else if (data == -3) {      // Trigger the cameras
+      //Serial.println("Sent trigger");
+      digitalWrite(camTrigPin, HIGH);
+      digitalWrite(camTrigPin, LOW);
+    } else if (data == -4) {    // Turn on optoLeft LED
+      //Serial.println("LeftLED!");
+      analogWrite(optoLeftPin, ledPower);
+      whichLED = LEFT_LED;
+    } else if (data == -5) {    // Turn on optoRight LED
+      //Serial.println("RightLED!");
+      analogWrite(optoRightPin, ledPower);
+      whichLED = RIGHT_LED;
+    } else if (data == -6) {    // Turn on both opto LEDs
+      //Serial.println("BothLEDs!");
+      analogWrite(optoLeftPin, ledPower);
+      analogWrite(optoRightPin, ledPower);
+      whichLED = BOTH_LEDS;
+    } else if (data == -7) {    // Turn OFF both LEDs
+      if (whichLED >= LEFT_LED) {
+        powerDownLeft = dimDur;
+        startDimTime = millis();          
+      }
+    } else if (data > 0) {        // Water for data milliseconds
+      digitalWrite(waterPin, HIGH);
+      digitalWrite(ledPin, HIGH);
+      delay(data); // 40ms = 2.8ul, 25ms = ~2 ul
+      digitalWrite(waterPin, LOW);
+      digitalWrite(ledPin, LOW);
     }
   } 
 }

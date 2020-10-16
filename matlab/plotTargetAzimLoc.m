@@ -358,15 +358,25 @@ for d_i=1:length(days)  % Iterate through all of the specified days
             end
             
             % If fractionOfRun is specified, only look over that interval of the run to determine the extrema
-            maxFrame = floor(fractionOfRun*length(targetLeftBound));
+            if (length(fractionOfRun) == 1)  % for backwards compatibility with old threshold specification
+                maxFrame = floor(fractionOfRun*length(targetLeftBound));
+            else  % specified the exact frame for this trial, so use that
+                maxFrame = fractionOfRun(trialsToDo(trialIdx));
+            end
             if (left == 1 || left == 0)
                 if (left == 1)
+                    if (maxFrame > length(targetRightBound))
+                        maxFrame = length(targetRightBound);
+                    end
                     limitedRightBound = targetRightBound(1:maxFrame);
                     extreme = max(limitedRightBound(targetLeftBound(1:maxFrame) ~= limitedRightBound));
                     nasalExtremaL(end+1) = extreme;
                     m = 'L';
                     extremeFrame = find(targetRightBound(targetLeftBound ~= targetRightBound) == extreme,1);
                 elseif (left == 0)
+                    if (maxFrame > length(targetLeftBound))
+                        maxFrame = length(targetLeftBound);
+                    end
                     limitedLeftBound = targetLeftBound(1:maxFrame);
                     extreme = min(limitedLeftBound(limitedLeftBound ~= targetRightBound(1:maxFrame)));
                     nasalExtremaR(end+1) = extreme;

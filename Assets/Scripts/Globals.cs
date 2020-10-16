@@ -48,7 +48,7 @@ public static class Globals
     public static int numCorrectTurns;
 	public static bool hiddenShown = false;
 
-	public static int trialDelay;
+	public static float trialDelay;
 
 	public static float centralViewVisibleShift; // Set in gameconfig file
 
@@ -137,7 +137,7 @@ public static class Globals
 	public static float speedAdjustment = 1;  // Used to adjust speed on a per scenario basis instead of a per-rig basis, so I can have multiple speed mice running at the same time
 
 	public static bool correctionTrialsEnabled = true;  // As of 1/19/19, correction trials are on by default, just like bias correction
-	public static int lastTrialWasIncorrect = 0;  // Indicates that the current trial will be a correction trial, if correction trials are enabled
+	public static bool lastTrialWasIncorrect = false;  // Indicates that the current trial will be a correction trial, if correction trials are enabled
 	public static List<int> correctionTrialMarks = new List<int>();  // For each trial, holds a bool which tracks whether that trial was a correction trial or not
 	public static List<int> extinctionTrialMarks = new List<int>();  // For each trial, holds a bool which tracks whether that trial was a trial to test for unilateral extinction or not
 
@@ -152,7 +152,7 @@ public static class Globals
 
 	public static float catchFreq = 0;  // This is the frequency at which catch trials, in which no target is visible at all, are presented
 	public static float extinctFreq = 0;  // If >0, this indicates the frequency of trials that will be extinction trials (no center target with a side target) - only valid on det_blind scenarios (3-choice scenarios) - also only if blocks enabled
-
+	public static bool correctExtinction = false;  // Set to true when training mice on 4-choice with corrections
 
 	public struct fov {
 		public float nasalBound;
@@ -262,6 +262,13 @@ public static class Globals
 	public static List<int> adaptPosIdx = new List<int>();
 
 	public static int numCorrectionTrialsSinceLastCorrectTrial = 0;  // To track which correction trial since the last correct trial, for displaying how long the mouse has been stuck correcting in the current bout of correction trials
+
+	public static bool staticGraphics = false;
+	public static bool rewardAtStart = false; // Used in static game to give a drop of reward when the mouse stops spinning the ball to initiate a trial
+	public static bool persistTargetPostCorrectAction = false;  // Used to keep the target visible after the mouse has made a correct decision, instead of displaying a black screen
+
+	public static float incorrectTurnDelay = 4;  // sec - can be modified by the game scenario file
+	public static float correctTurnDelay = 2;  // sec
 
 	public static int AddTreeToWorld(int worldIdx, bool water, List<Vector3> posList, float deg_LS, float angle_LS, bool texture, int restrictToCamera, float vFreq, float hFreq, float rewardSize, float rewardMulti, 
 		bool respawn, Vector3 rot, Vector3 scale, int rank, string materialName, string type, float presoFrac, float opacity, Color color1, Color color2) {
@@ -403,6 +410,10 @@ public static class Globals
 		return GetWorld (worldIdxList[worldIdxList.Count - 1]);
 	}
 
+	public static int GetCurrentWorldIdx() {
+		return worldIdxList[worldIdxList.Count - 1];
+	}
+
 	public static void SetCurrentWorldPrecompTrialBlock(int[] precompTrialBlock) {
 		World w = worlds [worldIdxList [worldIdxList.Count - 1]];
 		w.precompTrialBlock = precompTrialBlock;
@@ -494,7 +505,7 @@ public static class Globals
 		if (Globals.treesBelowGround) {
 			GameObject.FindObjectOfType<Terrain>().enabled = false; 
 		}
-
+			
 		// If adaptive tree positioning is enabled, adapt it!
 		int tPosIdx = 0;
 		if (Globals.adaptPos) {
@@ -718,6 +729,20 @@ public static class Globals
 			go.GetComponent<MeshRenderer> ().material.color = c;
 			Debug.Log (go.GetComponent<MeshRenderer> ().material.color.a);
 			*/
+		}
+
+		// If VR turned off, hide all terrain and sky and targets (until the mandatory wait time is up)
+		if (Globals.staticGraphics) {
+			GameObject.FindObjectOfType<Terrain>().enabled = false; 
+			Camera camL = GameObject.Find ("CameraL").GetComponent<Camera> ();
+			camL.clearFlags = CameraClearFlags.SolidColor;
+			camL.backgroundColor = Color.gray;
+			Camera camC = GameObject.Find ("FirstPersonCharacter").GetComponent<Camera> ();
+			camC.clearFlags = CameraClearFlags.SolidColor;
+			camC.backgroundColor = Color.gray;
+			Camera camR = GameObject.Find ("CameraR").GetComponent<Camera> ();
+			camR.clearFlags = CameraClearFlags.SolidColor;
+			camR.backgroundColor = Color.gray;
 		}
 
 		return worldIdx;
@@ -1071,9 +1096,10 @@ public static class Globals
 
 	// Only enter a correction trial if correction is enabled and last trial was incorrect AND last trial was not the location of the probes AND last trial was not a catch trial
 	public static bool CurrentlyCorrectionTrial() {
-		if (correctionTrialsEnabled && lastTrialWasIncorrect == 1 &&
+		if (correctionTrialsEnabled && lastTrialWasIncorrect &&
 			((optoSide == optoOff && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])) || 
-				(optoSide != optoOff && (optoStates[firstTurnLoc.Count - 1] == optoOff || (GetCurrentWorld().probeIdx.Count > 0 && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])))))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial			return true;
+				(optoSide != optoOff && (optoStates[firstTurnLoc.Count - 1] == optoOff || (Globals.probeWorldIdx.Count > 0 && !Globals.probeWorldIdx.Contains(Globals.GetCurrentWorldIdx())) ||
+					(GetCurrentWorld().probeIdx.Count > 0 && !GetCurrentWorld().probeIdx.Contains (targetIdx [firstTurnLoc.Count - 1])))))) { // Must be firstTurnLoc, as additional targets may have been added for the current trial
 			return true;
 		} else { 
 			return false;

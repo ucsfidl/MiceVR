@@ -48,7 +48,6 @@ worldTypesStr = {};
 % Templates used below
 results_2choice = zeros(2,2,4);
 results_2choice_catch = zeros(2,1,4);  % No target presented in these results for "catch" trials
-durations_2choice = cell(2,2,4);
 
 results_3choice = zeros(3,3,4);
 results_3choice_catch = zeros(3,1,4);
@@ -57,7 +56,6 @@ durations_3choice = cell(3,3,4);
 
 results_4choice = zeros(4,4,4);
 results_4choice_catch = zeros(4,1,4);
-durations_4choice = cell(4,4,4);
 
 % Haven't tested in a while - might not work any more
 results_disc = zeros(2,2,4);
@@ -118,7 +116,6 @@ for i=1:length(fileList)
                                worldResults{w_i} = cell(2,1);
                                worldResults{w_i}{1} = results_2choice;
                                worldResults{w_i}{2} = results_2choice_catch;
-                               worldResults{w_i}{3} = durations_2choice;
                             elseif (worldTypes(w_i) == 3)
                                worldResults{w_i} = cell(4,1);
                                worldResults{w_i}{1} = results_3choice;
@@ -129,9 +126,8 @@ for i=1:length(fileList)
                                worldResults{w_i} = cell(2,1);
                                worldResults{w_i}{1} = results_4choice;
                                worldResults{w_i}{2} = results_4choice_catch;
-                               worldResults{w_i}{3} = durations_4choice;
                             else
-                               error('Script currently supports worlds with 2-4 choices, no more.');
+                                error('Script currently supports worlds with 2-4 choices, no more.');
                             end
                         end
                     end
@@ -144,7 +140,7 @@ for i=1:length(fileList)
                         optoLoc = getOptoLoc(trialRecs, trialIdx);
                         worldIdx = getWorldIdx(trialRecs, trialIdx);
                         isCorrectionTrial = getCorrection(trialRecs, trialIdx);
-                        dur = getDuration(trialRecs, trialIdx);  % returns in seconds
+                        duration = getDuration(trialRecs, trialIdx);  % returns in seconds
                         
                         if (isCorrectionTrial && ~includeCorrectionTrials)
                             continue;
@@ -212,8 +208,6 @@ for i=1:length(fileList)
                             if (~currCatch)
                                 worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) = ...
                                     worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) + 1;
-                                worldResults{worldIdx+1}{3}{row, col, optoLoc + 2} = ...
-                                    [worldResults{worldIdx+1}{3}{row, col, optoLoc + 2} dur];
                             else
                                 worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) = ...
                                     worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) + 1;
@@ -264,8 +258,8 @@ for i=1:length(fileList)
                             else
                                 worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) = ...
                                     worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) + 1;
-                                worldResults{worldIdx+1}{4}{row, col, optoLoc + 2} = ...
-                                    [worldResults{worldIdx+1}{4}{row, col, optoLoc + 2} dur];
+                                worldResults{worldIdx+1}{4}(row, col, optoLoc + 2) = ...
+                                    [worldResults{worldIdx+1}
                             end
                             
                         elseif (worldTypes(worldIdx+1) == 4)
@@ -311,8 +305,6 @@ for i=1:length(fileList)
                             if (~currCatch)
                                 worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) = ...
                                     worldResults{worldIdx+1}{1}(row, col, optoLoc + 2) + 1;
-                                worldResults{worldIdx+1}{3}{row, col, optoLoc + 2} = ...
-                                    [worldResults{worldIdx+1}{3}{row, col, optoLoc + 2} dur];
                             else
                                 worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) = ...
                                     worldResults{worldIdx+1}{2}(row, 1, optoLoc + 2) + 1;
