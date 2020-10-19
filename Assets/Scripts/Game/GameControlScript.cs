@@ -71,7 +71,7 @@ public class GameControlScript : MonoBehaviour
 	private int stillDurationBeforeTrialStart = 1;  // The mouse must be still on the ball for 1 sec before each trial starts
 	private int trialMaxDuration = 4;  // Have 2 options - have the mouse move for a certain amount of time and then check location in world to decide decision, or have them move a certain distance. For now, try certain time.  Mouse must be moving for this whole time.
 	private int numFramesMovingSinceTrialStart;  // tracks how many frames of movement the mouse has made since starting the trial
-	private float minMovementToCount = 0.02f;  // Threshold for movement on the ball to count as a "moving" frame.  Empirically, might want to try 0.7 later...
+	private float minMovementToCount = 0.02f;  // Threshold for movement on the ball to count as a "moving" frame.  Empirically, might want to try 0.7 later...  0.02 was too little on rig 4, so doubling to 0.04 (2020/10/19)
 	private DateTime preTrialStartTime;
 	private bool inTrial = false;
 	private float lastHeading;
@@ -1680,6 +1680,10 @@ public class GameControlScript : MonoBehaviour
 					} else {  // If moving but not in trial, reset pretrial counter
 						preTrialStartTime = DateTime.Now;  // record time so we can render the stimuli when the mouse is not moving for 1 second
 					}
+				} else {
+					if (!this.inTrial) {
+						tryToEnterTrial();
+					}
 				}
 			} else {
 				Vector3 translation = this.player.transform.forward * (this.last5Mouse2Y.Average () / (this.rawSpeedDivider / Globals.speedAdjustment));
@@ -1695,35 +1699,39 @@ public class GameControlScript : MonoBehaviour
 		} else {
 			//Debug.Log ("no new data");
 			if (Globals.staticGraphics && !this.inTrial) {
-				TimeSpan ts = DateTime.Now.Subtract (preTrialStartTime);
-				if (ts.TotalMilliseconds >= stillDurationBeforeTrialStart * 1000) {
-					int worldIdx = Globals.worldIdxList [Globals.worldIdxList.Count - 1];
-					string gameType = Globals.GetGameType (worldIdx);
-					GameObject[] gos = Globals.GetTrees ();
-
-					if (Globals.rewardAtStart) {
-						this.udpSender.SendWaterReward (Globals.rewardDur);
-						Globals.numberOfUnearnedRewards++;
-						Globals.rewardAmountSoFar += Globals.rewardSize;
-						updateRewardAmountText ();
-						Debug.Log ("gave reward = " + Globals.rewardAmountSoFar);
-					}
-
-					SetupTreeActivation (gos, Globals.targetIdx [Globals.targetIdx.Count - 1], gos.Length);
-					if (gameType.Equals("det_blind")) {
-						if (!Globals.CurrentlyExtinctionTrial()) {  
-							gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree
-						}
-					}
-
-					Globals.trialStartTime.Add (DateTime.Now);
-					lastTrialStartDateTime = DateTime.Now;
-					this.inTrial = true;
-					Debug.Log ("activating tree at idx " + Globals.targetIdx[Globals.targetIdx.Count - 1]);
-				}
+				tryToEnterTrial ();
 			}
 		}
     }
+
+	private void tryToEnterTrial() {
+		TimeSpan ts = DateTime.Now.Subtract (this.preTrialStartTime);
+		if (ts.TotalMilliseconds >= stillDurationBeforeTrialStart * 1000) {
+			int worldIdx = Globals.worldIdxList [Globals.worldIdxList.Count - 1];
+			string gameType = Globals.GetGameType (worldIdx);
+			GameObject[] gos = Globals.GetTrees ();
+
+			if (Globals.rewardAtStart) {
+				this.udpSender.SendWaterReward (Globals.rewardDur);
+				Globals.numberOfUnearnedRewards++;
+				Globals.rewardAmountSoFar += Globals.rewardSize;
+				updateRewardAmountText ();
+				Debug.Log ("gave reward = " + Globals.rewardAmountSoFar);
+			}
+
+			SetupTreeActivation (gos, Globals.targetIdx [Globals.targetIdx.Count - 1], gos.Length);
+			if (gameType.Equals("det_blind")) {
+				if (!Globals.CurrentlyExtinctionTrial()) {  
+					gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree
+				}
+			}
+
+			Globals.trialStartTime.Add (DateTime.Now);
+			lastTrialStartDateTime = DateTime.Now;
+			this.inTrial = true;
+			Debug.Log ("activating tree at idx " + Globals.targetIdx[Globals.targetIdx.Count - 1]);
+		}
+	}
 
 	// This function runs for the staticGraphics game and dispenses water or not depending on where the mouse ended up with its virtual location
 	private void DetermineMouseDecision () {
