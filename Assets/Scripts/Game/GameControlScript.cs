@@ -71,7 +71,7 @@ public class GameControlScript : MonoBehaviour
 	private int stillDurationBeforeTrialStart = 1;  // The mouse must be still on the ball for 1 sec before each trial starts
 	private int trialMaxDuration = 4;  // Have 2 options - have the mouse move for a certain amount of time and then check location in world to decide decision, or have them move a certain distance. For now, try certain time.  Mouse must be moving for this whole time.
 	private int numFramesMovingSinceTrialStart;  // tracks how many frames of movement the mouse has made since starting the trial
-	private float minMovementToCount = 0.02f;  // Threshold for movement on the ball to count as a "moving" frame.  Empirically, might want to try 0.7 later...  0.02 was too little on rig 4, so doubling to 0.04 (2020/10/19)
+	private float minMovementToCount = 0.04f;  // Threshold for movement on the ball to count as a "moving" frame.  Empirically, might want to try 0.7 later...  0.02 was too little on rig 4, so doubling to 0.04 (2020/10/19)
 	private DateTime preTrialStartTime;
 	private bool inTrial = false;
 	private float lastHeading;
