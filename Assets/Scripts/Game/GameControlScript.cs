@@ -1713,7 +1713,8 @@ public class GameControlScript : MonoBehaviour
 
 			if (Globals.rewardAtStart) {
 				this.udpSender.SendWaterReward (Globals.rewardDur);
-				Globals.numberOfUnearnedRewards++;
+				Globals.numberOfEarnedRewards++;
+				Globals.sizeOfRewardGiven.Add(Globals.rewardSize);
 				Globals.rewardAmountSoFar += Globals.rewardSize;
 				updateRewardAmountText ();
 				Debug.Log ("gave reward = " + Globals.rewardAmountSoFar);
