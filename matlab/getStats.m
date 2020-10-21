@@ -104,7 +104,7 @@ for i=1:length(fileList)
                     % Take the 3rd string, and split by underscores to find the number of choices.
                     % In the future, record the level type in the actions file itself at the top.
                     world_parts = split(strs{3}, '_');
-                    if (length(worldTypes) == 0)  % only initialize variables once
+                    if (isempty(worldTypes))  % only initialize variables once
                         if(~isnan(str2double(world_parts{1}(1))))
                             worldTypes(end+1) = str2double(world_parts{1}(1));
                             worldTypesStr{end+1} = world_parts{1};

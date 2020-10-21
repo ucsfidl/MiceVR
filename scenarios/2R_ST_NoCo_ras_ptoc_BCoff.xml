@@ -1,0 +1,24 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>
+			<gameTurnControl>yaw</gameTurnControl>
+			<correctionTrials>false</correctionTrials>
+			<biasCorrection>false</biasCorrection>
+			<staticGraphics>true</staticGraphics>
+			<rewardAtStart>true</rewardAtStart>
+			<persistTargetPostCorrectAction>true</persistTargetPostCorrectAction>
+			<correctTurnDelay>1</correctTurnDelay>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_2R_ST.xml</includeWorld>
+	</worlds>
+</document>

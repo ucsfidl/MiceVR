@@ -152,8 +152,6 @@ if(isempty(trialTypeStrArr))  % If no string specified, initialize to analyze al
 end
 
 numTrialsTotal = 0;
-wallsAlreadyDrawn = 0;
-tit = [upper(mouseName) ' (day ' num2str(days)  '), ']; 
 
 % First, iterate through all of the different trialTypes specified, as generally will make one plot 
 % per trialType if drawOneFig is specified.
@@ -169,7 +167,7 @@ for tt_i=1:length(trialTypeStrArr)
     end
 
     % Generally will be drawing one figure, so init a figure for drawing
-    if (drawOneFig && figN ~= 1)
+    if (drawOneFig)
         figN = figN+1;
         f = initTrajFig(figN, useSubPlot);
     end
@@ -334,7 +332,7 @@ for tt_i=1:length(trialTypeStrArr)
             end
 
             % Draw level map with walls and tree as a large circle
-            if (~exist('wall', 'var') || ~drawOneFig || (drawOneFig && ~wallsAlreadyDrawn))
+            if (~exist('wall', 'var') || ~drawOneFig)
                 for w_i=1:length(worldNode.walls.wall)
                     wall = worldNode.walls.wall{w_i};
                     wallPosStr = wall.pos.Text;
@@ -365,64 +363,64 @@ for tt_i=1:length(trialTypeStrArr)
 
                     plot(rotatedWallPos(1,:), rotatedWallPos(2,:), 'Color', wallColor, 'LineWidth', wallWidth)
                 end
-                wallsAlreadyDrawn = 1;
-            end
-            
-            % After drawing walls, draw the tree visible on this trial.
-            % Supports 3 and 4-choice trials
-            % TODO: Support drawing correct tree width!
-            for t_i=1:length(worldNode.trees.t)
-                treePosStr = worldNode.trees.t{t_i}.pos.Text;
-                treePosXYZ = split(treePosStr, ';');
-                treeScaleStr = worldNode.trees.t{t_i}.scale.Text;
-                treeScaleXYZ = split(treeScaleStr, ';'); 
-                plotTarget = 0;
-                if (length(worldNode.trees.t) == 3)
-                    if (t_i == 1 && stimIdx == 0)
-                        markerColor = shadingColorLeft;
-                        plotTarget = 1;
-                    elseif (t_i == 2 && stimIdx == 1)
-                        markerColor = shadingColorRight;
-                        plotTarget = 1;
-                    elseif (t_i == 3)
-                        if (~isCatchTrial && ~isExtinctionTrial && ~hideStraightTarget)
-                            markerColor = shadingColorStraight;
+                
+                % After drawing walls, draw the tree visible on this trial.
+                % Supports 3 and 4-choice trials
+                % TODO: Support drawing correct tree width!
+                for t_i=1:length(worldNode.trees.t)
+                    treePosStr = worldNode.trees.t{t_i}.pos.Text;
+                    treePosXYZ = split(treePosStr, ';');
+                    treeScaleStr = worldNode.trees.t{t_i}.scale.Text;
+                    treeScaleXYZ = split(treeScaleStr, ';'); 
+                    plotTarget = 0;
+                    if (length(worldNode.trees.t) == 3)
+                        if (t_i == 1 && stimIdx == 0)
+                            markerColor = shadingColorLeft;
                             plotTarget = 1;
+                        elseif (t_i == 2 && stimIdx == 1)
+                            markerColor = shadingColorRight;
+                            plotTarget = 1;
+                        elseif (t_i == 3)
+                            if (~isCatchTrial && ~isExtinctionTrial && ~hideStraightTarget)
+                                markerColor = shadingColorStraight;
+                                plotTarget = 1;
+                            end
+                        end
+                        
+                        if (plotTarget)
+                            % Simple code for plotting an ellipse
+                            rx = (str2double(treeScaleXYZ{1}) + 1) * 4.5;  % For some reason the Unity code adds 1 - not how I would have done it!
+                            rz = (str2double(treeScaleXYZ{3}) + 1) * 4.5;
+                            x0 = str2double(treePosXYZ{1});
+                            z0 = str2double(treePosXYZ{3});
+                            t = -pi:0.01:pi;
+                            x = x0 + rx*cos(t);
+                            z = z0 + rz*sin(t);
+                            patch(x, z, 'ok', 'LineWidth', 4, 'FaceColor', markerColor);
+                            %if (treeScaleXYZ{1} == 0 && treeScaleXYZ{3} == 0)
+                                % By default we plot targets as circles, unless specified otherwise
+                            %    plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', ...
+                            %         'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
+                            %end
+                        end
+                    elseif (length(worldNode.trees.t) == 4)
+                        markerColor = [-1 -1 -1];
+                        if (t_i == 1 && stimIdx == 0)
+                            markerColor = shadingColorLeft;
+                        elseif (t_i == 2 && stimIdx == 1)
+                            markerColor = shadingColorRight;
+                        elseif (t_i == 3 && stimIdx == 2)
+                            markerColor = shadingColorLeftFar;
+                        elseif (t_i == 4 && stimIdx == 3)
+                            markerColor = shadingColorRightFar;
+                        end
+                        
+                        if (markerColor(1) ~= -1 && markerColor(2) ~= -1 && markerColor(3) ~= -1)
+                            plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', ...
+                                 'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
                         end
                     end
-
-                    if (plotTarget)
-                        % Simple code for plotting an ellipse
-                        rx = (str2double(treeScaleXYZ{1}) + 1) * 4.5;  % For some reason the Unity code adds 1 - not how I would have done it!
-                        rz = (str2double(treeScaleXYZ{3}) + 1) * 4.5;
-                        x0 = str2double(treePosXYZ{1});
-                        z0 = str2double(treePosXYZ{3});
-                        t = -pi:0.01:pi;
-                        x = x0 + rx*cos(t);
-                        z = z0 + rz*sin(t);
-                        patch(x, z, 'ok', 'LineWidth', 4, 'FaceColor', markerColor);
-                        %if (treeScaleXYZ{1} == 0 && treeScaleXYZ{3} == 0)
-                            % By default we plot targets as circles, unless specified otherwise
-                        %    plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', ...
-                        %         'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
-                        %end
-                    end
-                elseif (length(worldNode.trees.t) == 4)
-                    markerColor = [-1 -1 -1];
-                    if (t_i == 1 && stimIdx == 0)
-                        markerColor = shadingColorLeft;
-                    elseif (t_i == 2 && stimIdx == 1)
-                        markerColor = shadingColorRight;
-                    elseif (t_i == 3 && stimIdx == 2)
-                        markerColor = shadingColorLeftFar;
-                    elseif (t_i == 4 && stimIdx == 3)
-                        markerColor = shadingColorRightFar;
-                    end
-
-                    if (markerColor(1) ~= -1 && markerColor(2) ~= -1 && markerColor(3) ~= -1)
-                        plot(str2double(treePosXYZ{1}), str2double(treePosXYZ{3}), 'ok', ...
-                             'MarkerSize', 44, 'LineWidth', 4, 'MarkerFaceColor', markerColor);
-                    end
+                    
                 end
             end
 
@@ -470,7 +468,7 @@ for tt_i=1:length(trialTypeStrArr)
         dayStr = [dayStr num2str(days(d_i))];
         numReplaysInFig = numReplaysInFig + length(filtRecIDs);
         
-        %clear wall;
+        clear wall;
         totalTrials = totalTrials + length(trialsToDo);
     end
     
@@ -491,7 +489,7 @@ for tt_i=1:length(trialTypeStrArr)
     
     % plotFilledEllipses is a good replacement for scatter as it is size invariant
     if (~isempty(avgTrajColor))
-        plotFilledEllipses(mX, mZ, xCI95(2,:), zCI95(2,:), avgTrajColor(tt_i));
+        plotFilledEllipses(mX, mZ, xCI95(2,:), zCI95(2,:), avgTrajColor);
     end
     %scatter(mX, mZ, markSize, 'k', 'filled');
     
@@ -501,7 +499,8 @@ for tt_i=1:length(trialTypeStrArr)
         if (daysPlotted > 1)
             dayLabel = 'days';
         end
-        tit = [tit ' ' trialTypeStrArr{tt_i} ', n=' num2str(totalTrials) ', ' corrTxt '; '];
+        tit = [upper(mouseName) ' (' dayLabel ' ' dayStr  '), ' trialTypeStrArr{tt_i} ', n=' ...
+                num2str(totalTrials) ', ' corrTxt];
         title(tit);
     else % If not trajs plotted, close figure and reuse that position on the screen for the next figure
         close(f);
@@ -511,7 +510,7 @@ for tt_i=1:length(trialTypeStrArr)
 end
 
 if (drawOneFig)
-    disp(['Total trials analyzed = ' num2str(numTrialsTotal)]);
+    disp(['Total trials analyzed = ' num2str(totalTrials)]);
 end
 
 fclose('all');
