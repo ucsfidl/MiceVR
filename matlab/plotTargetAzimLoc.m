@@ -72,8 +72,10 @@ totalTrialsAnalyzed = zeros(1,2);
 totalTrialsNotAnalyzed = zeros(1,2);
 
 % Variable that stores accuracy as a function of nasalExtrema
-bucketSize = 4;  % pool accuracy data in 4 degree buckets
-buckets = -40:bucketSize:40;
+bucketSize = 5;  % pool accuracy data in 4 degree buckets
+leftExtreme = -90;
+rightExtreme = 90;
+buckets = leftExtreme:bucketSize:rightExtreme;
 buckets(1) = -Inf;
 buckets(end) = Inf;
 numCorrectL = zeros(length(buckets), 1);
@@ -534,7 +536,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                 % Also plot the animal's trajectory on that trial
                 subplot(1,2,1);
                 set(gca, 'Position', [0.04 0.05 0.44 0.9]);
-                analyzeTraj(mouseName, days(d_i), [], trialsToDo(trialIdx), trialTypeStrArr, 1, 0, 8, 1, lastTrial, 1, 1);
+                analyzeTraj(mouseName, days(d_i), [], trialsToDo(trialIdx), trialTypeStrArr, 1, 0, 8, 1, lastTrial, 1, 0, 1, 'b');
 
                 % Logic to only keep open the figs that you hit 'k' for 'keep' on
                 closeFig = 1;
@@ -585,8 +587,8 @@ hold on;
 yyaxis left;
 blue = [2 87 194]/255;
 red = [226 50 50]/255;
-histogram(nasalExtremaL, -40:bucketSize:40, 'Normalization', 'probability', 'FaceColor', blue);
-histogram(nasalExtremaR, -40:bucketSize:40, 'Normalization', 'probability', 'FaceColor', red);
+histogram(nasalExtremaL, leftExtreme:bucketSize:rightExtreme, 'Normalization', 'probability', 'FaceColor', blue);
+histogram(nasalExtremaR, leftExtreme:bucketSize:rightExtreme, 'Normalization', 'probability', 'FaceColor', red);
 ylabel('fraction (bars)', 'Color', 'black');
 set(gca, 'YColor', 'k');
 
@@ -603,7 +605,7 @@ set(gca, 'YColor', 'k');
 % Plot 0 degree  dotted line
 plot([0 0], ylim, 'k--');
 title([mouseName ', ' whichEye ' eye, D' num2str(days) ': n_L=' num2str(length(nasalExtremaL)) ' (' num2str(pctAnalyzed(1)*100,2) ...
-        '% kept), n_R=' num2str(length(nasalExtremaR)) ' (' num2str(pctAnalyzed(2)*100,2) '% kept)']);
+        '% kept), n_R=' num2str(length(nasalExtremaR)) ' (' num2str(pctAnalyzed(2)*100,2) '% kept), c=' num2str(fractionOfRun)]);
 
 if (~interactive && outputNewActionsFile && newActionsFileID ~= -1)
     fclose(newActionsFileID);
