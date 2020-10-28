@@ -612,11 +612,6 @@ for i=1:length(trimmedStimIdxs)
         continue;
     end
     
-    % Added 10/25/20 - Filter out extinction and correction trials from average graphs
-    if (getExtinction(trialRecs, i) || getCorrection(trialRecs, i))
-        continue;
-    end
-    
     for j=1:2
         s = stimEyeMoveTrials{stimNum, j};
         s{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
