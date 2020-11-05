@@ -1,4 +1,4 @@
-function analyzePupils_v4(trackFileName, pxPerMm, useCR)
+function analyzePupils_noStimIdx(trackFileName, pxPerMm, useCR)
 % Once trackPupils is done this script is used to analyze the pupil positions and produce many plots.
 
 % It now also keeps track of eye blink times, based on when the centroid is lost.  This is VERY rough and should be 

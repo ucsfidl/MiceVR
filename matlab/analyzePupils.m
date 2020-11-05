@@ -15,6 +15,8 @@ function analyzePupils(trackFileName, pxPerMm, useCR)
 % azimuthal deviations, but a different calculation is better done for elevation deviations (see Zoccolan..Cox 2010).
 % Along with this correction, we have also added a pxPerMm calibration value, as Rp is in mm.
 
+% By default, exclude correction and extinction trials
+
 % USAGE:
 % >> analyzePupils(['Dragon_229_trk.mat'], 4, [1 0], 1.15, 47, 60, 0)
 
@@ -610,6 +612,11 @@ for i=1:length(trimmedStimIdxs)
         continue;
     end
     
+    % Added 10/25/20 - Filter out extinction and correction trials from average graphs
+    if (getExtinction(trialRecs, i) || getCorrection(trialRecs, i))
+        continue;
+    end
+    
     for j=1:2
         s = stimEyeMoveTrials{stimNum, j};
         s{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
@@ -630,10 +637,8 @@ for i=1:length(trimmedStimIdxs)
     end
 end
 
-% First, plot the stimulus average of the eye movements
+% First, plot the stimulus average of the eye movements for all trials (incorrect and correct)
 % Normalize by resampling, and then plot the average of the resampled eye movements.
-% COMMENTED OUT TO REDUCE NUMBER OF FIGURES DISPLAYED
-%{
 minLengths = zeros(2, 1);  % One for each eye
 resizedStimEye = cell(size(stimEyeMoveTrials));
 m = cell(size(stimEyeMoveTrials));
@@ -787,7 +792,7 @@ for eye=1:2  % For each eye
     ylabel('Frame (normalized)')
     xlabel('Pupil Azimuth (deg)');
 end
-%}
+
 
 % Second, plot the stimulus average of the eye movements for only CORRECT trials
 minLengths = zeros(2, 1);  % One for each eye
