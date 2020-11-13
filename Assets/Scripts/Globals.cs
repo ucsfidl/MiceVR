@@ -1010,10 +1010,9 @@ public static class Globals
 			int idx;
 			for (int j = 0; j < Globals.firstTurnLoc.Count; j++) {
 				idx = Globals.targetIdx[j];
-				// Added support for ignoring correction trials and extinction trials
+				// Added support for ignoring correction trials, extinction trials, and catch trials
 				// Check for world-matching again here, as results from different worlds will be intermingled in the in-memory logs
-				// Also, don't try to calculate target accuracy for catch trials
-				if (idx != CATCH_IDX && i == worldIdxList[j] && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[j] == 0)) && extinctionTrialMarks[j] == 0) {
+				if (idx != CATCH_IDX && i == worldIdxList[j] && correctionTrialMarks[j] == 0 && extinctionTrialMarks[j] == 0) {
 					numTrials [idx]++;
 					//Debug.Log("this-world trial");
 					if (Globals.targetIdx [j] == Globals.firstTurnIdx [j]) {
@@ -1048,7 +1047,7 @@ public static class Globals
 
 		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected histLen
 		for (int i = firstTurnLoc.Count-1; i >= 0; i--) {  // must be firstTurnLoc.Count!
-			if (worldIdxList [i] == currWorldID && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0)) && extinctionTrialMarks[i] == 0) {
+			if (worldIdxList [i] == currWorldID && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
 				validTrials.Add(i);
 			}
 			if (validTrials.Count == histLen) {
@@ -1115,10 +1114,11 @@ public static class Globals
 		int currWorld = worldIdxList [worldIdxList.Count - 1];
 		List<int> validTrials = new List<int> ();
 
-		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected n
+		// First, collect trials that correspond to this world AND were not correction trials or extinction trials or catchTrials, until you either run out or have collected n
 		for (int i = firstTurnLoc.Count-1; i >= 0; i--) {
+			int idx = Globals.targetIdx[i];
 			//Debug.Log (correctionTrialMarks [i]);
-			if (worldIdxList [i] == currWorld && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
+			if (idx != CATCH_IDX && worldIdxList [i] == currWorld && correctionTrialMarks[i] == 0 && extinctionTrialMarks[i] == 0) {
 				validTrials.Add(i);
 			}
 			if (validTrials.Count == n) {
