@@ -878,7 +878,7 @@ public static class Globals
         StreamWriter statsFile = new StreamWriter(PlayerPrefs.GetString("actionFolder") + "/" + mRecorder.GetReplayFileName() + "_stats.txt");
         statsFile.WriteLine("<document>");
         statsFile.WriteLine("\t<stats>");
-		statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials - numExtinctionTrials) * 100) + "%" + GetTreeAccuracy(false) + "</accuracy>  <!-- nonCorrection trials only -->");
+		statsFile.WriteLine("\t\t<accuracy>" + Math.Round((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials) * 100) + "%" + GetTreeAccuracy(false) + "</accuracy>  <!-- nonCorrection trials only -->");
         // TODO - Fix off by one error when mouse finishes game!
         statsFile.WriteLine("\t\t<numEarnedRewards>" + numCorrectTurns + "</numEarnedRewards>");
         statsFile.WriteLine("\t\t<numUnearnedRewards>" + numberOfUnearnedRewards + "</numUnearnedRewards>");
@@ -948,10 +948,10 @@ public static class Globals
 								{ "rmin", string.Format ("{0:N1}", (numCorrectTurns / numMinElapsed)) },
 								{ "trials", (numNonCorrectionTrials - 1 - numCatchTrials).ToString () },
 								{ "tmin", string.Format ("{0:N1}", (numNonCorrectionTrials - 1 - numCatchTrials) / numMinElapsed) },
-								{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials - numExtinctionTrials) * 100) + "%" },
+								{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials) * 100) + "%" },
 								{ "earned", Math.Round (totalEarnedRewardSize).ToString () },
 								{ "uball", Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString () },
-								{ "results", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials - numExtinctionTrials) * 100) + GetTreeAccuracy (false) },
+								{ "results", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials) * 100) + GetTreeAccuracy (false) },
 								{ "totalh2o", "=V" + (row + 1) + "+X" + (row + 1) }
 							}
 							);
@@ -1010,9 +1010,10 @@ public static class Globals
 			int idx;
 			for (int j = 0; j < Globals.firstTurnLoc.Count; j++) {
 				idx = Globals.targetIdx[j];
-				// Added support for ignoring correction trials, extinction trials, and catch trials
+				// Added support for ignoring correction trials
 				// Check for world-matching again here, as results from different worlds will be intermingled in the in-memory logs
-				if (idx != CATCH_IDX && i == worldIdxList[j] && correctionTrialMarks[j] == 0 && extinctionTrialMarks[j] == 0) {
+				// Also, don't try to calculate target accuracy for catch trials
+				if (idx != CATCH_IDX && i == worldIdxList[j] && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[j] == 0))) {
 					numTrials [idx]++;
 					//Debug.Log("this-world trial");
 					if (Globals.targetIdx [j] == Globals.firstTurnIdx [j]) {
@@ -1114,11 +1115,10 @@ public static class Globals
 		int currWorld = worldIdxList [worldIdxList.Count - 1];
 		List<int> validTrials = new List<int> ();
 
-		// First, collect trials that correspond to this world AND were not correction trials or extinction trials or catchTrials, until you either run out or have collected n
+		// First, collect trials that correspond to this world AND were not correction trials, until you either run out or have collected n
 		for (int i = firstTurnLoc.Count-1; i >= 0; i--) {
-			int idx = Globals.targetIdx[i];
 			//Debug.Log (correctionTrialMarks [i]);
-			if (idx != CATCH_IDX && worldIdxList [i] == currWorld && correctionTrialMarks[i] == 0 && extinctionTrialMarks[i] == 0) {
+			if (worldIdxList [i] == currWorld && (!correctionTrialsEnabled || (correctionTrialsEnabled && correctionTrialMarks[i] == 0))) {
 				validTrials.Add(i);
 			}
 			if (validTrials.Count == n) {

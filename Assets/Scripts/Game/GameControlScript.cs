@@ -94,7 +94,6 @@ public class GameControlScript : MonoBehaviour
         Globals.rewardAmountSoFar = 0;
 		Globals.numberOfDryTrees = 0;
 		Globals.numNonCorrectionTrials = 1;  // Start on first trial
-		Globals.numExtinctionTrials = 0;
         this.timeoutState = false;
 
 		this.startingPos = this.player.transform.position;
@@ -1820,14 +1819,14 @@ public class GameControlScript : MonoBehaviour
 	}
 
 	private void updateCorrectTurnsText() {
-		float numNormalTrials = (float)Globals.numNonCorrectionTrials - 1 - Globals.numCatchTrials - Globals.numExtinctionTrials;
+		float numNonCorrectionTrials = (float)Globals.numNonCorrectionTrials - 1 - Globals.numCatchTrials;
 		if (Globals.CurrentlyCorrectionTrial ()) {
-			numNormalTrials = numNormalTrials + 1;
+			numNonCorrectionTrials = numNonCorrectionTrials + 1;
 		}
 		this.numberOfCorrectTurnsText.text = "Correct: " +
 			Globals.numCorrectTurns.ToString ()
 			+ " (" +
-			Mathf.Round((float)Globals.numCorrectTurns / numNormalTrials * 100).ToString() + "%" 
+			Mathf.Round((float)Globals.numCorrectTurns / numNonCorrectionTrials * 100).ToString() + "%" 
 			+ Globals.GetTreeAccuracy(false) + ")";
 	}
 
