@@ -252,7 +252,7 @@ public class WaterTreeScript : MonoBehaviour {
 
 		if (addToTurns) {
 			if (trueCorrect) {
-				if (!Globals.CurrentlyCorrectionTrial()) { // Not correction trial
+				if (!(Globals.CurrentlyCorrectionTrial() || Globals.CurrentlyExtinctionTrial())) { // Not correction trial nor extinction trial 
 					Globals.numCorrectTurns++;
 					//Debug.Log ("Added to numCorrectTurns");
 				}
