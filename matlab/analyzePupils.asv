@@ -151,11 +151,7 @@ trialEndOffset = 0;
 
 load(trackFileName, 'vLeftFileName', 'vRightFileName', 'centers', 'areas', 'majorAxisLengths', 'minorAxisLengths', ...
                     'sumImLR', 'frameLim');
-% This is to make sure these variables are of the kind that the following code expectes.
-% Adi's first version of DLC analysis did not save these as the right kind.
-sumImLR = single(sumImLR);
-frameLim = double(frameLim);
-
+sumImLR = single(sumImL
 if (useCR(1) || useCR(2))
     load(trackFileName, 'crCenters', 'crAreas', 'crMajorAxisLengths', 'crMinorAxisLengths');
 end
