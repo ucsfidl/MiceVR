@@ -1,4 +1,4 @@
-function analyzePupils(trackFileName, pxPerMm, useCR)
+function analyzePupils(trackFileName, rig, pxPerMm, useCR)
 % Once trackPupils is done this script is used to analyze the pupil positions and produce many plots.
 
 % It now also keeps track of eye blink times, based on when the centroid is lost.  This is VERY rough and should be 
@@ -32,6 +32,16 @@ analFrameLim = [1 0];
 fps = 60;
 timeInSec = 0;
 scatterStepSize = 1;  % >= 1; e.g. 100 means 1 in 100 frames are used to plot pupil and CR positions (or 1% sampling).
+
+rigPxPerMm = [42 38;    % rig 1
+             58 56;     % rig 2
+             57 49;     % rig 3
+             61 57];    % rig 4
+         
+if (rig > 0 && isempty(pxPerMm))
+    pxPerMm = rigPxPerMm(rig, :);
+    disp(['USING STORED RIG CALIBRATION = ' num2str(pxPerMm)]);
+end
 
 actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
 
