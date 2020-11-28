@@ -129,7 +129,7 @@ if (~skip(1) && ~skip(2))
     % Allow the video frame counts to differ by at most 1 frame, which rig 1 has started doing (10/2020)
     if (~(v(1).NumberOfFrames == v(2).NumberOfFrames || v(1).NumberOfFrames + 1 == v(2).NumberOfFrames || ...
         v(1).NumberOfFrames == v(2).NumberOfFrames + 1))
-        error('The number of frames in each video does not match. Were frames dropped or is the video corrupt?');
+        disp('The number of frames in each video does not match. Were frames dropped or is the video corrupt?');
     end
     if (v(1).Height ~= v(2).Height)
         error('The height of each video does not match. It must.');
