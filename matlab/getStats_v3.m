@@ -1,4 +1,4 @@
-function getStats(loc, mouseName, days, sessions, sightRate, includeCorrectionTrials, analyzeCensored)
+function getStats_v3(loc, mouseName, days, sessions, sightRate, includeCorrectionTrials, analyzeCensored)
 % This function will analyze the relevant actions.txt log files and return a set of statistics useful to analyzing 
 % blindness and blindsight, as well as a 2AFC stimulus discrimination task.
 %
@@ -485,11 +485,12 @@ for (worldIdx = 1:length(worldTypes))
                 disp('-----------')
 
                 % Do chi-squared test, adjusted for the sight rate!
-                expectedCorrectByChance = expectedFrac(1) * ((1-sightRate)*total1) + expectedFrac(2) * ((1-sightRate)*total2);
-                expectedIncorrectByChance = (1 - expectedFrac(1)) * ((1-sightRate)*total1) + (1 - expectedFrac(2)) * ((1-sightRate)*total2);
+                expected = zeros(2,1);  % First row is correct, second row is incorrect
+                expectedCorrect = expectedFrac(1) * total1 + expectedFrac(2) * total2;
+                expectedIncorrect = (1 - expectedFrac(1)) * total1 + (1 - expectedFrac(2)) * total2;
                 
-                expectedCorrectByChanceAndSight = sightRate * (total1+total2) + expectedCorrectByChance;
-                expectedIncorrectByChanceAndSight = expectedIncorrectByChance;
+                expectedCorrectByChanceAndSight = expectedCorrect + sightRate * (total1+total2);
+                expectedIncorrectByChanceAndSight = expectedIncorrect - sightRate * (total1+total2);
                 disp(['Expected correct by chance = ' num2str(expectedCorrectByChanceAndSight)])
                 disp(['Observed correct = ' num2str(observed(1,1,j) + observed(1,2,j))]);
                 disp(['Chi-squared p = ' num2str(chisquared(observed(1,1,j) + observed(1,2,j), expectedCorrectByChanceAndSight, ...
@@ -851,28 +852,28 @@ for (worldIdx = 1:length(worldTypes))
                 
                 % Do chi-squared test, adjusted for the sight rate!  Assumes right blindness for now
                 expected = zeros(2,4);  % First row is correct, second row is incorrect
-                expected(1,1) = expectedFrac(1) * ((1-sightRate) * (observed(1,1,j) + observed(2,1,j)));
-                expected(2,1) = (1 - expectedFrac(1)) * ((1-sightRate) * (observed(1,1,j) + observed(2,1,j)));
-                expected(1,2) = expectedFrac(2) * ((1-sightRate) * (observed(1,2,j) + observed(2,2,j)));
-                expected(2,2) = (1 - expectedFrac(2)) * ((1-sightRate) * (observed(1,2,j) + observed(2,2,j)));
-                expected(1,3) = expectedFrac(3) * ((1-sightRate) *(observed(1,3,j) + observed(2,3,j)));
-                expected(2,3) = (1 - expectedFrac(3)) * ((1-sightRate) * (observed(1,3,j) + observed(2,3,j)));
-                expected(1,4) = expectedFrac(4) * ((1-sightRate) * (observed(1,4,j) + observed(2,4,j)));
-                expected(2,4) = (1 - expectedFrac(4)) * ((1-sightRate) * (observed(1,4,j) + observed(2,4,j)));
+                expected(1,1) = expectedFrac(1) * (observed(1,1,j) + observed(2,1,j));
+                expected(2,1) = (1 - expectedFrac(1)) * (observed(1,1,j) + observed(2,1,j));
+                expected(1,2) = expectedFrac(2) * (observed(1,2,j) + observed(2,2,j));
+                expected(2,2) = (1 - expectedFrac(2)) * (observed(1,2,j) + observed(2,2,j));
+                expected(1,3) = expectedFrac(3) * (observed(1,3,j) + observed(2,3,j));
+                expected(2,3) = (1 - expectedFrac(3)) * (observed(1,3,j) + observed(2,3,j));
+                expected(1,4) = expectedFrac(4) * (observed(1,4,j) + observed(2,4,j));
+                expected(2,4) = (1 - expectedFrac(4)) * (observed(1,4,j) + observed(2,4,j));
                 
                 % Print pooled expected values
                 %disp(['Expected left = ' num2str(expected(1,1) + expected(1,1) + sightRate * (totalNL + totalFL))])
-                expectedCorrectByChanceAndSight = sightRate * (totalNR + totalFR) + expected(1,2) + expected(1,4);
-                disp(['Expected right correct by chance = ' num2str(expectedCorrectByChanceAndSight)])
+                expectedCorrectByChance = expected(1,2) + expected(1,4) + sightRate * (totalNR + totalFR);
+                disp(['Expected right correct by chance = ' num2str(expectedCorrectByChance)])
                 disp(['Observed right correct = ' num2str(observed(1,2,j) + observed(1,4,j))]);
-                disp(['Chi-squared p = ' num2str(chisquared(observed(1,2,j) + observed(1,4,j), expectedCorrectByChanceAndSight, ...
-                                            observed(2,2,j) + observed(2,4,j), expected(2,2) + expected(2,4)))]);
+                disp(['Chi-squared p = ' num2str(chisquared(observed(1,2,j) + observed(1,4,j), expectedCorrectByChance, ...
+                                            observed(2,2,j) + observed(2,4,j), expected(2,2) + expected(2,4) - sightRate * (totalNR + totalFR)))]);
                 disp('---------------');
-                expectedCorrectByChanceAndSight = expected(1,1) + expected(1,3) + sightRate * (totalNL + totalFL);
-                disp(['Expected left correct by chance = ' num2str(expectedCorrectByChanceAndSight)])
+                expectedCorrectByChance = expected(1,1) + expected(1,3) + sightRate * (totalNL + totalFL);
+                disp(['Expected left correct by chance = ' num2str(expectedCorrectByChance)])
                 disp(['Observed left correct = ' num2str(observed(1,1,j) + observed(1,3,j))]);
-                disp(['Chi-squared p = ' num2str(chisquared(observed(1,1,j) + observed(1,3,j), expectedCorrectByChanceAndSight, ...
-                                            observed(2,1,j) + observed(2,3,j), expected(2,1) + expected(2,3)))]);
+                disp(['Chi-squared p = ' num2str(chisquared(observed(1,1,j) + observed(1,3,j), expectedCorrectByChance, ...
+                                            observed(2,1,j) + observed(2,3,j), expected(2,1) + expected(2,3) - sightRate * (totalNL + totalFL)))]);
                 disp('---------------');
                 
                 disp('================')

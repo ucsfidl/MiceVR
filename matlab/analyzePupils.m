@@ -981,7 +981,6 @@ for eye=1:2  % For each eye
 end
 
 % COMMENTED OUT TO REDUCE NUMBER OF FIGURES DISPLAYED
-%{
 % Third, plot the stimulus average of the eye movements only for incorrect trials
 % Suppress warnings related to extra legend entries
 warning('off','MATLAB:legend:IgnoringExtraEntries')
@@ -1170,6 +1169,7 @@ for eye=1:2  % For each eye
     xlabel('Pupil Azimuth (deg)');
 end
 
+%{
 % Fourth, plot the stimulus x action average of the eye movements
 % This helps assess whether the eyes follow the stim, or the eyes follow
 % the navigation!

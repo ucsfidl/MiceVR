@@ -45,7 +45,7 @@ fps = 60;  % All videos are 60 fps
 
 % For corneal reflection tracking
 % CRs move very little, so if it has moved more than distThresh, filter away
-crSzRangePx = [20 250];  % CR is as small as 30 px, or as large as 257 px (before crMinVal implemented) - this needs to be changed to a physical size
+crSzRangePx = [20 350];  % CR is as small as 30 px, or as large as 257 px (before crMinVal implemented) - this needs to be changed to a physical size
 craRatio = 2;  % 2.5 is too low, it misses the CR on some frames
 crMinVal = 249;  % pixel value used to threshold image for finding CR
 crMaxAllowedMovement = 16;  % px; this is the maximum movement between frames; 10 px was too much
