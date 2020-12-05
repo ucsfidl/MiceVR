@@ -724,17 +724,24 @@ for (worldIdx = 1:length(worldTypes))
 
                 % Special calculations for 3F level
                 if (strcmp(worldTypesStr{worldIdx}, '3L') || strcmp(worldTypesStr{worldIdx}, '3R'))
-                    extOrBSRate = round((round(resultsExt(1,1,j) / sum(resultsExt(:,1,j)) * 100) - round(results(1,1,j) / sum(results(:,1,j)) * 100) ...
-                                    + round(resultsExt(2,2,j) / sum(resultsExt(:,2,j)) * 100) - round(results(2,1,j) / sum(results(:,1,j)) * 100))/2);
-                    % the below might be wrong - investigate if get fishy answers
-                    normExtOrBSRate = round(extOrBSRate / (100 - (round(sum(results(1:2,1,j)) / (2*sum(results(:,1,j)))*100))) * 100);
+                    extOrBSRate = round(resultsExt(1,1,j) / sum(resultsExt(:,1,j)) * 100) - round(results(1,1,j) / sum(results(:,1,j)) * 100) ...
+                                    + round(resultsExt(2,2,j) / sum(resultsExt(:,2,j)) * 100) - round(results(2,2,j) / sum(results(:,2,j)) * 100);
+                    normExtOrBSRate = 0;
+
                 else
                     rExtRate = round(resultsExt(2,2,j) / sum(resultsExt(:,2,j)) * 100);
                     rCatchRate = round(results(2,1,j) / sum(results(:,1,j)) * 100);
                     extOrBSRate = rExtRate - rCatchRate;
                     normExtOrBSRate = round(extOrBSRate / (100 - rCatchRate) * 100);
                 end
-                                
+                
+                
+                % Special calculations for 3F level
+                if (strcmp(worldTypesStr{worldIdx}, '3L') || strcmp(worldTypesStr{worldIdx}, '3R'))
+                    rCatchRate = round((results(1,1,j) + results(2,1,j)) / sum(results(:,1,j)) * 100);
+                else
+                end
+                
                 graphPad = [graphPad res1 res2 res3];
             end
             
