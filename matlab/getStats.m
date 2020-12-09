@@ -480,7 +480,7 @@ for (worldIdx = 1:length(worldTypes))
                 end
                 res1 = str2double(num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3));
                 disp([label1 ' BIAS = ' num2str(res1) '% (' num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                res2 = num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3) ;
+                res2 = str2double(num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3));
                 disp([label2 ' BIAS = ' num2str(res2) '% (' num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
                 disp('-----------')
 
@@ -500,6 +500,7 @@ for (worldIdx = 1:length(worldTypes))
                 
                 graphPad = [graphPad res1 res2];
             end
+            disp(graphPad);
         end
         
     elseif (worldTypes(worldIdx) == 3)
@@ -596,8 +597,8 @@ for (worldIdx = 1:length(worldTypes))
             % Special calculations for 3F level
             if (strcmp(worldTypesStr{worldIdx}, '3L') || strcmp(worldTypesStr{worldIdx}, '3R'))
                 blindRate = round((results(3,1,j) + results(3,2,j)) / (sum(results(:,1,j)) + sum(results(:,2,j))) * 100);
-                sightRate = round((results(1,1,j) + results(2,2,j)) / (sum(results(:,1,j)) + sum(results(:,2,j))) * 100) ...
-                            - round((results(1,3,j) + results(2,3,j)) / sum(results(:,3,j)) * 100);
+                sightRate = round(mean( [ results(1,1,j) / sum(results(:,1,j)) - results(1,3,j) / sum(results(:,3,j)), ...
+                                          results(2,2,j) / sum(results(:,2,j)) - results(2,3,j) / sum(results(:,3,j))]) * 100);
             else
                 blindRate = round(results(3,2,j) / sum(results(:,2,j)) * 100);  % Standard calculation
                 sightRate = round(results(2,2,j) / sum(results(:,2,j)) * 100) - round(results(2,3,j) / sum(results(:,3,j)) * 100);
