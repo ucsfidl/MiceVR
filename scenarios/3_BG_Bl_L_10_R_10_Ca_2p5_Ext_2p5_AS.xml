@@ -1,0 +1,24 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>det_blind</gameType>          <!-- Options: match, nonmatch -->
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<treesBelowGround>true</treesBelowGround>  <!-- causes grass to not be rendered -->
+			<biasCorrection>false</biasCorrection>
+			<presoFracSpecified>true</presoFracSpecified>
+			<blockSize>40</blockSize>  <!-- indicates the number of trials over which the ratio of stimuli are kept at the target ratio -->
+			<catchFreq>0.025</catchFreq>  <!-- a catch trial is one in which no target is presented at all -->
+			<extinctFreq>0.025</extinctFreq>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_3_BG_L_10_R_10_AS.xml</includeWorld>
+	</worlds>
+</document>
