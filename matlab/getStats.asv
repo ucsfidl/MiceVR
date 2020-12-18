@@ -1,4 +1,5 @@
-function getStats(loc, mouseName, days, sessions, sightRate, includeCorrectionTrials, analyzeCensored)
+function [normLeftSightRate, normRightSightRate] = getStats(loc, mouseName, days, sessions, sightRate, includeCorrectionTrials, ...
+                                                            analyzeCensored)
 % This function will analyze the relevant actions.txt log files and return a set of statistics useful to analyzing 
 % blindness and blindsight, as well as a 2AFC stimulus discrimination task.
 %
@@ -485,13 +486,19 @@ for (worldIdx = 1:length(worldTypes))
                 disp('-----------')
 
                 % Do chi-squared test, adjusted for the sight rate!
+                observedCorrect = observed(1,1,j) + observed(1,2,j);
                 expectedCorrectByChance = expectedFrac(1) * ((1-sightRate)*total1) + expectedFrac(2) * ((1-sightRate)*total2);
-                expectedIncorrectByChance = (1 - expectedFrac(1)) * ((1-sightRate)*total1) + (1 - expectedFrac(2)) * ((1-sightRate)*total2);
+                expectedCorrect = sightRate * (total1+total2) + expectedCorrectByChance;
+                total = total1 + total2;
+                if (strcmp(worldTypesStr{worldIdx}, '2L'))
+                    normLeftSightRate = (observedCorrect - expectedCorrect) / (total - expectedCorrect);
+                elseif (strcmp(worldTypesStr{worldIdx}, '2R'))
+                    normRightSightRate = (observedCorrect - expectedCorrect) / (total - expectedCorrect);
+                end
                 
-                expectedCorrectByChanceAndSight = sightRate * (total1+total2) + expectedCorrectByChance;
+                expectedIncorrectByChance = (1 - expectedFrac(1)) * ((1-sightRate)*total1) + (1 - expectedFrac(2)) * ((1-sightRate)*total2);
                 expectedIncorrectByChanceAndSight = expectedIncorrectByChance;
                 disp(['Expected correct by chance = ' num2str(expectedCorrectByChanceAndSight)])
-                disp(['Observed correct = ' num2str(observed(1,1,j) + observed(1,2,j))]);
                 disp(['Chi-squared p = ' num2str(chisquared(observed(1,1,j) + observed(1,2,j), expectedCorrectByChanceAndSight, ...
                                             observed(2,1,j) + observed(2,2,j), expectedIncorrectByChanceAndSight))]);
                 disp('---------------');
@@ -597,12 +604,13 @@ for (worldIdx = 1:length(worldTypes))
             % Special calculations for 3F level
             if (strcmp(worldTypesStr{worldIdx}, '3L') || strcmp(worldTypesStr{worldIdx}, '3R'))
                 blindRate = round((results(3,1,j) + results(3,2,j)) / (sum(results(:,1,j)) + sum(results(:,2,j))) * 100);
-                sightRate = round(mean((results(1,1,j) / sum(results(:,1,j)) - results(1,3,j) / sum(results(:,3,j))), ...
-                                (results(2,2,j) / sum(results(:,2,j)) - results
-                            - round((results(1,3,j) + results(2,3,j)) / sum(results(:,3,j)) * 100);
+                normRightSightRate = mean( [ results(1,1,j) / sum(results(:,1,j)) - results(1,3,j) / sum(results(:,3,j)), ...
+                                          results(2,2,j) / sum(results(:,2,j)) - results(2,3,j) / sum(results(:,3,j))]);
+                normLeftSightRate = 0;  % FIX LATER
             else
                 blindRate = round(results(3,2,j) / sum(results(:,2,j)) * 100);  % Standard calculation
-                sightRate = round(results(2,2,j) / sum(results(:,2,j)) * 100) - round(results(2,3,j) / sum(results(:,3,j)) * 100);
+                normRightSightRate = results(2,2,j) / sum(results(:,2,j)) - results(2,3,j) / sum(results(:,3,j));
+                normLeftSightRate = 0;  % FIX LATER
             end
             
             graphPad = [graphPad res1 res2 res3 res4 res5 res6 res7 res8 res9];
@@ -742,8 +750,10 @@ for (worldIdx = 1:length(worldTypes))
             
             % Summary stats to cut and paste into the sheet
             % BLINDNESS // SIGHT // EXT/BS
-            disp(['SUMMARY: ' num2str(blindRate, 3) '//' num2str(sightRate, 3) '//' num2str(extOrBSRate, 3) '//' num2str(normExtOrBSRate, 3)]);
+            disp(['SUMMARY: ' num2str(blindRate, 3) '//' num2str(round(normRightSightRate * 100), 3) '//' num2str(extOrBSRate, 3) '//' num2str(normExtOrBSRate, 3)]);
             disp('===========')
+            
+            
         end
         
         
@@ -880,20 +890,27 @@ for (worldIdx = 1:length(worldTypes))
                 expected(2,4) = (1 - expectedFrac(4)) * ((1-sightRate) * (observed(1,4,j) + observed(2,4,j)));
                 
                 % Print pooled expected values
-                %disp(['Expected left = ' num2str(expected(1,1) + expected(1,1) + sightRate * (totalNL + totalFL))])
-                expectedCorrectByChanceAndSight = sightRate * (totalNR + totalFR) + expected(1,2) + expected(1,4);
-                disp(['Expected right correct by chance = ' num2str(expectedCorrectByChanceAndSight)])
-                disp(['Observed right correct = ' num2str(observed(1,2,j) + observed(1,4,j))]);
-                disp(['Chi-squared p = ' num2str(chisquared(observed(1,2,j) + observed(1,4,j), expectedCorrectByChanceAndSight, ...
-                                            observed(2,2,j) + observed(2,4,j), expected(2,2) + expected(2,4)))]);
-                disp('---------------');
-                expectedCorrectByChanceAndSight = expected(1,1) + expected(1,3) + sightRate * (totalNL + totalFL);
-                disp(['Expected left correct by chance = ' num2str(expectedCorrectByChanceAndSight)])
-                disp(['Observed left correct = ' num2str(observed(1,1,j) + observed(1,3,j))]);
-                disp(['Chi-squared p = ' num2str(chisquared(observed(1,1,j) + observed(1,3,j), expectedCorrectByChanceAndSight, ...
+                observedLeftCorrect = observed(1,1,j) + observed(1,3,j);
+                expectedLeftCorrect = expected(1,1) + expected(1,3) + sightRate * (totalNL + totalFL);
+                totalLeft = totalNL + totalFL;
+                normLeftSightRate = (observedLeftCorrect - expectedLeftCorrect) / (totalLeft - expectedLeftCorrect);
+                disp(['Expected left correct by chance = ' num2str(expectedLeftCorrect)])
+                disp(['Observed left correct = ' num2str(observedLeftCorrect)]);
+                disp(['Chi-squared p = ' num2str(chisquared(observed(1,1,j) + observed(1,3,j), expectedLeftCorrect, ...
                                             observed(2,1,j) + observed(2,3,j), expected(2,1) + expected(2,3)))]);
+                disp(['Normalized L sight rate = ' num2str(normLeftSightRate)]);
                 disp('---------------');
-                
+
+                observedRightCorrect = observed(1,2,j) + observed(1,4,j);
+                expectedRightCorrect = sightRate * (totalNR + totalFR) + expected(1,2) + expected(1,4);
+                totalRight = totalNR + totalFR;
+                normRightSightRate = (observedRightCorrect - expectedRightCorrect) / (totalRight - expectedRightCorrect);
+                disp(['Expected right correct by chance = ' num2str(expectedRightCorrect)])
+                disp(['Observed right correct = ' num2str(observedRightCorrect)]);
+                disp(['Chi-squared p = ' num2str(chisquared(observed(1,2,j) + observed(1,4,j), expectedRightCorrect, ...
+                                            observed(2,2,j) + observed(2,4,j), expected(2,2) + expected(2,4)))]);
+                disp(['Normalized R sight rate = ' num2str(normRightSightRate)]);
+                disp('---------------');
                 disp('================')
                 
                 graphPad = [graphPad res1 res2 res3 res4];
