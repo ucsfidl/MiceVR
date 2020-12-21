@@ -1,0 +1,29 @@
+function plotEffectOfLesion(loc, mouseName, pre_3c_days, pre_4c_days, post_3c_days, post_4c_days, leftOrRight, analyzeCensored)
+
+% This script produces plots of sight pre- and post-lesion across 3- and 4-choice.  
+% These plots will hopefully be the main figures for the paper.
+
+% leftOrRight = 0 for left, 1 for right
+
+pre_3c_sight = zeros(2, length(pre_3c_days));
+pre_4c_sight = zeros(2, length(pre_4c_days));
+post_3c_sight = zeros(2, length(post_3c_days));
+post_4c_Lsight = zeros(2, length(post_4c_days));
+
+for i=1:length(pre_3c_days)
+    [pre_3c_sight(1, i), pre_3c_sight(2, i)] = getStats(loc, mouseName, pre_3c_days(i), [], 0, 0, analyzeCensored);
+end
+for i=1:length(pre_4c_days)
+    [pre_4c_sight(1, i), pre_4c_sight(2, i)] = getStats(loc, mouseName, pre_4c_days(i), [], 0, 0, analyzeCensored);
+end
+for i=1:length(pre_3c_days)
+    [pre_3c_sight(1, i), pre_3c_sight(2, i)] = getStats(loc, mouseName, pre_3c_days(i), [], 0, 0, analyzeCensored);
+end
+for i=1:length(pre_3c_days)
+    [pre_3c_sight(1, i), pre_3c_sight(2, i)] = getStats(loc, mouseName, pre_3c_days(i), [], 0, 0, analyzeCensored);
+end
+
+figure
+plot(
+
+end
