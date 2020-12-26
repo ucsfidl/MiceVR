@@ -10,7 +10,7 @@
 			<h>2</h>
 			<d>0</d>
 			<r>0</r>
-			<presoFrac>0.425</presoFrac>
+			<presoFrac>0.419</presoFrac>
 		</t>
 		<t> <!-- Right tree -->
 			<w>1</w>
@@ -20,7 +20,7 @@
 			<h>2</h>
 			<d>0</d>
 			<r>2</r>
-			<presoFrac>0.15</presoFrac>
+			<presoFrac>0.162</presoFrac>
 		</t>
 		<t> <!-- Center tree -->
 			<w>1</w>
@@ -29,7 +29,7 @@
 			<v>2</v>
 			<h>2</h>
 			<d>0</d>
-			<presoFrac>0.425</presoFrac>
+			<presoFrac>0.419</presoFrac>
 		</t>
 	</trees>
 	<walls>
