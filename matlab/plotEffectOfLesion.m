@@ -27,6 +27,21 @@ end
 for i=1:length(post_comp_days)
     [post_comp_sight(1, i), post_comp_sight(2, i)] = getStats(loc, mouseName, post_comp_days(i), [], 0, 0, analyzeCensored);
 end
+if (length(post_comp_days) == 0 && length(pre_comp_days) > 0)
+    post_comp_sight = zeros(2, length(post_comp_days));
+end
+
+% Move all negative values to 0
+pre_3c_sight(1,pre_3c_sight(1,:) < 0) = 0;
+pre_3c_sight(2,pre_3c_sight(2,:) < 0) = 0;
+post_3c_sight(1,post_3c_sight(1,:) < 0) = 0;
+post_3c_sight(2,post_3c_sight(2,:) < 0) = 0;
+pre_comp_sight(1,pre_comp_sight(1,:) < 0) = 0;
+pre_comp_sight(2,pre_comp_sight(2,:) < 0) = 0;
+post_comp_sight(1,post_comp_sight(1,:) < 0) = 0;
+post_comp_sight(2,post_comp_sight(2,:) < 0) = 0;
+pre_3c_blindness(1,pre_3c_blindness(1,:) < 0) = 0;
+pre_3c_blindness(2,pre_3c_blindness(2,:) < 0) = 0;
 
 lesionDay = length(pre_3c_days) + 0.5;
 
@@ -42,7 +57,7 @@ hold on
 plot(movmean(ycc, [movingAvg movingAvg])*100, '-o', 'MarkerFaceColor', 'r', 'LineWidth', 2);
 
 % Cover [-40 100] in the Y
-ylim([-49 109])
+ylim([0 109])
 
 % Covers 1 before and 1 after the data on the x axis
 xmm = xlim;
@@ -57,7 +72,7 @@ xmm = xlim;
 plot([lesionDay lesionDay], ylim, 'LineWidth', 3, 'Color', 'k');
 
 % Plot dashed line at 0
-plot(xlim, [0 0], '--', 'Color', 'k');
+%plot(xlim, [0 0], '--', 'Color', 'k');
 
 xlabel('training day');
 ylabel('sight rate (%)');

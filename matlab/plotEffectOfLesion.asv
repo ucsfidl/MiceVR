@@ -28,6 +28,11 @@ for i=1:length(post_comp_days)
     [post_comp_sight(1, i), post_comp_sight(2, i)] = getStats(loc, mouseName, post_comp_days(i), [], 0, 0, analyzeCensored);
 end
 
+pre_3c_sight(1,pre_3c_sight(1,:) < 0) = 0;
+pre_3c_sight(2,pre_3c_sight(2,:) < 0) = 0;
+pre_3c_blindness(
+
+
 lesionDay = length(pre_3c_days) + 0.5;
 
 idx = leftOrRight+1;
@@ -42,7 +47,7 @@ hold on
 plot(movmean(ycc, [movingAvg movingAvg])*100, '-o', 'MarkerFaceColor', 'r', 'LineWidth', 2);
 
 % Cover [-40 100] in the Y
-ylim([-49 109])
+ylim([0 109])
 
 % Covers 1 before and 1 after the data on the x axis
 xmm = xlim;
@@ -76,7 +81,7 @@ else
     end
 end
 xticks(1:xlen);
-xticklabels([1:length(pre_3c_days) 1:max(length(post_3c_days), length(post_co_days))]);
+xticklabels([1:length(pre_3c_days) 1:max(length(post_3c_days), length(post_comp_days))]);
 
 prettify();
 
@@ -101,7 +106,7 @@ pred2 = 4;
 if length(post_comp_sight) < 5
     pred2 = length(post_comp_sight)-1;
 end
-disp(['Sight (post-3-choice vs post-4-choice): ' num2str(round(mean(post_3c_sight(idx, end-pred1:end)) * 100)) '% -> ' ...
+disp(['Sight (post-3-choice vs post-comp-choice): ' num2str(round(mean(post_3c_sight(idx, end-pred1:end)) * 100)) '% -> ' ...
     num2str(round(mean(post_comp_sight(idx, end-pred2:end)) * 100)) '% (p=' num2str(Sp) ')']);
 
 end

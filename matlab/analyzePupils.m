@@ -36,7 +36,7 @@ scatterStepSize = 1;  % >= 1; e.g. 100 means 1 in 100 frames are used to plot pu
 rigPxPerMm = [42 38;    % rig 1
              58 56;     % rig 2
              57 49;     % rig 3
-             61 57];    % rig 4
+             60.4 64.8];    % rig 4 - updated 1/2/21
          
 if (rig > 0 && isempty(pxPerMm))
     pxPerMm = rigPxPerMm(rig, :);
