@@ -1,9 +1,11 @@
-function plotEffectOfLesion(loc, mouseName, pre_3c_days, pre_comp_days, post_3c_days, post_comp_days, leftOrRight, analyzeCensored, movingAvg)
+function plotEffectOfLesion(loc, mouseName, pre_3c_days, pre_comp_days, post_3c_days, post_comp_days, leftOrRight, analyzeCensored)
 
 % This script produces plots of sight pre- and post-lesion across 3- and 4-choice.  
 % These plots will hopefully be the main figures for the paper.
 
 % leftOrRight = 0 for left, 1 for right
+
+movingAvg = 0;
 
 pre_3c_sight = zeros(2, length(pre_3c_days));
 pre_comp_sight = zeros(2, length(pre_comp_days));
@@ -15,7 +17,7 @@ post_3c_blindness = zeros(2, length(post_3c_days));
 
 for i=1:length(pre_3c_days)
     [pre_3c_sight(1, i), pre_3c_sight(2, i), pre_3c_blindness(1,i), pre_3c_blindness(2,i), ...
-        pre_comp_sight(1,i), pre_comp_sight(2,i)] = getStats(loc, mouseName, pre_3c_days(i), [], 0, 0, analyzeCensored);
+        pre_comp_sight(1,i), pre_comp_sight(2,i)] = getStats(loc, mouseName, pre_3c_days(i), [], 0, 0, 0);
 end
 for i=1:length(pre_comp_days)
     [pre_comp_sight(1, i), pre_comp_sight(2, i)] = getStats(loc, mouseName, pre_comp_days(i), [], 0, 0, analyzeCensored);
@@ -24,10 +26,14 @@ for i=1:length(post_3c_days)
     [post_3c_sight(1, i), post_3c_sight(2, i), post_3c_blindness(1,i), post_3c_blindness(2, i), ...
         post_comp_sight(1,i), post_comp_sight(2,i)] = getStats(loc, mouseName, post_3c_days(i), [], 0, 0, analyzeCensored);
 end
-for i=1:length(post_comp_days)
-    [post_comp_sight(1, i), post_comp_sight(2, i)] = getStats(loc, mouseName, post_comp_days(i), [], 0, 0, analyzeCensored);
+if (~isempty(post_comp_days))
+    post_comp_sight = zeros(2, length(post_comp_days));
+    for i=1:length(post_comp_days)
+        [post_comp_sight(1, i), post_comp_sight(2, i)] = getStats(loc, mouseName, post_comp_days(i), [], 0, 0, analyzeCensored);
+    end
 end
-if (length(post_comp_days) == 0 && length(pre_comp_days) > 0)
+
+if (isempty(post_comp_days) && ~isempty(pre_comp_days))
     post_comp_sight = zeros(2, length(post_comp_days));
 end
 
@@ -110,11 +116,11 @@ disp(['Blindness (pre-3-choice vs post-3-choice blind rate): ' num2str(round(mea
 [~, Sp] = ttest2(post_3c_sight(idx, :), post_comp_sight(idx, :));
 pred1 = 4;
 if length(post_3c_sight) < 5
-    pred1 = length(post_3c_sight)-1;
+    pred1 = size(post_3c_sight, 2)-1;
 end
 pred2 = 4;
 if length(post_comp_sight) < 5
-    pred2 = length(post_comp_sight)-1;
+    pred2 = size(post_comp_sight, 2)-1;
 end
 disp(['Sight (post-3-choice vs post-comp-choice): ' num2str(round(mean(post_3c_sight(idx, end-pred1:end)) * 100)) '% -> ' ...
     num2str(round(mean(post_comp_sight(idx, end-pred2:end)) * 100)) '% (p=' num2str(Sp) ')']);
