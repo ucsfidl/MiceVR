@@ -34,7 +34,7 @@ timeInSec = 0;
 scatterStepSize = 1;  % >= 1; e.g. 100 means 1 in 100 frames are used to plot pupil and CR positions (or 1% sampling).
 
 rigPxPerMm = [42 38;    % rig 1
-             58 56;     % rig 2
+             59.3 63.9;     % rig 2
              57 49;     % rig 3
              60.4 64.8];    % rig 4 - updated 1/2/21
          

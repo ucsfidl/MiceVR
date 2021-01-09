@@ -104,11 +104,11 @@ prettify();
 [~, Bp] = ttest2(pre_3c_blindness(idx,:), post_3c_blindness(idx,:));
 pred1 = 4;
 if length(pre_3c_blindness) < 5
-    pred1 = length(pre_3c_blindness)-1;
+    pred1 = size(pre_3c_blindness, 2)-1;
 end
 pred2 = 4;
 if length(post_3c_blindness) < 5
-    pred2 = length(post_3c_blindness)-1;
+    pred2 = size(post_3c_blindness, 2)-1;
 end
 disp(['Blindness (pre-3-choice vs post-3-choice blind rate): ' num2str(round(mean(pre_3c_blindness(idx, end-pred1:end)))) '% -> ' ...
     num2str(round(mean(post_3c_blindness(idx, end-pred2:end)))) '% (p=' num2str(Bp) ')']);
