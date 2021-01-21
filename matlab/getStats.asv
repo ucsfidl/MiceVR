@@ -934,16 +934,28 @@ for (worldIdx = 1:length(worldTypes))
                 res4 = str2double(num2str(round(resultsExt(4,1,j) / sum(resultsExt(:,1,j)) * 100), 3));
                 disp(['NL-FR = ' num2str(res4) '% (' num2str(resultsExt(4,1,j)) '/' num2str(sum(resultsExt(:,1,j))) ')']);
                 disp('-----------')
-                res5 = str2double(num2str(round(resultsExt(1,2,j) / sum(resultsExt(:,2,j)) * 100), 3));
-                disp(['NR-NL = ' num2str(res5) '% (' num2str(resultsExt(1,2,j)) '/' num2str(sum(resultsExt(:,2,j))) ')']);
-                res6 = str2double(num2str(round(resultsExt(2,2,j) / sum(resultsExt(:,2,j)) * 100), 3));
-                disp(['NR-NR = ' num2str(res6) '% (' num2str(resultsExt(2,2,j)) '/' num2str(sum(resultsExt(:,2,j))) ')']);
-                res7 = str2double(num2str(round(resultsExt(3,2,j) / sum(resultsExt(:,2,j)) * 100), 3));
-                disp(['NR-FL = ' num2str(res7) '% (' num2str(resultsExt(3,2,j)) '/' num2str(sum(resultsExt(:,2,j))) ')']);
-                res8 = str2double(num2str(round(resultsExt(4,2,j) / sum(resultsExt(:,2,j)) * 100), 3));
-                disp(['NR-FR = ' num2str(res8) '% (' num2str(resultsExt(4,2,j)) '/' num2str(sum(resultsExt(:,2,j))) ')']);
+                res1 = str2double(num2str(round(resultsExt(1,2,j) / sum(resultsExt(:,2,j)) * 100), 3));
+                disp(['NR-NL = ' num2str(res1) '% (' num2str(resultsExt(1,2,j)) '/' num2str(sum(resultsExt(:,2,j))) ')']);
+                res2 = str2double(num2str(round(resultsExt(2,2,j) / sum(resultsExt(:,2,j)) * 100), 3));
+                disp(['NR-NR = ' num2str(res2) '% (' num2str(resultsExt(2,2,j)) '/' num2str(sum(resultsExt(:,2,j))) ')']);
+                res3 = str2double(num2str(round(resultsExt(3,2,j) / sum(resultsExt(:,2,j)) * 100), 3));
+                disp(['NR-FL = ' num2str(res3) '% (' num2str(resultsExt(3,2,j)) '/' num2str(sum(resultsExt(:,2,j))) ')']);
+                res4 = str2double(num2str(round(resultsExt(4,2,j) / sum(resultsExt(:,2,j)) * 100), 3));
+                disp(['NR-FR = ' num2str(res4) '% (' num2str(resultsExt(4,2,j)) '/' num2str(sum(resultsExt(:,2,j))) ')']);
                 disp('-----------')
-                graphPad = [graphPad res1 res2 res3 res4 res5 res6 res7 res8];
+
+                res4 = str2double(num2str(round(resultsExt(1,2,j) / sum(resultsExt(:,2,j)) * 100), 3));
+                disp([label4 ' = ' num2str(res4) '% (' num2str(resultsExt(1,2,j)) '/' num2str(sum(resultsExt(:,2,j))) ')']);
+                
+                res5 = str2double(num2str(round(resultsExt(2,2,j) / sum(resultsExt(:,2,j)) * 100), 3));
+                disp([label5 ' = ' num2str(res5) '% (' num2str(resultsExt(2,2,j)) '/' num2str(sum(resultsExt(:,2,j))) ')']);
+                
+                res6 = str2double(num2str(round(resultsExt(3,2,j) / sum(resultsExt(:,2,j)) * 100), 3));
+                disp([label6 ' = ' num2str(res6) '% (' ...
+                                 num2str(resultsExt(3,2,j)) '/' num2str(sum(resultsExt(:,2,j))) ')']);
+                disp('-----------')
+                
+                graphPad = [graphPad res1 res2 res3 res4 res5 res6];
             end
         end
         
