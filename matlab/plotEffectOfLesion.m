@@ -101,7 +101,6 @@ xticklabels([1:length(pre_3c_days) 1:max(length(post_3c_days), length(post_comp_
 
 prettify();
 
-[~, Bp] = ttest2(pre_3c_blindness(idx,:), post_3c_blindness(idx,:));
 pred1 = 4;
 if length(pre_3c_blindness) < 5
     pred1 = size(pre_3c_blindness, 2)-1;
@@ -110,10 +109,10 @@ pred2 = 4;
 if length(post_3c_blindness) < 5
     pred2 = size(post_3c_blindness, 2)-1;
 end
+[~, Bp] = ttest2(pre_3c_blindness(idx, end-pred1:end), post_3c_blindness(idx, end-pred2:end));
 disp(['Blindness (pre-3-choice vs post-3-choice blind rate): ' num2str(round(mean(pre_3c_blindness(idx, end-pred1:end)))) '% -> ' ...
     num2str(round(mean(post_3c_blindness(idx, end-pred2:end)))) '% (p=' num2str(Bp) ')']);
 
-[~, Sp] = ttest2(post_3c_sight(idx, :), post_comp_sight(idx, :));
 pred1 = 4;
 if length(post_3c_sight) < 5
     pred1 = size(post_3c_sight, 2)-1;
@@ -122,6 +121,7 @@ pred2 = 4;
 if length(post_comp_sight) < 5
     pred2 = size(post_comp_sight, 2)-1;
 end
+[~, Sp] = ttest2(post_3c_sight(idx, end-pred1:end), post_comp_sight(idx, end-pred2:end));
 disp(['Sight (post-3-choice vs post-comp-choice): ' num2str(round(mean(post_3c_sight(idx, end-pred1:end)) * 100)) '% -> ' ...
     num2str(round(mean(post_comp_sight(idx, end-pred2:end)) * 100)) '% (p=' num2str(Sp) ')']);
 
