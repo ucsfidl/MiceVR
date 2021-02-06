@@ -1081,7 +1081,7 @@ public class GameControlScript : MonoBehaviour
 					treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : Globals.CATCH_IDX;
 					while (true) {
 						// Don't allow the very first trial to be a catch trial, as that might be more confusing for the mouse
-						if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.CurrentlyCatchTrial() && treeToActivate == Globals.CATCH_IDX)) {
+						if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.CurrentlyCatchTrial () && treeToActivate == Globals.CATCH_IDX)) {
 							r = UnityEngine.Random.value;
 							treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : Globals.CATCH_IDX;
 						} else {
@@ -1152,14 +1152,14 @@ public class GameControlScript : MonoBehaviour
 					}
 				} else if (gos.Length == 4) {
 					if (blockSize > 0) {
-						treeToActivate = Globals.GetTreeToActivateFromBlock();
+						treeToActivate = Globals.GetTreeToActivateFromBlock ();
 					} else {
 						float catchThresh = 1 - Globals.catchFreq;
 						float thresh0 = 0.25F;
 						float thresh1 = 0.5F;
 						float thresh2 = 0.75F;
 
-						if (Globals.biasCorrection && Globals.CurrentWorldHasAlreadyAppeared()) {
+						if (Globals.biasCorrection && Globals.CurrentWorldHasAlreadyAppeared ()) {
 							// Turn on bias correction after testing that logic works!
 							// Bias correction algo #1
 							float tf0 = Globals.GetTurnBias (20, 0);
@@ -1188,7 +1188,7 @@ public class GameControlScript : MonoBehaviour
 						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : r < catchThresh ? 3 : Globals.CATCH_IDX;
 						while (true) {
 							// Don't allow the very first trial to be a catch trial, as that might be more confusing for the mouse
-							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] == Globals.CATCH_IDX && treeToActivate == Globals.CATCH_IDX)) {
+							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq [Globals.firstTurnLoc.Count - 1] == Globals.CATCH_IDX && treeToActivate == Globals.CATCH_IDX)) {
 								r = UnityEngine.Random.value;
 								treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < thresh2 ? 2 : r < catchThresh ? 3 : Globals.CATCH_IDX;
 							} else {
@@ -1199,9 +1199,9 @@ public class GameControlScript : MonoBehaviour
 					SetupTreeActivation (gos, treeToActivate, 4); // it is important that this happens before the following clause as the following clause might activate more targets to test for extinction
 					if (treeToActivate != Globals.CATCH_IDX) {
 						// If is an extinction trial, show the rear target
-						if (Globals.CurrentlyExtinctionTrial()) {  
-							gos [treeToActivate+2].GetComponent<WaterTreeScript> ().Show ();  // Activate rear left or rear right tree
-							Debug.Log("in extinction trial");
+						if (Globals.CurrentlyExtinctionTrial ()) {  
+							gos [treeToActivate + 2].GetComponent<WaterTreeScript> ().Show ();  // Activate rear left or rear right tree
+							Debug.Log ("in extinction trial");
 						}
 						loc = gos [treeToActivate].transform.position;
 						hfreq = gos [treeToActivate].GetComponent<WaterTreeScript> ().GetShaderHFreq ();
@@ -1213,7 +1213,7 @@ public class GameControlScript : MonoBehaviour
 			} else if (gameType.Equals ("det_blind")) {
 				if (gos.Length == 3) {
 					if (blockSize > 0) {
-						treeToActivate = Globals.GetTreeToActivateFromBlock();
+						treeToActivate = Globals.GetTreeToActivateFromBlock ();
 					} else {
 						float catchThresh = 1 - Globals.catchFreq;
 						double thresh0 = 0.333D;
@@ -1294,7 +1294,7 @@ public class GameControlScript : MonoBehaviour
 						treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < catchThresh ? 2 : Globals.CATCH_IDX;
 						while (true) {
 							// Don't allow the very first trial to be a catch trial or 2 catch trials in a row, as that might be more confusing for the mouse
-							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] == Globals.CATCH_IDX && treeToActivate == Globals.CATCH_IDX)) {
+							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq [Globals.firstTurnLoc.Count - 1] == Globals.CATCH_IDX && treeToActivate == Globals.CATCH_IDX)) {
 								r = UnityEngine.Random.value;
 								treeToActivate = r < thresh0 ? 0 : r < thresh1 ? 1 : r < catchThresh ? 2 : Globals.CATCH_IDX;
 							} else {
@@ -1307,7 +1307,7 @@ public class GameControlScript : MonoBehaviour
 					Debug.Log (treeToActivate);
 					if (treeToActivate != Globals.CATCH_IDX) {  // enable the center target only if this is not a catch trial
 						// If not an extinction trial, show the center target
-						if (!Globals.CurrentlyExtinctionTrial()) {  
+						if (!Globals.CurrentlyExtinctionTrial ()) {  
 							gos [2].GetComponent<WaterTreeScript> ().Show ();  // Activate center tree
 						}
 						loc = gos [treeToActivate].transform.position;
@@ -1317,7 +1317,7 @@ public class GameControlScript : MonoBehaviour
 					}
 				} else if (gos.Length == 2) { // For training lesioned animals who have not been previously trained
 					if (blockSize > 0) {
-						treeToActivate = Globals.GetTreeToActivateFromBlock();
+						treeToActivate = Globals.GetTreeToActivateFromBlock ();
 					} else {
 						float catchThresh = 1 - Globals.catchFreq;
 						float rThresh0 = 0.5F;
@@ -1333,7 +1333,7 @@ public class GameControlScript : MonoBehaviour
 						treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : Globals.CATCH_IDX;
 						while (true) {
 							// Don't allow the very first trial to be a catch trial, as that might be more confusing for the mouse
-							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq[Globals.firstTurnLoc.Count-1] ==Globals.CATCH_IDX && treeToActivate == Globals.CATCH_IDX)) {
+							if ((Globals.numNonCorrectionTrials == 1 && treeToActivate == Globals.CATCH_IDX) || (Globals.numNonCorrectionTrials > 1 && Globals.firstTurnHFreq [Globals.firstTurnLoc.Count - 1] == Globals.CATCH_IDX && treeToActivate == Globals.CATCH_IDX)) {
 								r = UnityEngine.Random.value;
 								treeToActivate = r < rThresh0 ? 0 : r < catchThresh ? 1 : Globals.CATCH_IDX;
 							} else {
@@ -1352,6 +1352,9 @@ public class GameControlScript : MonoBehaviour
 					}
 				}
 				idx = treeToActivate;
+			} else if (gameType.Equals("disc_blind")) {   // Test for visual feature blindsight/extinction
+				// Need to decide which trial type it is, and then setup the targets accordingly
+
 			} else if (gameType.Equals ("discrimination")) {  // No concept of catch trials yet for the discrimination task
 				// Randomize orientations
 				float rThresh0 = 0.5F;

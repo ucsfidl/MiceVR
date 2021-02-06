@@ -1,0 +1,27 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>disc_blind</gameType>          <!-- Options: match, nonmatch -->
+			<gameTurnControl>yaw</gameTurnControl>  <!-- yaw | roll -->
+			<treesBelowGround>true</treesBelowGround>
+			<correctionTrials>false</correctionTrials>
+			<rewardedHFreq>4</rewardedHFreq>
+			<rewardedVFreq>0</rewardedVFreq>
+			<rewardedAngle>0</rewardedAngle>
+			<distractorHFreq>0</distractorHFreq>
+			<distractorVFreq>4</distractorVFreq>	
+			<distractorAngle>0</distractorAngle>
+			<randomPhase>true</randomPhase>
+		</gameConfig>
+	</config>
+	<worlds>
+		<includeWorld>inc_world_3_Di_BG.xml</includeWorld>
+	</worlds>
+</document>
