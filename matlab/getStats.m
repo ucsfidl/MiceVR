@@ -385,6 +385,12 @@ end
 
 % Array which has the values needed for GraphPad.  These get printed out at the end for easy copy and paste
 graphPad = [];
+graphPadL = [];
+graphPadR = [];
+ca1 = 0;
+ca2 = 0;
+ca3 = 0;
+ca4 = 0;
 
 % Iterate through all worlds and print the results separately for each
 % In general right now there will be 1 or 2 world types, but in principle there can be more
@@ -451,7 +457,11 @@ for (worldIdx = 1:length(worldTypes))
             disp('-----------')
             %disp(results(:,:,j));
             %disp('===========')
-            graphPad = [graphPad res1 res2 res3 res4];
+            if (strcmp(worldTypesStr{worldIdx}, '2L'))
+                graphPadL = [res1 0 res2 0 res3 0 res4 0];
+            elseif (strcmp(worldTypesStr{worldIdx}, '2R'))
+                graphPadR = [0 res1 0 res2 0 res3 0 res4];
+            end
         end
 
         results = worldResults{worldIdx}{2};  % just a helper - these are the catch trial results
@@ -481,17 +491,22 @@ for (worldIdx = 1:length(worldTypes))
                 if (strcmp(worldTypesStr{worldIdx}, '2L'))
                     label1 = 'NEAR LEFT';
                     label2 = 'FAR LEFT';
+                    ca1 = str2double(num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3));
+                    ca3 = str2double(num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3));
+                    disp([label1 ' BIAS = ' num2str(ca1) '% (' num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+                    disp([label2 ' BIAS = ' num2str(ca3) '% (' num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
                 elseif (strcmp(worldTypesStr{worldIdx}, '2R'))
                     label1 = 'NEAR RIGHT';
                     label2 = 'FAR RIGHT';
+                    ca2 = str2double(num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3));
+                    ca4 = str2double(num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3));
+                    disp([label1 ' BIAS = ' num2str(ca2) '% (' num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+                    disp([label2 ' BIAS = ' num2str(ca4) '% (' num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
                 else
                     label1 = 'LEFT';
                     label2 = 'RIGHT';
                 end
-                res1 = str2double(num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3));
-                disp([label1 ' BIAS = ' num2str(res1) '% (' num2str(results(1,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
-                res2 = str2double(num2str(round(results(2,1,j) / sum(results(:,1,j)) * 100), 3));
-                disp([label2 ' BIAS = ' num2str(res2) '% (' num2str(results(2,1,j)) '/' num2str(sum(results(:,1,j))) ')']);
+                
                 disp('-----------')
 
                 % Do chi-squared test, adjusted for the sight rate!
@@ -522,10 +537,11 @@ for (worldIdx = 1:length(worldTypes))
                 disp('---------------');
                 
                 disp('================')
-                
-                graphPad = [graphPad res1 res2];
             end
-            disp(graphPad);
+            if (strcmp(worldTypesStr{worldIdx}, '2R'))
+                sumCa = ca1 + ca2 + ca3 + ca4;
+                disp([graphPadL(1:4) graphPadR(1:4) graphPadL(5:8) graphPadR(5:8) round(ca1/sumCa*100) round(ca2/sumCa*100) round(ca3/sumCa*100) round(ca4/sumCa*100)]);
+            end
         end
         
     elseif (worldTypes(worldIdx) == 3)

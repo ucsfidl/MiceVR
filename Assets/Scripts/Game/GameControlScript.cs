@@ -1047,7 +1047,7 @@ public class GameControlScript : MonoBehaviour
 			// END PRECOMPUTE TRIAL ORDERS FOR BLOCKS
 
 			string gameType = Globals.GetGameType (worldIdx);
-			Debug.Log (gameType);
+			//Debug.Log (gameType);
 			//Debug.Log ("World #: " + worldIdx);
 
 			if (gameType.Equals ("detection") || gameType.Equals ("det_target") || gameType.Equals ("disc_target")) {
@@ -1304,7 +1304,7 @@ public class GameControlScript : MonoBehaviour
 					}
 
 					SetupTreeActivation (gos, treeToActivate, 3);
-					Debug.Log (treeToActivate);
+					//Debug.Log (treeToActivate);
 					if (treeToActivate != Globals.CATCH_IDX) {  // enable the center target only if this is not a catch trial
 						// If not an extinction trial, show the center target
 						if (!Globals.CurrentlyExtinctionTrial ()) {  
