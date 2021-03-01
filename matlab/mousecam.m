@@ -42,7 +42,7 @@ end
 % First, using the Google Sheet ID specified as a variable above, read the
 % Google Sheet and find the first of the last days without a result.
 vidFileName = mouseName;
-if (isfile(vrGSdocidFileName) && ~strcmp(mouseName, 'test') && ~strcmp(mouseName, '_')) % If the docid file exists, use that to find the Google Sheet for this mouse
+if (isfile(vrGSdocidFileName) && ~strcmp(mouseName, 'test') && ~contains(mouseName, '_')) % If the docid file exists, use that to find the Google Sheet for this mouse
     fid = fopen(vrGSdocidFileName);
     docid = fgetl(fid);
     sheetID = GetSheetIDs(docid, {mouseName}, 1);   % Data sheets only, not all sheets
