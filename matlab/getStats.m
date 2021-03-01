@@ -94,10 +94,8 @@ for i=1:length(fileList)
             if isempty(sessions)
                 matchesSession = true;
             else
-                for m=1:length(sessions)
-                    if (contains(fileList(i).name, ['-S' num2str(sessions(m))]))
-                        matchesSession = true;
-                    end
+                if (contains(fileList(i).name, ['-S' num2str(sessions(j))]))
+                    matchesSession = true;
                 end
             end
             if (matchesSession)
