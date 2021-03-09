@@ -453,8 +453,8 @@ for (worldIdx = 1:length(worldTypes))
             disp([num2str(round(results(1,1,j) / sum(results(:,1,j)) * 100), 3) '/' ...
                   num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3)]);        
             disp('-----------')
-            %disp(results(:,:,j));
-            %disp('===========')
+            disp([num2str(numCorrect/numTrials * 100, 2)]);
+            disp('===========')
             if (strcmp(worldTypesStr{worldIdx}, '2L'))
                 graphPadL = [res1 0 res2 0 res3 0 res4 0];
             elseif (strcmp(worldTypesStr{worldIdx}, '2R'))
@@ -530,6 +530,7 @@ for (worldIdx = 1:length(worldTypes))
                 expectedIncorrectByChanceAndSight = expectedIncorrectByChance;
                 disp(['Expected correct by chance = ' num2str(expectedCorrect)])
                 disp(['Observed correct = ' num2str(observedCorrect)])
+                disp(['Normalized sight rate = ' num2str((observedCorrect - expectedCorrect) / (total - expectedCorrect))]);
                 disp(['Chi-squared p = ' num2str(chisquared(observed(1,1,j) + observed(1,2,j), expectedCorrect, ...
                                             observed(2,1,j) + observed(2,2,j), expectedIncorrectByChance))]);
                 disp('---------------');
@@ -909,6 +910,9 @@ for (worldIdx = 1:length(worldTypes))
                   num2str(round(results(2,2,j) / sum(results(:,2,j)) * 100), 3) '/' ...
                   num2str(round(results(3,3,j) / sum(results(:,3,j)) * 100), 3) '/' ...
                   num2str(round(results(4,4,j) / sum(results(:,4,j)) * 100), 3)]);
+            disp('-----------');
+            disp([num2str(round((results(1,1,j) + results(3,3,j)) / (sum(results(:,1,j)) + sum(results(:,3,j))) * 100), 3) '/' ...
+                  num2str(round((results(2,2,j) + results(4,4,j)) / (sum(results(:,2,j)) + sum(results(:,4,j))) * 100), 3)]);
             disp('-----------');
 
             disp(results(:,:,j));
