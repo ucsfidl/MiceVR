@@ -984,29 +984,27 @@ public class GameControlScript : MonoBehaviour
 				if (Globals.optoSide != Globals.optoOff && !Globals.optoAlternation) { // an optoSide was specified and optoAlternation is turned off
 					int[] precompOptoBlock = new int[blockSize];
 
-					// First, count the number of trials at each stimloc
+					// First, count the number of trials of each stim type, excluding catch and extinction trials
 					int[] numTrialsPerStimLoc = new int[numTrees];
-					int numCatchTrials = 0;
-					for (int i = 0; i < blockSize; i++) {
-						if (precompTrialBlock [i] != Globals.CATCH_IDX) {  // if not a catch trial
+					for (int i = 0; i < blockSize; i++) {  // Iterate through each trial in a block
+						if (precompTrialBlock [i] != Globals.CATCH_IDX && precompExtinctBlock[i] == 0) {  // if not a catch or extinction trial
 							numTrialsPerStimLoc [precompTrialBlock [i]] = numTrialsPerStimLoc [precompTrialBlock [i]] + 1;
 						} else {
-							precompOptoBlock[i] = Globals.optoSide;  // not used for anything yet
+							precompOptoBlock[i] = Globals.optoOff;  // not used for anything yet
 						}
-
 					}
 					int minVal = numTrialsPerStimLoc.Min ();
 					int infrequentStimLoc = Array.IndexOf (numTrialsPerStimLoc, minVal);
 
 					// Second, for each stimLoc, set its optoState ON based on the 1/2 of the frequency of the most infrequent stim location
-					// Or, if optoTrialsPerBlock set, use that value.
+					// Or, if optoTrialsPerBlock set, use that value.  <- This is the standard approach now, so the previous line isn't supported for catch and extinction trial types
 					int numOptoOn = minVal / 2;
 					if (Globals.optoTrialsPerBlock != -1) {
 						numOptoOn = Globals.optoTrialsPerBlock;
 						if (Globals.optoSide == Globals.optoLorR)
 							numOptoOn *= 2;
 					}
-					for (int i = 0; i < numTrees; i++) {
+					for (int stimLoc = 0; stimLoc < numTrees; stimLoc++) {
 						List<int> optoStates = new List<int> ();
 						int flag = 0;
 						for (int j = 0; j < numOptoOn; j++) {
@@ -1022,24 +1020,115 @@ public class GameControlScript : MonoBehaviour
 								optoStates.Add (Globals.optoSide);
 							}
 						}
-						for (int j = 0; j < numTrialsPerStimLoc [i] - numOptoOn; j++) {
+						for (int j = 0; j < numTrialsPerStimLoc [stimLoc] - numOptoOn; j++) {
 							optoStates.Add (Globals.optoOff);
 						}
 						//Debug.Log (String.Join(",", optoStates.Select(x=>x.ToString()).ToArray()));
 						// While optoStates left, assign them randomly
 						int lastIdx = 0;
 						while (true) {
-							int currIdx = Array.IndexOf (precompTrialBlock, i, lastIdx);
+							int currIdx = Array.IndexOf (precompTrialBlock, stimLoc, lastIdx);
 							if (currIdx == -1) {
 								break;
+							} else if (precompExtinctBlock [currIdx] != 0) {  // Skip extinction trials for now
+								lastIdx = currIdx + 1;
+								continue;
 							}
 							int ran = UnityEngine.Random.Range (0, optoStates.Count ());
 							//Debug.Log (currIdx);
+							//Debug.Log (optoStates.Count());
 							precompOptoBlock [currIdx] = optoStates [ran];
 							optoStates.RemoveAt (ran);
 							lastIdx = currIdx + 1;
 						}
 					}
+					// Handle opto for catch trials.  Since catch trials are rare (2.5-7.5%), limit this to 1 trial per opto side (1 L and 1 R) per block.  Recode this later if we want more.
+					if (Globals.optoTrialsPerBlock != -1) {
+						numOptoOn = 1;
+						if (Globals.optoSide == Globals.optoLorR)
+							numOptoOn = 2;
+					}
+					if (Globals.catchFreq > 0) {
+						List<int> optoStates = new List<int> ();
+						int flag = 0;
+						for (int j = 0; j < numOptoOn; j++) {
+							if (Globals.optoSide == Globals.optoLorR) {
+								if (flag == 0) {
+									optoStates.Add (Globals.optoL);
+									flag = 1;
+								} else {
+									optoStates.Add (Globals.optoR);
+									flag = 0;
+								}
+							} else {
+								optoStates.Add (Globals.optoSide);
+							}
+						}
+						int numCatchTrials = precompTrialBlock.Count (tt => tt == Globals.CATCH_IDX);
+						//Debug.Log (numCatchTrials);
+						for (int j = 0; j < numCatchTrials - numOptoOn; j++) {
+							optoStates.Add (Globals.optoOff);
+						}
+						int lastIdx = 0;
+						while (true) {
+							int currIdx = Array.IndexOf (precompTrialBlock, Globals.CATCH_IDX, lastIdx);
+							if (currIdx == -1) {
+								break;
+							}
+							int ran = UnityEngine.Random.Range (0, optoStates.Count ());
+							//Debug.Log (currIdx);
+							//Debug.Log (optoStates.Count());
+							precompOptoBlock [currIdx] = optoStates [ran];
+							optoStates.RemoveAt (ran);
+							lastIdx = currIdx + 1;
+						}
+					}
+
+					// Handle opto for extinction trials.  Since extinction trials are rare (2.5-7.5%), limit this to 1 trial per opto side (1 L and 1 R) per block.  Recode this later if we want more.
+					if (Globals.extinctFreq > 0) {
+						List<int> optoStatesExtinctL = new List<int> ();
+						int flag = 0;
+						for (int j = 0; j < numOptoOn; j++) {
+							if (Globals.optoSide == Globals.optoLorR) {
+								if (flag == 0) {
+									optoStatesExtinctL.Add (Globals.optoL);
+									flag = 1;
+								} else {
+									optoStatesExtinctL.Add (Globals.optoR);
+									flag = 0;
+								}
+							} else {
+								optoStatesExtinctL.Add (Globals.optoSide);
+							}
+						}
+						double numExtinctTrials = Math.Floor(precompExtinctBlock.Count (tt => tt == 1) / 2.0);  // Count only half
+						for (int j = 0; j < numExtinctTrials - numOptoOn; j++) {
+							optoStatesExtinctL.Add (Globals.optoOff);
+						}
+
+						List<int> optoStatesExtinctR = new List<int> (optoStatesExtinctL);
+						List<int>[] optoStates = new List<int>[2];
+						optoStates [0] = optoStatesExtinctL;
+						optoStates [1] = optoStatesExtinctR;
+						for (int j = 0; j < 2; j++) {  // ONLY SUPPORTS 3-CHOICE EXTINCTION TRIALS, not 4-choice yet
+							int lastIdx = 0;
+							while (true) {
+								int currIdx = Array.IndexOf (precompExtinctBlock, 1, lastIdx);
+								//Debug.Log (currIdx);
+								if (currIdx == -1) { // We are out of extinction trials
+									break;  
+								}
+								if (precompTrialBlock [currIdx] == j) {
+									int ran = UnityEngine.Random.Range (0, optoStates[j].Count ());
+									precompOptoBlock [currIdx] = optoStates[j] [ran];
+									optoStates[j].RemoveAt (ran);
+								}
+								lastIdx = currIdx + 1;
+							}
+						}
+
+					}
+
 					Debug.Log (String.Join (",", precompOptoBlock.Select (x => x.ToString ()).ToArray ()));
 					Globals.SetCurrentWorldPrecompOptoBlock(precompOptoBlock);
 				}

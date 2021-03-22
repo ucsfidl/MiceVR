@@ -89,7 +89,7 @@ end
 numFilesAnalyzed = 0;
 for i=1:length(fileList)
     for j=1:length(days)
-        if (contains(fileList(i).name, [mouseName '-D' num2str(days(j))]))
+        if (contains(fileList(i).name, [mouseName '-D' num2str(days(j)) '-']))
             matchesSession = false;
             if isempty(sessions)
                 matchesSession = true;
@@ -154,6 +154,8 @@ for i=1:length(fileList)
                         if (isCorrectionTrial && ~includeCorrectionTrials)
                             continue;
                         end
+                        
+                        %disp(trialIdx)
                         
                         currCatch = 0;
                         
@@ -829,9 +831,7 @@ for (worldIdx = 1:length(worldTypes))
                 disp(['SUMMARY: ' num2str(rightBlindRate, 3) '//' num2str(round(normRightSightRate * 100), 3) '//' num2str(extOrBSRate, 3) '//' num2str(normExtOrBSRate, 3)]);
             end    
             disp('===========')
-            
         end
-        
         
         disp(graphPad);
 
@@ -1044,10 +1044,11 @@ for (worldIdx = 1:length(worldTypes))
                 disp('================')
                 
                 graphPad = [graphPad res1 res2 res3 res4];
-
-                disp(graphPad);
             end
-        end        
+        end     
+        
+        disp(graphPad);
+
     end
 end
 
