@@ -26,7 +26,7 @@ DAY = 1;
 vidWidth = 200;
 vidHeight = 150;
 
-numCams = 2;
+numCams = 1;
 numSlaves = numCams - 1;
 
 imaqreset
@@ -136,6 +136,7 @@ else
 end
 start(vid{1});
 
+%{
 % Next, setup parallel recording, 1 process per cameras after the first camera
 spmd(numSlaves)
     for idx=1:numlabs % number of workers
@@ -199,6 +200,7 @@ spmd(numSlaves)
 
     start(v);    
 end
+%}
 
 x = input('Press ENTER to stop recording');
 
@@ -207,6 +209,7 @@ stop(vid{1});
 framesAcquiredLogged(1,1) = vid{1}.FramesAcquired;
 framesAcquiredLogged(1,2) = vid{1}.DiskLoggerFrameCount;
 
+%{
 spmd(numSlaves)
     stop(v);
     
@@ -233,15 +236,18 @@ spmd(numSlaves)
 end
 
 framesAcquiredLogged = cat(1, framesAcquiredLogged, framesAcqLog{1});
+%}
 disp(framesAcquiredLogged);
 
 save(vidFileName, 'trialStarts', 'trialEnds', 'framesAcquiredLogged');
 
 imaqreset
 
+%{
 spmd(numSlaves)
     delete(imaqfind);
 end
+%}
 
 close all;
 end
