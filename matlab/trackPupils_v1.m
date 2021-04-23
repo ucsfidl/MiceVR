@@ -1,4 +1,4 @@
-function trackPupils(vFileName, vLeftNum, vRightNum, frameLim, otsuWeight, crPresent)
+function trackPupils(vLeftFileName, vRightFileName, frameLim, otsuWeight, crPresent)
 % This script will find the pupil in each of 2 videos, one containing each eye. It will then save these pupil locations
 % in a file, as well as generate a composite video with both eyes side-by-side, and each pupil tracked with a red X, 
 % where each line of the X is the major and minor axes of an ellipse fitted to the pupil.
@@ -78,18 +78,13 @@ frameStart = frameLim(1);
 frameStop = frameLim(2);
 
 skip = zeros(1,2);
-vLeftFileName = '';
-if (~isempty(vLeftNum))
-    vLeftFileName = [vFileName '_' num2str(vLeftNum) '.mp4'];
+if (~isempty(vLeftFileName))
     v(1) = VideoReader(vLeftFileName); % v(1) is the video of the left eye
     [folder name ext] = fileparts(vLeftFileName);
 else
     skip(1) = true;
 end
-
-vRightFileName = '';
-if (~isempty(vRightNum))
-    vRightFileName = [vFileName '_' num2str(vRightNum) '.mp4'];
+if (~isempty(vRightFileName))
     % Hack but works
     if (~exist('v'))
         v(1) = VideoReader(vRightFileName);

@@ -155,8 +155,3 @@ void takeAction() {
 void sendTouch(){
   Serial.println("touch");
 }
-
-
-
-
-
