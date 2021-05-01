@@ -15,7 +15,7 @@ function analyzePupils(trackFileName, rig, pxPerMm, useCR)
 % azimuthal deviations, but a different calculation is better done for elevation deviations (see Zoccolan..Cox 2010).
 % Along with this correction, we have also added a pxPerMm calibration value, as Rp is in mm.
 
-% By default, exclude correction and extinction trials
+% By default, average eye movement plots exclude correction and extinction trials
 
 % USAGE:
 % >> analyzePupils(['Dragon_229_trk.mat'], 4, [1 0], 1.15, 47, 60, 0)
@@ -30,7 +30,7 @@ usePupilDiamToCalcRp = 1;
 analFrameLim = [1 0];
 
 fps = 60;
-timeInSec = 0;
+timeDivider = 60*60; % time scale in minutes
 scatterStepSize = 1;  % >= 1; e.g. 100 means 1 in 100 frames are used to plot pupil and CR positions (or 1% sampling).
 
 rigPxPerMm = [42 38;    % rig 1
@@ -228,7 +228,7 @@ end
 
 % GENERATE average image, to show motion of pupil on top of, if it doesn't already exist.  
 % trackPupils run prior to 6/7/2020 will not have it exist.
-% trackPupils run after 6/7/2020 will have already generated it
+% trackPupils run after 6/7/2020 will have already generated it.
 if (~exist('sumImLR'))
     imLR = zeros(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'uint8');
     %minImLR = ones(v(defVid).Height, v(defVid).Width, v(defVid).BitsPerPixel/8, 2, 'uint8')*255;
@@ -257,6 +257,8 @@ else
     frameCnt = vidFrameStop - vidFrameStart + 1;
 end
 
+% Plot all pupil positions over the session.
+% This is used to check for incorrect tracking by the software
 if (correctNonFlatCurve)
     for i=startVid:stopVid  % 1 is L, 2 is R
         sumImLR(:,:,:,i) = sumImLR(:,:,:,i) ./ frameCnt;
@@ -363,7 +365,6 @@ areasMm2 = cat(3, areas(:,:,1) * (1/pxPerMm(1)^2), areas(:,:,2) * (1/pxPerMm(2)^
 majorAxisMm = cat(3, majorAxisLengths(:,:,1) / pxPerMm(1), majorAxisLengths(:,:,2) / pxPerMm(2));
 
 % Instead of using a static Rp, use one based on pupil size.  So Rp varies during the entire task.
-% For now just use the equation from Stahl 2002.
 % First, lookup the slope and intercept in the data file:
 if (isKey(mouseToRpLine, mouseName))
     rpline = mouseToRpLine(mouseName);
@@ -371,7 +372,7 @@ if (isKey(mouseToRpLine, mouseName))
     yint = [rpline(1,2) rpline(2,2)];
     disp(['slope = ' num2str(slope)]);
     disp(['yintercept = ' num2str(yint)]);
-else
+else  % If nothing found, use the values from Stahl 2002
     slope = [-0.142 -0.142];
     yint = [1.055 1.055];
     disp('Eye measurements NOT FOUND, so using default values');
@@ -609,6 +610,7 @@ trimmedStimIdxs = stimIdxs(1+numTruncatedStart:end-numTruncatedEnd);
 trimmedActionIdxs = actionIdxs(1+numTruncatedStart:end-numTruncatedEnd);
 trimmedWorldIdxs = worldIdxs(1+numTruncatedStart:end-numTruncatedEnd);
 stimEyeMoveTrials = cell(totalNumStim, 2);  % 2, one for each eye
+stimEyeMoveTrialsCatch = cell(1, 2);
 actionEyeMoveTrials = cell(totalNumStim, 2); % 2, one for each eye
 stimActionEyeMoveTrials = cell(totalNumStim, totalNumStim, 2);  % first axis is stimIdx, second is actionIdx, third is left/right eye
 stimOptoEyeMoveTrials = cell(totalNumStim, 4, 2); % first axis is stimLoc, second is optoState (OFF, LEFT, RIGHT, or BOTH), third is left/right eye
@@ -624,6 +626,11 @@ for i=1:length(trimmedStimIdxs)
     end
     
     if (stimNum == 0) % catch trial
+        for j=1:2
+            s = stimEyeMoveTrialsCatch{1, j};
+            s{end+1} = azimDeg(trimmedStarts(i):trimmedEnds(i)-1, j);
+            stimEyeMoveTrialsCatch{1, j} = s;
+        end
         continue;
     end
     
@@ -804,8 +811,16 @@ for eye=1:2  % For each eye
     end
     xlim([avgXMin avgXMax]);
     ylim([0 length(x)]);
-    ylabel('Frame (normalized)')
-    xlabel('Pupil Azimuth (deg)');
+    yl = ylim;
+    yticks(yl(1):60:yl(2));  % Convert to seconds
+    yt = yticks;
+    ytl = {};
+    for j=1:length(yticks)
+        ytl{length(ytl)+1} = num2str(yt(j)/60);
+    end
+    yticklabels(ytl');
+    ylabel('time (normalized sec)')
+    xlabel('gaze azimuth (deg)');
 end
 
 
@@ -976,8 +991,16 @@ for eye=1:2  % For each eye
 
     xlim([avgXMin avgXMax]);
     ylim([0 length(x)]);
-    ylabel('Frame (normalized)')
-    xlabel('Pupil Azimuth (deg)');
+    yl = ylim;
+    yticks(yl(1):60:yl(2));  % Convert to seconds
+    yt = yticks;
+    ytl = {};
+    for j=1:length(yticks)
+        ytl{length(ytl)+1} = num2str(yt(j)/60);
+    end
+    yticklabels(ytl');
+    ylabel('time (normalized sec)')
+    xlabel('gaze azimuth (deg)');
 end
 
 % COMMENTED OUT TO REDUCE NUMBER OF FIGURES DISPLAYED
@@ -1165,8 +1188,16 @@ for eye=1:2  % For each eye
 
     xlim([avgXMin avgXMax]);
     ylim([0 length(x)]);
-    ylabel('Frame (normalized)')
-    xlabel('Pupil Azimuth (deg)');
+    yl = ylim;
+    yticks(yl(1):60:yl(2));  % Convert to seconds
+    yt = yticks;
+    ytl = {};
+    for j=1:length(yticks)
+        ytl{length(ytl)+1} = num2str(yt(j)/60);
+    end
+    yticklabels(ytl');
+    ylabel('time (normalized sec)')
+    xlabel('gaze azimuth (deg)');
 end
 
 %{
@@ -1356,11 +1387,15 @@ xUnitsTime = frameStart:frameStop;
 xTrialsUnitsTime = xTrials;
 xPauseUnitsTime = xPause;
 xlab = 'time (frames)';
-if (timeInSec)
-    xUnitsTims = xUnitsTime / fps;
-    xTrialsUnitsTime = xTrialsUnitsTims / fps;
-    xPauseUnitsTime = xPauseUnitsTime / fps;
-    xlab = 'time (s)';
+if (timeDivider > 1)
+    xUnitsTime = xUnitsTime / timeDivider;
+    xTrialsUnitsTime = xTrialsUnitsTime / timeDivider;
+    xPauseUnitsTime = xPauseUnitsTime / timeDivider;
+    if (timeDivider == 60*60)
+        xlab = 'time (min)';
+    elseif (timeDivider == 60)
+        xlab = 'time (sec)';
+    end
 end
 
 % ELEVATION PLOT
@@ -1390,7 +1425,7 @@ if (length(numStim) == 1)
                         'catch trial', 'inter-trial interval');
     elseif (numStim(1) == 4)
         legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'right near stim/action', 'left far stim/action', ...
-                        'catch trial', 'right far stim/action', 'inter-trial interval');
+                        'right far stim/action', 'catch trial', 'inter-trial interval');
     end
 elseif (length(numStim) == 2)
     if (numStim(1) == 3)
@@ -1439,7 +1474,7 @@ if (length(numStim) == 1)
                         'catch trial', 'inter-trial interval');
     elseif (numStim(1) == 4)
         legend([h;p'], 'left eye', 'right eye', 'left near stim/action', 'right near stim/action', 'left far stim/action', ...
-                        'catch trial', 'right far stim/action', 'inter-trial interval');
+                        'right far stim/action', 'catch trial', 'inter-trial interval');
     end
 elseif (length(numStim) == 2)
     if (numStim(1) == 3)
