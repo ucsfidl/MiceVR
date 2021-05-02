@@ -313,8 +313,13 @@ while relFrame + frameStart <= frameStop + 1
                     dyMin = rMin * sind(angle+90);
                     lines = [c(1)-dxMaj, c(2)-dyMaj, c(1)+dxMaj, c(2)+dyMaj;
                              c(1)-dxMin, c(2)-dyMin, c(1)+dxMin, c(2)+dyMin];
+                    if (i == 1)
+                        cString = 'blue';
+                    elseif (i == 2)
+                        cString = 'red';
+                    end
                     newImLR(:,:,:,i) = insertShape(imLR(:,:,:,i), 'line', lines, ...
-                        'LineWidth', 2, 'Color', 'red');
+                        'LineWidth', 2, 'Color', cString);
                 else
                     centers(relFrame,:,i) = [NaN NaN];
                     areas(relFrame,:,i) = [NaN];
@@ -431,7 +436,13 @@ while relFrame + frameStart <= frameStop + 1
                         newImLR(:,:,:,i) = insertShape(newImLR(:,:,:,i), 'line', lines, ...
                             'LineWidth', 1, 'Color', 'blue');
                         %}
-                        newImLR(:,:,:,i) = insertShape(newImLR(:,:,:,i), 'FilledCircle', [s(idx).Centroid 3], 'Color', 'blue');
+                        if (i == 1)
+                            cString = 'blue';
+                        elseif (i == 2)
+                            cString = 'red';
+                        end
+                        newImLR(:,:,:,i) = insertShape(newImLR(:,:,:,i), 'FilledCircle', [s(idx).Centroid 3], ...
+                            'Color', cString);
                     else
                         crCenters(relFrame,:,i) = [NaN NaN];
                         crAreas(relFrame,:,i) = [NaN];
