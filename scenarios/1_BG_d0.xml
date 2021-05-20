@@ -1,0 +1,69 @@
+<document>
+	<config>
+		<waterConfig>
+			<training>False</training>
+			<distType>u</distType>
+		</waterConfig>
+		<dryConfig>
+			<distType>u</distType>
+		</dryConfig>
+		<gameConfig>
+			<gameType>detection</gameType>
+			<gameTurnControl>yaw</gameTurnControl>
+			<treesBelowGround>true</treesBelowGround>
+			<adaptPos>true</adaptPos>
+			<adaptProCritTrialsPerMin>4</adaptProCritTrialsPerMin>  <!-- Minimum number of trials per minute before promoting location -->
+			<adaptDemCritTrialsPerMin>3</adaptDemCritTrialsPerMin> 	<!-- If number of trials per minute is less than this, demote location -->
+			<adaptCritDur>1</adaptCritDur> 					<!-- Window of time over which the above criterion must hold true to promote -->
+			<adaptPosStartIdx>0</adaptPosStartIdx>						<!-- Index of positions to start at - will vary as mouse progresses from day to day -->
+			<adaptPosEndIdx>0</adaptPosEndIdx>						<!-- Index of positions to end at -->
+		</gameConfig>
+	</config>
+	<worlds>
+		<world>
+			<trees>
+				<t>
+					<w>1</w>
+					<pos>				<!-- The order specified here indicates the order of advancement, with the first position the initial or base position -->
+						20000;-16;20007
+						20000;-16;20010
+						20000;-16;20013
+						20000;-16;20017
+						20000;-16;20020
+						20000;-16;20023
+						20000;-16;20027
+						20000;-16;20030
+						20000;-16;20033
+						20000;-16;20037
+						20000;-16;20040
+					</pos>
+					<d>0</d>
+					<h>2</h>
+					<v>2</v>
+				</t>
+			</trees>
+			<walls>
+				<wall> <!-- Left wall -->
+					<pos>19994;0.5;20023</pos>
+					<rot>0;0;0</rot>
+					<scale>2;0;60</scale>
+				</wall>
+				<wall> <!-- Right wall -->
+					<pos>20006;0.5;20023</pos>
+					<rot>0;0;0</rot>
+					<scale>2;0;60</scale>
+				</wall>
+				<wall> <!-- Front wall -->
+					<pos>20000;0.5;19994</pos>
+					<rot>0;90;0</rot>
+					<scale>2;0;15</scale>
+				</wall>
+				<wall> <!-- Back wall -->
+					<pos>20000;0.5;20050</pos>
+					<rot>0;270;0</rot>
+					<scale>2;0;15</scale>
+				</wall>
+			</walls>
+		</world>
+	</worlds>
+</document>
