@@ -655,9 +655,9 @@ if (~interactive && outputNewActionsFile && newActionsFileID ~= -1)
     end
     disp(['Total ' modifier ' trials written to file = ' num2str(sum(totalTrialsAnalyzed))]);
     disp(['L trials kept = ' num2str(pctAnalyzed(1)*100,2) '% (' num2str(totalTrialsAnalyzed(1)) '/' num2str(totalTrialsAnalyzed(1) + totalTrialsNotAnalyzed(1)) ')']);
-    disp(['L extinction trials kept = ' num2str(pctExtinctAnalyzed(1)*100,2) '% (' num2str(totalExtinctTrialsAnalyzed(1)) '/' num2str(totalExtinctTrialsAnalyzed(1) + totalExtinctTrialsNotAnalyzed(1)) ')']);
+    disp(['L extinction trials kept = ' num2str(pctExtinctAnalyzed(1)*100,2) '% (' num2str(totalExtinctTrialsAnalyzed(1)) '/' num2str(totalTrialsAnalyzed(1) + totalTrialsNotAnalyzed(1)) ')']);
     disp(['R trials kept = ' num2str(pctAnalyzed(2)*100,2) '% (' num2str(totalTrialsAnalyzed(2)) '/' num2str(totalTrialsAnalyzed(2) + totalTrialsNotAnalyzed(2)) ')']);
-    disp(['R extinction trials kept = ' num2str(pctExtinctAnalyzed(2)*100,2) '% (' num2str(totalExtinctTrialsAnalyzed(2)) '/' num2str(totalExtinctTrialsAnalyzed(2) + totalExtinctTrialsNotAnalyzed(2)) ')']);
+    disp(['R extinction trials kept = ' num2str(pctAnalyzed(2)*100,2) '% (' num2str(totalTrialsAnalyzed(2)) '/' num2str(totalTrialsAnalyzed(2) + totalTrialsNotAnalyzed(2)) ')']);
     disp(['Mean of nasal extrema histograms: L = ' num2str(mean(nasalExtremaL)) ', R = ' num2str(mean(nasalExtremaR))]);
 end
 
