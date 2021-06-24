@@ -378,6 +378,9 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                     extreme = max(limitedRightBound(targetLeftBound(1:maxFrame) ~= limitedRightBound));
                     nasalExtremaL(end+1) = extreme;
                     m = 'L';
+                    if (extinct)
+                        m = 'LO';
+                    end
                     extremeFrame = find(targetRightBound(targetLeftBound ~= targetRightBound) == extreme,1);
                 elseif (left == 0)
                     if (maxFrame > length(targetLeftBound))
@@ -390,6 +393,9 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                     end
                     nasalExtremaR(end+1) = extreme;
                     m = 'R';
+                    if (extinct)
+                        m = 'RO';
+                    end
                     extremeFrame = find(targetLeftBound(targetLeftBound ~= targetRightBound) == extreme,1);
                 end
                 if (isempty(extreme))  % This happened on Uranus D96 T17 - I guess the mouse looked away from the target for the whole time.  Need to investigate.
