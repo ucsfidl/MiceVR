@@ -81,9 +81,9 @@ else
 end
 
 if analyzeCensored
-    fileList = dir([actionsFolder '*actions_censored.txt']);
+    fileList = dir([actionsFolder mouseName '*actions_censored.txt']);
 else
-    fileList = dir([actionsFolder '*actions.txt']); % Get all mat files, and use that to construct filenames for video files
+    fileList = dir([actionsFolder mouseName '*actions.txt']); % Get all mat files, and use that to construct filenames for video files
 end
 
 numFilesAnalyzed = 0;
