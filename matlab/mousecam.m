@@ -31,12 +31,16 @@ numSlaves = numCams - 1;
 
 imaqreset
 if isempty(gcp('nocreate'))
-    parpool(numSlaves)
+    if (numSlaves > 0)
+        parpool(numSlaves)
+    end
 end
 
 delete(imaqfind);
-spmd(numSlaves)
-    delete(imaqfind);
+if (numSlaves > 0)
+    spmd(numSlaves)
+        delete(imaqfind);
+    end
 end
 
 % First, using the Google Sheet ID specified as a variable above, read the
@@ -137,67 +141,70 @@ end
 start(vid{1});
 
 % Next, setup parallel recording, 1 process per cameras after the first camera
-spmd(numSlaves)
-    for idx=1:numlabs % number of workers
-        if idx == labindex
-            % Not sure what this does exactly, except it was in sample code, so disable.
-            % Configure acquisition to not stop if dropped frames occur
-            %imaqmex('feature', '-gigeDisablePacketResend', true);
-            
-            % Detect cameras
-            uin = imaqhwinfo("gentl");
-            numCamerasFound = numel(uin.DeviceIDs);
-            fprintf('Worker %d detected %d cameras.\n', ...
-                labindex, numCamerasFound);
+if (numSlaves > 0)
+    spmd(numSlaves)
+        for idx=1:numlabs % number of workers
+            if idx == labindex
+                % Not sure what this does exactly, except it was in sample code, so disable.
+                % Configure acquisition to not stop if dropped frames occur
+                %imaqmex('feature', '-gigeDisablePacketResend', true);
+
+                % Detect cameras
+                uin = imaqhwinfo("gentl");
+                numCamerasFound = numel(uin.DeviceIDs);
+                fprintf('Worker %d detected %d cameras.\n', ...
+                    labindex, numCamerasFound);
+            end
+            labBarrier
         end
-        labBarrier
-    end
-    cameraID = labindex;
-    v = videoinput("gentl", cameraID, 'Mono8');
-    s = v.Source;
+        cameraID = labindex;
+        v = videoinput("gentl", cameraID, 'Mono8');
+        s = v.Source;
 
-    v.FramesPerTrigger = 1;
-    v.LoggingMode = 'disk';
-    v.ReturnedColorspace = 'grayscale';
-    v.TriggerRepeat = Inf;
-    if (strcmp(src.DeviceVendorName,'Basler'))
-        s.BinningHorizontal = 2;
-        s.BinningVertical = 2;
-        v.ROIPosition = [220, 181, 200, 150];
-    else
-        v.ROIPosition = [540, 437, 200, 150];        
-    end
+        v.FramesPerTrigger = 1;
+        v.LoggingMode = 'disk';
+        v.ReturnedColorspace = 'grayscale';
+        v.TriggerRepeat = Inf;
+        if (strcmp(src.DeviceVendorName,'Basler'))
+            s.BinningHorizontal = 2;
+            s.BinningVertical = 2;
+            v.ROIPosition = [220, 181, 200, 150];
+        else
+            v.ROIPosition = [540, 437, 200, 150];        
+        end
 
-    s.ExposureTime = 14000;  %15000 might be too fast
-    %if src.DeviceVendorName ~= 'Basler'
-    %    s.AcquisitionFrameRateMode = 'Off';  
-    %end
-    % Keep this commented OUT, else lots of dropped frames!
-    %s.AcquisitionFrameRateMode = 'Basic';  
-    %s.AcquisitionFrameRate = 60;
-    
-    vw = VideoWriter(strcat(vidFileName, '_', num2str(cameraID+1), '.mp4'), 'MPEG-4');
-    vw.FrameRate = fps;
-    v.DiskLogger = vw;
-  
-    % preview(v);  % Does not work for parallel processing toolbox
+        s.ExposureTime = 14000;  %15000 might be too fast
+        %if src.DeviceVendorName ~= 'Basler'
+        %    s.AcquisitionFrameRateMode = 'Off';  
+        %end
+        % Keep this commented OUT, else lots of dropped frames!
+        %s.AcquisitionFrameRateMode = 'Basic';  
+        %s.AcquisitionFrameRate = 60;
+
+        vw = VideoWriter(strcat(vidFileName, '_', num2str(cameraID+1), '.mp4'), 'MPEG-4');
+        vw.FrameRate = fps;
+        v.DiskLogger = vw;
+
+        % preview(v);  % Does not work for parallel processing toolbox
+    end
 end
 
+if (numSlaves > 0)
+    spmd(numSlaves)
+        triggerconfig(v, 'hardware');
 
-spmd(numSlaves)
-    triggerconfig(v, 'hardware');
+        s.TriggerMode = 'On';    
+        s.TriggerActivation = 'RisingEdge';
+        s.TriggerDelay = 0;
+        s.TriggerSelector = 'FrameStart';
+        if (strcmp(src.DeviceVendorName,'Basler'))
+            s.TriggerSource = 'Line3';
+        else
+            s.TriggerSource = 'Line0';        
+        end
 
-    s.TriggerMode = 'On';    
-    s.TriggerActivation = 'RisingEdge';
-    s.TriggerDelay = 0;
-    s.TriggerSelector = 'FrameStart';
-    if (strcmp(src.DeviceVendorName,'Basler'))
-        s.TriggerSource = 'Line3';
-    else
-        s.TriggerSource = 'Line0';        
+        start(v);    
     end
-
-    start(v);    
 end
 
 x = input('Press ENTER to stop recording');
@@ -207,40 +214,47 @@ stop(vid{1});
 framesAcquiredLogged(1,1) = vid{1}.FramesAcquired;
 framesAcquiredLogged(1,2) = vid{1}.DiskLoggerFrameCount;
 
-spmd(numSlaves)
-    stop(v);
-    
-    framesAcqLog = zeros(1, 2);
-    framesAcqLog(1,1) = v.FramesAcquired;
-    framesAcqLog(1,2) = v.DiskLoggerFrameCount;
+if (numSlaves > 0)
+    spmd(numSlaves)
+        stop(v);
 
-    % Display number of frames acquired and logged while acquiring
-    while strcmp(v.Logging, 'on')
-        disp([v.FramesAcquired , v.DiskLoggerFrameCount])
-        pause(1)
-    end
-    
-    % Wait until acquisition is complete and specify wait timeout
-    wait(v, 100);
+        framesAcqLog = zeros(1, 2);
+        framesAcqLog(1,1) = v.FramesAcquired;
+        framesAcqLog(1,2) = v.DiskLoggerFrameCount;
 
-    % Wait until all frames are logged
-    while (v.FramesAcquired ~= v.DiskLoggerFrameCount) 
-        pause(1);
+        % Display number of frames acquired and logged while acquiring
+        while strcmp(v.Logging, 'on')
+            disp([v.FramesAcquired , v.DiskLoggerFrameCount])
+            pause(1)
+        end
+
+        % Wait until acquisition is complete and specify wait timeout
+        wait(v, 100);
+
+        % Wait until all frames are logged
+        while (v.FramesAcquired ~= v.DiskLoggerFrameCount) 
+            pause(1);
+        end
+        %disp([v.FramesAcquired v.DiskLoggerFrameCount]);    
+
+        framesAcqLog = gcat(framesAcqLog, 1, 1);
     end
-    %disp([v.FramesAcquired v.DiskLoggerFrameCount]);    
-    
-    framesAcqLog = gcat(framesAcqLog, 1, 1);
 end
 
-framesAcquiredLogged = cat(1, framesAcquiredLogged, framesAcqLog{1});
+if (numSlaves > 0)
+    framesAcquiredLogged = cat(1, framesAcquiredLogged, framesAcqLog{1});
+end
+
 disp(framesAcquiredLogged);
 
 save(vidFileName, 'trialStarts', 'trialEnds', 'framesAcquiredLogged');
 
 imaqreset
 
-spmd(numSlaves)
-    delete(imaqfind);
+if (numSlaves > 0)
+    spmd(numSlaves)
+        delete(imaqfind);
+    end
 end
 
 close all;
