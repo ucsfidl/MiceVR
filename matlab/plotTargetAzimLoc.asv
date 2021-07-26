@@ -406,9 +406,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                     elseif (left == 0)
                         totalTrialsNotAnalyzed(2) = totalTrialsNotAnalyzed(2) + 1;
                     end
-                    if (verbose)
-                        disp(['Excluded trial#' num2str(trialsToDo(trialIdx)) ' as no extreme found']);
-                    end
+                    disp(['Excluded trial#' num2str(trialsToDo(trialIdx)) ' as no extreme found']);
                     trialIdx = trialIdx + 1;
                     continue;
                 end
@@ -494,9 +492,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                                     totalExtinctTrialsNotAnalyzed(2) = totalExtinctTrialsNotAnalyzed(2) + 1;
                                 end
                             end
-                            if (verbose)
-                                disp(['Excluded valid trial#' num2str(trialsToDo(trialIdx)) ' as within allowed target azimuth']);
-                            end
+                            disp(['Excluded valid trial#' num2str(trialsToDo(trialIdx)) ' as within allowed target azimuth']);
                         end
                     else
                         if (writeOutOnlyIfCensored)
@@ -539,7 +535,6 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                             end
                             if (verbose)
                                 disp(['Censored trial#' num2str(trialsToDo(trialIdx)) ' as beyond allowed target azimuth']);
-                            end
                         end
                     end
                 end
