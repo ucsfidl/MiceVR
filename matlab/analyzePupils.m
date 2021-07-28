@@ -1,4 +1,4 @@
-function analyzePupils(trackFileName, rig, pxPerMm, useCR)
+function analyzePupils(mouseName, day, rig, pxPerMm, useCR)
 % Once trackPupils is done this script is used to analyze the pupil positions and produce many plots.
 
 % It now also keeps track of eye blink times, based on when the centroid is lost.  This is VERY rough and should be 
@@ -24,6 +24,15 @@ function analyzePupils(trackFileName, rig, pxPerMm, useCR)
 %rightColor = [0.81 1 0.81];  % off-green
 
 % OLD ARGUMENTS
+if (day < 10)
+    dayStr = ['00' num2str(day)];
+elseif (day < 100)
+    dayStr = ['0' num2str(day)];
+else
+    dayStr = num2str(day);
+end
+trackFileName = [mouseName '_' dayStr '_trk.mat'];
+
 correctNonFlatCurve = 1;  % Used to be an argument, but never changed, so hard-coding here
 gRP = [];
 usePupilDiamToCalcRp = 1;
@@ -1595,4 +1604,7 @@ disp(['Mean pupil sizes by ellipse major axis: L = ' num2str(round(nanmean(major
 
 disp(['Mean Rp-L = ' num2str(nanmean(RpL)) ', Rp-R = ' num2str(nanmean(RpR)) ]);                            
                             
+plotTargetAzimLoc(mouseName, day, [1 0], [], 1, 'L', 0, 1, 1, [0 0], 1, 1, 1, 0, 0, 0);
+plotTargetAzimLoc(mouseName, day, [1 0], [], 1, 'R', 0, 1, 1, [0 0], 1, 1, 1, 0, 0, 0);
+
 end
