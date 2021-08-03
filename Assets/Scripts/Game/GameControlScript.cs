@@ -1754,7 +1754,12 @@ public class GameControlScript : MonoBehaviour
 			statsList
 		};
 
-		SpreadsheetManager.Write (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "L" + row.ToString ()), new ValueRange (dataToWrite), null);
+		SpreadsheetManager.Write (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "L" + row.ToString ()), new ValueRange (dataToWrite), QuitCallback);
+	}
+
+	// Callback called after writing to Google Sheet is done.
+	private static void QuitCallback() {
+		Debug.Log ("wrote to google sheet");
 		Application.Quit ();
 	}
 
