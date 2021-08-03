@@ -9,6 +9,9 @@ using System.Xml;
 using System.Text;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
+using GoogleSheetsToUnity;
+using System.Net.Sockets;
+using System.Net;
 
 public class GameControlScript : MonoBehaviour
 {
@@ -1697,20 +1700,63 @@ public class GameControlScript : MonoBehaviour
 
 		if (DateTime.Compare(Globals.gameStartTime, DateTime.MinValue) != 0) {  // Only record stats if the game has started, otherwise just exit
 			Globals.WriteStatsFile ();  // make sure before WriteStatsToGoogleSheet();
-			bool wroteData = Globals.WriteStatsToGoogleSheet ();  // sometimes fails due to bad internet connection?  
-			if (wroteData) {
-				Application.Quit ();
-			} else {
-				this.fadeToBlackText.text = "Data not saved in sheets, so manually enter";
-				this.state = "NotSavedToSheets";
-				yield return new WaitUntil (() => Input.GetKeyUp (KeyCode.Q));
-				Application.Quit ();
-			}
+			WriteStatsToGoogleSheet ();  // sometimes fails due to bad internet connection?  
 		} else {
 			Application.Quit ();
 		}
-
     }
+
+	// Write the data to Google Sheets so that the experimenter does not need to memorize and type in results, which is prone to error
+	// Updated to support v4 of the Sheets API
+	public static void WriteStatsToGoogleSheet() {
+		try {
+			SpreadsheetManager.Read(new GSTU_Search(Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), WriteStatsToGoogleSheetCallback);  // The M column has the Dates, the B column has the scenarios
+		} catch (SocketException se) {
+			Debug.Log ("Socket exception thrown in Google Sheets writing - try to connect again!");
+		} catch (WebException we) {
+			Debug.Log ("Web exception thrown in Google Sheets writing - try to connect again!");
+		}
+	}
+
+	public static void WriteStatsToGoogleSheetCallback(GstuSpreadSheet spreadsheet) {
+		Debug.Log ("Got write callback");
+		int row = Globals.GetFirstRowWithScenarioAndBlankDate (spreadsheet);
+		Debug.Log ("Blank row found" + row.ToString());
+
+		TimeSpan te = Globals.gameEndTime.Subtract (Globals.gameStartTime);
+		float numMinElapsed = te.Hours * 60 + te.Minutes + (int)Math.Round ((double)te.Seconds / 60);
+		if (numMinElapsed == 0)
+			numMinElapsed = 1;
+
+		float totalEarnedRewardSize = 0;
+		for (int i = 0; i < Globals.sizeOfRewardGiven.Count; i++) {
+			totalEarnedRewardSize += (float)System.Convert.ToDouble (Globals.sizeOfRewardGiven [i]);
+		}
+
+		// Make a list of strings to append to the end of the sheet.  Does not rely on column names anymore, yay!  But they need to be in order!
+		List<string> statsList = new List<string> () {
+			Math.Round ((float)Globals.numCorrectTurns / ((float)Globals.numNonCorrectionTrials - 1 - Globals.numCatchTrials - Globals.numExtinctionTrials) * 100) + Globals.GetTreeAccuracy (false), // RESULTS OVERALL AND AT EACH POSITION
+			DateTime.Today.ToString ("d"), 									// DATE
+			numMinElapsed.ToString (),										// DURATION
+			Globals.numCorrectTurns.ToString (),										// NUM REWARDS
+			string.Format ("{0:N1}", (Globals.numCorrectTurns / numMinElapsed)),	// REWARDS / MIN
+			(Globals.numNonCorrectionTrials - 1 - Globals.numCatchTrials).ToString (),		// NUM NON CORRECTION TRIALS
+			string.Format ("{0:N1}", (Globals.numNonCorrectionTrials - 1 - Globals.numCatchTrials) / numMinElapsed), // TRIALS / MIN
+			Math.Round ((float)Globals.numCorrectTurns / ((float)Globals.numNonCorrectionTrials - 1 - Globals.numCatchTrials - Globals.numExtinctionTrials) * 100) + "%",  // ACCURACY
+			Math.Round (totalEarnedRewardSize).ToString (), 				// EARNED REWARD TOTAL
+			Math.Round ((float)Globals.numberOfUnearnedRewards * Globals.rewardSize).ToString (),	// UNEARNED REWARD TOTAL FROM BALL
+			"", 															// UNEARNED GIVEN IN CAGE - determined after data is written
+			"=V" + row.ToString() + "+X" + row.ToString(),								// TOTAL H2O, as a formula
+		};
+
+		// Need to make this wrapper because Write expects a List of Lists, where each List is data for 1 row.  Since we only write 1 row, we can only add one list to the lists of lists!
+		List<List<string>> dataToWrite = new List<List<string>> {
+			statsList
+		};
+
+		SpreadsheetManager.Write (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "L" + row.ToString ()), new ValueRange (dataToWrite), null);
+		Application.Quit ();
+	}
 
     private void MovePlayer() {
 		if (Globals.newData) {
