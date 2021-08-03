@@ -119,6 +119,7 @@ public static class Globals
 	public static float worldXCenter = 20000;  // used to discriminate trees placed on the left vs the right
 
 	public static string vrGoogleSheetsName;
+	public static string vrGoogleSheetsID;
 
 	public static int numCameras = 0;
 	public static int currFrame = 1;
@@ -908,11 +909,73 @@ public static class Globals
         statsFile.Close();
     }
 
+
+	public static int GetFirstRowWithScenarioAndBlankDate(GstuSpreadSheet spreadsheet) {
+		List<GSTU_Cell> dateList = spreadsheet.columns ["M"];
+		List<GSTU_Cell> scenarioList = spreadsheet.columns ["B"];
+		int row = 0;
+		for (row = 0; row < dateList.Count; row++) {
+			if (dateList [row].ToString().Equals ("") && !scenarioList[row].ToString().Equals(""))
+				break;
+		}
+		row = row + 1;  // Update since spreadsheet rows start at 1 and not 0
+		return row;
+	}
+
 	// Write the data to Google Sheets so that the experimenter does not need to memorize and type in results, which is prone to error
+	// Updated to support v4 of the Sheets API
 	public static bool WriteStatsToGoogleSheet() {
-		bool tryAgain = true;
-		while (tryAgain) {
-			try {
+		try {
+			SpreadsheetManager.Read(new GSTU_Search(vrGoogleSheetsID, mouseName, "A1", "X700"), WriteStatsToGoogleSheetCallback);  // The M column has the Dates, the B column has the scenarios
+		} catch (SocketException se) {
+			Debug.Log ("Socket exception thrown in Google Sheets writing - try to connect again!");
+		} catch (WebException we) {
+			Debug.Log ("Web exception thrown in Google Sheets writing - try to connect again!");
+		}
+		return true; // Might need to modify - let's see
+	}
+
+	public static void WriteStatsToGoogleSheetCallback(GstuSpreadSheet spreadsheet) {
+		Debug.Log ("Got write callback");
+		int row = GetFirstRowWithScenarioAndBlankDate (spreadsheet);
+		Debug.Log ("Blank row found" + row.ToString());
+
+		TimeSpan te = gameEndTime.Subtract (gameStartTime);
+		float numMinElapsed = te.Hours * 60 + te.Minutes + (int)Math.Round ((double)te.Seconds / 60);
+		if (numMinElapsed == 0)
+			numMinElapsed = 1;
+
+		float totalEarnedRewardSize = 0;
+		for (int i = 0; i < sizeOfRewardGiven.Count; i++) {
+			totalEarnedRewardSize += (float)System.Convert.ToDouble (sizeOfRewardGiven [i]);
+		}
+
+		// Make a list of strings to append to the end of the sheet.  Does not rely on column names anymore, yay!  But they need to be in order!
+		List<string> statsList = new List<string> () {
+			Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials - numExtinctionTrials) * 100) + GetTreeAccuracy (false), // RESULTS OVERALL AND AT EACH POSITION
+			DateTime.Today.ToString ("d"), 									// DATE
+			numMinElapsed.ToString (),										// DURATION
+			numCorrectTurns.ToString (),										// NUM REWARDS
+			string.Format ("{0:N1}", (numCorrectTurns / numMinElapsed)),	// REWARDS / MIN
+			(numNonCorrectionTrials - 1 - numCatchTrials).ToString (),		// NUM NON CORRECTION TRIALS
+			string.Format ("{0:N1}", (numNonCorrectionTrials - 1 - numCatchTrials) / numMinElapsed), // TRIALS / MIN
+			Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials - numExtinctionTrials) * 100) + "%",  // ACCURACY
+			Math.Round (totalEarnedRewardSize).ToString (), 				// EARNED REWARD TOTAL
+			Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString (),	// UNEARNED REWARD TOTAL FROM BALL
+			"", 															// UNEARNED GIVEN IN CAGE - determined after data is written
+			"=V" + (row + 1) + "+X" + (row + 1),								// TOTAL H2O, as a formula
+		};
+
+		// Need to make this wrapper because Write expects a List of Lists, where each List is data for 1 row.  Since we only write 1 row, we can only add one list to the lists of lists!
+		List<List<string>> dataToWrite = new List<List<string>> {
+			statsList
+		};
+
+		SpreadsheetManager.Write (new GSTU_Search (vrGoogleSheetsID, mouseName, "L" + row.ToString ()), new ValueRange (dataToWrite), null);
+	}
+
+
+	/*
 				SpreadSheetManager manager = new SpreadSheetManager();
 				GS2U_SpreadSheet spreadsheet = manager.LoadSpreadSheet (vrGoogleSheetsName);
 				GS2U_Worksheet worksheet = spreadsheet.LoadWorkSheet(mouseName);
@@ -962,14 +1025,7 @@ public static class Globals
 					Debug.Log ("wrote to worksheet " + mouseName);
 					return true;
 				}
-			} catch (SocketException se) {
-				Debug.Log ("Socket exception thrown in Google Sheets writing - try to connect again!");
-			} catch (WebException we) {
-				Debug.Log ("Web exception thrown in Google Sheets writing - try to connect again!");
-			}
-		}
-		return true; // dummy line for the compiler - the code should never get here!
-	}
+				} */
 
 	// Now supports multiple worlds
 	public static string PrintRewardRates() {

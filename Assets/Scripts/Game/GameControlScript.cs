@@ -259,10 +259,10 @@ public class GameControlScript : MonoBehaviour
 		string _occluderXScale = "";
 		string _occluderYScale = "";
 		string _vrGoogleSheetsName = "";
+		string _vrGoogleSheetsID = "";
 		string _numCameras = "";
 
-        foreach (XmlNode xn in gameConfigList)
-        {
+        foreach (XmlNode xn in gameConfigList) {
 			_runDuration = xn["runDuration"].InnerText;
 			_numberOfRuns = xn["numberOfRuns"].InnerText;
 			_numberOfAllRewards = xn["numberOfAllRewards"].InnerText;
@@ -280,6 +280,7 @@ public class GameControlScript : MonoBehaviour
 			_occluderXScale = xn ["occluderXScale"].InnerText;
 			_occluderYScale = xn ["occluderYScale"].InnerText;
 			_vrGoogleSheetsName = xn ["vrGoogleSheetsName"].InnerText;
+			_vrGoogleSheetsID = xn ["vrGoogleSheetsID"].InnerText;
 			_numCameras = xn ["numCameras"].InnerText;
         }
 
@@ -300,6 +301,7 @@ public class GameControlScript : MonoBehaviour
 		float.TryParse(_occluderXScale, out Globals.occluderXScale);
 		float.TryParse(_occluderYScale, out Globals.occluderYScale);
 		Globals.vrGoogleSheetsName = _vrGoogleSheetsName;
+		Globals.vrGoogleSheetsID = _vrGoogleSheetsID;
 		int.TryParse(_numCameras, out Globals.numCameras);
 
 		//Globals.SetCentrallyVisible(centralViewVisible);

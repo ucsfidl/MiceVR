@@ -9,8 +9,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3cd5ad776f921664895987a23a4fa517, type: 3}
-  m_Name: Mouse
+  m_Name: Badger
   m_EditorClassIdentifier: 
-  health: 10
-  attack: 10
+  associatedSheet: 1GVXeyWCz0tCjyqE1GWJoayj92rx4a_hu4nQbYmW_PkE
+  associatedWorksheet: Stats
+  health: 150
+  attack: 50
   defence: 10
+  items:
+  - F
+  - G
+  - H
