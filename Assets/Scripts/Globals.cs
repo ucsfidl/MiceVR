@@ -963,7 +963,7 @@ public static class Globals
 			Math.Round (totalEarnedRewardSize).ToString (), 				// EARNED REWARD TOTAL
 			Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString (),	// UNEARNED REWARD TOTAL FROM BALL
 			"", 															// UNEARNED GIVEN IN CAGE - determined after data is written
-			"=V" + (row + 1) + "+X" + (row + 1),								// TOTAL H2O, as a formula
+			"=V" + row.ToString() + "+X" + row.ToString(),								// TOTAL H2O, as a formula
 		};
 
 		// Need to make this wrapper because Write expects a List of Lists, where each List is data for 1 row.  Since we only write 1 row, we can only add one list to the lists of lists!
