@@ -1,4 +1,4 @@
-function analyzePupils(trackFileName, rig, pxPerMm, useCR)
+function analyzePupils(mouseName, day, rig, pxPerMm, useCR)
 % Once trackPupils is done this script is used to analyze the pupil positions and produce many plots.
 
 % It now also keeps track of eye blink times, based on when the centroid is lost.  This is VERY rough and should be 
@@ -24,6 +24,15 @@ function analyzePupils(trackFileName, rig, pxPerMm, useCR)
 %rightColor = [0.81 1 0.81];  % off-green
 
 % OLD ARGUMENTS
+if (day < 10)
+    dayStr = ['00' num2str(day)];
+elseif (day < 100)
+    dayStr = ['0' num2str(day)];
+else
+    dayStr = num2str(day);
+end
+trackFileName = [mouseName '_' dayStr '_trk.mat'];
+
 correctNonFlatCurve = 1;  % Used to be an argument, but never changed, so hard-coding here
 gRP = [];
 usePupilDiamToCalcRp = 1;
@@ -33,11 +42,13 @@ fps = 60;
 timeDivider = 60*60; % time scale in minutes
 scatterStepSize = 1;  % >= 1; e.g. 100 means 1 in 100 frames are used to plot pupil and CR positions (or 1% sampling).
 
-rigPxPerMm = [42 38;    % rig 1
-             59.3 63.9;     % rig 2
-             57 49;     % rig 3
-             60.4 64.8];    % rig 4 - updated 1/2/21
-         
+rigPxPerMm = [42 38;       % rig 1
+             59.3 63.9;    % rig 2
+             57 49;        % rig 3
+             60.4 64.8;    % rig 4 - updated 1/2/21
+             51.48 52.52;  % rig 5 - updated 7/19/21
+             39.40 58.29;]; % rig 6
+             
 if (rig > 0 && isempty(pxPerMm))
     pxPerMm = rigPxPerMm(rig, :);
     disp(['USING STORED RIG CALIBRATION = ' num2str(pxPerMm)]);
@@ -1593,4 +1604,7 @@ disp(['Mean pupil sizes by ellipse major axis: L = ' num2str(round(nanmean(major
 
 disp(['Mean Rp-L = ' num2str(nanmean(RpL)) ', Rp-R = ' num2str(nanmean(RpR)) ]);                            
                             
+plotTargetAzimLoc(mouseName, day, [1 0], [], 1, 'L', 0, 1, 1, [0 0], 1, 1, 1, 0, 0, 0);
+plotTargetAzimLoc(mouseName, day, [1 0], [], 1, 'R', 0, 1, 1, [0 0], 1, 1, 1, 0, 0, 0);
+
 end

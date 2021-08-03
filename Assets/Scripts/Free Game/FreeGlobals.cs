@@ -202,6 +202,8 @@ public static class FreeGlobals
 
 	// Write the data to Google Sheets so that the experimenter does not need to memorize and type in results, which is prone to error
 	public static bool WriteStatsToGoogleSheet() {
+		// COMMENTED OUT BECAUSE THIS NO LONGER WORKS, as v3 of the Sheets api has been deleted.  Update to work with v4 by copying over from Globals.cs
+		/*
 		SpreadSheetManager manager = new SpreadSheetManager();
 		GS2U_SpreadSheet spreadsheet = manager.LoadSpreadSheet (freeGoogleSheetsName);
 		GS2U_Worksheet worksheet = spreadsheet.LoadWorkSheet(mouseName);
@@ -247,6 +249,8 @@ public static class FreeGlobals
 			}
 			return true;
 		}
+		*/
+		return true;
 	}
 
 

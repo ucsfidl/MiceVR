@@ -1,7 +1,8 @@
 function [nasalExtremaL, nasalExtremaR, accuracyPerExtremaL, accuracyPerExtremaR] = ... 
     plotTargetAzimLoc(mouseName, days, trials, stimLocsToAnalyze, useFieldRestriction, whichEye, ...
     includeCorrectionTrials, includeCatchTrials, includeExtinctionTrials, ...
-    targetAzimLimit, fractionOfRun, censorOnlyIfCorrect, outputNewActionsFile, writeOutOnlyIfCensored, interactive)
+    targetAzimLimit, fractionOfRun, censorOnlyIfCorrect, outputNewActionsFile, writeOutOnlyIfCensored, ...
+    interactive, verbose)
 % This function takes as inputs the replay files for a session as well as the mouse's eye movements 
 % during that session.  It outputs several plots:
 % 1) For the specified trialType, a plot for each trial showing the 
@@ -405,7 +406,9 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                     elseif (left == 0)
                         totalTrialsNotAnalyzed(2) = totalTrialsNotAnalyzed(2) + 1;
                     end
-                    disp(['Excluded trial#' num2str(trialsToDo(trialIdx)) ' as no extreme found']);
+                    if (verbose)
+                        disp(['Excluded trial#' num2str(trialsToDo(trialIdx)) ' as no extreme found']);
+                    end
                     trialIdx = trialIdx + 1;
                     continue;
                 end
@@ -423,14 +426,20 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                         numIncorrectR(idx) = numIncorrectR(idx) + 1;
                     end
                 end
-                disp(['T' num2str(trialsToDo(trialIdx)) ...
-                      ' - ' m ' - F' num2str(extremeFrame) ':' ...
-                      num2str(extreme)]);
+                if (verbose)
+                    disp(['T' num2str(trialsToDo(trialIdx)) ...
+                          ' - ' m ' - F' num2str(extremeFrame) ':' ...
+                          num2str(extreme)]);
+                end
             else % Target is centered or this is a catch trial, so no extrema and keep
                 if (left == -1)
-                    disp(['T' num2str(trialsToDo(trialIdx)) ' - C']);
+                    if (verbose)
+                        disp(['T' num2str(trialsToDo(trialIdx)) ' - C']);
+                    end
                 elseif (left == -2)
-                    disp(['T' num2str(trialsToDo(trialIdx)) ' - Ca']);
+                    if (verbose)
+                        disp(['T' num2str(trialsToDo(trialIdx)) ' - Ca']);
+                    end
                 end
             end
             
@@ -485,7 +494,9 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                                     totalExtinctTrialsNotAnalyzed(2) = totalExtinctTrialsNotAnalyzed(2) + 1;
                                 end
                             end
-                            disp(['Excluded valid trial#' num2str(trialsToDo(trialIdx)) ' as within allowed target azimuth']);
+                            if (verbose)
+                                disp(['Excluded valid trial#' num2str(trialsToDo(trialIdx)) ' as within allowed target azimuth']);
+                            end
                         end
                     else
                         if (writeOutOnlyIfCensored)
@@ -526,7 +537,9 @@ for d_i=1:length(days)  % Iterate through all of the specified days
                                     totalExtinctTrialsNotAnalyzed(2) = totalExtinctTrialsNotAnalyzed(2) + 1;
                                 end
                             end
-                            disp(['Censored trial#' num2str(trialsToDo(trialIdx)) ' as beyond allowed target azimuth']);
+                            if (verbose)
+                                disp(['Censored trial#' num2str(trialsToDo(trialIdx)) ' as beyond allowed target azimuth']);
+                            end
                         end
                     end
                 end

@@ -82,96 +82,59 @@ public class Loader : MonoBehaviour {
 		}
 	}
 
+	// Updated to support v4 of the Sheets API
 	public void LoadSettingsFromSheets() {
 		// Needed to remove focus from the input fields, to fix a bug
 		GameObject.Find ("EventSystem").GetComponent<UnityEngine.EventSystems.EventSystem> ().SetSelectedGameObject (null);
 
-		// First, get each setting from the Sheet
-		SpreadSheetManager manager = new SpreadSheetManager();
-		GS2U_SpreadSheet spreadsheet = manager.LoadSpreadSheet (Globals.vrGoogleSheetsName);
-		GS2U_Worksheet worksheet = spreadsheet.LoadWorkSheet(Globals.mouseName);
-		bool foundNewLevel = false;
-		if (worksheet == null) {
-			GameObject.Find ("ErrorText").GetComponent<Text> ().text = "Worksheet '" + Globals.mouseName + "' NOT found!";
-		} else {
-			Debug.Log ("loaded worksheet " + Globals.mouseName);
-			WorksheetData data = worksheet.LoadAllWorksheetInformation ();
-			Debug.Log (data.rows.Count + " number of rows found");
-
-			for (int i = 0; i < data.rows.Count; i++) {
-				//Debug.Log ("Examining row " + i);
-
-				// Find the first row with a blank date and duration, and read the settings from that line - this was buggy as sometimes the date column isn't filled in.
-				// Instead, find the first row that has a scenario but no date
-				// Note that the Sheets object only captures all rows up until the first empty row!  I have tested and confirmed this.
-				if (!data.rows [i].cells [1].value.Equals ("") && data.rows [i].cells [12].value.Equals ("")) {
-					Debug.Log ("Criteria met on row " + (i + 2));
-					Debug.Log (data.rows [i].cells [1].cellColumTitle + " value is " + data.rows [i].cells [1].value);
-					Debug.Log (data.rows [i].cells [12].cellColumTitle + " value is " + data.rows [i].cells [12].value);
-					RowData rData = data.rows [i];
-					foundNewLevel = true;
-
-					for (int j = 0; j < rData.cells.Count; j++) {
-						switch (j) {
-						case 0:
-							{
-								GameObject.Find ("DayOnBallInput").GetComponent<InputField> ().text = rData.cells [j].value;
-								break;
-							}
-						case 1:
-							{
-								GameObject.Find ("ScenarioInput").GetComponent<InputField> ().text = rData.cells [j].value;
-								break;
-							}
-						case 2:
-							{
-								GameObject.Find ("ScenarioSessionInput").GetComponent<InputField> ().text = rData.cells [j].value;
-								break;
-							}
-						case 3:
-							{
-								GameObject.Find ("VisibleNasalBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
-								break;
-							}
-						case 4:
-							{
-								GameObject.Find ("VisibleTemporalBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
-								break;
-							}
-						case 5:
-							{
-								GameObject.Find ("VisibleHighBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
-								break;
-							}
-						case 6:
-							{
-								GameObject.Find ("VisibleLowBoundary").GetComponent<InputField> ().text = rData.cells [j].value;
-								break;
-							}
-						case 10:
-							{
-								GameObject.Find ("MaxReward").GetComponent<InputField> ().text = rData.cells [j].value;
-								break;
-							}
-						}
-					}
-					break;
-				}
-			}
-
-			if (!foundNewLevel) { // If no new level entered, just redo yesterday's level
-				Debug.Log("did not find a new level");
-				for (int i = data.rows.Count-1; i >= 0 ; i--) {  // Start from the bottom and work our way back up
-					Debug.Log("Examining row to duplicate: " + i);
-					if (!data.rows [i].cells [1].value.Equals ("") && !data.rows [i].cells [12].value.Equals ("")) {
-						Debug.Log ("Duplicate row identified on row " + (i + 2));
-						break;
-					}
-
-				}
-			}
-		}
+		SpreadsheetManager.Read(new GSTU_Search(Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), LoadSettingsFromSheetsCallback);  // The M column has the Dates
 	}
+
+	public void LoadSettingsFromSheetsCallback(GstuSpreadSheet spreadsheet) {
+		if (spreadsheet == null) {
+			GameObject.Find ("ErrorText").GetComponent<Text> ().text = "Worksheet '" + Globals.mouseName + "' NOT found!";
+			Debug.Log ("No sheet found with " + Globals.mouseName);
+			return;
+		}
+		Debug.Log ("Found sheet " + Globals.mouseName);
+		int rowToRead = Globals.GetFirstRowWithScenarioAndBlankDate (spreadsheet);
+		Debug.Log (rowToRead.ToString ());
+
+		string day = TryReadingValueOf (spreadsheet, "A" + rowToRead.ToString ());
+		GameObject.Find ("DayOnBallInput").GetComponent<InputField> ().text = day;
+
+		string scenario = TryReadingValueOf (spreadsheet, "B" + rowToRead.ToString ());
+		GameObject.Find ("ScenarioInput").GetComponent<InputField> ().text = scenario;
+
+		string scenarioSession = TryReadingValueOf (spreadsheet, "C" + rowToRead.ToString ());
+		GameObject.Find ("ScenarioSessionInput").GetComponent<InputField> ().text = scenarioSession;
+
+		string nasal = TryReadingValueOf (spreadsheet, "D" + rowToRead.ToString ());
+		GameObject.Find ("VisibleNasalBoundary").GetComponent<InputField> ().text = nasal;
+
+		string temporal = TryReadingValueOf (spreadsheet, "E" + rowToRead.ToString ());
+		GameObject.Find ("VisibleTemporalBoundary").GetComponent<InputField> ().text = temporal;
+
+		string high = TryReadingValueOf (spreadsheet, "F" + rowToRead.ToString ());
+		GameObject.Find ("VisibleHighBoundary").GetComponent<InputField> ().text = high;
+
+		string low = TryReadingValueOf (spreadsheet, "G" + rowToRead.ToString ());
+		GameObject.Find ("VisibleLowBoundary").GetComponent<InputField> ().text = low;
+
+		string maxReward = TryReadingValueOf (spreadsheet, "K" + rowToRead.ToString ());
+		GameObject.Find ("MaxReward").GetComponent<InputField> ().text = maxReward;
+	}
+
+	private string TryReadingValueOf(GstuSpreadSheet spreadsheet, string pos) {
+		string val = "";
+		try {
+			val = spreadsheet[pos].value;
+		} catch { 
+			//Debug.Log("value not found. it's ok.");
+		}
+		return val;
+	}
+
 
 	// Read and load the scenario text file into memory
 	// NEW: Supports the <include> directive to essentially make a templating system.  Each <include>FILE</include> is read in as an XML doc and searched for certain xml nodes

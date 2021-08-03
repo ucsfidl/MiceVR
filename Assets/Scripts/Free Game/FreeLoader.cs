@@ -283,7 +283,10 @@ public class FreeLoader : MonoBehaviour {
     }
 
 	public void LoadSettingsFromSheets() {
+		// 		// COMMENTED OUT BECAUSE THIS NO LONGER WORKS, as v3 of the Sheets api has been deleted.  Update to work with v4 by copying over from Loader.cs
+
 		// First, get each setting from the Sheet
+		/*
 		SpreadSheetManager manager = new SpreadSheetManager();
 		GS2U_SpreadSheet spreadsheet = manager.LoadSpreadSheet (FreeGlobals.freeGoogleSheetsName);
 		GS2U_Worksheet worksheet = spreadsheet.LoadWorkSheet(FreeGlobals.mouseName);
@@ -335,6 +338,7 @@ public class FreeLoader : MonoBehaviour {
 			}
 
 		}
+		*/
 	}
 
 

@@ -2,9 +2,10 @@
 using System;
 using UnityEngine;
 
-namespace GoogleSheetsToUnity
+namespace GoogleSheetsToUnity.Legacy
 {
-  public class OAuth2
+#if GSTU_Legacy
+    public class OAuth2
   {
 
     string SCOPE = "https://spreadsheets.google.com/feeds";
@@ -60,4 +61,5 @@ namespace GoogleSheetsToUnity
       return parameters;
     }
   }
+#endif
 }
