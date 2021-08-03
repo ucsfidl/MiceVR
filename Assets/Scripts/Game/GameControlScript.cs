@@ -1721,7 +1721,7 @@ public class GameControlScript : MonoBehaviour
 	public static void WriteStatsToGoogleSheetCallback(GstuSpreadSheet spreadsheet) {
 		Debug.Log ("Got write callback");
 		int row = Globals.GetFirstRowWithScenarioAndBlankDate (spreadsheet);
-		Debug.Log ("Blank row found" + row.ToString());
+		Debug.Log ("Blank row found " + row.ToString());
 
 		TimeSpan te = Globals.gameEndTime.Subtract (Globals.gameStartTime);
 		float numMinElapsed = te.Hours * 60 + te.Minutes + (int)Math.Round ((double)te.Seconds / 60);
@@ -1754,7 +1754,7 @@ public class GameControlScript : MonoBehaviour
 			statsList
 		};
 
-		SpreadsheetManager.Write (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "L" + row.ToString ()), new ValueRange (dataToWrite), QuitCallback);
+		SpreadsheetManager.Write (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "L" + row.ToString (), "X700"), new ValueRange (dataToWrite), QuitCallback);
 	}
 
 	// Callback called after writing to Google Sheet is done.

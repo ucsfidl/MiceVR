@@ -151,6 +151,9 @@ namespace GoogleSheetsToUnity
             sb.Append("?valueInputOption=USER_ENTERED");
             sb.Append("&access_token=" + Config.gdr.access_token);
 
+			Debug.Log (search.startCell);
+			Debug.Log (search.endCell);
+
             string json = JSON.Dump(inputData, EncodeOptions.NoTypeHints);
             byte[] bodyRaw = new UTF8Encoding().GetBytes(json);
 

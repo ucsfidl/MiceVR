@@ -909,7 +909,6 @@ public static class Globals
         statsFile.Close();
     }
 
-
 	public static int GetFirstRowWithScenarioAndBlankDate(GstuSpreadSheet spreadsheet) {
 		List<GSTU_Cell> dateList = spreadsheet.columns ["M"];
 		List<GSTU_Cell> scenarioList = spreadsheet.columns ["B"];
