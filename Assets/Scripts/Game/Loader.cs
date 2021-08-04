@@ -87,7 +87,15 @@ public class Loader : MonoBehaviour {
 		// Needed to remove focus from the input fields, to fix a bug
 		GameObject.Find ("EventSystem").GetComponent<UnityEngine.EventSystems.EventSystem> ().SetSelectedGameObject (null);
 
-		SpreadsheetManager.Read(new GSTU_Search(Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), LoadSettingsFromSheetsCallback);  // The M column has the Dates
+		Debug.Log ("Trying to read sheet...");
+		while (true) {
+			try {
+				SpreadsheetManager.Read (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), LoadSettingsFromSheetsCallback);  // The M column has the Dates
+				break;
+			} catch {
+				Debug.Log ("spreadsheet read failed, try again.");
+			}
+		}
 	}
 
 	public void LoadSettingsFromSheetsCallback(GstuSpreadSheet spreadsheet) {
