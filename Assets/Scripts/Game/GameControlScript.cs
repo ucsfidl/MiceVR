@@ -1709,12 +1709,17 @@ public class GameControlScript : MonoBehaviour
 	// Write the data to Google Sheets so that the experimenter does not need to memorize and type in results, which is prone to error
 	// Updated to support v4 of the Sheets API
 	public static void WriteStatsToGoogleSheet() {
-		try {
-			SpreadsheetManager.Read(new GSTU_Search(Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), WriteStatsToGoogleSheetCallback);  // The M column has the Dates, the B column has the scenarios
-		} catch (SocketException se) {
-			Debug.Log ("Socket exception thrown in Google Sheets writing - try to connect again!");
-		} catch (WebException we) {
-			Debug.Log ("Web exception thrown in Google Sheets writing - try to connect again!");
+		while (true) {
+			try {
+				SpreadsheetManager.Read (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), WriteStatsToGoogleSheetCallback);  // The M column has the Dates, the B column has the scenarios
+				break;
+			} catch (SocketException se) {
+				Debug.Log ("Socket exception thrown in Google Sheets writing - try to connect again!");
+			} catch (WebException we) {
+				Debug.Log ("Web exception thrown in Google Sheets writing - try to connect again!");
+			} catch {
+			
+			}
 		}
 	}
 
