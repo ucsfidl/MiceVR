@@ -95,6 +95,7 @@ namespace GoogleSheetsToUnity
                     Debug.LogWarning("Unable to Retreive data from google sheets");
                     yield break;
                 }
+				Debug.Log (request.downloadHandler.text);
 
 
                 ValueRange rawData = JSON.Load(request.downloadHandler.text).Make<ValueRange>();
