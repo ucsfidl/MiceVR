@@ -77,12 +77,15 @@ namespace GoogleSheetsToUnity
         {
             if (Application.isPlaying)
             {
-                yield return new Task(CheckForRefreshToken());
+				// Commenting out coroutine since we want to make sure we have a nice new token before calling the following code:
+                //yield return new Task(CheckForRefreshToken());
+				CheckForRefreshToken();
             }
 #if UNITY_EDITOR
             else
             {
-                yield return EditorCoroutineRunner.StartCoroutine(CheckForRefreshToken());
+                //yield return EditorCoroutineRunner.StartCoroutine(CheckForRefreshToken());
+				CheckForRefreshToken();
             }
 #endif
 
