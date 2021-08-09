@@ -8,9 +8,9 @@ using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using GoogleSheetsToUnity.Utils;
 
-namespace GoogleSheetsToUnity
+namespace GoogleSheetsToUnity.Legacy
 {
-    #region V3
+#if GSTU_Legacy
     public class SpreadSheetManager
     {
         public static SpreadsheetsService service;
@@ -83,7 +83,7 @@ namespace GoogleSheetsToUnity
         /// <summary>
         /// loads a spreadsheet using its name, if 2 or more spreadsheets share a name will load the first found instance
         /// </summary>
-        /// <param name="manager"></param>
+        /// <param name="managerV3"></param>
         /// <param name="spreadSheetName"></param>
         /// <returns></returns>
         public static GS2U_SpreadSheet LoadSpreadSheet(this SpreadSheetManager manager, string spreadSheetName)
@@ -93,13 +93,18 @@ namespace GoogleSheetsToUnity
 
             SpreadsheetFeed feed = SpreadSheetManager.service.Query(query) as SpreadsheetFeed;
 
+            if(feed.Entries.Count == 0)
+            {
+                return null;
+            }
+
             return new GS2U_SpreadSheet((SpreadsheetEntry)feed.Entries[0]);
         }
 
         /// <summary>
-        /// Load a spreadsheet from its unique id, usefully if 2 or more spreadsheets have the same name
+        /// Load a spreadsheet from its unique id, usefull if 2 or more spreadsheets have the same name
         /// </summary>
-        /// <param name="manager"></param>
+        /// <param name="managerV3"></param>
         /// <param name="spreadSheetID"></param>
         /// <param name="isSheetId"></param>
         /// <returns></returns>
@@ -109,6 +114,11 @@ namespace GoogleSheetsToUnity
             query.Uri = new Uri("https://spreadsheets.google.com/feeds/spreadsheets/private/full/" + spreadSheetID);
 
             SpreadsheetFeed feed = SpreadSheetManager.service.Query(query) as SpreadsheetFeed;
+
+            if (feed.Entries.Count == 0)
+            {
+                return null;
+            }
 
             return new GS2U_SpreadSheet((SpreadsheetEntry)feed.Entries[0]);
         }
@@ -578,40 +588,6 @@ namespace GoogleSheetsToUnity
             return cellData;
         }
 
-        ///// <summary>
-        ///// Get Data from a collection of cells
-        ///// </summary>
-        ///// <param name="worksheet"></param>
-        ///// <param name="columStart"></param>
-        ///// <param name="columEnd"></param>
-        ///// <param name="rowStart"></param>
-        ///// <param name="rowEnd"></param>
-        ///// <returns></returns>
-        //public static List<CellEntry> GetCellDataCollection(this GS2U_Worksheet worksheet, string columStart, string columEnd, int rowStart, int rowEnd)
-        //{
-        //    CellQuery cellQuery = new CellQuery(worksheet.CellFeedLink);
-        //    cellQuery.MinimumRow = (uint)rowStart;
-        //    cellQuery.MaximumRow = (uint)rowEnd;
-        //    cellQuery.MinimumColumn = (uint)Util.GetIndexInAlphabet(columStart);
-        //    cellQuery.MaximumColumn = (uint)Util.GetIndexInAlphabet(columEnd);
-
-        //    CellFeed cellFeed = SpreadSheetManager.service.Query(cellQuery) as CellFeed;
-        //    List<CellEntry> entries = new List<CellEntry>();
-
-        //    for (int i = 0; i < cellFeed.Entries.Count; i++)
-        //    {
-        //        entries.Add((CellEntry)cellFeed.Entries[i]);
-        //    }
-
-        //    return entries;
-        //}
-
-        //public static void ModifyCellData(this CellEntry cell, string newData)
-        //{
-        //    cell.InputValue = newData;
-        //    cell.Update();
-        //}
-
         public static void ModifyCellData(this GS2U_Worksheet worksheet, string colum, int row, string newData)
         {
             CellEntry cell = worksheet.GetCellEntry(colum, row);
@@ -669,6 +645,6 @@ namespace GoogleSheetsToUnity
             cellRowTitle = _cellRowTitle;
         }
     }
-    #endregion
+#endif
 }
 

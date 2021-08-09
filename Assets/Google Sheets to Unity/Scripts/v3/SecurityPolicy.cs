@@ -4,8 +4,9 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using UnityEngine;
 
-namespace GoogleSheetsToUnity
+namespace GoogleSheetsToUnity.Legacy
 {
+#if GSTU_Legacy
     public class SecurityPolicy
     {
         public static bool Validator(
@@ -26,4 +27,5 @@ namespace GoogleSheetsToUnity
             ServicePointManager.ServerCertificateValidationCallback = Validator;
         }
     }
+#endif
 }

@@ -119,6 +119,7 @@ public static class Globals
 	public static float worldXCenter = 20000;  // used to discriminate trees placed on the left vs the right
 
 	public static string vrGoogleSheetsName;
+	public static string vrGoogleSheetsID;
 
 	public static int numCameras = 0;
 	public static int currFrame = 1;
@@ -908,69 +909,18 @@ public static class Globals
         statsFile.Close();
     }
 
-	// Write the data to Google Sheets so that the experimenter does not need to memorize and type in results, which is prone to error
-	public static bool WriteStatsToGoogleSheet() {
-		bool tryAgain = true;
-		while (tryAgain) {
-			try {
-				SpreadSheetManager manager = new SpreadSheetManager();
-				GS2U_SpreadSheet spreadsheet = manager.LoadSpreadSheet (vrGoogleSheetsName);
-				GS2U_Worksheet worksheet = spreadsheet.LoadWorkSheet(mouseName);
-				if (worksheet == null) {
-					Debug.Log ("Data not saved to Sheets, as worksheet named '" + mouseName + "' was NOT found");
-					return false;
-				} else {
-					WorksheetData data = worksheet.LoadAllWorksheetInformation ();
-
-					// Helper vars
-					TimeSpan te = gameEndTime.Subtract (gameStartTime);
-					float numMinElapsed = te.Hours * 60 + te.Minutes + (int)Math.Round ((double)te.Seconds / 60);
-					if (numMinElapsed == 0)
-						numMinElapsed = 1;
-
-					float totalEarnedRewardSize = 0;
-					for (int i = 0; i < sizeOfRewardGiven.Count; i++) {
-						totalEarnedRewardSize += (float)System.Convert.ToDouble (sizeOfRewardGiven [i]);
-					}
-
-					// Iterate the file
-					for (int i = 0; i < data.rows.Count; i++) {
-						// Note that if any of the column headers are deleted, then this will fail and write to the top of the spreadsheet.  Usually it is the first column header, Day, which is accidentally deleted. 
-						// I have locked this cell, but not the whole row of headers as this makes changes more difficult when I am not logged in to the shared computer.  If this fails, I might need to lock the whole row again.
-						// Or, I could iterate through the columns of the 2nd row to find the first one that looks like a date, and then use that moving forward.  Let's see, that is probably overkill for now.
-						if (data.rows [i].cells [12].value.Equals ("") && data.rows [i].cells [13].value.Equals ("")) {
-							int row = i + 1;
-							// Add the date (L), duration, rewards, trials, earned, unearned on ball, and total stats to the Google Sheet
-							worksheet.ModifyRowData (row, new Dictionary<string, string> {
-								{ "date", DateTime.Today.ToString ("d") },
-								{ "durm", numMinElapsed.ToString() },
-								{ "rewards", numCorrectTurns.ToString () },
-								{ "rmin", string.Format ("{0:N1}", (numCorrectTurns / numMinElapsed)) },
-								{ "trials", (numNonCorrectionTrials - 1 - numCatchTrials).ToString () },
-								{ "tmin", string.Format ("{0:N1}", (numNonCorrectionTrials - 1 - numCatchTrials) / numMinElapsed) },
-								{ "accuracy", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials - numExtinctionTrials) * 100) + "%" },
-								{ "earned", Math.Round (totalEarnedRewardSize).ToString () },
-								{ "uball", Math.Round ((float)numberOfUnearnedRewards * rewardSize).ToString () },
-								{ "results", Math.Round ((float)numCorrectTurns / ((float)numNonCorrectionTrials - 1 - numCatchTrials - numExtinctionTrials) * 100) + GetTreeAccuracy (false) },
-								{ "totalh2o", "=V" + (row + 1) + "+X" + (row + 1) }
-							}
-							);
-
-							break;
-						}
-					}
-					Debug.Log ("wrote to worksheet " + mouseName);
-					return true;
-				}
-			} catch (SocketException se) {
-				Debug.Log ("Socket exception thrown in Google Sheets writing - try to connect again!");
-			} catch (WebException we) {
-				Debug.Log ("Web exception thrown in Google Sheets writing - try to connect again!");
-			}
+	public static int GetFirstRowWithScenarioAndBlankDate(GstuSpreadSheet spreadsheet) {
+		List<GSTU_Cell> dateList = spreadsheet.columns ["M"];
+		List<GSTU_Cell> scenarioList = spreadsheet.columns ["B"];
+		int row = 0;
+		for (row = 0; row < dateList.Count; row++) {
+			if (dateList [row].ToString().Equals ("") && !scenarioList[row].ToString().Equals(""))
+				break;
 		}
-		return true; // dummy line for the compiler - the code should never get here!
+		row = row + 1;  // Update since spreadsheet rows start at 1 and not 0
+		return row;
 	}
-
+		
 	// Now supports multiple worlds
 	public static string PrintRewardRates() {
 		string output = "";
