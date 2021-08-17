@@ -1724,6 +1724,10 @@ public class GameControlScript : MonoBehaviour
 	}
 
 	public static void WriteStatsToGoogleSheetCallback(GstuSpreadSheet spreadsheet) {
+		if (spreadsheet == null) {  // I pass back a null if there is an authentication-related error.  Trying again seems to fix it, not sure why.
+			SpreadsheetManager.Read (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), WriteStatsToGoogleSheetCallback);  // The M column has the Dates
+			return;
+		}
 		Debug.Log ("Got write callback");
 		int row = Globals.GetFirstRowWithScenarioAndBlankDate (spreadsheet);
 		Debug.Log ("Blank row found " + row.ToString());
