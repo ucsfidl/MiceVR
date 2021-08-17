@@ -914,7 +914,7 @@ public static class Globals
 		List<GSTU_Cell> scenarioList = spreadsheet.columns ["B"];
 		int row = 0;
 		for (row = 0; row < dateList.Count; row++) {
-			if (dateList [row].ToString().Equals ("") && !scenarioList[row].ToString().Equals(""))
+			if (dateList [row].value.Equals ("") && !scenarioList[row].value.Equals(""))
 				break;
 		}
 		row = row + 1;  // Update since spreadsheet rows start at 1 and not 0
