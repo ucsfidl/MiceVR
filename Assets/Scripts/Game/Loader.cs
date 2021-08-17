@@ -88,20 +88,15 @@ public class Loader : MonoBehaviour {
 		GameObject.Find ("EventSystem").GetComponent<UnityEngine.EventSystems.EventSystem> ().SetSelectedGameObject (null);
 
 		Debug.Log ("Trying to read sheet...");
-		while (true) {
-			try {
-				SpreadsheetManager.Read (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), LoadSettingsFromSheetsCallback);  // The M column has the Dates
-				break;
-			} catch {
-				Debug.Log ("spreadsheet read failed, try again.");
-			}
-		}
+		SpreadsheetManager.Read (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), LoadSettingsFromSheetsCallback);  // The M column has the Dates
 	}
 
 	public void LoadSettingsFromSheetsCallback(GstuSpreadSheet spreadsheet) {
-		if (spreadsheet == null) {
-			GameObject.Find ("ErrorText").GetComponent<Text> ().text = "Worksheet '" + Globals.mouseName + "' NOT found!";
-			Debug.Log ("No sheet found with " + Globals.mouseName);
+		if (spreadsheet == null) {  // I pass back a null if there is an authentication-related error.  Trying again seems to fix it, not sure why.
+			SpreadsheetManager.Read (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), LoadSettingsFromSheetsCallback);  // The M column has the Dates
+
+			//GameObject.Find ("ErrorText").GetComponent<Text> ().text = "Worksheet '" + Globals.mouseName + "' NOT found!";
+			//Debug.Log ("No sheet found with " + Globals.mouseName);
 			return;
 		}
 		Debug.Log ("Found sheet " + Globals.mouseName);

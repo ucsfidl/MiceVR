@@ -180,7 +180,7 @@ namespace GoogleSheetsToUnity
         {
             if (DateTime.Now > SpreadsheetManager.Config.gdr.nextRefreshTime)
             {
-                Debug.Log("Refreshing Token");
+                Debug.Log("Trying to refresh token");
 
                 WWWForm f = new WWWForm();
                 f.AddField("client_id", SpreadsheetManager.Config.CLIENT_ID);
@@ -196,6 +196,7 @@ namespace GoogleSheetsToUnity
                     GoogleDataResponse newGdr = JsonUtility.FromJson<GoogleDataResponse>(request.downloadHandler.text);
                     SpreadsheetManager.Config.gdr.access_token = newGdr.access_token;
                     SpreadsheetManager.Config.gdr.nextRefreshTime = DateTime.Now.AddSeconds(newGdr.expires_in);
+					Debug.Log ("Token refreshed");
 
 #if UNITY_EDITOR
                     EditorUtility.SetDirty(SpreadsheetManager.Config);

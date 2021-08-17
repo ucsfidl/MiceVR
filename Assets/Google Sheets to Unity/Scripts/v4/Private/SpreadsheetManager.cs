@@ -95,9 +95,13 @@ namespace GoogleSheetsToUnity
                     Debug.LogWarning("Unable to Retreive data from google sheets");
                     yield break;
                 }
+
 				Debug.Log (request.downloadHandler.text);
-
-
+				if (request.downloadHandler.text.Contains("\"code\": 401")) {
+					Debug.Log("found error code, trying again");
+					callback (null);  // So I know to try again.
+					yield break;
+				}
                 ValueRange rawData = JSON.Load(request.downloadHandler.text).Make<ValueRange>();
                 GSTU_SpreadsheetResponce responce = new GSTU_SpreadsheetResponce(rawData);
 
