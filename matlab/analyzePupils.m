@@ -1,4 +1,4 @@
-function analyzePupils(mouseName, day, rig, pxPerMm, useCR)
+function analyzePupils(mouseName, day, rig, pxPerMm, useCR, useEyeMeasurements)
 % Once trackPupils is done this script is used to analyze the pupil positions and produce many plots.
 
 % It now also keeps track of eye blink times, based on when the centroid is lost.  This is VERY rough and should be 
@@ -377,7 +377,7 @@ majorAxisMm = cat(3, majorAxisLengths(:,:,1) / pxPerMm(1), majorAxisLengths(:,:,
 
 % Instead of using a static Rp, use one based on pupil size.  So Rp varies during the entire task.
 % First, lookup the slope and intercept in the data file:
-if (isKey(mouseToRpLine, mouseName))
+if (useEyeMeasurements && isKey(mouseToRpLine, mouseName))
     rpline = mouseToRpLine(mouseName);
     slope = [rpline(1,1) rpline(2,1)];
     yint = [rpline(1,2) rpline(2,2)];
