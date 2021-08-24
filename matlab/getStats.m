@@ -15,6 +15,7 @@ function [normLeftSightRate, normRightSightRate, leftBlindRate, rightBlindRate, 
 %
 % sightRate is a rate from 0 to 1 for how often the mouse was sighted on 3-choice, to calculate chance rates on 4-choice
 
+actionsFolderLocal = '.\';
 actionsFolderUCB = 'C:\Users\nikhi\UCB\data-actions\';
 actionsFolderUCSF = 'C:\Users\nikhi\UCSF\data\';
 
@@ -76,8 +77,10 @@ rightStimStraightErrorsMap = containers.Map();
 % First, find all the filenames to read in
 if (loc == 'UCB')
     actionsFolder = actionsFolderUCB;
-else
+elseif (loc == 'UCSF')
     actionsFolder = actionsFolderUCSF;
+else
+    actionsFolder = actionsFolderLocal;
 end
 
 if analyzeCensored

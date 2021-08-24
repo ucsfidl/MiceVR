@@ -42,7 +42,7 @@ namespace GoogleSheetsToUnity
         /// <param name="search"></param>
         /// <param name="callback"></param>
         /// <param name="containsMergedCells"> does the spreadsheet contain merged cells, will attempt to group these by titles</param>
-        public static void Read(GSTU_Search search, UnityAction<GstuSpreadSheet> callback, bool containsMergedCells = false)
+        public static void Read(GSTU_Search search, UnityAction<GstuSpreadSheet, int> callback, bool containsMergedCells = false)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("https://sheets.googleapis.com/v4/spreadsheets");
@@ -73,7 +73,7 @@ namespace GoogleSheetsToUnity
         /// <param name="containsMergedCells"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        static IEnumerator Read(UnityWebRequest request, GSTU_Search search, bool containsMergedCells, UnityAction<GstuSpreadSheet> callback)
+		static IEnumerator Read(UnityWebRequest request, GSTU_Search search, bool containsMergedCells, UnityAction<GstuSpreadSheet, int> callback)
         {
             if (Application.isPlaying)
             {
@@ -97,9 +97,13 @@ namespace GoogleSheetsToUnity
                 }
 
 				Debug.Log (request.downloadHandler.text);
-				if (request.downloadHandler.text.Contains("\"code\": 401")) {
-					Debug.Log("found error code, trying again");
-					callback (null);  // So I know to try again.
+				if (request.downloadHandler.text.Contains ("\"code\": 401")) {
+					Debug.Log ("found error code, trying again");
+					callback (null, 401);  // So I know to try again.
+					yield break;
+				} else if (request.downloadHandler.text.Contains ("\"code\": 400")) {
+					Debug.Log ("mouse not found in spreadsheet");
+					callback (null, 400);
 					yield break;
 				}
                 ValueRange rawData = JSON.Load(request.downloadHandler.text).Make<ValueRange>();
@@ -123,7 +127,7 @@ namespace GoogleSheetsToUnity
 
                 if (callback != null)
                 {
-                    callback(new GstuSpreadSheet(responce, search.titleColumn,search.titleRow));
+                    callback(new GstuSpreadSheet(responce, search.titleColumn,search.titleRow), 200);
                 }
             }
         }
