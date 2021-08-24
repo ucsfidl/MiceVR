@@ -48,7 +48,7 @@ public class AnimalManager : MonoBehaviour
         }
     }
 
-	void UpdateAllAnimals(GstuSpreadSheet ss, int respCode)
+    void UpdateAllAnimals(GstuSpreadSheet ss)
     {
         foreach (Animal animal in container.allAnimals)
         {

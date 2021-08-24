@@ -136,26 +136,26 @@ public class AnimalEditor : Editor
         }
     }
 
-    void UpdateStats(UnityAction<GstuSpreadSheet, int> callback, bool mergedCells = false)
+    void UpdateStats(UnityAction<GstuSpreadSheet> callback, bool mergedCells = false)
     {
         SpreadsheetManager.Read(new GSTU_Search(animal.associatedSheet, animal.associatedWorksheet), callback, mergedCells);
     }
 
-	void UpdateMethodOne(GstuSpreadSheet ss, int respCode)
+    void UpdateMethodOne(GstuSpreadSheet ss)
     {
         animal.UpdateStats(ss.rows[animal.name]);
 
         EditorUtility.SetDirty(target);
     }
 
-	void UpdateMethodTwo(GstuSpreadSheet ss, int respCode)
+    void UpdateMethodTwo(GstuSpreadSheet ss)
     {
         animal.UpdateStats(ss);
 
         EditorUtility.SetDirty(target);
     }
 
-	void UpdateMethodMergedCells(GstuSpreadSheet ss, int respCode)
+    void UpdateMethodMergedCells(GstuSpreadSheet ss)
     {
         animal.UpdateStats(ss, true);
 
@@ -200,7 +200,7 @@ public class AnimalEditor : Editor
     {
         SpreadsheetManager.Read(new GSTU_Search(animal.associatedSheet, animal.associatedWorksheet), UpdateAnimalInformation);
     }
-	private void UpdateAnimalInformation(GstuSpreadSheet ss, int respCode)
+    private void UpdateAnimalInformation(GstuSpreadSheet ss)
     {
         BatchRequestBody updateRequest = new BatchRequestBody();
         updateRequest.Add(ss[animal.name, "Health"].AddCellToBatchUpdate(animal.associatedSheet, animal.associatedWorksheet, animal.health.ToString()));
@@ -226,7 +226,7 @@ public class AnimalEditor : Editor
     {
         SpreadsheetManager.Read(new GSTU_Search(animal.associatedSheet, animal.associatedWorksheet), UpdateAnimalHealth);
     }
-	private void UpdateAnimalHealth(GstuSpreadSheet ss, int respCode)
+    private void UpdateAnimalHealth(GstuSpreadSheet ss)
     {
         ss[animal.name, "Name"].UpdateCellValue(animal.associatedSheet, animal.associatedWorksheet, animal.health.ToString()); 
     }

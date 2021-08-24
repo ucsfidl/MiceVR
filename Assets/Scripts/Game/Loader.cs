@@ -91,7 +91,7 @@ public class Loader : MonoBehaviour {
 		SpreadsheetManager.Read (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), LoadSettingsFromSheetsCallback);  // The M column has the Dates
 	}
 
-	public void LoadSettingsFromSheetsCallback(GstuSpreadSheet spreadsheet, int respCode) {
+	public void LoadSettingsFromSheetsCallback(GstuSpreadSheet spreadsheet) {
 		if (spreadsheet == null) {  // I pass back a null if there is an authentication-related error.  Trying again seems to fix it, not sure why.
 			SpreadsheetManager.Read (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), LoadSettingsFromSheetsCallback);  // The M column has the Dates
 

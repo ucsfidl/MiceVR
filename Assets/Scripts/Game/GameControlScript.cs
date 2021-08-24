@@ -1698,7 +1698,7 @@ public class GameControlScript : MonoBehaviour
         Debug.Log("quitting!");
 		this.udpSender.close();
 
-		if (DateTime.Compare(Globals.gameStartTime, DateTime.MinValue) != 0 && !Globals.mouseName.Equals("")) {  // Only record stats if the game has started and a mouseName was specified, otherwise just exit
+		if (DateTime.Compare(Globals.gameStartTime, DateTime.MinValue) != 0) {  // Only record stats if the game has started, otherwise just exit
 			Globals.WriteStatsFile ();  // make sure before WriteStatsToGoogleSheet();
 			WriteStatsToGoogleSheet ();  // sometimes fails due to bad internet connection?  
 		} else {
@@ -1723,12 +1723,9 @@ public class GameControlScript : MonoBehaviour
 		}
 	}
 
-	public static void WriteStatsToGoogleSheetCallback(GstuSpreadSheet spreadsheet, int respCode) {
-		if (respCode == 401) {  // I pass back a null if there is an authentication-related error.  Trying again seems to fix it, not sure why.
+	public static void WriteStatsToGoogleSheetCallback(GstuSpreadSheet spreadsheet) {
+		if (spreadsheet == null) {  // I pass back a null if there is an authentication-related error.  Trying again seems to fix it, not sure why.
 			SpreadsheetManager.Read (new GSTU_Search (Globals.vrGoogleSheetsID, Globals.mouseName, "A1", "X700"), WriteStatsToGoogleSheetCallback);  // The M column has the Dates
-			return;
-		} else if (respCode == 400) {  // Mouse not found in sheet, so just exit instead of trying to write
-			Application.Quit ();
 			return;
 		}
 		Debug.Log ("Got write callback");
