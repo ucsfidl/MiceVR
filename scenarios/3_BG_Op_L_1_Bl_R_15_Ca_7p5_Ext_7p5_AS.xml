@@ -19,6 +19,7 @@
 			<correctionTrials>true</correctionTrials>  <!-- correction trials are NOT counted in any statistical calculations; correction trials will only occur on non-opto trials -->
 			<catchFreq>0.075</catchFreq>  <!-- catch trials always only get 1 opto per type (1 L and 1 R) / same for extinction -->
 			<extinctFreq>0.075</extinctFreq> 
+			<presoFracSpecified>true</presoFracSpecified>
 		</gameConfig>
 	</config>
 	<worlds>

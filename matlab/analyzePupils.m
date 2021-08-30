@@ -42,13 +42,8 @@ fps = 60;
 timeDivider = 60*60; % time scale in minutes
 scatterStepSize = 1;  % >= 1; e.g. 100 means 1 in 100 frames are used to plot pupil and CR positions (or 1% sampling).
 
-rigPxPerMm = [42 38;       % rig 1
-             59.3 63.9;    % rig 2
-             57 49;        % rig 3
-             60.4 64.8;    % rig 4 - updated 1/2/21
-             51.48 52.52;  % rig 5 - updated 7/19/21
-             60.09 62.24;]; % rig 6 - updated 8/23/21
-             
+rigPxPerMm = loadRigPxPerMm();
+
 if (rig > 0 && isempty(pxPerMm))
     pxPerMm = rigPxPerMm(rig, :);
     disp(['USING STORED RIG CALIBRATION = ' num2str(pxPerMm)]);
