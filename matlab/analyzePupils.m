@@ -380,7 +380,7 @@ if (useEyeMeasurements && isKey(mouseToRpLine, mouseName))
     disp(['yintercept = ' num2str(yint)]);
 else  % If nothing found, use the values from Stahl 2002
     slope = [-0.142 -0.142];
-    yint = [1.055 1.055];
+    yint = [0.9 0.9];  % old defaults from paper: [1.055 1.055]
     disp('Eye measurements NOT FOUND, so using default values');
 end
 Rp(:,:,1) = slope(1)*majorAxisMm(:,:,1) + yint(1);

@@ -1,4 +1,4 @@
-function trackPupilsAuto(mouseName, day, rig, vLeftNum, vRightNum, startingOtsuWeights)
+function trackPupilsAuto(mouseName, day, rig, startingOtsuWeights)
 % This is a wrapper of the trackPupils function that will try to find the best otsuWeight parameter, that is,
 % the one that minimizes (a) the overall pupil movement, and (b) the number of frames without a 
 % pupil detected.  Large "pupil" movements and many frames without pupil tracked is indicative of poor tracking, 
@@ -28,6 +28,13 @@ currentOtsuWeights = startingOtsuWeights;
 
 leftEyeFractions = nan(numOtsuSteps(1), 2);  % movementFraction, untrackedFramesFraction
 rightEyeFractions = nan(numOtsuSteps(2), 2);
+
+vLeftNum = 1;
+vRightNum = 2;
+if (rig == 1)
+    vLeftNum = 2;
+    vRightNum = 1;
+end
 
 if (day < 10)
     dayStr = ['00' num2str(day)];
