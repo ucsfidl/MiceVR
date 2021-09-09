@@ -124,7 +124,7 @@ for d_i=1:length(days)  % Iterate through all of the specified days
 
     % Extract the scenario name from the replay filename, which will be used to open the correct actions file, though thi is probably not necessary
     expr = [mouseName '-D' dayStr '-([^-]+)-S([^-]+)-'];
-    tokens = regexp(replaysFileList(1).name, expr, 'tokens');
+    tokens = regexpi(replaysFileList(1).name, expr, 'tokens');
     scenarioName = tokens{1}{1};
     sessionNum = tokens{1}{2};
 

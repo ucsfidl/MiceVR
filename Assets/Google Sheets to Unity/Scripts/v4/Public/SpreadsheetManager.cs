@@ -5,7 +5,7 @@ using GoogleSheetsToUnity.ThirdPary;
 using TinyJSON;
 using UnityEngine;
 
-public delegate void OnSpreedSheetLoaded(GstuSpreadSheet sheet);
+public delegate void OnSpreedSheetLoaded(GstuSpreadSheet sheet, int respCode);
 namespace GoogleSheetsToUnity
 {
     /// <summary>
@@ -82,7 +82,7 @@ namespace GoogleSheetsToUnity
 
             if (callback != null)
             {
-                callback(spreadSheet);
+                callback(spreadSheet, 200);
             }
         }
     }
