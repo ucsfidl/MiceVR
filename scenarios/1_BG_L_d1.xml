@@ -59,7 +59,7 @@
 					<scale>2;0;15</scale>
 				</wall>
 				<wall> <!-- Back wall -->
-					<pos>20000;0.5;20010</pos>
+					<pos>20000;0.5;20013</pos>
 					<rot>0;270;0</rot>
 					<scale>2;0;15</scale>
 				</wall>
