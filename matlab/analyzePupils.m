@@ -49,7 +49,7 @@ if (rig > 0 && isempty(pxPerMm))
     disp(['USING STORED RIG CALIBRATION = ' num2str(pxPerMm)]);
 end
 
-actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
+actionsFolder = getActionsFolder();
 
 eyeMeasureFileName = 'UCB_mouse_eye_measurements.m';
 run(eyeMeasureFileName);  % Bring those variables into the current workspace
