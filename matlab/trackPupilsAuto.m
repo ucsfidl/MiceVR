@@ -11,7 +11,7 @@ stepSize = 0.02;
 frameLimPrelim = [1 1000];
 crPresent = [1 1];
 frameLimFull = [1 0];
-maxOtsuWeight = 0.5;
+maxOtsuWeight = 0.6;
 
 numOtsuSteps = [floor((maxOtsuWeight - startingOtsuWeights(1)) / stepSize); ...
             floor((maxOtsuWeight - startingOtsuWeights(2)) / stepSize)];

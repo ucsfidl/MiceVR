@@ -31,9 +31,9 @@ denoiseBallMovement = 1;
 trialTypeStrArr = [];
 
 %%% CHANGE THESE VARS FOR YOUR SETUP PRIOR TO RUNNING %%%
-scenariosFolder = 'C:\Users\nikhi\Documents\GitHub\MiceVR\scenarios\';
-actionsFolder = 'C:\Users\nikhi\UCB\data-actions\';
-replaysFolder = 'C:\Users\nikhi\UCB\data-replays\';
+scenariosFolder = getScenariosFolder();
+actionsFolder = getActionsFolder();
+replaysFolder = getReplaysFolder();
 eyevideosFolder = [pwd '\'];
 
 actLineFormat = getActionLineFormat();
