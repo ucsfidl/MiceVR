@@ -10,7 +10,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-// This class is used to control the Arduino to dispense water and trigger camera frames
 public class UDPSend : MonoBehaviour
 {
     // "connection" things
@@ -19,18 +18,19 @@ public class UDPSend : MonoBehaviour
 
     private string USBPort;  // Set in the config file
     private SerialPort usbWriter;
-    private string singleDrop;
-    private string singleFlush;
+	private string singleDrop;
+	private string singleFlush;
 
-	private char msgTerminator = '\n';
 
     // start from unity3d
-    void Awake() {
+    void Awake()
+    {
         init();
     }
 
     // init
-    public void init() {
+    public void init()
+    {
         if (!Directory.Exists(PlayerPrefs.GetString("configFolder")))
             Debug.Log("No config file");
 
@@ -46,9 +46,10 @@ public class UDPSend : MonoBehaviour
         string inWater = "";
         string inDry = "";
         string inWall = "";
-        string lickMessage = "";
+		string lickMessage = "";
 
-        foreach (XmlNode xn in udpConfigList) {
+        foreach (XmlNode xn in udpConfigList)
+        {
             waterReward = xn["waterReward"].InnerText;
             syncMessage = xn["syncMessage"].InnerText;
             mousePos = xn["mousePos"].InnerText;
@@ -68,245 +69,292 @@ public class UDPSend : MonoBehaviour
         inDryREP = new IPEndPoint(IPAddress.Parse(inDry.Split(';')[1]), int.Parse(inDry.Split(';')[0]));
         inWallREP = new IPEndPoint(IPAddress.Parse(inWall.Split(';')[1]), int.Parse(inWall.Split(';')[0]));
         client = new UdpClient();
-        this.usbWriter = new SerialPort(this.USBPort, 2000000);  // Normally this is 9600, but bumped up to 2 Mbps because that solved a camera triggering and not getting water issue.  Now that I am sending \n terminators I think this can be set back to 9600.
+        this.usbWriter = new SerialPort(this.USBPort, 9600);
 		this.usbWriter.ReadTimeout = 1;
-		//this.usbWriter.WriteTimeout = 1;
-    }
+		this.usbWriter.Parity = Parity.None;
+		this.usbWriter.StopBits = StopBits.One;
+		this.usbWriter.DataBits = 8;
+		this.usbWriter.Handshake = Handshake.None;
+		this.usbWriter.RtsEnable = true;
+		this.usbWriter.DtrEnable = true;
+		this.usbWriter.DataReceived += new SerialDataReceivedEventHandler(DataReceivedEventHandler);
+		this.usbWriter.ErrorReceived += new SerialErrorReceivedEventHandler (usb_ErrorReceived);
+		this.usbWriter.Open();
 
-    public void close() {
-		if (this.usbWriter.IsOpen) {
-			this.usbWriter.Close ();
-		}
     }
-
-    public void setAmount(int sD) {
-        this.singleDrop = sD.ToString();
-        this.singleFlush = (sD * 100).ToString();
-    }
-
+	public void close()
+	{
+		if (this.usbWriter.IsOpen)
+			this.usbWriter.Close();
+	}
+	public void setAmount(int sD)
+	{
+		this.singleDrop = sD.ToString();
+		this.singleFlush = (sD * 100).ToString ();
+	}
     // inputFromConsole
-    private void inputFromConsole() {
-        try {
+    private void inputFromConsole()
+    {
+        try
+        {
             string text;
-            do {
+            do
+            {
                 text = Console.ReadLine();
 
-                if (text != "") {
+                if (text != "")
+                {
                     byte[] data = Encoding.UTF8.GetBytes(text);
                     client.Send(data, data.Length, remoteEndPoint);
                 }
             } while (text != "");
         }
-        catch (Exception err) {
+        catch (Exception err)
+        {
             Debug.Log(err.ToString());
         }
+
     }
 
-    // sendData - NOT USED
-    public void sendString(string message) {
-        try {
+    // sendData
+    public void sendString(string message)
+    {
+        try
+        {
             byte[] data = Encoding.UTF8.GetBytes(message);
             client.Send(data, data.Length, remoteEndPoint);
         }
-        catch (Exception err) {
+        catch (Exception err)
+        {
             Debug.Log(err.ToString());
         }
     }
 
-	// NOT USED
-    public void SendInt(int msg) {
-        try {
+    public void SendInt(int msg)
+    {
+        try
+        {
             byte[] data = BitConverter.GetBytes(msg);
             client.Send(data, data.Length, remoteEndPoint);
-        } catch (Exception err) {
+        }
+        catch (Exception err)
+        {
             Debug.Log(err.ToString());
         }
     }
 
-	// THESE are the main commands: SendWaterReward & SendFrameTrigger & Opto controls
-    public void SendWaterReward(int amount) {
+    public void SendWaterReward(int amount)
+    {
+		//Debug.Log ("Send Reward Called");
         int msg = amount;
-        try {
+        try
+        {
             byte[] data = BitConverter.GetBytes(msg);
             client.Send(data, data.Length, waterRewardREP);
 
-			SendIntMsg(msg);
-        } catch (Exception err) {
+            if (!this.usbWriter.IsOpen)
+                this.usbWriter.Open();
+
+            this.usbWriter.Write(amount.ToString());
+            //this.usbWriter.Close();
+			Debug.Log("Water Reward Output");
+        }
+        catch (Exception err)
+        {
             Debug.Log(err.ToString());
         }
     }
 
-	public void SendFrameTrigger() {
-		int msg = -3;
-		SendIntMsg(msg);
-	}
-
-	public void OptoTurnOn (int side) {
-		int msg = 0;
-		if (side == Globals.optoOff) {
-			Debug.Log ("Turned on opto " + side);
-			return;
-		} else if (side == 0) { // left side
-			msg = -4;
-		} else if (side == 1) { // right side
-			msg = -5;
-		} else if (side == 2) { // both sides
-			msg = -6;
-		}
-		SendIntMsg(msg);
-		Debug.Log ("Turned on opto " + side);
-	}
-
-	public void OptoTurnOffAll() {
-		int msg = -7;
-		SendIntMsg (msg);
-		Debug.Log ("Turned off opto");
-	}
-
-	private void SendIntMsg(int msg) {
-		try {
-			if (!this.usbWriter.IsOpen)
-				this.usbWriter.Open();
-
-			this.usbWriter.Write(msg.ToString() + msgTerminator);
-			if (msg > 0)
-				Debug.Log(msg.ToString());
-		} catch (Exception err) {
-			//Debug.Log(err.ToString());  // fills up debug log when no cameras connected
-		}
-	}
-
-	public bool CheckReward() {	
-		string ardmsg = "";
-		try {
+	public bool CheckReward()
+	{	string ardmsg="";
+		try
+		{
 			if (!this.usbWriter.IsOpen)
 				this.usbWriter.Open();
 
 			//this.usbWriter.Close();
 			ardmsg = this.usbWriter.ReadLine();
+			Debug.Log(ardmsg);
 			if(ardmsg=="touch"){
 				return true;
 			}
 			return false;	
-		} catch (TimeoutException err) {
+			
+		}
+		catch (TimeoutException err) {
 			//do nothing, expected. 
 			return false;
-		} catch (Exception err) {
+		}
+		catch (Exception err)
+		{
 			return false;
 			Debug.Log(err.ToString());
 		}
 
 	}
-		
-    public void SendRunSync() {
+
+
+    public void SendRunSync()
+    {
         int msg = 1;
-        try {
+        try
+        {
             byte[] data = BitConverter.GetBytes(msg);
             client.Send(data, data.Length, syncMessageREP);
 
             if (!usbWriter.IsOpen)
                 usbWriter.Open();
 
-			usbWriter.Write("0" + msgTerminator);
+            usbWriter.Write("0");
             //usbWriter.Close();
-        } catch (Exception err) {
-            //Debug.Log(err.ToString());  // Fills up the log when no hardware connected to testing laptop
+        }
+        catch (Exception err)
+        {
+            Debug.Log(err.ToString());
         }
     }
 
-    public void SendMousePos(Vector3 pos) {
+    public void SendMousePos(Vector3 pos)
+    {
         string msg = pos.x + "," + pos.y + "," + pos.z;
 
-        try {
+        try
+        {
             byte[] data = Encoding.UTF8.GetBytes(msg);
             client.Send(data, data.Length, mousePosREP);
-        } catch (Exception err) {
+        }
+        catch (Exception err)
+        {
             Debug.Log(err.ToString());
         }
     }
 
-    public void SendMouseRot(float angle) {
+    public void SendMouseRot(float angle)
+    {
         float msg = angle;
-        try {
+        try
+        {
             byte[] data = BitConverter.GetBytes(msg);
             client.Send(data, data.Length, mouseRotREP);
-        } catch (Exception err) {
+        }
+        catch (Exception err)
+        {
             Debug.Log(err.ToString());
         }
     }
 
-    public void SendInWater() {
+    public void SendInWater()
+    {
         int msg = 1;
-		Debug.Log ("SendInWater");
-        try {
+        try
+        {
             byte[] data = BitConverter.GetBytes(msg);
             client.Send(data, data.Length, inWaterREP);
-        } catch (Exception err) {
+        }
+        catch (Exception err)
+        {
             Debug.Log(err.ToString());
         }
     }
 
-    public void SendInDry() {
+    public void SendInDry()
+    {
         int msg = 1;
-        try {
+        try
+        {
             byte[] data = BitConverter.GetBytes(msg);
             client.Send(data, data.Length, inDryREP);
-        } catch (Exception err) {
+        }
+        catch (Exception err)
+        {
             Debug.Log(err.ToString());
         }
     }
 
-    public void SendInWall() {
+    public void SendInWall()
+    {
         int msg = 1;
-        try {
+        try
+        {
             byte[] data = BitConverter.GetBytes(msg);
             client.Send(data, data.Length, inWallREP);
-        } catch (Exception err) {
+        }
+        catch (Exception err)
+        {
             Debug.Log(err.ToString());
         }
     }
 
     // endless test
-    private void sendEndless(string testStr) {
-        do {
+    private void sendEndless(string testStr)
+    {
+        do
+        {
             sendString(testStr);
-        } while (true);
+        }
+        while (true);
     }
 
-    public void FlushWater() {
-        try {
+    public void FlushWater()
+    {
+        try
+        {
             if (!usbWriter.IsOpen)
                 usbWriter.Open();
 
-			usbWriter.Write(this.singleFlush + msgTerminator);
+			usbWriter.Write(this.singleFlush);
             //usbWriter.Close();
-        } catch (Exception) {
+        }
+        catch (Exception)
+        {
             Debug.Log("com port failed");
         }
     }
 
-    public void SingleDrop() {
-        try {
+    public void SingleDrop()
+    {
+        try
+        {
             if (!usbWriter.IsOpen)
                 usbWriter.Open();
 
-			usbWriter.Write(this.singleDrop + msgTerminator);
-            usbWriter.Close();
-        } catch (Exception) {
+			usbWriter.Write(this.singleDrop);
+            //usbWriter.Close();
+        }
+        catch (Exception)
+        {
             Debug.Log("com port failed");
         }
     }
 
-    public void ForceStopSolenoid() {
-        try {
+    public void ForceStopSolenoid()
+    {
+        try
+        {
             if (!usbWriter.IsOpen)
                 usbWriter.Open();
 
-			usbWriter.Write("0" + msgTerminator);
-            usbWriter.Close();
-        }  catch (Exception) {
+            usbWriter.Write("-2");
+            //usbWriter.Close();
+        }
+        catch (Exception)
+        {
             Debug.Log("com port failed");
         }
     }
+	private static void DataReceivedEventHandler(object sender, SerialDataReceivedEventArgs e)
+	{
+		//SerialPort sp = (SerialPort)sender;
+		//string indata = sp.ReadExisting();
+		Debug.Log("Data Received:");
+		//Debug.Log(indata);
+	}
+	private static void usb_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
+	{
+		//SerialPort sp = (SerialPort)sender;
+		//string indata = sp.ReadExisting();
+		Debug.Log("Error Received:");
+		//Debug.Log(indata);
+	}
 }
 
